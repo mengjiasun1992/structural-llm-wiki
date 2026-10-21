@@ -87,6 +87,10 @@ class Publish(helpers.WikiTestCase):
         body = self.read_state('pr.md')
         self.assertLess(body.index('## Sources'), body.index('## Narrative'))  # steps in pipeline order
         self.assertIn('summaries: ingest, narrative; pull request: https://github.com/o/r/pull/7', self.pub('status').out)
+        helpers.git(self.root, 'switch', '-q', 'mainline')
+        self.pub('start', 'beta-cache', '--title', 'Beta?', '--prompt', 'p')  # the next run starts clean
+        self.assertIn('summaries: none; pull request: not opened yet', self.pub('status').out)
+        self.assertFalse(os.path.exists(os.path.join(self.root, '.git', 'sllmwiki', 'pr.md')))
 
     def read_state(self, name):
         with open(os.path.join(self.root, '.git', 'sllmwiki', name), encoding='utf-8') as f:

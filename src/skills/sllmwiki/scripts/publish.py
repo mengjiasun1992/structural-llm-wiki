@@ -29,6 +29,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 
@@ -113,6 +114,9 @@ def start(root, slug, title, prompt):
             cli.fail(f'your {base} has commits origin/{base} doesn\'t; sort that out first (a clone made before a rename?)')
         git(root, 'switch', '--quiet', '-C', base, f'origin/{base}')
     git(root, 'switch', '--quiet', '-c', branch, base)
+    shutil.rmtree(os.path.join(state_dir(root), 'summaries'), ignore_errors=True)  # an earlier run's, never this one's
+    if os.path.exists(os.path.join(state_dir(root), 'pr.md')):
+        os.remove(os.path.join(state_dir(root), 'pr.md'))
     save_state(root, {'slug': slug, 'branch': branch, 'base': base, 'title': title, 'prompt': prompt, 'pr': None})
     print(f'started {branch} from {"origin/" if has_remote(root) else ""}{base}')
 
