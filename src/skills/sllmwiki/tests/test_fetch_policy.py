@@ -37,6 +37,31 @@ class Fetch(unittest.TestCase):
             fetch.fetch('http://127.0.0.1:1/unreachable', timeout=2)
         self.assertIn('127.0.0.1:1', str(e.exception))
 
+    def test_a_rate_limited_fetch_is_retried(self):
+        routes = {'/busy': (429, {}, b''), '/later': (429, {'Retry-After': '5'}, b''), '/tomorrow': (429, {'Retry-After': '86400'}, b'')}
+        waits = []
+
+        def sleep(seconds):
+            waits.append(seconds)
+            if len(waits) == 2:
+                routes['/busy'] = (200, {'Content-Type': 'text/plain'}, b'ok')  # the server recovers after two waits
+        with helpers.LocalServer(routes) as s, mock.patch.object(fetch, 'sleep', sleep):
+            self.assertEqual(fetch.fetch(s.url('/busy')).data, b'ok')
+            self.assertTrue(1 <= waits[0] <= 2 and 2 <= waits[1] <= 4, waits)  # exponential, with jitter
+            waits.clear()
+            with self.assertRaises(fetch.FetchError) as e:
+                fetch.fetch(s.url('/later'))
+            self.assertIn('HTTP 429: rate limited, 3 retries later still refused', str(e.exception))
+            self.assertEqual(len(waits), 3)
+            self.assertTrue(all(w >= 5 for w in waits), waits)  # Retry-After honored when longer
+            waits.clear()
+            with self.assertRaises(fetch.FetchError) as e:
+                fetch.fetch(s.url('/tomorrow'))
+            self.assertIn('0 retries later', str(e.exception))  # a day is more than it waits
+            self.assertEqual(waits, [])
+        self.assertIsNone(fetch.wait_for(0, '61'))
+        self.assertLessEqual(fetch.wait_for(0, 'Wed, 21 Oct 2026 07:28:00 GMT'), 2)  # an HTTP date is ignored: backoff alone
+
     def test_too_large(self):
         with mock.patch.object(fetch, 'MAX_BYTES', 4), helpers.LocalServer({'/big': (200, {}, b'0123456789')}) as s:
             with self.assertRaises(fetch.FetchError) as e:
