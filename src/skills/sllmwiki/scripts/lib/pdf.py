@@ -609,7 +609,13 @@ def _clean(text):
 
 
 def _join(runs):
-    """Runs of text into lines: the same baseline continues a line, with a space for a gap."""
+    """Runs of text into lines: the same baseline continues a line, with a space for a gap.
+    In letter-spaced text (runs of one or two letters), a run of spaces the next run
+    draws back over isn't a space."""
+    runs = [r for i, r in enumerate(runs) if not (not r[4].strip() and 0 < i < len(runs) - 1
+                                                   and len(runs[i - 1][4].strip()) <= 2 and len(runs[i + 1][4].strip()) <= 2
+                                                   and abs(runs[i + 1][0] - r[0]) <= 0.5 * (r[3] or 1)
+                                                   and runs[i + 1][1] < (r[1] + r[2]) / 2)]
     lines = []
     for y, x0, x1, size, text in runs:
         size = size or 1

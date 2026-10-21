@@ -25,6 +25,11 @@ class Text(unittest.TestCase):
         page = b'BT /F1 10 Tf 72 700 Td (Hello) Tj 40 0 Td (world) Tj ET BT /F1 10 Tf 72 680 Td [(Ker) -30 (ned) -400 (words)] TJ ET'
         self.assertIn('Hello world\nKerned words', md(pdfmaker.make([page])))
 
+    def test_letter_spaced_words_stay_whole(self):
+        page = (b'BT /F1 10 Tf 72 700 Td [(Wi) ( ) 480 (t) ( ) 480 (h) ( ) 480 (in)] TJ ET '
+                b'BT /F1 10 Tf 72 680 Td [(copy) ( ) 300 ([D]) ( ) (a) ( ) (b)] TJ ET')
+        self.assertIn('Within\ncopy [D] a b\n', md(pdfmaker.make([page])))
+
     def test_text_operators(self):
         page = (b'BT 72 760 Td (no font) Tj ET q 1 0 0 1 0 -100 cm BT /F1 12 Tf 14 TL 2 Tc 1 Tw 100 Tz 1 0 0 1 72 700 Tm (one) Tj T* (two) Tj '
                 b'(three) \' 3 0 (four) " 0 -14 TD (five) Tj ET Q '
