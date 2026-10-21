@@ -1,5 +1,6 @@
 ---
-description: "Set up a wiki repository, or bring its layout up to date"
+description: "Set up this repository as a Structural LLM Wiki, or refresh it"
+argument-hint: "[repository name]"
 ---
 
-Run the sllmwiki `init` workflow.
+Use the sllmwiki skill: follow its `workflows/init.md`. Repository name, if given: $ARGUMENTS

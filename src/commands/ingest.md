@@ -1,5 +1,6 @@
 ---
-description: "Find, save and record sources verbatim"
+description: "Save sources for some tags, or refresh changed ones"
+argument-hint: "<tags> <what to look for>"
 ---
 
-Run the sllmwiki `ingest` step.
+Use the sllmwiki skill: follow its `steps/ingest.md` for: $ARGUMENTS

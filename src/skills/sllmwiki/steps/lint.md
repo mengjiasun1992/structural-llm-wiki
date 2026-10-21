@@ -1,3 +1,3 @@
 # lint
 
-Check narratives against their sources, the code and each other (design §7.3).
+Not available yet: checking narratives against their sources arrives in a later release. Until then, run `narrative-format.py` and `wiki-check.py`, which check what a script can.

@@ -1,5 +1,6 @@
 ---
-description: "Use knowledge: answer from the smallest thing that answers"
+description: "Answer a question from the wiki's existing knowledge, citing it"
+argument-hint: "<question>"
 ---
 
-Run the sllmwiki `query` workflow.
+Use the sllmwiki skill: follow its `workflows/query.md` to answer: $ARGUMENTS
