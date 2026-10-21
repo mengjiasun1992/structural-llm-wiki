@@ -322,8 +322,11 @@ def resume(root, slug):
     if os.path.isfile(os.path.join(run_dir(root, slug), 'run.json')):
         write_text(os.path.join(state_dir(root), 'current'), slug)
         state, how = load_state(root), ''
+        state.pop('cost', None)
     else:
         state, how = rebuild(root, slug, branch), ' (its state rebuilt from the branch and pull request)'
+    state['started'] = runstats.now().isoformat()  # a rework's Run section times the rework, not the first run
+    save_state(root, state)
     print(f'on {branch}{how}; pull request: {state.get("pr") or "not opened yet"}')
 
 

@@ -111,6 +111,9 @@ class Publish(helpers.WikiTestCase):
         r = self.pub('resume', 'alpha-retries')  # back to the earlier run, its summaries kept
         self.assertEqual(r.out, 'on sllmwiki/alpha-retries; pull request: https://github.com/o/r/pull/7\n')
         self.assertIn('summaries: ingest, narrative.why-b, narrative.why-a', self.pub('status').out)
+        state = json.loads(self.read_state('run.json'))
+        self.assertNotIn('cost', state)  # a rework's own figures, not the first run's
+        self.assertGreater(state['started'], '2026')
 
     def state_path(self, name, slug='alpha-retries'):
         return os.path.join(self.root, '.git', 'sllmwiki', 'runs', slug, name)
