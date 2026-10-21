@@ -21,6 +21,29 @@ def text(*lines, font=b'F1', size=12):
     return b'\n'.join(out)
 
 
+def lzw(data, early=1):
+    """data LZW-compressed as a PDF's LZWDecode reads it (no table resets: keep inputs under 3,800 bytes)."""
+    table, n, width, codes, w = {bytes([i]): i for i in range(256)}, 0, 9, [(256, 9)], b''
+    for byte in data:
+        if w + bytes([byte]) in table:
+            w += bytes([byte])
+            continue
+        codes.append((table[w], width))
+        table[w + bytes([byte])] = 258 + len(table) - 256
+        n, w = n + 1, bytes([byte])
+        if 258 + n - 1 + early >= (1 << width) and width < 12:
+            width += 1
+    if w:
+        codes.append((table[w], width))
+        n += 1
+        if 258 + n - 1 + early >= (1 << width) and width < 12:
+            width += 1
+    codes.append((257, width))
+    bits = ''.join(format(c, f'0{size}b') for c, size in codes)
+    bits += '0' * (-len(bits) % 8)
+    return bytes(int(bits[i:i + 8], 2) for i in range(0, len(bits), 8))
+
+
 class _Writer:
     def __init__(self):
         self.objects = {}

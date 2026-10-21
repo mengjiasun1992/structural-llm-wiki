@@ -99,10 +99,22 @@ class Structure(unittest.TestCase):
         for name, raw in ((b'/ASCIIHexDecode', page.hex().encode() + b'>'), (b'[/ASCII85Decode]', b'<~' + base64.a85encode(page) + b'~>'),
                           (b'[/ASCII85Decode /FlateDecode]', base64.a85encode(zlib.compress(page)) + b'~>')):
             self.assertIn('Hex', md(pdfmaker.make([page], stream_filters=(name, raw))))
-        bad = (b'/ASCII85Decode', b'zz~>'), (b'/LZWDecode', b'x'), (b'/FlateDecode', b'not zlib')
+        bad = (b'/ASCII85Decode', b'zz~>'), (b'/RunLengthDecode', b'x'), (b'/FlateDecode', b'not zlib')
         for f in bad:
             with self.assertRaises(pdf.PdfError):
                 pdf.read(pdfmaker.make([page], stream_filters=f))
+
+    def test_lzw(self):
+        sample = bytes((i * 7 + i // 13) % 251 for i in range(3000)) + b'abcabcabcabc' * 40
+        for early in (1, 0):
+            self.assertEqual(pdf.lzw_decode(pdfmaker.lzw(sample, early), early), sample)
+        page = text((72, 700, b'Old paper'))
+        self.assertIn('Old paper', md(pdfmaker.make([page], stream_filters=(b'/LZWDecode', pdfmaker.lzw(page)))))
+        params = (b'/LZWDecode /DecodeParms << /EarlyChange 0 >>', pdfmaker.lzw(page, 0))
+        self.assertIn('Old paper', md(pdfmaker.make([page], stream_filters=params)))
+        self.assertEqual(pdf.lzw_decode(b''), b'')
+        with self.assertRaises(pdf.PdfError):
+            pdf.read(pdfmaker.make([page], stream_filters=(b'/LZWDecode', b'\xff\xff\xff\xff')))
 
     def test_a_later_revision_wins_and_a_stream_length_by_reference(self):
         data = pdfmaker.make([text((72, 700, b'Old'))], compress=False)
@@ -149,7 +161,7 @@ class Refusals(unittest.TestCase):
             6: b'<< /First 7 0 R >>',
             7: b'<< /Title (Kept) /Dest /d /Next 8 0 R >>',
             8: b'<< /Title (Nowhere) /Dest [] /Next 11 0 R /First 12 0 R >>',
-            9: b'<< /Filter /LZWDecode /Length 1 >>\nstream\nx\nendstream',
+            9: b'<< /Filter /RunLengthDecode /Length 1 >>\nstream\nx\nendstream',
             10: b'<< /W [1 [500] 2 3] >>',
             11: b'<< /Title (Loop) /Dest [3 0 R /Fit] /Next 11 0 R >>',
             12: b'(not a dictionary)',
