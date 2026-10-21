@@ -28,7 +28,7 @@ This document covers the architecture and the decisions behind it. The skill's f
 
 - **The wiki is a dedicated git repository.** Git provides history, review and rollback.
 - **Sources are ground truth.** Sources are saved verbatim (§4.3) and never summarized or edited. Narratives are built from them and checked against them.
-- **Every claim is traceable.** A claim in a narrative cites a section of a saved source with a numbered link (`claim. [\[3\]](../ingested/<file>.md#<section>)`, brackets escaped so Obsidian doesn't read `[[3]]` as a wikilink), or is marked as the narrative's own reasoning (`[sllmwiki_reasoning]`) or as a gap the sources don't answer (`[sllmwiki_gap]`).
+- **Every claim is traceable.** A claim in a narrative cites a section of a saved source with a numbered link (`claim. [\[3\]](../sources/<file>.md#<section>)`, brackets escaped so Obsidian doesn't read `[[3]]` as a wikilink), or is marked as the narrative's own reasoning (`[sllmwiki_reasoning]`) or as a gap the sources don't answer (`[sllmwiki_gap]`).
 - **The question drives the run.** Tags, sources and the reading plan are chosen for the questions asked, not for a topic in general, so nothing is collected that no answer uses.
 - **Runs are unattended; review happens on one pull request.** A run takes its questions at the start and doesn't pause; what it can't decide goes to the top of its pull request. The owner reviews, ticks the review checklist and merges.
 - **Build on what exists.** One narrative per question. Before writing, look for a narrative that already covers it, and reuse or expand it (§7.4).
@@ -90,9 +90,9 @@ sllmwiki/
     ├── tags/
     │   ├── tags.yaml         # the tag tree
     │   └── <tag>.md          # generated: a page per tag
-    ├── ingested/             # sources, saved verbatim
+    ├── sources/              # sources, saved verbatim
     │   └── manifest.yaml
-    └── groomed/              # narratives, one per question
+    └── narratives/           # narratives, one per question
         └── manifest.yaml
 ```
 
@@ -128,7 +128,7 @@ A tag stores only its description, its parent and its SMEs. Its children, source
 
 **Schema.** `tags.yaml` and both manifests have a schema (`lib/schema.py`): each field's kind, whether it is required, and rules across fields. `wiki-check` reports missing, unknown (with a did-you-mean hint), mistyped and invalid fields as errors, so the wiki's CI fails the pull request.
 
-### 4.3 Sources and `ingested/manifest.yaml`
+### 4.3 Sources and `sources/manifest.yaml`
 
 A source is saved as the most faithful text that can be checked:
 
@@ -143,7 +143,7 @@ Each saved file ends with a generated "Original source" footer (its URL and lice
 
 ```yaml
 gateway-design-doc:
-  file: ingested/gateway-design-doc.md     # absent for a link
+  file: sources/gateway-design-doc.md      # absent for a link
   kind: html
   url: https://docs.example.com/gateway/design
   published: "2026-07-13"                  # the source's own date, when it has one
@@ -156,7 +156,7 @@ gateway-design-doc:
 
 The file's size and hash are read from the file. A source is **stale** when `check-upstream` fetches it again and the content differs from the saved copy; it is marked with `upstream_changed: "<date>"` until it is re-ingested. A large source is saved like any other and listed with its size in the run's pull request; reading by section (§6.1) keeps its size from mattering.
 
-### 4.4 Narratives and `groomed/manifest.yaml`
+### 4.4 Narratives and `narratives/manifest.yaml`
 
 ```yaml
 what-is-gateway:
@@ -172,7 +172,7 @@ The question (the title), the Abstract, the version and the dates live in the na
 
 ### 4.5 Narratives
 
-One question per file in `groomed/`; the question is the title, unchanged.
+One question per file in `narratives/`; the question is the title, unchanged.
 
 **Structure.** Every narrative has the same top and appendices, defined once in `templates/narratives/shared.md`: an **Abstract** (150–250 words), a **Terminology** table defining every term and acronym the reader needs before its first use, the body, then **SMEs**, **References** (sources read, code references, related narratives, citations) and **Metadata** (version, template, history). Every heading of level 2 to 4 is numbered (`## 1. Abstract`, `### 5.1 …`).
 
