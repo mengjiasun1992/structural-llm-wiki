@@ -122,7 +122,7 @@ class ReadingPlan(helpers.WikiTestCase):
         r = self.plan('order', '--primary', 'leaf-a', '--grades', g)
         self.assertEqual(r.code, 1)
         self.assertIn('alpha-doc: needs', r.err)
-        self.assertIn('alpha-doc: needs', self.plan('order', '--primary', 'leaf-a', '--grades', self.grades(['x'])).err)
+        self.assertIn('the grades must be a mapping', self.plan('order', '--primary', 'leaf-a', '--grades', self.grades(['x'])).err)
 
 
 if __name__ == '__main__':

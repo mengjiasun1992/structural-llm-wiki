@@ -38,6 +38,26 @@ def transcript(session_id=None, config_dir=None):
     return found[0] if found else None
 
 
+def model(path):
+    """The model of the session's latest reply, or None."""
+    if not path:
+        return None
+    found = None
+    try:
+        with open(path, encoding='utf-8') as f:
+            for line in f:
+                try:
+                    entry = json.loads(line)
+                except ValueError:
+                    continue
+                name = (entry.get('message') or {}).get('model') if isinstance(entry, dict) and entry.get('type') == 'assistant' else None
+                if isinstance(name, str) and name != '<synthetic>':  # <synthetic>: a reply the CLI wrote itself, such as an error
+                    found = name
+    except OSError:
+        return None
+    return found
+
+
 def usage(path, since):
     """{'turns', 'tokens_in', 'cached', 'tokens_out'} for the requests after since, or None if unreadable.
 

@@ -15,18 +15,19 @@ from .util import is_date
 SLUG = re.compile(r'[a-z0-9]+(?:-[a-z0-9]+)*\Z')
 TEMPLATE = re.compile(r'[a-z0-9][a-z0-9_-]*\Z')
 MD5 = re.compile(r'[0-9a-f]{32}\Z')
+VERSION = re.compile(r'[0-9]+\.[0-9]+\Z')
 URL = re.compile(r'https?://\S+\Z')
 KINDS = ('text', 'html', 'pdf', 'link')
 
 
 class Field:
     """kind: str, bool, date, slug, template, md5, url, enum, list, map,
-    struct. A list has an item Field; a map a value Field (its keys are slugs);
-    a struct its own fields."""
+    struct. A list has an item Field; a map a value Field (its keys are slugs,
+    or versions with versions=True); a struct its own fields."""
 
-    def __init__(self, kind, required=False, nullable=False, item=None, choices=None, fields=None, nonempty=False):
+    def __init__(self, kind, required=False, nullable=False, item=None, choices=None, fields=None, nonempty=False, versions=False):
         self.kind, self.required, self.nullable = kind, required, nullable
-        self.item, self.choices, self.fields, self.nonempty = item, choices, fields, nonempty
+        self.item, self.choices, self.fields, self.nonempty, self.versions = item, choices, fields, nonempty, versions
 
 
 SCHEMAS = {
@@ -56,6 +57,11 @@ SCHEMAS = {
             'supporting': Field('list', required=True, item=Field('slug')),
         }),
         'read': Field('map', required=True, item=Field('md5')),
+        'grades': Field('map', item=Field('struct', fields={  # the reading plan's grades (design doc §7.1)
+            'relevance': Field('enum', required=True, choices=('high', 'medium', 'low')),
+            'authority': Field('enum', required=True, choices=('A', 'B', 'C')),
+        })),
+        'models': Field('map', item=Field('str'), versions=True),  # the model that wrote each version
     },
 }
 
@@ -81,7 +87,9 @@ def _check(field, value, where, emit):
                 _check(field.item, v, f'{where}[{i}]', emit)
         elif k == 'map':
             for key, v in value.items():
-                if not SLUG.match(str(key)):
+                if field.versions and not VERSION.match(str(key)):
+                    emit('BAD_VALUE', where, f'{where} key {key!r} must be a version, such as 1.0')
+                elif not field.versions and not SLUG.match(str(key)):
                     emit('BAD_VALUE', where, f'{where} key {key!r} must be a kebab-case slug')
                 _check(field.item, v, f'{where}.{key}', emit)
         else:

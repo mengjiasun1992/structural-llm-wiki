@@ -169,15 +169,19 @@ what-is-gateway:
     supporting: [routing]
   read:                                    # the source versions the narrative was built from
     gateway-design-doc: 9f8e7d6c5b4a…      # MD5 of the saved file, without its footer
+  grades:                                  # the reading plan's grades (§7.1)
+    gateway-design-doc: {relevance: high, authority: A}
+  models:                                  # the model that wrote each version
+    '1.0': claude-opus-5-5
 ```
 
-The question (the title), the Abstract, the version and the dates live in the narrative and are read from it. When a source is re-ingested and its hash no longer matches a pin, `wiki-check` reports `NARRATIVE_SOURCE_CHANGED` for exactly the narratives that read it.
+The question (the title), the Abstract, the version and the dates live in the narrative and are read from it. The grades and models are the record behind the narrative's Model and Reading plan, which `finish-narrative` writes into its Metadata, so a reader sees what was read, in what order and why, and which model wrote it. When a source is re-ingested and its hash no longer matches a pin, `wiki-check` reports `NARRATIVE_SOURCE_CHANGED` for exactly the narratives that read it.
 
 ### 4.5 Narratives
 
 One question per file in `narratives/`; the question is the title, unchanged.
 
-**Structure.** Every narrative has the same top and appendices, defined once in `templates/narratives/shared.md`: an **Abstract** (150–250 words), a **Terminology** table defining every term and acronym the reader needs before its first use, the body, then **SMEs**, **References** (sources read, code references, related narratives, citations) and **Metadata** (version, template, history). Every heading of level 2 to 4 is numbered (`## 1. Abstract`, `### 5.1 …`).
+**Structure.** Every narrative has the same top and appendices, defined once in `templates/narratives/shared.md`: an **Abstract** (150–250 words), a **Terminology** table defining every term and acronym the reader needs before its first use, the body, then **SMEs**, **References** (sources read, code references, related narratives, citations) and **Metadata** (version, template, model, history, reading plan). Every heading of level 2 to 4 is numbered (`## 1. Abstract`, `### 5.1 …`).
 
 **Templates.** A template is a folder with `template.md` and `guide.md`. The skeleton is the schema: its headings are the required sections, in order; a heading ending in `(optional)` may be left out; a section holding a ` ```mermaid ` placeholder needs a diagram. A short YAML header gives `description`, `use_when`, `max_words` (the body's budget) and `abstract_words`. The guide (audience and purpose, voice and tone, structure, evidence, length, checklist) holds the style, and every template's guide is written for a reader new to the topic: the problem before the mechanism, prerequisites before use, a goal stated before each scenario, one notation throughout, rules of thumb for every parameter.
 
@@ -311,7 +315,7 @@ The answer cites what it read, flags a narrative built on a source that changed 
 
 ### 7.1 Reading once, in the right order
 
-`reading-plan.py <question-slug>` builds the narrative step's reading plan: the existing narratives on overlapping tags, then the primary and supporting tags' sources, each with its abstract and size. The agent grades each source's relevance (high, medium, low) and authority (A: the code, specs and standards, original papers or creators, official docs; B: textbooks and references; C: practitioner write-ups and encyclopedias), and the script orders the plan: narratives first, as background; then medium-relevance sources; high-relevance sources last; within each, least to most authoritative, then oldest to newest, so the newest, most authoritative material lands last, where attention is strongest. Low-relevance sources are read by abstract only; ancestor and adjacent tags aren't read. The plan goes to the pull request, so reviewers see what was read and what was skipped. Each source in it is read once.
+`reading-plan.py <question-slug>` builds the narrative step's reading plan: the existing narratives on overlapping tags, then the primary and supporting tags' sources, each with its abstract and size. The agent grades each source's relevance (high, medium, low) and authority (A: the code, specs and standards, original papers or creators, official docs; B: textbooks and references; C: practitioner write-ups and encyclopedias), and the script orders the plan: narratives first, as background; then medium-relevance sources; high-relevance sources last; within each, least to most authoritative, then oldest to newest, so the newest, most authoritative material lands last, where attention is strongest. Low-relevance sources are read by abstract only; ancestor and adjacent tags aren't read. The plan goes to the pull request, so reviewers see what was read and what was skipped, and into the narrative's Metadata, with its grades in the manifest (§4.4), so readers see it too and a later run starts from the grades. Each source in it is read once.
 
 ### 7.2 Staleness
 

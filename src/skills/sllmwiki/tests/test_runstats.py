@@ -59,6 +59,16 @@ class RunStats(unittest.TestCase):
         self.assertEqual(runstats.section(started)[3], '- Turns and tokens: no session transcript to read them from')
         self.assertIn('- Time: 4 min since the run started', runstats.section('2026-10-20T12:00:00', at=T0 + datetime.timedelta(minutes=4)))
 
+    def test_model(self):
+        self.assertIsNone(runstats.model(self.path))  # no reply names one
+        helpers.write(self.home, 'm.jsonl', '\n'.join([
+            json.dumps({'type': 'assistant', 'message': {'model': 'claude-opus-5-5'}}),
+            json.dumps({'type': 'assistant', 'message': {'model': '<synthetic>'}}),  # a reply the CLI wrote itself
+            '{not json', json.dumps({'type': 'user', 'message': {'model': 'x'}}), json.dumps([1])]))
+        self.assertEqual(runstats.model(os.path.join(self.home, 'm.jsonl')), 'claude-opus-5-5')
+        self.assertIsNone(runstats.model(None))
+        self.assertIsNone(runstats.model(os.path.join(self.home, 'gone.jsonl')))
+
     def test_parse_time(self):
         self.assertEqual(runstats.parse_time('2026-10-20T12:00:00Z'), T0)
         self.assertIsNone(runstats.parse_time(3))

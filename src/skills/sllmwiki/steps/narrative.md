@@ -23,7 +23,7 @@ Read in that order, each source once, and only what the plan says: whole sources
 
 ## 4. Finish
 
-1. Run `finish-narrative.py <slug> --primary <tags> --supporting <tags> --read <the slugs read in full>`.
+1. Run `finish-narrative.py <slug> --primary <tags> --supporting <tags> --read <the slugs read in full> --grades <file>`, with the grades file from step 3.
    - On an update, add `--bump minor --note "<what changed>"`, or `major` for a new answer.
 2. Fix every error it reports, by editing the narrative, then run it again until none are left.
 

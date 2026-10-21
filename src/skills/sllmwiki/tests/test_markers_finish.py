@@ -1,7 +1,9 @@
 """Tests for lib/markers.py and scripts/finish-narrative.py."""
 
 import json
+import os
 import unittest
+from unittest import mock
 
 import helpers
 from lib import manifest, markers, metadata
@@ -51,8 +53,53 @@ class Markers(unittest.TestCase):
 
 
 class Finish(helpers.WikiTestCase):
+    def setUp(self):
+        super().setUp()
+        env = mock.patch.dict(os.environ, {'CLAUDE_CODE_SESSION_ID': ''})  # never this test session's model
+        env.start()
+        self.addCleanup(env.stop)
+
     def finish(self, *argv):
         return helpers.run('finish-narrative.py', [*argv, '--root', self.root])
+
+    def grades(self, data):
+        return helpers.write(self.tmp, 'grades.json', json.dumps(data))
+
+    def test_the_reading_plan_and_the_model_are_recorded_and_shown(self):
+        g = self.grades({'alpha-doc': {'relevance': 'high', 'authority': 'A'}, 'beta-doc': {'relevance': 'medium', 'authority': 'C'},
+                         'elsewhere': {'relevance': 'low', 'authority': 'B'}})
+        r = self.finish('what-is-alpha', '--primary', 'leaf-a', '--supporting', 'leaf-b', '--grades', g, '--model', 'claude-opus-5-5',
+                        '--bump', 'minor', '--note', 'Read beta too.')
+        self.assertEqual(r.code, 0, r.out)
+        meta = metadata.read(self.read(NARRATIVE))
+        self.assertEqual(meta['model'], 'claude-opus-5-5')
+        self.assertEqual(meta['plan'], ['`beta-doc`, in full: medium relevance, authority C, 2026-09-02',  # the narrative itself isn't background
+                                        '`alpha-doc`, in full: high relevance, authority A, 2026-09-01',
+                                        '`gamma-link`, not read: a link, no saved copy'])
+        entry = manifest.load(self.root, 'narratives')['what-is-alpha']
+        self.assertEqual(entry['grades'], {'alpha-doc': {'relevance': 'high', 'authority': 'A'}, 'beta-doc': {'relevance': 'medium', 'authority': 'C'}})
+        self.assertEqual(entry['models'], {'1.1': 'claude-opus-5-5'})
+        r = self.finish('what-is-alpha')  # a rerun keeps both
+        self.assertEqual(r.code, 0, r.out)
+        self.assertEqual(manifest.load(self.root, 'narratives')['what-is-alpha'], entry)
+        self.assertEqual(len(metadata.read(self.read(NARRATIVE))['plan']), 3)
+
+    def test_the_model_comes_from_the_session(self):
+        session = helpers.write(self.tmp, 'claude/projects/-w/s-1.jsonl',
+                                json.dumps({'type': 'assistant', 'message': {'model': 'claude-fable-5-1'}}) + '\n')
+        self.assertTrue(session)
+        with mock.patch.dict(os.environ, {'CLAUDE_CODE_SESSION_ID': 's-1', 'CLAUDE_CONFIG_DIR': os.path.join(self.tmp, 'claude')}):
+            self.assertEqual(self.finish('what-is-alpha').code, 0)  # no new version: no model recorded
+            self.assertIsNone(metadata.read(self.read(NARRATIVE))['model'])
+            self.assertEqual(self.finish('what-is-alpha', '--bump', 'major', '--note', 'Rewritten.').code, 0)
+        self.assertEqual(metadata.read(self.read(NARRATIVE))['model'], 'claude-fable-5-1')
+        self.assertEqual(manifest.load(self.root, 'narratives')['what-is-alpha']['models'], {'2.0': 'claude-fable-5-1'})
+
+    def test_bad_grades_are_refused(self):
+        self.assertIn('can\'t read the grades', self.finish('what-is-alpha', '--grades', '/nope.json').err)
+        r = self.finish('what-is-alpha', '--grades', self.grades({'alpha-doc': {'relevance': 'high'}}))
+        self.assertEqual(r.code, 1)
+        self.assertIn('grade every saved source first: alpha-doc: needs', r.err)
 
     def test_a_new_narrative(self):
         text = helpers.narrative_text('How does beta caching work?', cites=(('beta-doc', 'beta'),),
