@@ -6,12 +6,16 @@ A page behind a login, a paywall or anti-bot protection is never worked around
 
 import os
 import re
+import ssl
 import urllib.error
 import urllib.request
 
 USER_AGENT = 'sllmwiki (+https://github.com/mengjiasun1992/structural-llm-wiki)'
 MAX_BYTES = 20 * 1024 * 1024
 BLOCKED = (401, 402, 403, 407, 429, 451)
+# The system's CA bundles, for a Python without its own (python.org's macOS
+# build, before its "Install Certificates" step): verification stays on.
+SYSTEM_CA = ('/etc/ssl/cert.pem', '/etc/ssl/certs/ca-certificates.crt', '/etc/pki/tls/certs/ca-bundle.crt')
 
 
 class FetchError(Exception):
@@ -23,13 +27,24 @@ class Response:
         self.url, self.status, self.content_type, self.data = url, status, content_type, data
 
 
+def tls_context(system_ca=SYSTEM_CA):
+    """Python's default TLS context, given the system's CA bundle when Python has none."""
+    context = ssl.create_default_context()
+    if not context.cert_store_stats()['x509_ca'] and not os.environ.get('SSL_CERT_FILE'):
+        for path in system_ca:
+            if os.path.isfile(path):
+                context.load_verify_locations(cafile=path)
+                break
+    return context
+
+
 def fetch(url, timeout=30):
     """The response for url, following redirects; raises FetchError."""
     if not re.match(r'https?://', url):
         raise FetchError(f'{url}: only http(s) URLs are fetched')
     req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT, 'Accept': 'text/html,text/markdown,text/plain,application/pdf;q=0.9,*/*;q=0.5'})
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
+        with urllib.request.urlopen(req, timeout=timeout, context=tls_context()) as r:
             data = r.read(MAX_BYTES + 1)
             if len(data) > MAX_BYTES:
                 raise FetchError(f'{url}: over {MAX_BYTES // (1024 * 1024)} MB; record it as a link')

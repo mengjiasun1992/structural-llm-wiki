@@ -2,7 +2,9 @@
 
 import io
 import json
+import os
 import subprocess
+import tempfile
 import unittest
 import urllib.error
 from unittest import mock
@@ -40,6 +42,29 @@ class Fetch(unittest.TestCase):
             with self.assertRaises(fetch.FetchError) as e:
                 fetch.fetch(s.url('/big'))
             self.assertIn('record it as a link', str(e.exception))
+
+    def test_tls_context_falls_back_to_the_system_bundle(self):
+        class Context:
+            def __init__(self, cas):
+                self.cas, self.loaded = cas, None
+
+            def cert_store_stats(self):
+                return {'x509_ca': self.cas}
+
+            def load_verify_locations(self, cafile):
+                self.loaded = cafile
+
+        bundle = tempfile.NamedTemporaryFile(suffix='.pem', delete=False).name
+        try:
+            env = {k: v for k, v in os.environ.items() if k != 'SSL_CERT_FILE'}
+            with mock.patch.dict(os.environ, env, clear=True):
+                for cas, expected in ((0, bundle), (150, None)):  # none of its own, then Python's own
+                    with mock.patch('ssl.create_default_context', return_value=Context(cas)):
+                        self.assertEqual(fetch.tls_context(('/nope.pem', bundle)).loaded, expected)
+            with mock.patch.dict(os.environ, {'SSL_CERT_FILE': bundle}), mock.patch('ssl.create_default_context', return_value=Context(0)):
+                self.assertIsNone(fetch.tls_context((bundle,)).loaded)  # the operator's choice wins
+        finally:
+            os.remove(bundle)
 
     def test_kind_of(self):
         cases = [('text/html; charset=utf-8', 'x', 'html'), ('application/xhtml+xml', 'x', 'html'), ('application/pdf', 'x', 'pdf'),
