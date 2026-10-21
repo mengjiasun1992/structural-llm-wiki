@@ -33,4 +33,4 @@ Explain in your own words. Quote only a definition or one key sentence, in quota
 
 Write plain markdown; `finish-narrative.py` numbers the headings, escapes what a renderer would misread, adds the markers' Terminology rows, and records the narrative. Don't number headings by hand, and don't use wikilinks, highlights or other Obsidian-only syntax: `narrative-format.py` reports them.
 
-Write formulas and their symbols as TeX: `$x_t$` inline, and a display formula between `$$` lines of its own, one equation per block (GitHub's renderer changes `&` and `\\` inside one). Define each symbol in Terminology.
+Write formulas and their symbols as TeX: `$x_t$` inline, and a display formula between `$$` lines of its own, one equation per block (GitHub's renderer changes `&` and `\\` inside one). Define each symbol in Terminology. Keep a diagram's labels plain text (`s_t`): not every renderer draws math in a diagram.
