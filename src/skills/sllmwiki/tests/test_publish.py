@@ -83,7 +83,14 @@ class Publish(helpers.WikiTestCase):
         self.assertIn('## Run\n\n- Time: 0 min since the run started\n- Turns and tokens: no session transcript', body)
         self.assertLess(body.index('## Run'), body.index('## Prompt'))
         self.assertIn('sllmwiki/alpha-retries', helpers.git(self.origin, 'branch').stdout)
-        self.summary('narrative', title='Narrative', checklist=['The narrative reads well'], body='Wrote it.')
+        self.write('sllmwiki/narratives/a.md', '# A?\n')
+        self.summary('narrative', title='Why A?', checklist=['A reads well'], body='Wrote A.')
+        self.pub('commit', 'narrative', '--tags', 'leaf-a', '--subject', 'Why A?')
+        self.write('sllmwiki/narratives/b.md', '# B?\n')
+        self.summary('narrative', title='Why B?', checklist=['B reads well'], body='Wrote B.')
+        self.pub('commit', 'narrative', '--tags', 'leaf-a', '--subject', 'Why B?')
+        self.assertIn('\n\nWrote B.\n\nPrompt:', helpers.git(self.root, 'log', '-1', '--format=%B').stdout)  # each commit its own report
+        self.summary('narrative', title='Why A?', checklist=['A reads well, reworked'], body='Rewrote A.')  # replaces A's
         r = self.pub('pr', '--cost', '1.5')
         self.assertEqual(r.out, 'updated https://github.com/o/r/pull/7\n')
         self.assertIn('- Cost: $1.50\n', self.read_state('pr.md'))
@@ -91,8 +98,11 @@ class Publish(helpers.WikiTestCase):
         self.assertIn('- Cost: $1.50\n', self.read_state('pr.md'))  # kept until a new figure
         self.assertIn('pr edit https://github.com/o/r/pull/7 --body-file', open(self.log).read())
         body = self.read_state('pr.md')
-        self.assertLess(body.index('## Sources'), body.index('## Narrative'))  # steps in pipeline order
-        self.assertIn('summaries: ingest, narrative; pull request: https://github.com/o/r/pull/7', self.pub('status').out)
+        self.assertLess(body.index('## Sources'), body.index('## Why B?'))  # steps in pipeline order
+        self.assertLess(body.index('## Why B?'), body.index('## Why A?'))  # then as last recorded
+        self.assertEqual((body.count('## Why A?'), body.count('Wrote A.')), (1, 0))
+        self.assertIn('- [ ] A reads well, reworked\n', body)
+        self.assertIn('summaries: ingest, narrative.why-b, narrative.why-a; pull request: https://github.com/o/r/pull/7', self.pub('status').out)
         helpers.git(self.root, 'switch', '-q', 'mainline')
         self.pub('start', 'beta-cache', '--title', 'Beta?', '--prompt', 'p')  # the next run starts clean
         self.assertIn('summaries: none; pull request: not opened yet', self.pub('status').out)

@@ -7,7 +7,8 @@
       then starts the run's branch, sllmwiki/<slug>, from it.
   publish.py summary <step> --json '{"title": ..., "checklist": [...], "decisions": [...], "body": "..."}'
       Records a step's summary: its review checklist items, the decisions it
-      leaves to the owner, and its report. (Or --file SUMMARY.json.)
+      leaves to the owner, and its report. (Or --file SUMMARY.json.) A
+      narrative's is one per question, its title; the others, one per step.
   publish.py commit <action> --tags a,b --subject TEXT
       Commits everything the run changed with the message
       [sllmwiki][<action>][<tags>] <subject>, the step's report, and the
@@ -132,8 +133,14 @@ def record_summary(root, step, data):
     for key in ('checklist', 'decisions'):
         if not isinstance(data.get(key, []), list):
             cli.fail(f'"{key}" is a list of strings')
-    write_text(os.path.join(state_dir(root), 'summaries', f'{step}.json'), json.dumps(data, indent=2, ensure_ascii=False))
-    print(f'recorded the {step} summary for {state["branch"]}')
+    # One summary per step, except narrative: one per question, so each narrative
+    # keeps its own section and commit; recording a question again replaces it.
+    name = f'{step}.{re.sub(r"[^a-z0-9]+", "-", data["title"].lower()).strip("-")[:80]}' if step == 'narrative' else step
+    state['recorded'] = state.get('recorded', 0) + 1
+    save_state(root, state)
+    data = dict(data, recorded=state['recorded'])
+    write_text(os.path.join(state_dir(root), 'summaries', f'{name}.json'), json.dumps(data, indent=2, ensure_ascii=False))
+    print(f'recorded the {step} summary "{data["title"]}" for {state["branch"]}')
 
 
 def summaries(root):
@@ -144,7 +151,13 @@ def summaries(root):
             with open(os.path.join(folder, name), encoding='utf-8') as f:
                 found[name[:-5]] = json.load(f)
     order = {s: i for i, s in enumerate(STEP_ORDER)}
-    return dict(sorted(found.items(), key=lambda kv: (order.get(kv[0], len(order)), kv[0])))
+    return dict(sorted(found.items(), key=lambda kv: (order.get(kv[0].split('.')[0], len(order)), kv[1].get('recorded', 0), kv[0])))
+
+
+def latest(found, step):
+    """The step's most recently recorded summary, or {}."""
+    mine = [s for k, s in found.items() if k.split('.')[0] == step]
+    return max(mine, key=lambda s: s.get('recorded', 0)) if mine else {}
 
 
 def quote(prompt):
@@ -166,7 +179,7 @@ def commit(root, action, tags, subject):
     git(root, 'add', '-A', '--', '.', *[f':(exclude){p}' for p in IGNORED])
     if not git(root, 'diff', '--cached', '--name-only'):
         cli.fail('nothing to commit')
-    report = summaries(root).get(action, {}).get('body', '')
+    report = latest(summaries(root), action).get('body', '')
     msg = message(state, action, tags, subject, report)
     p = subprocess.run(['git', 'commit', '--quiet', '-F', '-'], cwd=root, input=msg, capture_output=True, text=True)
     if p.returncode:
