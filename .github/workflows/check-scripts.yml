@@ -1,0 +1,60 @@
+# Checks the skill's scripts and the tools on every pull request and on mainline:
+# they parse, their unit tests pass with enough coverage, and they pass lint.
+name: Check bundled scripts
+
+on:
+  pull_request:
+  push:
+    branches: [mainline]
+
+permissions:
+  contents: read
+
+jobs:
+  check-scripts:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # the latest Python 3, and the oldest the scripts support
+        python: ['3.x', '3.9']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
+        with:
+          python-version: ${{ matrix.python }}
+
+      # every Python and shell script compiles on this Python (find, so a folder with none is fine)
+      - name: Scripts parse
+        run: |
+          find src/skills/sllmwiki/scripts src/tools -name '*.py' -print0 | xargs -0 -r python3 -m py_compile
+          find src/skills/sllmwiki/scripts -name '*.sh' -print0 | xargs -0 -r -n1 bash -n
+
+      # tests/run.py runs each test module in its own process; coverage fails below
+      # fail_under in pyproject.toml (95%). It runs once the test runner exists.
+      - name: Unit tests, with coverage (fails below 95%; see pyproject.toml)
+        if: hashFiles('src/skills/sllmwiki/tests/run.py') != ''
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check "coverage[toml]==7.6.10"
+          python3 src/skills/sllmwiki/tests/run.py --coverage
+
+  lint-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
+        with:
+          python-version: '3.x'
+
+      - name: Install the linters
+        run: python3 -m pip install --quiet --disable-pip-version-check ruff==0.8.4 shellcheck-py==0.10.0.1
+
+      - name: Python (ruff; rules in pyproject.toml)
+        if: success() || failure()
+        run: ruff check src/skills/sllmwiki/scripts src/skills/sllmwiki/tests src/tools
+
+      # the skill's scripts and the evals' scaffolds (find, so a folder with none is fine)
+      - name: Shell (shellcheck)
+        if: success() || failure()
+        run: find src/skills/sllmwiki/scripts src/skills/sllmwiki/evals -name '*.sh' -print0 | xargs -0 -r shellcheck

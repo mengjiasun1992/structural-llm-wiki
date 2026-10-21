@@ -1,0 +1,37 @@
+# Checks this repository's YAML and markdown on every pull request and on mainline.
+name: Check docs
+
+on:
+  pull_request:
+  push:
+    branches: [mainline]
+
+permissions:
+  contents: read
+
+jobs:
+  check-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
+        with:
+          python-version: '3.x'
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4.4.0
+        with:
+          node-version: 20
+
+      # src/tools/check-yaml.py: every tracked YAML file and ```yaml block parses, with no
+      # repeated keys. It imports the skill's lib/config.py, so it runs once that exists.
+      - name: YAML is valid (files and yaml code blocks)
+        if: (success() || failure()) && hashFiles('src/skills/sllmwiki/scripts/lib/config.py') != ''
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check pyyaml==6.0.2
+          python3 src/tools/check-yaml.py
+
+      # only the rules in .markdownlint-cli2.jsonc: markdown that renders wrong or breaks
+      - name: Markdown renders correctly
+        if: success() || failure()
+        run: npx --yes markdownlint-cli2@0.13.0 "**/*.md"
