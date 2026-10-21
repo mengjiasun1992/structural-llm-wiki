@@ -34,6 +34,12 @@ This document covers the architecture and the decisions behind it. The skill's f
 - **Build on what exists.** One narrative per question. Before writing, look for a narrative that already covers the question, and reuse it, expand it (a new version) or ground it if it's a draft. A new narrative is written only when the question is genuinely different (§7.4).
 - **Readable where people read.** The wiki is plain markdown that renders the same on GitHub and in Obsidian, so it can be browsed page by page or explored as a graph of tags, narratives and sources (§4.9), with no export step and no second copy.
 - **Unverified is labeled.** Whatever the sources don't support is marked `[sllmwiki_reasoning]` where it appears. A whole answer the wiki can't ground is a DRAFT, marked in the text, in the manifest and in the index, until a later run grounds it (§6.2).
+- **Spend tokens on judgment, and keep attention on what matters.** The agent never does the same work twice and never reads more than the task needs:
+  - **Repetitive work is a script's.** Counting, hashing, formatting, syncing manifests and checking structure run as scripts, which cost no tokens and give the same answer every time; the agent spends its tokens on judgment.
+  - **Read the smallest thing that answers.** Abstracts before sections, a section before a whole file, and search results instead of browsing (§6.1, §7.1). Scripts print compact findings, not file contents.
+  - **Do nothing twice.** Results computed once in a run (the tag classification, the reading plan) are carried forward rather than recomputed; a source whose hash hasn't changed isn't re-read or re-checked, and only the narratives pinned to a changed source are (§7.2); an existing narrative is reused before a new one is written (§7.4).
+  - **Load instructions only when they run.** `SKILL.md` stays short and routes; a workflow or step file is read only when it runs, and says each rule once.
+  - **Keep the right attention.** The context holds what the question needs, ordered so the most relevant, authoritative and newest material comes last (§7.1); parent and neighboring topics are noted, not read.
 - **Tool-neutral.** The workflows name capabilities (docs search, code search, page fetch, git history) rather than specific tools, so they work with whatever the agent has.
 
 ## 3. Layout

@@ -47,6 +47,11 @@ work? If not, it waits until real use asks for it.
    the config or the docs, not even as a refused setting.
 5. **Store what you can check.** A saved copy is either byte for byte, or the
    original file; conversions that can't be verified are kept to what's needed.
+6. **Spend tokens on judgment, and keep attention on what matters** (a design
+   principle, design doc §2): no work done twice, the smallest read that
+   answers, scripts for anything repetitive. It also weighs each item below:
+   machinery that makes every run reread, rewrite or carry more than the
+   question needs is a cost even when it runs well.
 
 ## 4. Keep, simplify, defer, cut
 
@@ -87,7 +92,7 @@ work? If not, it waits until real use asks for it.
 | Today's design | v1 | Why |
 |---|---|---|
 | A tag tree in `tags.yaml`, primary and supporting tags per narrative | **Keep** | Core |
-| Tag abstracts, fingerprinted and rewritten up to the root whenever a narrative changes | **Cut**; a tag keeps its one-line description, and `query` starts from narrative abstracts | Every narrative change rippled to the root in every pull request. Narrative abstracts already answer "what does the wiki know about X" |
+| Tag abstracts, fingerprinted and rewritten up to the root whenever a narrative changes | **Cut**; a tag keeps its one-line description, and `query` starts from narrative abstracts | Every narrative change made the agent reread and rewrite every abstract up to the root, in every pull request: repeated work and tokens (principle 6). `search.py` returns only the top narrative abstracts, so a query still reads a few hundred words before a section |
 | `SLLMWIKI_INDICES.md`: a mermaid map and a table; with the Obsidian add-on, a page per tag too | **Simplify:** always generate a page per tag, and a short index listing the top-level tags | Tag pages serve GitHub and Obsidian alike, so one generated map replaces two |
 | The Obsidian add-on: a setting, tag pages, a header on each narrative, `graph.json`, a `vault` setting that moves `.obsidian/` | **Simplify:** no add-on and no settings. Tag pages are always there; `init` writes `sllmwiki/.obsidian/graph.json` once | The graph needs only markdown files and links, which v1 now has |
 
@@ -109,6 +114,22 @@ The source policy and its CI check; one pull request per run, merged by the
 owner; the commit message format; standard-library Python 3.9; the markdown
 compatibility rules and their tests; YAML manifests read by a narrow subset
 reader; BM25 search over abstracts; `publish.sh` and `preflight.sh`.
+
+### 4.7 Where the token principle asks for more, not less
+
+Principle 6 also adds a few things v1 should have from the start:
+
+- **Search returns sections, not files.** `search.py section` takes a citation
+  link as is and prints only that section; query and lint never open a whole
+  source to check one claim.
+- **Unchanged means skipped.** `wiki-check` lists only the narratives pinned to
+  changed sources, and lint runs on those; ingest skips a source whose hash
+  matches the saved copy.
+- **One run, one classification.** `build` writes the tag classification and
+  reading plan to the pull request once; later steps read them from there
+  instead of working them out again.
+- **Token cost is measured.** Evals record each case's cost and turns, and a
+  pull request that raises a case's cost noticeably says why (plan §2).
 
 ## 5. What it saves
 

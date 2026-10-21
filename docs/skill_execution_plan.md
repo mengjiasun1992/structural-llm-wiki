@@ -59,7 +59,9 @@ claude plugin eval . --tag smoke --scaffold --allow-tools Bash \
 ```
 
 Each pull request says which cases ran, with which model, the results and the
-cost (`AGENTS.md`).
+cost (`AGENTS.md`). Cost and turns are part of the result: the skill should
+spend tokens only on judgment (design doc §2), so a change that makes a case
+noticeably costlier, or adds turns, says why.
 
 **Configuration.** No script hard-codes a path or a setting: each reads them
 from the wiki's `Config.toml` through `lib/config.py`. §5 lists every setting
