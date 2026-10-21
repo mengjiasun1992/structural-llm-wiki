@@ -19,7 +19,7 @@ class Bundled(helpers.WikiTestCase):
         self.assertEqual(sorted(found), ['concept_brief_overview', 'technical_brief_overview'])
         t = found['technical_brief_overview']
         self.assertEqual((t.source, t.max_words, t.abstract_words), ('bundled', 1800, [150, 250]))
-        self.assertTrue(t.use_when.startswith('"How does X work?"'))
+        self.assertTrue(t.use_when.startswith('A solution, an algorithm'))
 
     def test_the_skeleton_is_the_schema(self):
         t = templates.get(self.root, 'technical_brief_overview')

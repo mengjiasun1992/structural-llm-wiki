@@ -1,6 +1,6 @@
 ---
-description: What an idea or a field is, at definition level
-use_when: '"What is X?" about an idea, a pattern or a field rather than one system'
+description: What a concrete subject is, at definition level
+use_when: 'A concrete subject that has a concise, precise definition: "What is X?"'
 max_words: 900
 abstract_words: [150, 250]
 ---

@@ -181,12 +181,14 @@ One question per file in `narratives/`; the question is the title, unchanged.
 
 **Templates.** A template is a folder with `template.md` and `guide.md`. The skeleton is the schema: its headings are the required sections, in order; a heading ending in `(optional)` may be left out; a section holding a ` ```mermaid ` placeholder needs a diagram. A short YAML header gives `description`, `use_when`, `max_words` (the body's budget) and `abstract_words`. The guide (audience and purpose, voice and tone, structure, evidence, length, checklist) holds the style, and every template's guide is written for a reader new to the topic: the problem before the mechanism, prerequisites before use, a goal stated before each scenario, one notation throughout, rules of thumb for every parameter.
 
-| Template | For | Budget |
-|---|---|---|
-| `concept_brief_overview` | "What is X?": an idea or a field, at definition level | 900 words |
-| `technical_brief_overview` | "How does X work?": a system, with a flow diagram and walkthrough | 1,800 words |
-| `comparison` | "X vs Y": a criteria table, the differences that matter, when to choose which | 1,200 words |
-| `survey` | "What are the principles / patterns of X?": every item, how they relate, where to go deeper | 2,200 words |
+A template is chosen by the subject, not the question's wording:
+
+| Template | Subject | Focus | Budget |
+|---|---|---|---|
+| `concept_brief_overview` | A concrete subject that has a concise, precise definition | The definition, and what it is and isn't | 900 words |
+| `technical_brief_overview` | A solution, an algorithm, or the design of a component or for a problem | How it works: a flow diagram and walkthrough | 1,800 words |
+| `comparison` | A choice among common candidates | The trade-offs: every dimension to think through when choosing, and when to pick which | 1,200 words |
+| `survey` | Anything not concrete: a domain, or an umbrella term for subtopics or directions that each go deep their own way | Wide over deep: the main dishes on the table that one can't miss, how they relate, where to go deeper | 2,200 words |
 
 **A wiki's own templates.** A team can bring its own: a folder in the wiki's `templates/` with a `template.md` and a `guide.md` is offered next to the bundled ones, and is checked the same way; one with a bundled template's name replaces it. A wiki that only wants a different budget for a template sets it in `Config.toml` (§4.9) instead of copying the template.
 
