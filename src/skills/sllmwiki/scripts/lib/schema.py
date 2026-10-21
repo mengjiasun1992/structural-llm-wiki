@@ -17,7 +17,7 @@ TEMPLATE = re.compile(r'[a-z0-9][a-z0-9_-]*\Z')
 MD5 = re.compile(r'[0-9a-f]{32}\Z')
 VERSION = re.compile(r'[0-9]+\.[0-9]+\Z')
 URL = re.compile(r'https?://\S+\Z')
-KINDS = ('text', 'html', 'pdf', 'link')
+KINDS = ('text', 'html', 'pdf', 'tex', 'link')
 
 
 class Field:
@@ -135,7 +135,7 @@ def _cross(kind, entry, emit):
     if kind == 'sources':
         if entry.get('kind') == 'link' and 'file' in entry:
             emit('BAD_VALUE', 'file', 'a link source has no saved file: remove file')
-        elif entry.get('kind') in ('text', 'html', 'pdf') and 'file' not in entry:
+        elif entry.get('kind') in ('text', 'html', 'pdf', 'tex') and 'file' not in entry:
             emit('MISSING_FIELD', 'file', f'a {entry["kind"]} source needs file, its saved copy')
         f = entry.get('file')
         if isinstance(f, str) and not re.fullmatch(r'sources/[^/]+\.md', f):

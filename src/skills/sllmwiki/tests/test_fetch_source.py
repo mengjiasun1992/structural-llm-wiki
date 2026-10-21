@@ -24,6 +24,7 @@ ROUTES = {
         [pdfmaker.text((72, 700, b'Text of page %d.' % i)) for i in range(pdf.SLICE_PAGES + 1)],
         [(0, b'Part One', 0, None), (0, b'Part Two', 50, None), (0, b'', 60, None)])),
     '/image': (200, {'Content-Type': 'image/png'}, b'\x89PNG'),
+    '/paper.tex': (200, {'Content-Type': 'application/x-tex'}, b'\\section{Budgets}\nCap at $r \\le 0.1$.\n'),
     '/empty': (200, {'Content-Type': 'text/plain'}, b'   \n'),
     '/latin1': (200, {'Content-Type': 'text/plain'}, 'café'.encode('latin-1')),
     '/login': (403, {}, b''),
@@ -136,6 +137,22 @@ class FetchSource(helpers.WikiTestCase):
         r = self.fetch('alpha-other', '/book.pdf', '--json')
         self.assertEqual([s['slug'] for s in json.loads(r.out)['slices']], ['alpha-other-1-part-one', 'alpha-other-2-part-two'])
         self.assertEqual(helpers.load_script('fetch-source.py').slice_slug('x', 3, '!!!'), 'x-3')
+
+    def test_a_latex_source(self):
+        self.assertEqual(self.fetch('alpha-tex', '/paper.tex').code, 0)
+        saved = read_bytes(os.path.join(self.root, 'sllmwiki/sources/alpha-tex.md')).decode()
+        self.assertTrue(saved.startswith('## Budgets\n\nCap at $r \\le 0.1$.\n'))
+        self.assertEqual(manifest.load(self.root, 'sources')['alpha-tex']['kind'], 'tex')
+        folder = os.path.join(self.tmp, 'paper')
+        helpers.write(folder, 'main.tex', '\\begin{document}\\input{intro}\\input{../secret}\\input{gone}\\end{document}')
+        helpers.write(folder, 'intro.tex', '\\section{Intro}Read from beside it.')
+        helpers.write(self.tmp, 'secret.tex', 'Outside the folder.')
+        r = helpers.run('fetch-source.py', ['alpha-main', '--url', 'https://e.com/main.tex', '--tags', 'leaf-a', '--license', 'CC-BY-4.0',
+                                            '--file', os.path.join(folder, 'main.tex'), '--root', self.root])
+        self.assertEqual(r.code, 0, r.err)
+        saved = read_bytes(os.path.join(self.root, 'sllmwiki/sources/alpha-main.md')).decode()
+        self.assertTrue(saved.startswith('## Intro\n\nRead from beside it.\n'))
+        self.assertNotIn('Outside', saved)
 
     def test_public_wiki_keeps_only_open_licenses(self):
         with mock.patch.object(policy, 'visibility', return_value='public'):

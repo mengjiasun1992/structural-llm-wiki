@@ -137,6 +137,7 @@ A source is saved as the most faithful text that can be checked:
 | `text` | markdown or plain text, byte for byte |
 | `html` | the page's main content (`<main>` or `<article>`, without navigation, comments or scripts) converted to markdown by a small converter: headings, paragraphs, lists, tables, code, links. Images stay links to the original |
 | `pdf` | the text layer, with the PDF's own outline (its bookmarks) as the headings, so sections and citations follow its chapters and sections; `## Page <n>` headings only for a PDF without an outline |
+| `tex` | a LaTeX source's body: its sections as headings, its math kept as TeX (`$…$`, `$$…$$`), its formatting as markdown, the rest of its markup dropped; `\input` files read from beside it |
 | `link` | nothing: a pointer (live code, dashboards, a source that may not be copied) |
 
 Each saved file ends with a generated "Original source" footer (its URL and license), which is left out of its hash. One entry per source, keyed by slug (`<topic>-<source-name>`):

@@ -69,7 +69,8 @@ class Fetch(unittest.TestCase):
     def test_kind_of(self):
         cases = [('text/html; charset=utf-8', 'x', 'html'), ('application/xhtml+xml', 'x', 'html'), ('application/pdf', 'x', 'pdf'),
                  ('text/plain', 'x', 'text'), ('', 'notes.MD', 'text'), ('application/octet-stream', 'a.pdf?x=1#p', 'pdf'),
-                 ('', 'page.htm', 'html'), ('', 'data.bin', None), ('image/png', 'x.png', None)]
+                 ('', 'page.htm', 'html'), ('', 'data.bin', None), ('image/png', 'x.png', None),
+                 ('application/x-tex', 'x', 'tex'), ('text/x-tex', 'x', 'tex'), ('', 'main.tex', 'tex')]
         for ct, name, want in cases:
             self.assertEqual(fetch.kind_of(ct, name), want, (ct, name))
         self.assertEqual((fetch.charset('text/html; charset=ISO-8859-1'), fetch.charset('text/html')), ('ISO-8859-1', None))

@@ -60,14 +60,14 @@ def fetch(url, timeout=30):
 
 
 def kind_of(content_type, name):
-    """'text', 'html' or 'pdf' from a content type, else from the file name's extension; None when neither tells."""
+    """'text', 'html', 'pdf' or 'tex' from a content type, else from the file name's extension; None when neither tells."""
     ct = (content_type or '').split(';')[0].strip().lower()
     by_type = {'text/markdown': 'text', 'text/x-markdown': 'text', 'text/plain': 'text', 'text/html': 'html',
-               'application/xhtml+xml': 'html', 'application/pdf': 'pdf'}
+               'application/xhtml+xml': 'html', 'application/pdf': 'pdf', 'application/x-tex': 'tex', 'text/x-tex': 'tex'}
     if ct in by_type:
         return by_type[ct]
     ext = os.path.splitext(name.split('?')[0].split('#')[0])[1].lower()
-    return {'.md': 'text', '.markdown': 'text', '.txt': 'text', '.html': 'html', '.htm': 'html', '.pdf': 'pdf'}.get(ext)
+    return {'.md': 'text', '.markdown': 'text', '.txt': 'text', '.html': 'html', '.htm': 'html', '.pdf': 'pdf', '.tex': 'tex'}.get(ext)
 
 
 def charset(content_type):
