@@ -14,8 +14,8 @@
 # but don't fail it. Each step runs even when an earlier one failed
 # (success() || failure()), so one run reports every problem at once.
 
-name: LLM wiki checks
-description: Check an LLM wiki's manifests, tags.yaml, narratives, YAML and markdown.
+name: Structural LLM Wiki Checks
+description: Check a Structural LLM Wiki's manifests, tags.yaml, narratives, YAML and markdown.
 
 runs:
   using: composite
