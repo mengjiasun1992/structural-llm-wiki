@@ -2,9 +2,13 @@
 
 Each template's guide holds its own reader, structure and style; this one holds what every narrative's style shares.
 
+## Context first
+
+Set clear context before anything the reader must interpret, so nothing reads ambiguously: the narrative opens with the problem and who has it; each section, scenario, comparison, formula or piece of pseudocode opens with what it's about and why the reader needs it here; each term is defined before its first use. Depth comes after context, never instead of it.
+
 ## Examples
 
-Before an example from a particular system (TCP's retransmission timer, the Linux kernel), set its scene for a reader who doesn't know that system, in a few plain sentences: what the system does, the problem the example solves there, what goes wrong without it, and what each quantity means in it. Then go as deep as the example deserves.
+Context first applies most to examples. Before an example from a particular system (TCP's retransmission timer, the Linux kernel), set its scene for a reader who doesn't know that system, in a few plain sentences: what the system does, the problem the example solves there, what goes wrong without it, and what each quantity means in it. Then go as deep as the example deserves.
 
 ## Diagrams
 
