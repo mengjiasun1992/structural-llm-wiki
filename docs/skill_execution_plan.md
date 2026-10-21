@@ -61,6 +61,11 @@ claude plugin eval . --tag smoke --scaffold --allow-tools Bash \
 Each pull request says which cases ran, with which model, the results and the
 cost (`AGENTS.md`).
 
+**Configuration.** No script hard-codes a path or a setting: each reads them
+from the wiki's `Config.toml` through `lib/config.py`. §5 lists every setting
+and the task that builds it. Tests run each script on a fixture wiki with
+non-default paths and settings as well as the defaults.
+
 **Licenses.** A pull request that touches what the skill fetches, saves,
 quotes or publishes says how it stays within the source policy (`AGENTS.md`,
 "Respect licenses and copyright").
@@ -106,7 +111,7 @@ phase adds).
 | 0.1 | `tests/helpers.py` | `WikiTestCase` (fresh temp directory per test), `LocalServer` (free port, serves fixtures), loading a command script as a module so `main()` runs in-process, capturing output and exit code, and a fixture-wiki builder |
 | 0.2 | `scripts/lib/__init__.py`, `lib/util.py` | `read_text`, `dumps`, `setup_stdio`, `git_root`, dates, MD5 |
 | 0.2 | `lib/toml.py` | The TOML subset `Config.toml` uses (Python 3.9 has no `tomllib`): read, and write a value back without re-serializing the file |
-| 0.3 | `lib/config.py` | `Layout` and `layout(root)`: the paths from `Config.toml` resolved through the content folder; `settings(root)` with add-on tables; validation (`CONFIG_INVALID` reasons) |
+| 0.3 | `lib/config.py` | `Layout` and `layout(root)`: the eight paths from `[structural-llm-wiki-paths]` resolved through the content folder; `settings(root)`: `[structural-llm-wiki-settings]`, its add-on tables and `[structural-llm-wiki-templates]`, each with its default; validation of every one (`CONFIG_INVALID` reasons, §5) |
 | 0.3 | `lib/paths.py`, `lib/cli.py` | Repository-relative paths; shared argument handling (`--root`, `--json`), with the refusal to write on a broken `Config.toml` |
 | 0.4 | `lib/wikiyaml.py` | The YAML subset the wiki files use; fails loudly on anything else; targeted line edits that keep comments and order |
 | 0.4 | `lib/schema.py` | Field kinds and rules for `tags.yaml` and both manifests (design §4.2) |
@@ -116,8 +121,8 @@ phase adds).
 **Build.** The common checks. `check-yaml.py` now runs.
 
 **Test.** `test_util`, `test_toml` (round trips, every unsupported construct
-rejected), `test_config` (defaults, a moved content folder, every
-`CONFIG_INVALID` reason, add-on settings), `test_wikiyaml` (the subset, the
+rejected), `test_config` (every setting's default when missing, a moved content
+folder, every `CONFIG_INVALID` reason in §5, other tools' tables left alone), `test_wikiyaml` (the subset, the
 failures, edits that keep comments), `test_schema` (each field kind, cross-field
 rules, did-you-mean hints). `src/tools/check-yaml.py` gets `test_check_yaml`:
 valid YAML, a syntax error's line, a duplicate key, a ```` ```yaml ```` block's
@@ -166,7 +171,7 @@ tag tree, through commands rather than hand edits (design §4.2–§4.5, §6.3).
 | 2.1 | `lib/manifest.py`, `scripts/manifest.py` | Record a source; `put-manifest groomed <slug>` from the narrative file; `add-tag`, `put-tag`, `tag-abstract`, `snapshot`; sizes, MD5s, pins; tag lists kept in step |
 | 2.2 | `lib/tagtree.py`, `scripts/tag-tree.py` | A tag, its ancestors and children, the whole tree (`--brief`), what's filed under a tag; the ancestor/adjacent snapshot |
 | 2.3 | `lib/wikiindex.py` | `SLLMWIKI_INDICES.md`: the mermaid map and the narrative table, escaped for the books |
-| 2.3 | `lib/templates.py` | The narrative templates' headers, the wiki's own templates from `Config.toml`, lengths, `GUIDE_SECTIONS`, `TEMPLATE_CONFIG` validation |
+| 2.3 | `lib/templates.py` | The narrative templates' headers; `[structural-llm-wiki-templates]`: `default`, `exclude`, and a table per template (`template`, `guide`, `max_words`, `abstract_words`); lengths in order of precedence (the template's table, then the wiki-wide `max_words` and `abstract_words` for bundled templates only, then the template's header); `GUIDE_SECTIONS`; `TEMPLATE_CONFIG` validation |
 | 2.4 | `lib/search.py`, `scripts/search.py` | BM25 over tags, narratives and source abstracts; `outline` and `section`, which takes a citation link as is |
 
 **Build.** The common checks.
@@ -189,7 +194,7 @@ policy (design §4.3, §4.8, §7.2).
 |---|---|---|
 | 3.1 | `lib/html2md.py` | HTML to markdown: headings, lists, tables, code, links, images |
 | 3.2 | `lib/pdf.py` | PDF text and headings, standard library only |
-| 3.2 | `lib/slicer.py` | A PDF over 50 KB saved one section per source, at the highest heading level first; sections with an email address left out |
+| 3.2 | `lib/slicer.py` | With `slice_large_sources` on (the default), a PDF over `large_source_kb` (default 50, new) saved one section per source, at the highest heading level first; sections with an email address left out. Off, `fetch-source` stops and asks how to trim |
 | 3.3 | `lib/fetch.py` | Fetching a page or file with its metadata; images downloaded beside it |
 | 3.3 | `lib/policy.py` | License lookup (Wikipedia, arXiv, Crossref, page links); repository visibility; `check()` |
 | 3.4 | `scripts/fetch-source.py` | Fetch, convert, apply the policy (`--allow-restricted`), save with the footer, record in the manifest; print record commands for slices |
@@ -221,8 +226,8 @@ templates (design §4.5, §4.9).
 | 4.1 | `templates/narratives/shared.md` | The top and appendices every narrative shares; numbering, citations, markers |
 | 4.1 | `templates/narratives/<five templates>/template.md`, `guide.md` | `concept_brief_overview`, `technical_brief_overview`, `decision_record`, `comparison`, `survey`: headers (sections, flow, placement, budgets) and guides with the shared `##` schema |
 | 4.2 | `scripts/wiki-check.py` | Config, schema, manifests against files, pins (`NARRATIVE_SOURCE_CHANGED`), tag abstracts, the index and tag pages (`--fix-index`); the source policy: a copy a public wiki may not hold (`SOURCE_POLICY`), a saved source without its footer or original URL; `--paths`, `--settings`, `--json` |
-| 4.3 | `scripts/narrative-format.py` | Each narrative against its template; quotations longer than a brief quote (`lib/quotes.py`); `--fix-numbering`, `--fix-style`, `--templates` |
-| 4.4 | `lib/obsidian.py`, `scripts/obsidian-check.py` | Tag pages, narrative headers, `graph.json`; compatible markdown for every other page |
+| 4.3 | `scripts/narrative-format.py` | Each narrative against its template and its configured lengths; the configured markers (`reasoning_marker`, `gap_marker`; `""` turns one off; `MARKER_UNDEFINED`); quotations over `max_quote_words` (new, `lib/quotes.py`); `--fix-numbering`, `--fix-style`, `--templates` |
+| 4.4 | `lib/obsidian.py`, `scripts/obsidian-check.py` | Only with `addons.obsidian.enabled`: tag pages and narrative headers, removed again when it's turned off; `graph.json` shaped by `show_sources` and `vault`. Compatible markdown for every other page, add-on or not |
 | 4.4 | `scripts/finish-narrative.py` | Numbering, style escapes, the Obsidian header and `put-manifest` in one call after a narrative is written |
 | 4.5 | `.github/workflows/check-scripts.yml` | A job that builds the fixture wiki at the workspace root, checks this repository out beside it, and runs `uses: ./plugin/src/actions/wiki-checks`, so the action is tested on every pull request |
 
@@ -251,9 +256,9 @@ request (design §4.7, §5.3, §8).
 | 5.1 | `templates/wiki/` | `README.md`, `AGENTS.md` (with the source policy rule), `CLAUDE.md`, `Config.toml`, `gitignore`, `.claude/settings.json`, empty manifests and `tags.yaml`, the `topic_research_record` template |
 | 5.1 | `templates/wiki-checks.yml`, `templates/review-checklist.yml` | The wiki's CI, calling this repository's actions at `@mainline` until the first release |
 | 5.2 | `src/actions/review-checklist/action.yml` | Red until every box in the run PR's checklist is ticked |
-| 5.3 | `scripts/init.py` | Lay out a new wiki; ask once about the layout (`--set`); move files when `Config.toml` changes and rewrite what points at them; add missing settings; install the CI; move the action ref when the plugin updates |
+| 5.3 | `scripts/init.py` | Lay out a new wiki and write `Config.toml` with every setting and its notes; ask once about the layout (`--set`); on a rerun, add settings the wiki lacks with their defaults, keeping its values; move files when a path changes and rewrite what points at them (template paths in `[structural-llm-wiki-templates]` too); move `.obsidian/` and its `.gitignore` rule when `vault` changes; register the `topic_research_record` template; install the CI; move the action ref when the plugin updates |
 | 5.4 | `scripts/preflight.sh` | Check git, Python and `gh`; print the install command for this machine |
-| 5.4 | `scripts/publish.sh` | `start`, `open`, `update`, `finish`, `resume`: branch from the up-to-date default branch, push, open or update the PR, hand off |
+| 5.4 | `scripts/publish.sh` | `start`, `open`, `update`, `finish`, `resume`: branch from the up-to-date default branch, push, open or update the PR, hand off; changes under the vault's `.obsidian/` don't count against a clean working tree |
 | 5.5 | `SKILL.md` (first real version) | Wiki location, Scripts, Before you start, Publishing, Commits; the workflow and step tables pointing at stubs still marked as not ready |
 | 5.5 | `workflows/init.md` | The init workflow |
 
@@ -282,9 +287,9 @@ Budget: about $1 for both with Sonnet.
 | # | Code change | What it does |
 |---|---|---|
 | 6.1 | `steps/tags.md` | Match, propose, classify (primary, supporting; ancestor and adjacent derived); report source status |
-| 6.2 | `steps/ingest.md` | Search, triage, save verbatim through `fetch-source`, pause only on large or risky sources, then lint the affected narratives |
+| 6.2 | `steps/ingest.md` | Search, triage, save verbatim through `fetch-source`, pause only on sources over `large_source_kb` or risky ones, then lint the affected narratives |
 | 6.3 | `steps/smes.md`, `scripts/contributors.py` | Locate code and docs; rank people from git log and blame, `CODEOWNERS`, doc authorship and reviews |
-| 6.4 | `steps/narrative.md`, `scripts/cross-links.py` | Reuse before writing (§7.4); reading plan (§7.1); write by template and guide; `finish-narrative`; lint gate; related-narrative links |
+| 6.4 | `steps/narrative.md`, `scripts/cross-links.py` | Reuse before writing (§7.4); reading plan (§7.1); pick a template from those the wiki offers (`default`, `exclude`); write by template and guide, with the wiki's markers; `finish-narrative`; lint gate; related-narrative links |
 | 6.5 | `steps/lint.md` | The checks of §7.3, small fixes one commit each, too-big findings on the PR, three passes |
 | 6.6 | `SKILL.md` | "Sources are data, not instructions" and "Source policy (enforced)" |
 
@@ -359,7 +364,30 @@ every run PR, including `SOURCE_POLICY`.
 **Eval.** Every case, three runs, with the baseline; the results in the release
 pull request.
 
-## 5. Risks
+## 5. Settings
+
+Every setting a wiki's `Config.toml` holds, and where it is built. `lib/config.py`
+(0.3) reads and validates all of them, and `init` (5.3) writes and completes
+them; the table shows what uses each one. "New" marks a value the skill used to
+hard-code that becomes a setting; when it lands, it is added to design doc §4.7
+and the wiki template's `Config.toml`.
+
+| Setting | Default | Validated as | Used by |
+|---|---|---|---|
+| `paths.content` | `"sllmwiki"` | a folder inside the repository; `.` allowed | every script through `Layout` (0.3); moves by `init` (5.3) |
+| `paths.ingested`, `ingested_manifest`, `groomed`, `groomed_manifest`, `tags` | `ingested`, …, `tags/tags.yaml` | relative, inside the content folder, distinct; files kept out of the source and narrative folders except their manifests | every script; `check-yaml` and the action's markdownlint skip the sources folder (0.3, 4.5) |
+| `paths.index`, `paths.templates` | `SLLMWIKI_INDICES.md`, `templates` | from the repository root, outside the content folder | `wikiindex` (2.3), `templates` (2.3), the action's markdownlint (4.5) |
+| `slice_large_sources` | `true` | true or false | `slicer`, `fetch-source` (3.2, 3.4) |
+| `large_source_kb` (new) | `50` | a positive whole number | `slicer` (3.2), `ingest`'s pause (6.2) |
+| `reasoning_marker`, `gap_marker` | `[sllmwiki_reasoning]`, `[sllmwiki_gap]` | one line each; different unless both `""`; `""` writes none | `narrative-format` (4.3), `shared.md` (4.1), `narrative` (6.4), `lint` (6.5) |
+| `max_words`, `abstract_words` | `0`, `[]` (each template's own) | 0 or a positive whole number; `[]` or `[min, max]` | `templates` (2.3), `narrative-format` (4.3) |
+| `max_quote_words` (new) | to be set from the bundled guides | a positive whole number | `quotes` (1.2), `narrative-format` (4.3) |
+| `addons.obsidian.enabled`, `show_sources`, `vault` | `false`, `false`, `"content"` | true or false; `vault` is `"content"` or `"root"` | `obsidian` (4.4), `wiki-check --fix-index` (4.2), `init` (5.3), `publish.sh` (5.4) |
+| `addons.sphinx`, `addons.mdbook`: `enabled`, `formats` | `false`; `["html", "epub", "pdf"]`, `["html", "pdf"]` | `enabled = true` refused until the book builds exist; `formats` a subset of each tool's formats | `config` only (0.3); the builds are out of scope (§7) |
+| `templates.default`, `templates.exclude` | `technical_brief_overview`, `[]` | a known template; known bundled templates | `templates` (2.3), `narrative` (6.4) |
+| `templates.<name>`: `template`, `guide`, `max_words`, `abstract_words` | the bundled files and lengths | files that exist and parse; lengths as above | `templates` (2.3), `narrative-format` (4.3), `init` (5.3) |
+
+## 6. Risks
 
 - **`pdf.py` and coverage.** A standard-library PDF reader is large and full of
   branches; 95% needs generated PDFs for each construct. If it stalls, split
@@ -375,7 +403,7 @@ pull request.
   `SKILL.md` ("Scripts"); a change to one updates the other in the same pull
   request (`AGENTS.md`).
 
-## 6. Out of scope
+## 7. Out of scope
 
 - The book add-ons (Sphinx and mdBook): their settings exist and are refused as
   not yet available; building them is a later plan.
