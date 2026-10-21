@@ -77,13 +77,13 @@ The owner merges.
 
 ```mermaid
 graph LR
-    P0["0. Foundations"] --> P1["1. Core loop"] --> P2["2. Dogfood"] --> P3["3. Sources and templates"] --> P4["4. Verification and breadth"] --> P5["5. First release"]
+    P0["0. Foundations"] --> P1["1. Core loop"] --> P2["2. Dogfood"] --> P3["3. Templates and sources"] --> P4["4. Verification and breadth"] --> P5["5. First release"]
 ```
 
 Phases 3 and 4 take their order from what Phase 2 finds: an item a real run
 needed first moves first. Phase 2's runs passed their checks but couldn't read
 the papers their questions rested on, and fit questions to the wrong template,
-so sources and templates moved ahead of verification.
+so templates and sources moved ahead of verification.
 
 ## 4. Phases
 
@@ -160,23 +160,24 @@ missing, before more is built.
 
 | # | Code change | What it does |
 |---|---|---|
-| 2.1 | (a test wiki repository) | `init`, then `build` on the earlier wiki's four distributed-systems questions; each PR reviewed as a real one, and compared with the earlier wiki's narratives. A PDF-heavy topic waits for PDFs (3.5) |
+| 2.1 | (a test wiki repository) | `init`, then `build` on the earlier wiki's four distributed-systems questions; each PR reviewed as a real one, and compared with the earlier wiki's narratives. A PDF-heavy topic waits for PDFs (3.2) |
 | 2.2 | issues in this repository | Every problem found, labeled by phase; the cost, turns and instruction words of each run recorded against the Phase 1 baseline |
 | 2.3 | this plan | Phases 3 and 4 reordered by what the runs needed |
 
 **Eval.** The smoke set, three runs each, with the no-plugin baseline.
 
-### 4.4 Phase 3: sources and templates
+### 4.4 Phase 3: templates and sources
 
-**Goal.** The sources and templates the Phase 2 runs needed: papers in PDF,
-a template for every kind of subject (design doc §4.5), and citations that
-point inside any source.
+**Goal.** The templates and sources the Phase 2 runs needed: a template for
+every kind of subject (design doc §4.5), papers in PDF, and citations that
+point inside any source. Templates come first: two of the four dogfood
+questions had none that fit, and they cost less than PDFs.
 
 | # | Code change | What it does |
 |---|---|---|
-| 3.1 | `lib/pdf.py` in `fetch-source` | A PDF's text layer, with its outline as headings (page headings without one); an outlined PDF over 100 pages sliced by top-level entry, each slice with a script-written starter abstract (`abstract_draft`) |
-| 3.2 | `lib/tex.py` in `fetch-source` | A LaTeX source as markdown: its sections as headings, its math kept as TeX, its markup dropped |
-| 3.3 | `templates/narratives/comparison/`, `survey/` | The other two templates and guides, each guide opening with its takeaway |
+| 3.1 | `templates/narratives/comparison/`, `survey/` | The other two templates and guides, each guide opening with its takeaway |
+| 3.2 | `lib/pdf.py` in `fetch-source` | A PDF's text layer, with its outline as headings (page headings without one); an outlined PDF over 100 pages sliced by top-level entry, each slice with a script-written starter abstract (`abstract_draft`) |
+| 3.3 | `lib/tex.py` in `fetch-source` | A LaTeX source as markdown: its sections as headings, its math kept as TeX, its markup dropped |
 | 3.4 | `lib/citations.py`, `fetch-source` | Citations inside sources without headings: a plain-text standard's numbered sections saved as headings, line ranges (`#L<start>-L<end>`) in code |
 | 3.5 | (the test wiki repository) | The four questions built again, and a PDF-heavy topic; each compared with the Phase 2 runs and the earlier wiki |
 
