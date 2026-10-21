@@ -16,7 +16,7 @@ Plain words, short sentences, present tense. Even-handed across items and school
 - **The main items:** those the most authoritative sources agree on, plus any one of them puts first. Merge items that are one idea under two names; leave out tactics that serve an item, or name them inside it.
 - **At a glance:** one table, an item per row, so the reader sees the whole set before any one of them.
 - **Each item briefly:** what it says, why it matters, one example, where to go deeper. The same shape for every item, and no item much longer than the others.
-- **How they relate:** one diagram of the items, then a walk through it: which support each other, which trade off, which overlap.
+- **How they relate:** one diagram of the items (a map of what supports what, a mindmap of the areas, or a quadrant of trade-offs), colored by area, then a walk through it: which support each other, which trade off, which overlap.
 - **Applying them,** when the domain is practical: an order to learn them in, or questions to ask of a design.
 
 ## Evidence

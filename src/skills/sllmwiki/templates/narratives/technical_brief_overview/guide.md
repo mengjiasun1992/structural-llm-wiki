@@ -13,7 +13,7 @@ Plain, direct and specific: active voice, present tense, second person where it 
 ## Structure
 
 - **Context before mechanics.** Background opens with the problem, through one concrete example the reader can picture, then the prerequisites. The core idea comes next, in one paragraph, before any detail.
-- **The flow.** One diagram of the path a request, a record or a value takes, then a numbered walkthrough, one step per arrow.
+- **How it works, drawn.** One diagram of the mechanism (the path a request takes, the states it moves through, the messages between parties), then a numbered walkthrough, one step per arrow or transition.
 - **A goal before each scenario.** Before an example or a case, one sentence says what it shows.
 - **One notation throughout.** Define each symbol once, in Terminology, with its type and meaning; write step-by-step quantities with an index (x_t, x_{t+1}), and never switch to another name for the same thing.
 - **The basic form first,** then its variants, each named as a variant of it.

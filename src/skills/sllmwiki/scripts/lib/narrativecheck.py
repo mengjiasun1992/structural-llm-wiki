@@ -45,8 +45,17 @@ def check_sections(text, template):
 
 
 def _has_diagram(text, head):
+    """Whether the section has a ```mermaid block with more than comments in it."""
     span = numbering.section(text, numbering.anchor(head.text))
-    return any(line.strip().startswith('```mermaid') for line in text.split('\n')[span[0]:span[1]])
+    inside = drawn = False
+    for line in text.split('\n')[span[0]:span[1]]:
+        if line.strip().startswith('```'):
+            if inside and drawn:
+                return True
+            inside, drawn = line.strip().startswith('```mermaid'), False
+        elif inside and line.strip() and not line.strip().startswith('%%'):
+            drawn = True
+    return False
 
 
 def body_lines(text):

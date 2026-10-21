@@ -18,8 +18,7 @@ abstract_words: [150, 250]
 <The idea in one paragraph, then the flow.>
 
 ```mermaid
-graph LR
-    A[<step>] --> B[<step>]
+%% <the diagram that shows how it works best: a flowchart, sequenceDiagram, stateDiagram-v2, ...>
 ```
 
 <Walk through the diagram: one numbered step per arrow, each saying what happens and why.>

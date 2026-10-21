@@ -34,6 +34,11 @@ class Checks(helpers.WikiTestCase):
         self.assertIn('EXTRA_SECTION', [c for c, _ in self.codes(extra)])
         no_diagram = text.replace('```mermaid\ngraph LR\n    A[Request fails] --> B[Wait, then retry]\n```\n', '')
         self.assertIn('MISSING_DIAGRAM', [c for c, _ in self.codes(no_diagram)])
+        diagram = '```mermaid\ngraph LR\n    A[Request fails] --> B[Wait, then retry]\n```\n'
+        placeholder = text.replace(diagram, '```mermaid\n%% <the diagram that shows how it works best>\n\n```\n```text\nnot a diagram\n```\n')
+        self.assertIn('MISSING_DIAGRAM', [c for c, _ in self.codes(placeholder)])
+        sequence = text.replace(diagram, '```mermaid\n%% the retry\nsequenceDiagram\n    Client->>Server: request\n```\n')
+        self.assertNotIn('MISSING_DIAGRAM', [c for c, _ in self.codes(sequence)])
         cut = text[:text.index('## 7. References')] + text[text.index('## 8. Metadata'):]
         self.assertEqual([c for c, _ in self.codes(cut) if c == 'MISSING_SECTION'], ['MISSING_SECTION'])
         no_end = text[:text.index('## 7. References')] + '- **Template:** technical_brief_overview\n'
