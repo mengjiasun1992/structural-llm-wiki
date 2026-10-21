@@ -34,6 +34,10 @@ class Markers(unittest.TestCase):
         self.assertEqual(self.codes(doc(f'{R} Mine, cited. {CITE}', defined)), [('MARKER_AND_CITATION', 11)])
         self.assertEqual(self.codes(doc(f'{R} Mine {CITE} inline.', defined)), [('MARKER_AND_CITATION', 11)])
         self.assertEqual(self.codes(doc(f'{R} Mine. Then cited. {CITE}', defined)), [])
+        row = f'| Window | {R} None, by design | 10 samples {CITE} |'
+        self.assertEqual(self.codes(doc(row, defined)), [])  # each cell is its own claim
+        self.assertEqual(self.codes(doc(f'| Window | {R} None {CITE} | 10 |', defined)), [('MARKER_AND_CITATION', 11)])
+        self.assertEqual(self.codes(doc(f'| A \\| B | {R} Mine, a \\| pipe {CITE} |', defined)), [('MARKER_AND_CITATION', 11)])
 
     def test_undefined_and_off(self):
         self.assertEqual(self.codes(doc(f'{G} Unknown.')), [('MARKER_UNDEFINED', 10)])
