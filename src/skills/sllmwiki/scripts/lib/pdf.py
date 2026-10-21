@@ -18,6 +18,7 @@ import zlib
 
 SLICE_PAGES = 100
 MAX_DEPTH = 12  # page trees, outlines and forms nested deeper are left out
+PLACEHOLDER_TITLE = re.compile(r'(untitled|microsoft word - .*|.*\.(docx?|pdf|tex|dvi|indd))\Z', re.I)  # a producer's, not the document's
 
 
 class PdfError(Exception):
@@ -198,7 +199,8 @@ class Document:
         if not self.pages:
             raise PdfError('the PDF has no pages')
         infos = [self.get(t.get('Info')) for t in self._trailers()]
-        self.title = next((' '.join(text_string(self.get(i.get('Title'))).split()) for i in infos if isinstance(i, dict) and i.get('Title')), '')
+        titles = [' '.join(text_string(self.get(i.get('Title'))).split()) for i in infos if isinstance(i, dict)]
+        self.title = next((x for x in titles if x and not PLACEHOLDER_TITLE.match(x)), '')
         self.outline = []
         outlines = self.get(root.get('Outlines'))
         if isinstance(outlines, dict):

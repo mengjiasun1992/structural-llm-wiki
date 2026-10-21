@@ -36,6 +36,10 @@ class Text(unittest.TestCase):
             self.assertIn(line + '\n', out)
         self.assertNotIn('no font', out)
 
+    def test_a_producers_placeholder_title_is_left_out(self):
+        for title in (b'untitled', b'Microsoft Word - paper.docx', b'draft.pdf'):
+            self.assertTrue(md(pdfmaker.make([text((72, 700, b'Body'))], title=title)).startswith('## Page 1'))
+
     def test_markdown_safe_lines_and_ligatures(self):
         page = text((72, 700, b'# not a heading'), (72, 680, b'> not a quote'), (72, 660, b'e\xef\xac\x81ne'))
         self.assertIn('\\# not a heading\n\\> not a quote', md(pdfmaker.make([page])))
