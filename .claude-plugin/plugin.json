@@ -12,8 +12,5 @@
   ],
   "commands": [
     "./src/commands/"
-  ],
-  "experimental": {
-    "evals": "src/skills/sllmwiki/evals"
-  }
+  ]
 }

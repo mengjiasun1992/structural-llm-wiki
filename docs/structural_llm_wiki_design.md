@@ -32,7 +32,7 @@ This document covers the architecture and the decisions behind it. The skill's f
 - **The question drives the run.** Tags, sources and the reading plan are chosen for the questions asked, not for a topic in general, so nothing is collected that no answer uses.
 - **Runs are unattended; review happens on one pull request.** A run takes its questions at the start and doesn't pause; what it can't decide goes to the top of its pull request. The owner reviews, ticks the review checklist and merges.
 - **Build on what exists.** One narrative per question. Before writing, look for a narrative that already covers it, and reuse or expand it (§7.4).
-- **Store facts, derive the rest.** Manifests hold only what no file can tell: where a source came from, when, its license, its tags and abstract, and which source versions a narrative was built from. Sizes, hashes, titles, versions and dates are read from the files when needed, and generated pages (the index, tag pages) are rewritten by one command. Nothing derived is stored, so nothing derived can drift.
+- **Store facts, derive the rest.** Manifests hold only what no file can tell: where a source came from, when, its license, its tags and abstract, and which source versions a narrative was built from. Sizes, hashes, titles, versions and dates are read from the files when needed, and generated pages (the index, tag pages) are rewritten by every script that writes a manifest, and by `wiki-check.py --fix`. Nothing derived is stored, so nothing derived can drift.
 - **Spend tokens on judgment, and keep attention on what matters.** The agent never does the same work twice and never reads more than the task needs:
   - **Repetitive work is a script's.** Counting, hashing, numbering, formatting, assembling commit messages and PR descriptions, and checking structure run as scripts, which cost no tokens and give the same answer every time.
   - **Read the smallest thing that answers.** Abstracts before sections, a section before a whole file, search results instead of browsing. Scripts print compact findings, not file contents.
@@ -62,11 +62,11 @@ sllmwiki/
 │   │   ├── scripts/                       # the deterministic scripts, each documented by its --help
 │   │   │   └── lib/                       # shared modules
 │   │   ├── templates/                     # narratives/ (templates and guides); wiki/ (what init installs)
-│   │   ├── tests/                         # unit tests for the scripts, and the instruction budgets
-│   │   └── evals/                         # behavior evals
+│   │   └── tests/                         # unit tests for the scripts, and the instruction budgets
 │   ├── commands/                          # Claude Code commands, one per workflow and step
 │   ├── actions/                           # GitHub actions a wiki's CI calls
 │   └── tools/                             # CI-only tools outside the skill (check-yaml)
+├── evals/                                 # behavior evals, outside the skill so they never ship with it
 └── docs/
     ├── structural_llm_wiki_design.md      # this file
     └── skill_execution_plan.md            # how it is built
@@ -150,6 +150,7 @@ gateway-design-doc:
   ingested: "2026-07-14"
   license: "CC-BY-4.0"                     # SPDX id, or "unknown" or "proprietary"
   license_url: https://docs.example.com/license
+  # permission: "Jane Doe, 2026-07-14: may keep a copy"   # only with --allow-restricted
   tags: [gateway, routing]
   abstract: "Original gateway architecture and design rationale. …"   # 150–250 words
 ```
@@ -205,7 +206,7 @@ The wiki keeps verbatim copies, so the skill follows a source policy ("Source po
 - **What may be copied depends on who can see the wiki.** A private repository keeps reference copies unless a source's terms forbid sharing; a public one keeps only openly licensed sources. Anything else is a `link`. A team whose policy allows no copies at all sets `source_copies = "links-only"` (§4.9), and every source is a `link`.
 - **No personal data or secrets,** whatever the license; sections holding them are left out with a marker, never edited.
 
-The judgment is the agent's: it reads the source's license or terms and records them (`--license`, `--license-url`). The scripts enforce what can be checked: `fetch-source` asks GitHub whether the repository is public and refuses to save a copy whose recorded license isn't open there (`--allow-restricted` records the owner's permission instead), or any copy at all under `links-only`, and `wiki-check` fails the wiki's CI (`SOURCE_POLICY`) on any saved copy a public wiki may not hold, or any saved source without its URL and license.
+The judgment is the agent's: it reads the source's license or terms and records them (`--license`, `--license-url`). The scripts enforce what can be checked: `fetch-source` asks GitHub whether the repository is public and refuses to save a copy whose recorded license isn't open there (`--allow-restricted "<who, when>"` records the owner's permission instead, as the source's `permission`), or any copy at all under `links-only`, and `wiki-check` fails the wiki's CI (`SOURCE_POLICY`) on any saved copy a public wiki may not hold, or any saved source without its URL and license.
 
 ### 4.8 Markdown everyone renders alike, and Obsidian
 
@@ -213,7 +214,7 @@ A wiki is read on GitHub page by page, opened in [Obsidian](https://obsidian.md)
 
 **Tag pages, for everyone.** A generated page per tag (description, parent, children, narratives, sources, SMEs) makes each topic browsable on GitHub, and puts the tag tree in Obsidian's graph, which draws every markdown file as a node and every link as an edge. They are plain markdown, written by a script in milliseconds.
 
-**The Obsidian add-on** (`obsidian = true`, §4.9) adds what only Obsidian uses: `init` writes `sllmwiki/.obsidian/graph.json` once (colors for tag pages, narratives and sources; sources hidden), and the wiki owns it from then on; `.gitignore` shares only that file from `.obsidian/`, and `publish.sh` ignores Obsidian's rewrites of it. Off, nothing Obsidian-specific is written.
+**The Obsidian add-on** (`obsidian = true`, §4.9) adds what only Obsidian uses: `init` writes `sllmwiki/.obsidian/graph.json` once (colors for tag pages, narratives and sources; sources hidden), and the wiki owns it from then on; `.gitignore` shares only that file from `.obsidian/`, and `publish.py` ignores Obsidian's rewrites of it. Off, nothing Obsidian-specific is written.
 
 **The index.** `SLLMWIKI_INDICES.md`, at the repository root, outside the vault, is GitHub's map: a mermaid diagram of the tag tree whose nodes open the tag pages, and the same tree as a nested list. Obsidian and a book don't need it, so it stays out of their source.
 
@@ -274,14 +275,14 @@ The questions and the user's words are passed to every step. A request that name
 ### 5.2 Review model
 
 - Each run works on its own branch (`sllmwiki/<slug>`), from the up-to-date default branch, never from another run's branch; it stops if the local default branch doesn't match the remote's.
-- Steps only commit. `publish.sh` opens one pull request after Step 3 and updates its description after each later step. It assembles the description from the steps' summaries (each step writes its summary as JSON): the review checklist at the top (tags, sources, each narrative), anything the run couldn't decide, then the summaries. The wiki's `review-checklist` check stays red until every box is ticked, so a change is reviewed even when its owner can merge without a required review.
+- Steps only commit. `publish.py` opens one pull request after Step 3 and updates its description after each later step. It assembles the description from the steps' summaries (each step writes its summary as JSON): the review checklist at the top (tags, sources, each narrative), anything the run couldn't decide, then the summaries. The wiki's `review-checklist` check stays red until every box is ticked, so a change is reviewed even when its owner can merge without a required review.
 - A step run on its own opens its own pull request; lint started by `ingest` or `narrative` shares its caller's.
 - **The owner merges.** Runs never merge. Feedback is applied by rerunning on the same branch; the pull request is updated, never replaced.
 - If the user asks for a different flow ("merge it for me", "use branch X"), that request wins.
 
 ### 5.3 Commit messages
 
-`publish.sh commit` writes every commit message: `[sllmwiki][<action>][<tags>] <summary>`, then the step's summary, then the request that started the run, verbatim, in a `Prompt:` block. Actions: `init`, `tags`, `ingest`, `smes`, `narrative`, `lint`.
+`publish.py commit` writes every commit message: `[sllmwiki][<action>][<tags>] <summary>`, then the step's summary, then the request that started the run, verbatim, in a `Prompt:` block. Actions: `init`, `tags`, `ingest`, `smes`, `narrative`, `lint`.
 
 ## 6. Using knowledge: `query`
 

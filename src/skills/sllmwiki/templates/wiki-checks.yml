@@ -1,0 +1,17 @@
+# The wiki's checks on every pull request, run from the sllmwiki repository at
+# {{ref}}; /sllmwiki:init moves the ref when the plugin updates.
+name: Wiki checks
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wiki-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: mengjiasun1992/structural-llm-wiki/src/actions/wiki-checks@{{ref}}

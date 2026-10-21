@@ -1,5 +1,6 @@
 ---
-description: "Build knowledge: tags, ingest, SMEs, narrative and lint in one pull request"
+description: "Research questions and add the answers to the wiki, in one pull request"
+argument-hint: "<questions or topic>"
 ---
 
-Run the sllmwiki `build` workflow.
+Load the `sllmwiki:sllmwiki` skill, then follow its `workflows/build.md` for: $ARGUMENTS

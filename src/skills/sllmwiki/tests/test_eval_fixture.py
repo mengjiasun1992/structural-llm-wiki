@@ -8,7 +8,7 @@ import unittest
 
 import helpers
 
-SCRIPT = os.path.join(helpers.SKILL_DIR, 'evals', '_fixture', 'wiki.sh')
+SCRIPT = os.path.join(helpers.REPO, 'evals', '_fixture', 'wiki.sh')
 
 
 class EvalFixture(unittest.TestCase):

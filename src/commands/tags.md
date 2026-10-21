@@ -1,5 +1,6 @@
 ---
-description: "Map a topic to existing and proposed tags, and classify them"
+description: "Map a topic or questions to the wiki's tags"
+argument-hint: "<questions or topic>"
 ---
 
-Run the sllmwiki `tags` step.
+Load the `sllmwiki:sllmwiki` skill, then follow its `steps/tags.md` for: $ARGUMENTS

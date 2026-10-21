@@ -43,6 +43,7 @@ SCHEMAS = {
         'ingested': Field('date', required=True),
         'license': Field('str', required=True),
         'license_url': Field('url'),
+        'permission': Field('str'),  # the owner's permission to keep a copy the license alone doesn't allow
         'tags': Field('list', required=True, item=Field('slug'), nonempty=True),
         'abstract': Field('str', required=True),
         'abstract_draft': Field('bool'),

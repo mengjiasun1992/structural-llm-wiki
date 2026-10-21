@@ -1,0 +1,76 @@
+"""Tests for lib/metadata.py."""
+
+import unittest
+
+import helpers
+from lib import metadata
+
+DOC = '''# What is X?
+
+## 1. Abstract
+
+First paragraph
+on two lines.
+
+Second.
+
+## 2. Metadata
+
+- **Version:** 1.1
+- **Template:** concept_brief_overview
+- **Created:** 2026-10-01
+- **Last modified:** 2026-10-02
+- **History:**
+  - 1.1 (2026-10-02): Wider scope.
+  - 1.0 (2026-10-01): First version.
+
+A note someone left.
+'''
+
+
+class Read(unittest.TestCase):
+    def test_title_abstract_and_fields(self):
+        self.assertEqual(metadata.title(DOC), 'What is X?')
+        self.assertEqual(metadata.abstract(DOC), 'First paragraph on two lines.\n\nSecond.')
+        self.assertEqual(metadata.read(DOC), {'version': '1.1', 'template': 'concept_brief_overview', 'created': '2026-10-01',
+                                              'last_modified': '2026-10-02',
+                                              'history': [('1.1', '2026-10-02', 'Wider scope.'), ('1.0', '2026-10-01', 'First version.')]})
+
+    def test_missing_parts(self):
+        self.assertIsNone(metadata.title('No title\n'))
+        self.assertEqual(metadata.abstract('# T\n'), '')
+        self.assertEqual(metadata.read('# T\n')['version'], None)
+        self.assertEqual(metadata.read('# T\n\n## 1. Metadata\n\n- **Version:**\n- **Other:** x\n')['version'], None)
+
+
+class Write(unittest.TestCase):
+    def test_bump(self):
+        self.assertEqual((metadata.bump(None, 'minor'), metadata.bump('1.1', 'minor'), metadata.bump('1.9', 'minor'), metadata.bump('1.4', 'major')),
+                         ('1.0', '1.2', '1.10', '2.0'))
+
+    def test_set_fields_and_add_history_keeping_other_lines(self):
+        out = metadata.write(DOC, {'version': '1.2', 'last_modified': '2026-10-21'}, ('1.2', '2026-10-21', 'Added retries.'))
+        meta = metadata.read(out)
+        self.assertEqual((meta['version'], meta['last_modified'], meta['created']), ('1.2', '2026-10-21', '2026-10-01'))
+        self.assertEqual(meta['history'][0], ('1.2', '2026-10-21', 'Added retries.'))
+        self.assertEqual(len(meta['history']), 3)
+        self.assertIn('A note someone left.', out)
+        self.assertTrue(out.endswith('A note someone left.\n'))
+        self.assertEqual(metadata.write(out, {}), out)  # writing what's there changes nothing
+
+    def test_a_section_after_metadata_is_kept(self):
+        text = '# T\n\n## 1. Metadata\n\n- **Version:** 1.0\n\n## 2. After\n\nKept.\n'
+        out = metadata.write(text, {'template': 'survey'})
+        self.assertEqual(out, '# T\n\n## 1. Metadata\n\n- **Version:** 1.0\n- **Template:** survey\n\n## 2. After\n\nKept.\n')
+
+    def test_the_fixture_narrative(self):
+        out = metadata.write(helpers.narrative_text(), {'version': '1.1'}, ('1.1', '2026-10-21', 'x'))
+        self.assertEqual(metadata.read(out)['version'], '1.1')
+
+    def test_no_metadata_section(self):
+        with self.assertRaises(ValueError):
+            metadata.write('# T\n', {'version': '1.0'})
+
+
+if __name__ == '__main__':
+    unittest.main()

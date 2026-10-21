@@ -123,10 +123,12 @@ leaf-b:
 '''
 
 
-def narrative_text(question='What is alpha?', cites=(('alpha-doc', 'details'),)):
-    """A small narrative citing sections of saved sources."""
+def narrative_text(question='What is alpha?', cites=(('alpha-doc', 'details'),), extra=''):
+    """A narrative on the technical_brief_overview template that passes narrative-format,
+    citing sections of saved sources."""
     marks = ''.join(f' [\\[{i}\\]](../sources/{slug}.md#{anchor})' for i, (slug, anchor) in enumerate(cites, 1))
-    listed = '\n'.join(f'{i}. [{slug}](../sources/{slug}.md#{anchor})' for i, (slug, anchor) in enumerate(cites, 1))
+    listed = '\n'.join(f'{i}. [{slug}: {anchor}](../sources/{slug}.md#{anchor})' for i, (slug, anchor) in enumerate(cites, 1))
+    read = '\n'.join(f'- [{slug}](../sources/{slug}.md): how alpha retries' for slug in dict(cites))
     return f'''# {question}
 
 ## 1. Abstract
@@ -139,22 +141,47 @@ def narrative_text(question='What is alpha?', cites=(('alpha-doc', 'details'),))
 |---|---|
 | **Retry** | Sending a failed request again. |
 
-## 3. How does it work?
+## 3. Background
+
+Requests fail, and alpha systems send them again.
+
+## 4. How does it work?
 
 Alpha systems retry, each time waiting twice as long.{marks}
 
-## 4. References
+```mermaid
+graph LR
+    A[Request fails] --> B[Wait, then retry]
+```
 
-### 4.1 Citations
+1. A request fails, so the client waits and retries.
+{extra}
+## 5. Design decisions and trade-offs
+
+Waiting longer each time spares a struggling server.
+
+## 6. Limitations and failure modes
+
+Retries add load when many clients fail at once.
+
+## 7. References
+
+### 7.1 Sources read
+
+{read}
+
+### 7.2 Citations
 
 {listed}
 
-## 5. Metadata
+## 8. Metadata
 
 - **Version:** 1.0
 - **Template:** technical_brief_overview
 - **Created:** 2026-10-01
 - **Last modified:** 2026-10-02
+- **History:**
+  - 1.0 (2026-10-01): First version.
 '''
 
 
@@ -205,6 +232,8 @@ what-is-alpha:
   read:
     alpha-doc: {md5(ALPHA.encode())}
 ''')
+    from lib import wikiindex
+    wikiindex.sync(root, write=True)  # the index and tag pages, as wiki-check.py --fix writes them
     if git:
         git_init(root)
     return root
