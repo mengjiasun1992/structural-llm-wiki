@@ -42,7 +42,7 @@ This document covers the architecture and the decisions behind it. The skill's f
   - **Keep the right attention.** The context holds what the question needs, the most relevant, authoritative and newest material last (§7.1); parent and neighboring topics are noted, not read.
 - **Say each rule once.** Every rule has one home (§9), and other files point to it.
 - **Readable where people read.** Plain markdown that renders the same on GitHub, in Obsidian and in the book renderers (§4.8), with no export step and no second copy.
-- **Only what's used.** No settings, add-ons, migrations or states until a real wiki needs them (§11 lists what waits).
+- **Only what's used.** A setting exists only when a real wiki or a team's policy needs it, it has a safe default, and a script enforces it (§4.9). An add-on is off until a wiki turns it on, and it costs nothing while off. No migrations, and no states a real wiki hasn't needed (§11 lists what waits).
 - **Tool-neutral.** The workflows name capabilities (docs search, code search, page fetch, git history) rather than specific tools.
 
 ## 3. Layout
@@ -83,9 +83,10 @@ sllmwiki/
 ├── .gitignore
 ├── .claude/settings.json     # offers the sllmwiki plugin to teammates
 ├── .github/workflows/        # wiki-checks.yml; review-checklist.yml (red until a run PR's boxes are ticked)
+├── Config.toml               # optional: the wiki's settings and add-ons (§4.9)
 ├── templates/                # optional: the wiki's own narrative templates (§4.5)
 └── sllmwiki/                 # the knowledge: also the Obsidian vault and a book's source
-    ├── .obsidian/graph.json  # written once by init: colors for tags, narratives and sources
+    ├── .obsidian/graph.json  # with the Obsidian add-on: written once by init
     ├── tags/
     │   ├── tags.yaml         # the tag tree
     │   └── <tag>.md          # generated: a page per tag
@@ -95,7 +96,7 @@ sllmwiki/
         └── manifest.yaml
 ```
 
-The layout is fixed: the scripts know it, and nothing configures it. A repository is a wiki when `sllmwiki/tags/tags.yaml` exists; every workflow but `init` stops and points to `init` otherwise. There is no `Config.toml` (§11).
+The layout is fixed: the scripts know it, and no setting changes it. A repository is a wiki when `sllmwiki/tags/tags.yaml` exists; every workflow but `init` stops and points to `init` otherwise.
 
 ## 4. Data model
 
@@ -184,7 +185,7 @@ One question per file in `groomed/`; the question is the title, unchanged.
 | `comparison` | "X vs Y": a criteria table, the differences that matter, when to choose which | 1,200 words |
 | `survey` | "What are the principles / patterns of X?": every item, how they relate, where to go deeper | 2,200 words |
 
-**A wiki's own templates.** A folder in the wiki's `templates/` is offered next to the bundled ones; one with a bundled template's name replaces it, which is how a wiki changes a budget. Nothing else configures templates.
+**A wiki's own templates.** A team can bring its own: a folder in the wiki's `templates/` with a `template.md` and a `guide.md` is offered next to the bundled ones, and is checked the same way; one with a bundled template's name replaces it. A wiki that only wants a different budget for a template sets it in `Config.toml` (§4.9) instead of copying the template.
 
 **What scripts do for every narrative.** After any edit, the agent runs one command, `finish-narrative` (§7.5): it numbers the headings, escapes what the renderers would misread (§4.8), adds a Terminology row for each marker the narrative uses, bumps the version and history when asked, writes the manifest entry with the current pins, and regenerates the index and tag pages. The agent writes the content; the script does the rest.
 
@@ -196,21 +197,45 @@ YAML is human- and model-readable, `grep`- and `yq`-friendly, and diffs cleanly 
 
 The wiki keeps verbatim copies, so the skill follows a source policy ("Source policy" in `SKILL.md` is its one home):
 
-- **Copyright** stays with each source's authors; a copy transfers no rights, and narratives are original writing with brief, attributed quotations (at most 50 words each, checked by `narrative-format`).
+- **Copyright** stays with each source's authors; a copy transfers no rights, and narratives are original writing with brief, attributed quotations (at most `max_quote_words`, 50 by default, checked by `narrative-format`).
 - **Attribution:** every saved source keeps its URL and license in its footer and manifest entry.
 - **Access controls are never bypassed:** no logins, paywalls, registration walls or anti-bot protection, and no unofficial copies.
-- **What may be copied depends on who can see the wiki.** A private repository keeps reference copies unless a source's terms forbid sharing; a public one keeps only openly licensed sources. Anything else is a `link`.
+- **What may be copied depends on who can see the wiki.** A private repository keeps reference copies unless a source's terms forbid sharing; a public one keeps only openly licensed sources. Anything else is a `link`. A team whose policy allows no copies at all sets `source_copies = "links-only"` (§4.9), and every source is a `link`.
 - **No personal data or secrets,** whatever the license; sections holding them are left out with a marker, never edited.
 
-The judgment is the agent's: it reads the source's license or terms and records them (`--license`, `--license-url`). The scripts enforce what can be checked: `fetch-source` asks GitHub whether the repository is public and refuses to save a copy whose recorded license isn't open there (`--allow-restricted` records the owner's permission instead), and `wiki-check` fails the wiki's CI (`SOURCE_POLICY`) on any saved copy a public wiki may not hold, or any saved source without its URL and license.
+The judgment is the agent's: it reads the source's license or terms and records them (`--license`, `--license-url`). The scripts enforce what can be checked: `fetch-source` asks GitHub whether the repository is public and refuses to save a copy whose recorded license isn't open there (`--allow-restricted` records the owner's permission instead), or any copy at all under `links-only`, and `wiki-check` fails the wiki's CI (`SOURCE_POLICY`) on any saved copy a public wiki may not hold, or any saved source without its URL and license.
 
 ### 4.8 Markdown everyone renders alike, and Obsidian
 
 A wiki is read on GitHub page by page, opened in [Obsidian](https://obsidian.md) as a graph, and can later be built as a book with mdBook or Sphinx and MyST-Parser. Its markdown keeps to what all four render alike, as `lib/compat.py` defines it: markdown links relative to the linking file, spaces as `%20`, links to files not folders; no wikilinks, embeds, highlights, `%%` comments, block IDs or inline `#tags`; only GitHub's five alerts as callouts; `$$` math only where GitHub renders it unchanged; escaped citation brackets; no bare URLs; and escapes for what a book reads as its own syntax (a `%` starting a line, `{…}` ending a heading, `$` before a number, single tildes, `{{#include …}}`). Code is never checked or escaped. Each rule was checked by rendering in the renderers, and `test_compat` holds the evidence (`AGENTS.md`, "Markdown compatibility"). `narrative-format` checks narratives, `obsidian-check` every other page outside the sources, and `finish-narrative` writes the escapes.
 
-**Obsidian needs nothing more.** Its graph draws every markdown file as a node and every link as an edge. Narratives and sources are linked by citations; the generated **tag pages** (one per tag: description, parent, children, narratives, sources, SMEs) put the tag tree in the graph, and on GitHub each is a topic to browse. `init` writes `sllmwiki/.obsidian/graph.json` once (colors for tag pages, narratives and sources; sources hidden), and the wiki owns it from then on; `.gitignore` shares only that file from `.obsidian/`, and `publish.sh` ignores Obsidian's rewrites of it.
+**Tag pages, for everyone.** A generated page per tag (description, parent, children, narratives, sources, SMEs) makes each topic browsable on GitHub, and puts the tag tree in Obsidian's graph, which draws every markdown file as a node and every link as an edge. They are plain markdown, written by a script in milliseconds.
+
+**The Obsidian add-on** (`obsidian = true`, §4.9) adds what only Obsidian uses: `init` writes `sllmwiki/.obsidian/graph.json` once (colors for tag pages, narratives and sources; sources hidden), and the wiki owns it from then on; `.gitignore` shares only that file from `.obsidian/`, and `publish.sh` ignores Obsidian's rewrites of it. Off, nothing Obsidian-specific is written.
 
 **The index.** `SLLMWIKI_INDICES.md`, at the repository root, outside the vault, is GitHub's map: a mermaid diagram of the tag tree whose nodes open the tag pages, and the same tree as a nested list. Obsidian and a book don't need it, so it stays out of their source.
+
+### 4.9 Settings and add-ons: `Config.toml`
+
+A wiki can keep a `Config.toml` at its root. Every setting has a default, so the file is optional; `init` writes it with the defaults and a note on each, and a rerun adds any setting the file lacks, keeping the wiki's values.
+
+```toml
+[structural-llm-wiki-settings]
+source_copies = "allow"     # "allow": a private wiki keeps reference copies, a public one only openly licensed sources (§4.7); "links-only": no copies, every source a link
+max_quote_words = 50        # the longest quotation a narrative may take from a source
+smes_exclude = []           # never listed as SMEs, such as the wiki's owner or bots: ["@alice", "dependabot"]
+
+[structural-llm-wiki-templates.technical_brief_overview]   # a template's budgets, over its header
+max_words = 3000
+abstract_words = [150, 300]
+
+[structural-llm-wiki-addons]
+obsidian = false            # true: the Obsidian add-on (§4.8)
+```
+
+- **What earns a setting.** A real wiki or a team's policy needs it, it has a safe default, and a script enforces it. Each setting above meets all three: the one real wiki raised a template's budget, set the Obsidian add-on on, and had its owner wrongly listed as an SME; `source_copies` and `max_quote_words` are what a legal team may need to tighten. Nothing configures the layout (§3).
+- **Add-ons** are optional features, each a key in `[structural-llm-wiki-addons]`, off by default. An add-on is listed only once it exists, and its work (files written, builds run) happens only when it is on, so a wiki that doesn't use it never waits for it.
+- **One reader.** Every script reads the file through `lib/config.py`. An unknown table key, a mistyped value or an unknown template is an error: `wiki-check` reports it (`CONFIG_INVALID`) and the scripts that write refuse to run until it's fixed. The tables are prefixed with the project's name, so the file can also hold other tools' tables, which are left alone.
 
 ## 5. Building knowledge: `build`
 
@@ -299,13 +324,13 @@ Before writing, `search.py narratives` finds narratives that answer the same or 
 |---|---|---|---|
 | `build` | `<questions or topic>` | Runs the steps (§5) and manages the run PR | through its steps |
 | `query` | `<question> [--root <wiki>]` | Answers by tiers (§6); offers to file or to `build` | nothing |
-| `init` | `[repo name]` | Turns the current directory into a wiki: layout, README, `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `.claude/settings.json`, CI, `graph.json`; offers to create the remote; checks the default branch; refreshes the files it owns when the plugin updates, keeping the wiki's content | first commit |
+| `init` | `[repo name]` | Turns the current directory into a wiki: layout, README, `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `.claude/settings.json`, CI, `Config.toml` with its defaults and notes, `graph.json` with the Obsidian add-on; offers to create the remote; checks the default branch; refreshes the files it owns when the plugin updates, keeping the wiki's content | first commit |
 
 | Step | Input | Does | Writes |
 |---|---|---|---|
 | `tags` | `<questions>` | Matches tags, proposes new ones, classifies per question, lists stale sources. Reads only | new tags |
 | `ingest` | `<tags> <questions>` | Finds 3–5 good sources per question (authoritative and recent first), records each license, saves through `fetch-source` | sources, manifest |
-| `smes` | `<tags>` | Locates the code and docs behind the tags, ranks people by `contributors.py` (git log and blame, `CODEOWNERS`, doc authorship, reviews); never lists the wiki's own committers for their wiki commits | `smes` in `tags.yaml` |
+| `smes` | `<tags>` | Locates the code and docs behind the tags, ranks people by `contributors.py` (git log and blame, `CODEOWNERS`, doc authorship, reviews); never lists anyone in `smes_exclude` (§4.9), nor the wiki's own committers for their wiki commits | `smes` in `tags.yaml` |
 | `narrative` | `<question>` | Reuse or expand first (§7.4); reading plan (§7.1); writes by template and guide; `finish-narrative`; lint | a narrative |
 | `lint` | `<narrative \| tag \| description>` | §7.3 | fixes, and decisions on the PR |
 
@@ -332,8 +357,8 @@ Each waits until a real wiki needs it; adding one later starts as a proposal in 
 
 | Not in v1 | Instead | Why it waits |
 |---|---|---|
-| `Config.toml`: configurable paths, markers, lengths and add-ons | One layout; fixed markers; budgets in template headers, changed by overriding a template | The one real wiki changed only a template's length and turned Obsidian on; both now need no setting |
-| Book builds (mdBook, Sphinx) | The markdown stays book-ready (§4.8) | No one has asked for a book yet |
+| Configurable paths, markers, a default template, hiding bundled templates | One layout; fixed markers; the narrative step picks a template by its `use_when` | Never changed in the one real wiki, and the source of most of the churn |
+| Book builds (mdBook, Sphinx) | The markdown stays book-ready (§4.8); each build arrives later as an add-on, off by default, so a wiki that doesn't want a book never pays for one | No one has asked for a book yet |
 | Draft narratives and their states | A labeled DRAFT answer in `query`'s reply, and an offer to `build` | The one real wiki never kept a draft |
 | Tag abstracts rolled up the tree | `query` starts from narrative abstracts | Rewriting every abstract up to the root on each change was the costliest bookkeeping |
 | The `decision_record` template | The other four; a wiki can add its own | Never used |

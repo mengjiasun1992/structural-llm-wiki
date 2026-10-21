@@ -87,20 +87,23 @@ needed first moves first.
 
 ### 4.1 Phase 0: foundations
 
-**Goal.** The test harness and the modules everything imports, for the fixed
-layout (design doc §3) with no `Config.toml`.
+**Goal.** The test harness and the modules everything imports: the fixed
+layout (design doc §3) and the settings (design doc §4.9).
 
 | # | Code change | What it does |
 |---|---|---|
 | 0.1 | `tests/run.py`, `tests/helpers.py` | Runs each test module in its own process, in parallel, with name filters and `--coverage`; a fixture wiki per test in the fixed layout, in-process command scripts, git helpers, `LocalServer` |
 | 0.2 | `lib/util.py` | Reading text, JSON output, stdout setup, the git root, dates, MD5 without the footer |
 | 0.2 | `lib/layout.py` | The fixed paths (design doc §3); finding the wiki from a directory or `--root`; the shared command-line plumbing (usage errors, failures, "not a wiki: run /sllmwiki:init") |
+| 0.2 | `lib/toml.py`, `lib/config.py` | The TOML subset `Config.toml` uses (Python 3.9 has no `tomllib`); the settings, template budgets and add-ons with their defaults, validated (`CONFIG_INVALID`), other tools' tables left alone |
 | 0.3 | `lib/wikiyaml.py` | The YAML subset the skill writes; refuses anything else loudly; targeted line edits that keep comments and order |
 | 0.3 | `lib/schema.py` | Field kinds and rules for `tags.yaml` and both manifests (design doc §4.2–§4.4), with did-you-mean hints |
 | 0.4 | `lib/compat.py` | The markdown GitHub, Obsidian, mdBook and Sphinx render alike (design doc §4.8): findings, `escape()`, link checks |
 | 0.5 | `evals/README.md`, `evals/_fixture/wiki.sh` | The case table, the fixture (the unit tests' wiki as a git repo with a local `origin`) and the known limits |
 
-**Test.** `test_run`, `test_helpers`, `test_util`, `test_layout`, `test_wikiyaml`
+**Test.** `test_run`, `test_helpers`, `test_util`, `test_layout`, `test_toml`,
+`test_config` (each default with no file, each invalid value, other tools'
+tables kept), `test_wikiyaml`
 (the subset, the refusals, edits that keep comments), `test_schema` (each field
 kind, cross-field rules, hints), `test_compat` (table-driven: a row per rule,
 run through the cases `AGENTS.md` requires), `test_check_yaml`,
@@ -120,13 +123,13 @@ a cited answer.
 |---|---|---|
 | 1.1 | `lib/numbering.py`, `lib/citations.py`, `lib/mdlinks.py`, `lib/metadata.py`, `lib/footer.py` | Heading structure and numbers; numbered, escaped citations and their link targets; the Metadata section (version, template, dates, history); the "Original source" footer |
 | 1.2 | `lib/manifest.py`, `scripts/manifest.py`, `lib/tagtree.py`, `scripts/tag-tree.py` | Record a source (design doc §4.3); `add-tag`, `put-tag`; the tree and what's derived from it (children, ancestors, adjacent, a tag's sources and narratives) |
-| 1.3 | `lib/html2md.py`, `lib/fetch.py`, `lib/policy.py`, `scripts/fetch-source.py` | Fetch a page or file; keep markdown and text byte for byte; convert an HTML page's main content; record the license the agent found; refuse a copy a public wiki may not hold (`--allow-restricted`); save with the footer and record it |
-| 1.4 | `templates/narratives/shared.md`, `concept_brief_overview/`, `technical_brief_overview/`, `lib/templates.py` | The shared structure and markers; the first two templates and their guides (design doc §4.5); bundled and wiki templates, the skeleton read as the schema |
+| 1.3 | `lib/html2md.py`, `lib/fetch.py`, `lib/policy.py`, `scripts/fetch-source.py` | Fetch a page or file; keep markdown and text byte for byte; convert an HTML page's main content; record the license the agent found; refuse a copy a public wiki may not hold (`--allow-restricted`), or any copy under `source_copies = "links-only"`; save with the footer and record it |
+| 1.4 | `templates/narratives/shared.md`, `concept_brief_overview/`, `technical_brief_overview/`, `lib/templates.py` | The shared structure and markers; the first two templates and their guides (design doc §4.5); bundled and the wiki's own templates, the skeleton read as the schema, budgets from `Config.toml` over the header |
 | 1.5 | `scripts/narrative-format.py`, `scripts/finish-narrative.py` | A narrative against its template: sections, numbering, budgets, Abstract range, markers defined, citations resolve, compat; one finishing command (design doc §7.5) |
 | 1.6 | `lib/search.py`, `scripts/search.py`, `scripts/reading-plan.py` | BM25 over tags, narratives and source abstracts; `context`, `narratives`, `sources`, `outline`, `section` (by citation link); the ordered reading plan (design doc §7.1) |
 | 1.7 | `scripts/wiki-check.py`, `lib/wikiindex.py`, `lib/tagpages.py` | Schema; manifests against files; pins (`NARRATIVE_SOURCE_CHANGED`); `SOURCE_POLICY`; generated pages current (the index, tag pages), rewritten with `--fix` |
 | 1.8 | `scripts/publish.sh`, `scripts/preflight.sh` | Run branch, push, open and update the PR; assemble the PR description and checklist from the steps' JSON summaries, and every commit message (design doc §5.2–§5.3); check git, Python and `gh` |
-| 1.9 | `templates/wiki/`, `templates/*.yml`, `src/actions/review-checklist/`, `src/actions/wiki-checks/`, `scripts/init.py` | The wiki's README, `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `.claude/settings.json`, `graph.json`, CI; the review-checklist action; `init` lays them out and refreshes what it owns |
+| 1.9 | `templates/wiki/`, `templates/*.yml`, `src/actions/review-checklist/`, `src/actions/wiki-checks/`, `scripts/init.py` | The wiki's README, `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `.claude/settings.json`, `Config.toml` with its defaults and notes, CI, and `graph.json` with the Obsidian add-on; the review-checklist action; `init` lays them out, refreshes what it owns and adds settings a wiki's `Config.toml` lacks |
 | 1.10 | `SKILL.md`, `workflows/{init,build,query}.md`, `steps/{tags,ingest,narrative}.md`, `src/commands/*.md`, `tests/test_instructions.py` | The instructions, within their budgets (design doc §9); `build` without `smes` and `lint` yet |
 
 **Test.** A test module per script and module. `test_fetch_source` serves
@@ -168,7 +171,7 @@ missing, before more is built.
 | # | Code change | What it does |
 |---|---|---|
 | 3.1 | `scripts/cited-sections.py`, `steps/lint.md` | Each claim with the source section it cites; one lint pass, one commit, bigger findings on the PR (design doc §7.3) |
-| 3.2 | `lib/quotes.py` in `narrative-format` | A quotation must appear in the source it cites, and be at most 50 words |
+| 3.2 | `lib/quotes.py` in `narrative-format` | A quotation must appear in the source it cites, and be at most `max_quote_words` |
 | 3.3 | `scripts/check-upstream.py` | Refetch saved sources and mark changed ones; narratives pinned to them rechecked (design doc §7.2) |
 | 3.4 | `lib/pdf.py` in `fetch-source` | A PDF's text layer, page by page under `## Page <n>` headings |
 | 3.5 | `build` | `lint` added after `narrative` |
@@ -195,7 +198,7 @@ text layer).
 | # | Code change | What it does |
 |---|---|---|
 | 4.1 | `templates/narratives/comparison/`, `survey/` | The other two templates and guides |
-| 4.2 | `scripts/contributors.py`, `steps/smes.md` | Ranking people from git history, `CODEOWNERS`, doc authorship and reviews; the `smes` step, in `build` when the topic has code or authored docs |
+| 4.2 | `scripts/contributors.py`, `steps/smes.md` | Ranking people from git history, `CODEOWNERS`, doc authorship and reviews, never anyone in `smes_exclude`; the `smes` step, in `build` when the topic has code or authored docs |
 | 4.3 | `workflows/query.md` | Offering to file a stitched answer; the labeled DRAFT answer and the offer to `build` |
 | 4.4 | `scripts/obsidian-check.py` | Compatible markdown on every page outside the sources |
 
@@ -218,17 +221,26 @@ text layer).
 **Eval.** Every case, three runs, with the baseline; results, cost and turns in
 the release pull request.
 
-## 5. Fixed values
+## 5. Settings and fixed values
 
-The skill has no settings in v1 (design doc §11). These values are constants in
-the code, each with one home:
+The settings a wiki can change (design doc §4.9), each read through
+`lib/config.py` (0.2) and tested with non-default values as well as the
+default:
+
+| Setting | Default | Used by |
+|---|---|---|
+| `source_copies` | `"allow"` | `fetch-source` (1.3), `wiki-check` (1.7) |
+| `max_quote_words` | `50` | `narrative-format` (3.2) |
+| `smes_exclude` | `[]` | `contributors.py` (4.2) |
+| `[structural-llm-wiki-templates.<name>]` budgets | each template's header | `lib/templates.py` (1.4), `narrative-format` (1.5) |
+| `obsidian` add-on | `false` | `init` (1.9), `publish.sh` (1.8) |
+
+Everything else is a constant, with one home:
 
 | Value | Home |
 |---|---|
 | The layout | `lib/layout.py` |
-| Template budgets and Abstract ranges | each template's header; a wiki overrides a template to change them |
 | Markers `[sllmwiki_reasoning]`, `[sllmwiki_gap]` | `templates/narratives/shared.md` |
-| Longest quotation, 50 words | `lib/quotes.py` |
 | Instruction word budgets | `tests/test_instructions.py` |
 
 ## 6. Risks
@@ -243,5 +255,5 @@ the code, each with one home:
   `git`; they run on Linux.
 - **Eval cost.** Smoke sets stay under $5 a run; full runs only at the end of a
   phase and at the release.
-- **No settings.** A team that needs a setting gets it through a proposal, not a
-  quiet option.
+- **Settings creep.** A new setting needs the three tests in design doc §4.9
+  and a proposal, not a quiet option; an add-on stays off by default.
