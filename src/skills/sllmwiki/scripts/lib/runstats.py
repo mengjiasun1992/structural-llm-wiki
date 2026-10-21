@@ -82,6 +82,8 @@ def section(started, cost=None, at=None, path=None):
     if stats:
         lines.append(f'- Turns: {stats["turns"]:,}; tokens: {stats["tokens_in"]:,} in ({stats["cached"]:,} of them from the cache), '
                      f'{stats["tokens_out"]:,} out (this session only, not its subagents)')
+    elif not start:
+        lines.append('- Turns and tokens: not counted, since the run has no start time')
     else:
         lines.append('- Turns and tokens: no session transcript to read them from')
     if cost is not None:

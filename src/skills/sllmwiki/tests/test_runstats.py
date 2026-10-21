@@ -54,8 +54,9 @@ class RunStats(unittest.TestCase):
         self.assertEqual(lines, ['## Run', '', '- Time: 1 h 12 min since the run started',
                                  '- Turns: 2; tokens: 2,204 in (2,000 of them from the cache), 30 out (this session only, not its subagents)',
                                  '- Cost: $2.12'])
-        self.assertEqual(runstats.section(None), ['## Run', '', '- Time: not recorded',
-                                                  '- Turns and tokens: no session transcript to read them from'])
+        self.assertEqual(runstats.section(None, path=self.path), ['## Run', '', '- Time: not recorded',
+                                                                  '- Turns and tokens: not counted, since the run has no start time'])
+        self.assertEqual(runstats.section(started)[3], '- Turns and tokens: no session transcript to read them from')
         self.assertIn('- Time: 4 min since the run started', runstats.section('2026-10-20T12:00:00', at=T0 + datetime.timedelta(minutes=4)))
 
     def test_parse_time(self):
