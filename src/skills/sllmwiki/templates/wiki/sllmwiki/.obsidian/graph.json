@@ -1,0 +1,15 @@
+{
+  "search": "-path:sources",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": true,
+  "showOrphans": true,
+  "colorGroups": [
+    {"query": "path:tags", "color": {"a": 1, "rgb": 5195493}},
+    {"query": "path:narratives", "color": {"a": 1, "rgb": 2463978}},
+    {"query": "path:sources", "color": {"a": 1, "rgb": 10066329}}
+  ],
+  "showArrow": true,
+  "lineSizeMultiplier": 1,
+  "nodeSizeMultiplier": 1
+}

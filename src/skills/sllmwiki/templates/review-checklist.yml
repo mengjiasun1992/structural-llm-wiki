@@ -1,0 +1,17 @@
+# Red until every box in a run's "Review checklist" is ticked, so a run is
+# reviewed even when its owner can merge without a required review. Runs from
+# the sllmwiki repository at {{ref}}; /sllmwiki:init moves the ref.
+name: Review checklist
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  review-checklist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: mengjiasun1992/structural-llm-wiki/src/actions/review-checklist@{{ref}}

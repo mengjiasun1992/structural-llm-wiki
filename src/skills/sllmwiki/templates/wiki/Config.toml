@@ -1,0 +1,19 @@
+# This wiki's settings, read by the sllmwiki skill and the wiki's CI. Every
+# setting has a default: remove a line to use it. Rerun /sllmwiki:init after a
+# plugin update to add settings this file doesn't have yet.
+
+[structural-llm-wiki-settings]
+# The source policy: "allow" keeps reference copies in a private wiki and only
+# openly licensed sources in a public one; "links-only" keeps no copies at all.
+source_copies = "allow"
+max_quote_words = 50        # the longest quotation a narrative may take from a source
+smes_exclude = []           # never listed as SMEs, such as this wiki's owner or bots: ["@alice", "dependabot"]
+markers = true              # false: no [sllmwiki_reasoning] or [sllmwiki_gap] markers in narratives
+
+# A template's word budgets, over its own. For example:
+# [structural-llm-wiki-templates.technical_brief_overview]
+# max_words = 3000
+# abstract_words = [150, 300]
+
+[structural-llm-wiki-addons]
+obsidian = false            # true: set the wiki up to open sllmwiki/ as an Obsidian vault (rerun /sllmwiki:init)

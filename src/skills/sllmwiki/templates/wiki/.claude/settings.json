@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "structural-llm-wiki": {
+      "source": {
+        "source": "github",
+        "repo": "mengjiasun1992/structural-llm-wiki"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "sllmwiki@structural-llm-wiki": true
+  }
+}
