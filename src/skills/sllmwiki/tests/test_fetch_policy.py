@@ -57,7 +57,7 @@ def completed(stdout='', code=0):
 class Visibility(unittest.TestCase):
     def run_with(self, remote, gh=None, api=None, remotes='origin\n'):
         def fake_run(cmd, **kw):
-            if cmd[:3] == ['git', 'remote', 'get-url']:
+            if cmd[:3] == ['git', 'config', '--get']:
                 return completed(remote or '', 0 if remote else 2)
             if cmd[:2] == ['git', 'remote']:
                 return completed(remotes)
@@ -85,6 +85,7 @@ class Visibility(unittest.TestCase):
     def test_no_remote_or_another_host(self):
         self.assertEqual(self.run_with(None, remotes=''), 'private')
         self.assertEqual(self.run_with('https://gitlab.example.com/o/r.git'), 'unknown')
+        self.assertEqual(self.run_with('git@github-work:o/r.git', completed('PRIVATE\n')), 'private')  # an SSH host alias
 
 
 class Repository(helpers.WikiTestCase):

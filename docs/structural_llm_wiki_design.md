@@ -214,7 +214,7 @@ A wiki is read on GitHub page by page, opened in [Obsidian](https://obsidian.md)
 
 **Tag pages, for everyone.** A generated page per tag (description, parent, children, narratives, sources, SMEs) makes each topic browsable on GitHub, and puts the tag tree in Obsidian's graph, which draws every markdown file as a node and every link as an edge. They are plain markdown, written by a script in milliseconds.
 
-**The Obsidian add-on** (`obsidian = true`, §4.9) adds what only Obsidian uses: `init` writes `sllmwiki/.obsidian/graph.json` once (colors for tag pages, narratives and sources; sources hidden), and the wiki owns it from then on; `.gitignore` shares only that file from `.obsidian/`, and `publish.sh` ignores Obsidian's rewrites of it. Off, nothing Obsidian-specific is written.
+**The Obsidian add-on** (`obsidian = true`, §4.9) adds what only Obsidian uses: `init` writes `sllmwiki/.obsidian/graph.json` once (colors for tag pages, narratives and sources; sources hidden), and the wiki owns it from then on; `.gitignore` shares only that file from `.obsidian/`, and `publish.py` ignores Obsidian's rewrites of it. Off, nothing Obsidian-specific is written.
 
 **The index.** `SLLMWIKI_INDICES.md`, at the repository root, outside the vault, is GitHub's map: a mermaid diagram of the tag tree whose nodes open the tag pages, and the same tree as a nested list. Obsidian and a book don't need it, so it stays out of their source.
 
@@ -275,14 +275,14 @@ The questions and the user's words are passed to every step. A request that name
 ### 5.2 Review model
 
 - Each run works on its own branch (`sllmwiki/<slug>`), from the up-to-date default branch, never from another run's branch; it stops if the local default branch doesn't match the remote's.
-- Steps only commit. `publish.sh` opens one pull request after Step 3 and updates its description after each later step. It assembles the description from the steps' summaries (each step writes its summary as JSON): the review checklist at the top (tags, sources, each narrative), anything the run couldn't decide, then the summaries. The wiki's `review-checklist` check stays red until every box is ticked, so a change is reviewed even when its owner can merge without a required review.
+- Steps only commit. `publish.py` opens one pull request after Step 3 and updates its description after each later step. It assembles the description from the steps' summaries (each step writes its summary as JSON): the review checklist at the top (tags, sources, each narrative), anything the run couldn't decide, then the summaries. The wiki's `review-checklist` check stays red until every box is ticked, so a change is reviewed even when its owner can merge without a required review.
 - A step run on its own opens its own pull request; lint started by `ingest` or `narrative` shares its caller's.
 - **The owner merges.** Runs never merge. Feedback is applied by rerunning on the same branch; the pull request is updated, never replaced.
 - If the user asks for a different flow ("merge it for me", "use branch X"), that request wins.
 
 ### 5.3 Commit messages
 
-`publish.sh commit` writes every commit message: `[sllmwiki][<action>][<tags>] <summary>`, then the step's summary, then the request that started the run, verbatim, in a `Prompt:` block. Actions: `init`, `tags`, `ingest`, `smes`, `narrative`, `lint`.
+`publish.py commit` writes every commit message: `[sllmwiki][<action>][<tags>] <summary>`, then the step's summary, then the request that started the run, verbatim, in a `Prompt:` block. Actions: `init`, `tags`, `ingest`, `smes`, `narrative`, `lint`.
 
 ## 6. Using knowledge: `query`
 

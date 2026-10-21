@@ -128,7 +128,7 @@ a cited answer.
 | 1.5 | `scripts/narrative-format.py`, `scripts/finish-narrative.py` | A narrative against its template: sections, numbering, budgets, Abstract range, markers defined, citations resolve, compat; one finishing command (design doc §7.5) |
 | 1.6 | `lib/search.py`, `scripts/search.py`, `scripts/reading-plan.py` | BM25 over tags, narratives and source abstracts; `context`, `narratives`, `sources`, `outline`, `section` (by citation link); the ordered reading plan (design doc §7.1) |
 | 1.7 | `scripts/wiki-check.py`, `lib/wikiindex.py`, `lib/tagpages.py` | Schema; manifests against files; pins (`NARRATIVE_SOURCE_CHANGED`); `SOURCE_POLICY`; generated pages current (the index, tag pages), rewritten with `--fix` |
-| 1.8 | `scripts/publish.sh`, `scripts/preflight.sh` | Run branch, push, open and update the PR; assemble the PR description and checklist from the steps' JSON summaries, and every commit message (design doc §5.2–§5.3); check git, Python and `gh` |
+| 1.8 | `scripts/publish.py`, `scripts/preflight.sh` | Run branch, push, open and update the PR; assemble the PR description and checklist from the steps' JSON summaries, and every commit message (design doc §5.2–§5.3); check git, Python and `gh` |
 | 1.9 | `templates/wiki/`, `templates/*.yml`, `src/actions/review-checklist/`, `src/actions/wiki-checks/`, `scripts/init.py` | The wiki's README, `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `.claude/settings.json`, `Config.toml` with its defaults and notes, CI, and `graph.json` with the Obsidian add-on; the review-checklist action; `init` lays them out, refreshes what it owns and adds settings a wiki's `Config.toml` lacks |
 | 1.10 | `SKILL.md`, `workflows/{init,build,query}.md`, `steps/{tags,ingest,narrative}.md`, `src/commands/*.md`, `tests/test_instructions.py` | The instructions, within their budgets (design doc §9); `build` without `smes` and `lint` yet |
 
@@ -136,7 +136,7 @@ a cited answer.
 markdown, text and HTML pages (with navigation and comments to strip) from
 `LocalServer`, and covers the license checks in a public and a private wiki.
 `test_finish_narrative` runs the whole finishing sequence on the fixture.
-`test_publish` runs `publish.sh` against a local bare `origin`. `test_init`
+`test_publish` runs `publish.py` against a local bare `origin`, with a fake `gh`. `test_init`
 builds a new wiki and refreshes one that has content.
 
 **Eval.**
@@ -234,7 +234,7 @@ default:
 | `smes_exclude` | `[]` | `contributors.py` (4.2) |
 | `markers` | `true` | `shared.md` (1.4), `narrative-format` and `finish-narrative` (1.5), `steps/narrative.md` (1.10) |
 | `[structural-llm-wiki-templates.<name>]` budgets | each template's header | `lib/templates.py` (1.4), `narrative-format` (1.5) |
-| `obsidian` add-on | `false` | `init` (1.9), `publish.sh` (1.8) |
+| `obsidian` add-on | `false` | `init` (1.9) |
 
 Everything else is a constant, with one home:
 

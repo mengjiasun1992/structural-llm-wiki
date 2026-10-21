@@ -26,11 +26,19 @@ def is_open(license):
     return (license or '').strip().lower() in OPEN_LICENSES
 
 
-def _github_repo(root):
-    """(owner, repo) of the wiki's origin on GitHub, or None."""
-    p = subprocess.run(['git', 'remote', 'get-url', 'origin'], cwd=root, capture_output=True, text=True, check=False)
-    m = re.search(r'github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?/?\s*\Z', p.stdout) if p.returncode == 0 else None
+GITHUB_URL = re.compile(r'github(?:\.com|-[\w.-]+)?[:/]([^/\s:]+)/([^/\s]+?)(?:\.git)?/?\s*\Z')  # github.com, or an SSH host alias like github-work
+
+
+def github_repo(url):
+    """(owner, repo) for a GitHub remote URL, an SSH host alias included; None for another host."""
+    m = GITHUB_URL.search(url or '')
     return (m.group(1), m.group(2)) if m else None
+
+
+def _github_repo(root):
+    """(owner, repo) of the wiki's origin on GitHub, as configured (before any insteadOf), or None."""
+    p = subprocess.run(['git', 'config', '--get', 'remote.origin.url'], cwd=root, capture_output=True, text=True, check=False)
+    return github_repo(p.stdout.strip()) if p.returncode == 0 else None
 
 
 def visibility(root):
