@@ -3,7 +3,12 @@
 ## 1. Find
 
 - Look for 3-5 good sources per question; fewer good ones beat many weak ones.
-- Search first for the question's source of record: the original definition for "What is X?", official design principles or a survey for "What are the principles of X?", the paper or specification a method comes from. Then widen.
+- First list what the question's narrative can't miss, by its template's subject (design doc §4.5):
+  - concept: the standard definition;
+  - technical: the specification or paper the method comes from, and how it's used;
+  - comparison: each common candidate, and every dimension the choice turns on;
+  - survey: every main area of the field, and its official or classic lists.
+- Search for each, the source of record first, then widen, until a source covers it or the searches show none does. Keep the searches you ran.
 - Rank candidates by, in order:
   1. **Relevance:** the most relevant to the question and its tags first.
   2. **Authority,** among the sources you have access and a license to use:
@@ -37,4 +42,4 @@ Read each saved source once, and write its abstract: 150-250 words on what it sa
 - `title`: "Sources";
 - `checklist`: "Sources: each is one you'd trust";
 - `decisions`: anything the owner must decide, such as permission to keep a copy, and each A source you couldn't use or save, with its link and why;
-- `body`: a table of slug, kind, size, license, and why it was chosen or kept as a link.
+- `body`: what the question can't miss, each with the source that covers it or "none found"; the searches you ran; then a table of slug, kind, size, license, and why it was chosen or kept as a link.
