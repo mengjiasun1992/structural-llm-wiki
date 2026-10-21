@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+"""finish-narrative: everything mechanical after a narrative is written or edited,
+in one command (design doc §7.5).
+
+  finish-narrative.py <slug> [--primary a,b] [--supporting c] [--read s1,s2]
+                      [--bump minor|major --note TEXT] [--json] [--root <wiki>]
+
+In order: numbers the headings; writes the renderer escapes; adds a Terminology
+row for each marker the narrative uses (when markers are on); sets the
+Metadata's dates and, for a new narrative, version 1.0 and its first history
+entry, or with --bump, the next version and --note as its history entry;
+records the narrative with its template, tags and the current pins of the
+sources it read; then checks it with narrative-format and prints what's left.
+
+A new narrative needs --primary (its core tags) and --read (the saved sources it
+read in full); later runs reuse what was recorded unless given again.
+
+Exit code: 0 finished with no errors, 1 when errors remain or it was refused,
+2 on a usage error.
+"""
+
+import argparse
+import os
+import sys
+
+sys.dont_write_bytecode = True
+
+from lib import compat, config, layout, manifest, markers, metadata, numbering, templates  # noqa: E402
+from lib.narrativecheck import check as check_narrative  # noqa: E402
+from lib.layout import Cli, entry  # noqa: E402
+from lib.util import dumps, read_text, today, write_text  # noqa: E402
+
+cli = Cli('finish-narrative.py', 'usage: finish-narrative.py <slug> [--primary a,b] [--supporting c] [--read s1,s2] [--bump minor|major --note TEXT]')
+
+
+def tag_list(value):
+    return [t.strip() for t in value.split(',') if t.strip()]
+
+
+def main(argv):
+    p = argparse.ArgumentParser(prog='finish-narrative.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument('slug')
+    p.add_argument('--primary', type=tag_list)
+    p.add_argument('--supporting', type=tag_list)
+    p.add_argument('--read', type=tag_list)
+    p.add_argument('--bump', choices=['minor', 'major'])
+    p.add_argument('--note')
+    p.add_argument('--json', action='store_true')
+    p.add_argument('--root')
+    args = p.parse_args(argv)
+    if args.bump and not args.note:
+        cli.usage('--bump needs --note, the history entry')
+    root = cli.wiki(args.root)
+    try:
+        settings = config.load(root).settings
+    except config.ConfigError as e:
+        cli.fail('Config.toml is invalid, fix it first: ' + '; '.join(e.problems))
+    rel = f'{layout.NARRATIVES}/{args.slug}.md'
+    path = os.path.join(root, rel)
+    if not os.path.isfile(path):
+        cli.fail(f'no narrative {rel}')
+    recorded = manifest.load(root, 'narratives').get(args.slug)
+    primary = args.primary if args.primary is not None else (recorded or {}).get('tags', {}).get('primary')
+    supporting = args.supporting if args.supporting is not None else (recorded or {}).get('tags', {}).get('supporting', [])
+    read = args.read if args.read is not None else list((recorded or {}).get('read', {}))
+    if not primary:
+        cli.fail(f'{args.slug} is new: pass --primary (its core tags) and --read (the saved sources it read)')
+
+    text = read_text(path)
+    done = []
+    text, n = numbering.renumber(text)
+    done += [f'numbered {n} heading(s)'] if n else []
+    text, n = compat.escape(text)
+    done += [f'wrote {n} renderer escape(s)'] if n else []
+    if settings['markers']:
+        text, n = markers.add_rows(text)
+        done += [f'defined {n} marker(s) in Terminology'] if n else []
+    meta = metadata.read(text)
+    name = meta['template']
+    try:
+        templates.get(root, name or '')
+    except templates.TemplateError as e:
+        cli.fail(f'Metadata names no template this wiki offers: {e}')
+    fields = {'last_modified': today(), 'created': meta['created'] or today()}
+    history = None
+    if not meta['version']:
+        fields['version'], history = '1.0', ('1.0', today(), 'First version.')
+    elif args.bump:
+        fields['version'] = metadata.bump(meta['version'], args.bump)
+        history = (fields['version'], today(), args.note)
+    if not meta['history'] and not history:
+        history = (meta['version'], meta['created'] or today(), 'First version.')
+    text = metadata.write(text, fields, history)  # the template was read from the Metadata section, so there is one
+    write_text(path, text)
+    try:
+        manifest.put_narrative(root, args.slug, name, primary, supporting, read)
+    except manifest.ManifestError as e:
+        cli.fail(f'recording {args.slug}: {e}')
+    done.append(f'recorded {args.slug} (version {metadata.read(text)["version"]}, pins: {", ".join(read) or "none"})')
+
+    check = check_narrative(root, rel, text, settings, templates.available(root)[0])
+    errors = [f for f in check if f[0] == 'error']
+    if args.json:
+        print(dumps({'slug': args.slug, 'done': done, 'findings': [dict(zip(('severity', 'code', 'line', 'message'), f)) for f in check]}))
+    else:
+        for line in done:
+            print(line)
+        for sev, code, line, msg in check:
+            print(f'{sev:<8} {code:<20} {rel}:{line}: {msg}')
+        print(f'finish-narrative: {len(errors)} error(s) left' if errors else 'finish-narrative: done, no errors')
+    return 1 if errors else 0
+
+
+if __name__ == '__main__':  # pragma: no cover
+    entry(main)

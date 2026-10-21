@@ -122,7 +122,7 @@ def scan(lines):
     return kinds, listed
 
 
-def _mask_code_spans(line):
+def mask_code_spans(line):
     """line with each code span's content replaced by spaces, so columns stay put."""
     return _CODE_SPAN.sub(lambda m: m.group(1) + ' ' * (len(m.group(0)) - 2 * len(m.group(1))) + m.group(1), line)
 
@@ -214,7 +214,7 @@ def check(text):
     for i, raw in enumerate(lines):
         if kinds[i] != 'text':
             continue
-        line = _mask_code_spans(raw)
+        line = mask_code_spans(raw)
         h = _HEADING.match(line)
         if h:
             new = len(h.group(1))
@@ -269,15 +269,15 @@ def check(text):
 def _escape_prose(line):
     """(line, count) with the inline fixes applied outside code spans and links."""
     n = 0
-    for start, end in reversed(_bare_urls(_mask_code_spans(line))):
+    for start, end in reversed(_bare_urls(mask_code_spans(line))):
         line = line[:start] + '<' + line[start:end] + '>' + line[end:]
         n += 1
-    masked = _mask_links(_mask_code_spans(line))
+    masked = _mask_links(mask_code_spans(line))
     edits = [(m.start(), '\\') for m in _DOLLAR.finditer(masked)] + [(m.start(), '\\') for m in _TILDES.finditer(masked)]
     for at, ins in sorted(edits, reverse=True):
         line = line[:at] + ins + line[at:]
     n += len(edits)
-    cites = list(_OLD_CITE.finditer(_mask_code_spans(line)))
+    cites = list(_OLD_CITE.finditer(mask_code_spans(line)))
     for m in reversed(cites):
         line = line[:m.start()] + f'[\\[{m.group(1)}\\]](' + line[m.end():]
     return line, n + len(cites)
@@ -295,12 +295,12 @@ def escape(text):
     for i, line in enumerate(lines):
         if kinds[i] != 'text':
             continue
-        masked = _mask_code_spans(line)
+        masked = mask_code_spans(line)
         m = _is_comment(masked, i, listed)
         if m:
             line = line[:m.end(1)] + '\\' + line[m.end(1):]
             n += 1
-        m = _ATTRS.match(_mask_code_spans(line))
+        m = _ATTRS.match(mask_code_spans(line))
         if m:
             line = line[:m.end(2)] + '\\}' + line[m.end(2) + 1:]
             n += 1
@@ -327,7 +327,7 @@ def check_links(text, file_dir, root):
     for i, line in enumerate(lines):
         if kinds[i] != 'text':
             continue
-        for m in _DEST.finditer(_mask_code_spans(line)):
+        for m in _DEST.finditer(mask_code_spans(line)):
             dest = m.group(1).strip()
             t = _TITLE.match(dest)
             path = t.group(1) if t else dest
