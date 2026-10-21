@@ -68,6 +68,10 @@ class Checks(helpers.WikiTestCase):
         ok = text.replace('Requests fail', 'See <https://e.com> and `<not a placeholder>`. Requests fail')
         self.assertEqual(self.codes(ok), [])
         self.assertIn('WIKILINK', [c for c, _ in self.codes(text.replace('Requests fail', 'See [[note]]. Requests fail'))])
+        for formula in ('s_t = a x_t', 's_{t-1} is kept', 'weights α·(1 − α)', 'with = α'):
+            self.assertIn('MATH_AS_TEXT', [c for c, _ in self.codes(text.replace('Requests fail', formula + '. Requests fail'))], formula)
+        for fine in ('$s_t = \\alpha x_t$', '`max_quote_words`', 'snake_case_names', 'Greek α alone'):
+            self.assertNotIn('MATH_AS_TEXT', [c for c, _ in self.codes(text.replace('Requests fail', fine + '. Requests fail'))], fine)
         self.assertIn('LINK_PATH', [c for c, _ in self.codes(text.replace('Requests fail', 'See [x](nowhere.md). Requests fail'))])
 
     def test_words(self):

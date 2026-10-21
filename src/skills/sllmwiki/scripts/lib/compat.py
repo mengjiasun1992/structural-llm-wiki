@@ -31,7 +31,7 @@ check_links(text, file_dir, root) lists LINK_SPACES, LINK_PATH and LINK_FOLDER.
 
 Code is never checked or escaped: YAML front matter, fenced code, indented code
 (four spaces or a tab after a blank line, outside a list, where the same indent
-continues the item), code spans and $$ math. Only MDBOOK_DIRECTIVE looks inside
+continues the item), code spans, $$ math and inline $math$. Only MDBOOK_DIRECTIVE looks inside
 code, because mdBook expands it before reading the markdown. Every behavior here
 was checked by rendering (tests/test_compat.py records where).
 """
@@ -46,6 +46,8 @@ _FENCE = re.compile(r'( {0,3})(`{3,}|~{3,})[ \t]*([^\s`]*)')
 _LIST = re.compile(r' {0,3}(?:[-*+]|[0-9]+[.)])(?:[ \t]|\Z)')
 _HEADING = re.compile(r' {0,3}(#{1,6})(?:[ \t]|\Z)')
 _CODE_SPAN = re.compile(r'(`+)(?!`).*?(?<!`)\1(?!`)')
+# Inline math as GitHub, Obsidian and pandoc read it: $ then no space, ... no space then $, and no digit after
+_INLINE_MATH = re.compile(r'(?<![\\$])\$(?=[^\s$])[^$\n]*?[^\s\\$]\$(?![$0-9])|(?<![\\$])\$[^\s$\\]\$(?![$0-9])')
 _LINK_OR_AUTO = re.compile(r'!?\[[^\]\n]*\]\([^)\n]*\)|<[^>\n]+>')
 
 _WIKILINK = re.compile(r'(?<![!\[\\])\[\[([^\[\]\n]+)\]\](?!\()')
@@ -125,6 +127,11 @@ def scan(lines):
 def mask_code_spans(line):
     """line with each code span's content replaced by spaces, so columns stay put."""
     return _CODE_SPAN.sub(lambda m: m.group(1) + ' ' * (len(m.group(0)) - 2 * len(m.group(1))) + m.group(1), line)
+
+
+def mask_math_spans(line):
+    """line with each inline $math$ span's content replaced by spaces, so columns stay put."""
+    return _INLINE_MATH.sub(lambda m: '$' + ' ' * (len(m.group(0)) - 2) + '$', line)
 
 
 def _mask_links(line):
@@ -214,7 +221,7 @@ def check(text):
     for i, raw in enumerate(lines):
         if kinds[i] != 'text':
             continue
-        line = mask_code_spans(raw)
+        line = mask_math_spans(mask_code_spans(raw))
         h = _HEADING.match(line)
         if h:
             new = len(h.group(1))
@@ -272,7 +279,7 @@ def _escape_prose(line):
     for start, end in reversed(_bare_urls(mask_code_spans(line))):
         line = line[:start] + '<' + line[start:end] + '>' + line[end:]
         n += 1
-    masked = _mask_links(mask_code_spans(line))
+    masked = _mask_links(mask_math_spans(mask_code_spans(line)))
     edits = [(m.start(), '\\') for m in _DOLLAR.finditer(masked)] + [(m.start(), '\\') for m in _TILDES.finditer(masked)]
     for at, ins in sorted(edits, reverse=True):
         line = line[:at] + ins + line[at:]

@@ -258,5 +258,15 @@ class Links(unittest.TestCase):
         self.assertEqual(self.codes('[t](<slug>.md) [t]({{x}}.md) [t](…)\n'), [])
 
 
+class InlineMath(unittest.TestCase):
+    def test_inline_math_is_left_alone(self):
+        text = 'For $0 < \\alpha < 1$, $2^n$ and $x$, the update $s_t = \\alpha x_t$ holds; it costs $5 and $10 a ~day~.'
+        fixed, n = escape(text)
+        self.assertEqual(fixed, 'For $0 < \\alpha < 1$, $2^n$ and $x$, the update $s_t = \\alpha x_t$ holds; it costs \\$5 and \\$10 a \\~day~.')
+        self.assertEqual(n, 3)
+        self.assertEqual(check(fixed), [])
+        self.assertEqual(compat.mask_math_spans('a $x_t$ b'), 'a $   $ b')
+
+
 if __name__ == '__main__':
     unittest.main()
