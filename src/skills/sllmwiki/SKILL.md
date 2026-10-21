@@ -15,12 +15,13 @@ A wiki is a git repository whose knowledge lives in `sllmwiki/`: sources saved v
 | Map a topic to tags | `steps/tags.md` |
 | Save or refresh sources | `steps/ingest.md` |
 | Write or update one narrative from saved sources | `steps/narrative.md` |
+| Check narratives against their sources, the code and each other | `steps/lint.md` |
 
 A request naming a topic but not the job ("look into alpha retries"): ask whether to answer from the wiki or to research it, recommending one; change nothing until told.
 
 ## Before anything
 
-Run `bash <skill>/scripts/preflight.sh`, where `<skill>` is this skill's folder; stop if it reports something required missing, except that a query needs only Python. Work from the wiki's root. If `sllmwiki/tags/tags.yaml` doesn't exist, this isn't a wiki: offer `workflows/init.md` and stop.
+Run `bash <skill>/scripts/preflight.sh`, where `<skill>` is this skill's folder; stop if it reports something required missing, except that a request that changes nothing (a query, a lint that only reports) needs only Python. Work from the wiki's root. If `sllmwiki/tags/tags.yaml` doesn't exist, this isn't a wiki: offer `workflows/init.md` and stop.
 
 ## Scripts
 
@@ -31,6 +32,7 @@ Run them with `python3 <skill>/scripts/<name>` from the wiki's root; each explai
 - `manifest.py`: tags, link sources, abstracts
 - `fetch-source.py`: save a source
 - `reading-plan.py`: what a narrative reads, in order
+- `cited-sections.py`: each section a narrative cites, with its claims
 - `narrative-format.py`: a narrative's skeleton, and its checks
 - `finish-narrative.py`: everything after a narrative is written or edited
 - `wiki-check.py`: is the wiki consistent
