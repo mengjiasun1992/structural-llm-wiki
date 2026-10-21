@@ -56,6 +56,7 @@ class FetchSource(helpers.WikiTestCase):
         self.assertEqual((e['file'], e['kind'], e['published'], e['license_url'], e['tags'], e['abstract_draft']),
                          ('sources/retry-budget.md', 'text', '2026-05-01', 'https://e.com/l', ['leaf-a'], True))
         self.assertEqual(e['abstract'], 'A retry budget caps retries at a share of requests. Ten percent.')
+        self.assertIn('[retry-budget](../sources/retry-budget.md)', self.read('sllmwiki/tags/leaf-a.md'))  # tag page rewritten
 
     def test_html_main_content(self):
         r = self.fetch('backoff', '/backoff', '--json')

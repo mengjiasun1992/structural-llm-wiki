@@ -15,7 +15,7 @@ so they're never edited by hand (design doc §4.2-§4.4).
   manifest.py remove <tags|sources|narratives> <key>
 
 Every command takes --root <wiki> (default: the repository around the working
-directory). Exit code: 0 done, 1 refused (the reason is printed), 2 usage error.
+directory), and rewrites the index and tag pages after it writes. Exit code: 0 done, 1 refused (the reason is printed), 2 usage error.
 """
 
 import argparse
@@ -23,7 +23,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import config, manifest  # noqa: E402
+from lib import config, manifest, wikiindex  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import today  # noqa: E402
 
@@ -100,6 +100,7 @@ def main(argv):
             print(f'removed {args.key} from {args.kind}')
     except manifest.ManifestError as e:
         cli.fail(str(e))
+    wikiindex.sync(root, write=True)  # the index and tag pages show what changed
     return 0
 
 

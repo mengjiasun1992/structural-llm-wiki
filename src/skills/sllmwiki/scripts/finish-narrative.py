@@ -10,7 +10,8 @@ row for each marker the narrative uses (when markers are on); sets the
 Metadata's dates and, for a new narrative, version 1.0 and its first history
 entry, or with --bump, the next version and --note as its history entry;
 records the narrative with its template, tags and the current pins of the
-sources it read; then checks it with narrative-format and prints what's left.
+sources it read; regenerates the index and tag pages; then checks it with
+narrative-format and prints what's left.
 
 A new narrative needs --primary (its core tags) and --read (the saved sources it
 read in full); later runs reuse what was recorded unless given again.
@@ -25,7 +26,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import compat, config, layout, manifest, markers, metadata, numbering, templates  # noqa: E402
+from lib import compat, config, layout, manifest, markers, metadata, numbering, templates, wikiindex  # noqa: E402
 from lib.narrativecheck import check as check_narrative  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, read_text, today, write_text  # noqa: E402
@@ -97,6 +98,8 @@ def main(argv):
     except manifest.ManifestError as e:
         cli.fail(f'recording {args.slug}: {e}')
     done.append(f'recorded {args.slug} (version {metadata.read(text)["version"]}, pins: {", ".join(read) or "none"})')
+    changed = wikiindex.sync(root, write=True)[1]
+    done += [f'regenerated {len(changed)} page(s): {", ".join(changed)}'] if changed else []
 
     check = check_narrative(root, rel, text, settings, templates.available(root)[0])
     errors = [f for f in check if f[0] == 'error']

@@ -34,7 +34,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import config, fetch, footer, html2md, layout, manifest, policy  # noqa: E402
+from lib import config, fetch, footer, html2md, layout, manifest, policy, wikiindex  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, read_bytes, today  # noqa: E402
 
@@ -142,6 +142,7 @@ def main(argv):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, 'wb') as f:
         f.write(saved)
+    wikiindex.sync(root, write=True)  # the tag pages list the new source
     result = {'slug': args.slug, 'file': layout.in_content(rel), 'kind': kind, 'bytes': len(saved), 'refreshed': bool(existing),
               'abstract_draft': not keep_abstract, 'policy': why}
     if args.json:

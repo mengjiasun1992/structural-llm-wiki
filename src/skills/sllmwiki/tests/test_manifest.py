@@ -105,6 +105,7 @@ class Command(helpers.WikiTestCase):
         self.assertEqual(run(self.root, 'put-narrative', 'what-is-alpha', '--template', 'technical_brief_overview', '--primary', 'leaf-a',
                              '--read', 'alpha-doc').code, 0)
         self.assertEqual(run(self.root, 'remove', 'sources', 'delta').out, 'removed delta from sources\n')
+        self.assertEqual(helpers.run('wiki-check.py', ['--root', self.root, '--visibility', 'private']).code, 0)  # pages kept current
 
     def test_refusals(self):
         r = run(self.root, 'add-tag', 'leaf-a', '--description', 'x')

@@ -232,6 +232,8 @@ what-is-alpha:
   read:
     alpha-doc: {md5(ALPHA.encode())}
 ''')
+    from lib import wikiindex
+    wikiindex.sync(root, write=True)  # the index and tag pages, as wiki-check.py --fix writes them
     if git:
         git_init(root)
     return root
