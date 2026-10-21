@@ -53,6 +53,18 @@ class Check(helpers.WikiTestCase):
         r = self.wc()
         self.assertEqual((r.code, r.out), (0, 'wiki-check: 0 error(s), 0 warning(s)\n'))
 
+    def test_every_page_renders_alike(self):
+        self.write('sllmwiki/notes/meeting.md', '# Notes\n\nSee [[what-is-alpha]] and ==this==, and [gone](missing.md).\n')
+        self.write('sllmwiki/sources/raw-note.md', 'A source keeps its [[wikilink]].\n')  # verbatim, never checked here
+        self.write('sllmwiki/.obsidian/x.md', '[[ignored]]\n')
+        self.write('sllmwiki/narratives/what-is-alpha.md', helpers.narrative_text().replace('Requests fail', 'Costs $5. Requests fail'))
+        out = self.wc('--json').out
+        found = {(f['code'], f['file']) for f in json.loads(out)['findings']}
+        self.assertTrue({('WIKILINK', 'sllmwiki/notes/meeting.md:3'), ('HIGHLIGHT', 'sllmwiki/notes/meeting.md:3'),
+                         ('LINK_PATH', 'sllmwiki/notes/meeting.md:3')} <= found, found)
+        self.assertIn(('DOLLAR_SIGN', 'sllmwiki/narratives/what-is-alpha.md:15'), {(c, f) for c, f in found if c == 'DOLLAR_SIGN'})
+        self.assertFalse([f for f in found if ('sources/raw-note' in f[1] or '.obsidian' in f[1]) and f[0] != 'SOURCE_UNRECORDED'])
+
     def test_config_and_yaml(self):
         self.write('Config.toml', '[structural-llm-wiki-settings]\nmarkers = 1\n')
         self.assertIn('CONFIG_INVALID', self.codes())

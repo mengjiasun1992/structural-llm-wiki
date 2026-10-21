@@ -17,6 +17,10 @@ Errors:
   SOURCE_POLICY             a saved copy the source policy doesn't allow (design doc §4.7)
   INDEX_OUTDATED, TAG_PAGE_OUTDATED, TAG_PAGE_ORPHAN
                             a generated page is out of date (--fix rewrites it)
+  WIKILINK, HIGHLIGHT, CALLOUT, DOLLAR_MATH, LINK_PATH, ...
+                            on any page under sllmwiki/ but the sources, markdown a
+                            renderer would show wrong: GitHub, Obsidian or a book
+                            (lib/compat.py; their warnings are warnings here too)
 Warnings:
   NARRATIVE_SOURCE_CHANGED  a narrative was built on an older version of a source: recheck it
   SOURCE_UPSTREAM_CHANGED   check-upstream found the original changed: re-ingest it
@@ -33,9 +37,9 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import config, footer, layout, manifest, policy, schema, tagtree, wikiindex, wikiyaml  # noqa: E402
+from lib import compat, config, footer, layout, manifest, policy, schema, tagtree, wikiindex, wikiyaml  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
-from lib.util import dumps, read_bytes, source_hash  # noqa: E402
+from lib.util import dumps, read_bytes, read_text, source_hash  # noqa: E402
 
 cli = Cli('wiki-check.py', 'usage: wiki-check.py [--fix] [--json] [--visibility public|private]')
 
@@ -110,6 +114,20 @@ def check(root, fix=False, seen_by=None):
 
     findings, changed = wikiindex.sync(root, fix)
     out += [(sev, code, rel, msg) for sev, code, rel, msg in findings if not (fix and rel in changed)]
+    for rel in pages(root):  # after --fix, so a page it regenerates is checked as it now is
+        text = read_text(os.path.join(root, rel))
+        for sev, code, line, msg in compat.check(text) + compat.check_links(text, os.path.dirname(os.path.join(root, rel)), root):
+            out.append((sev, code, f'{rel}:{line}', msg))
+    return out
+
+
+def pages(root):
+    """Every markdown page under sllmwiki/ but the saved sources (verbatim) and hidden folders such as .obsidian."""
+    out = []
+    for folder, dirs, files in os.walk(os.path.join(root, layout.CONTENT)):
+        rel_dir = os.path.relpath(folder, root).replace(os.sep, '/')
+        dirs[:] = sorted(d for d in dirs if not d.startswith('.') and f'{rel_dir}/{d}' != layout.SOURCES)
+        out += [f'{rel_dir}/{f}' for f in sorted(files) if f.endswith('.md')]
     return out
 
 
