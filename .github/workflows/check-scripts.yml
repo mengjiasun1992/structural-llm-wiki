@@ -57,4 +57,4 @@ jobs:
       # the skill's scripts and the evals' scaffolds (find, so a folder with none is fine)
       - name: Shell (shellcheck)
         if: success() || failure()
-        run: find src/skills/sllmwiki/scripts src/skills/sllmwiki/evals -name '*.sh' -print0 | xargs -0 -r shellcheck
+        run: find src/skills/sllmwiki/scripts evals -name '*.sh' -print0 | xargs -0 -r shellcheck

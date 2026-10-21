@@ -4,7 +4,8 @@ This repository is the `sllmwiki` plugin: one Agent Skill (`src/skills/sllmwiki/
 
 ## Layout
 
-- `src/skills/sllmwiki/`: the skill. `SKILL.md`; `workflows/` and `steps/` (instructions, read when they run); `scripts/` (the deterministic scripts, Python standard library only, one copy); `templates/` (narrative templates and what `init` installs: `wiki/` (the wiki's files) and the CI workflows); `tests/` (unit tests for the scripts, with a parallel runner); `evals/` (behavior evals for the skill, run with `claude plugin eval`; see `evals/README.md`).
+- `src/skills/sllmwiki/`: the skill. `SKILL.md`; `workflows/` and `steps/` (instructions, read when they run); `scripts/` (the deterministic scripts, Python standard library only, one copy); `templates/` (narrative templates and what `init` installs: `wiki/` (the wiki's files) and the CI workflows); `tests/` (unit tests for the scripts, with a parallel runner).
+- `evals/`: behavior evals for the skill, run with `claude plugin eval`; outside the skill, so they never ship with it (see `evals/README.md`).
 - `src/commands/`: Claude Code commands, one per workflow and step.
 - `src/actions/`: the GitHub actions a wiki's CI calls.
 - `src/tools/`: development and CI tools outside the skill.
@@ -59,7 +60,7 @@ python3 src/skills/sllmwiki/tests/run.py --coverage    # one process per test mo
 # lint
 python3 -m pip install ruff==0.8.4 shellcheck-py==0.10.0.1
 ruff check src/skills/sllmwiki/scripts src/skills/sllmwiki/tests src/tools
-shellcheck src/skills/sllmwiki/scripts/*.sh src/skills/sllmwiki/evals/_fixture/*.sh src/skills/sllmwiki/evals/*/scaffold.sh
+shellcheck src/skills/sllmwiki/scripts/*.sh evals/_fixture/*.sh evals/*/scaffold.sh
 
 # docs and plugin
 npx --yes markdownlint-cli2@0.13.0 "**/*.md"
@@ -68,7 +69,7 @@ claude plugin validate .
 
 ## Running evals
 
-The full guide is `src/skills/sllmwiki/evals/README.md`. The plugin manifest points the CLI at that folder (`experimental.evals`). Typical commands, from the repository root:
+The cases are in `evals/` at the repository's root, where `claude plugin eval` looks: outside the skill, so they never ship with it. `evals/README.md` lists them. Typical commands, from the repository root:
 
 ```bash
 # smoke cases (routing, query, safety, not-a-wiki): about $1 with Sonnet
@@ -84,12 +85,12 @@ claude plugin eval . --scaffold --allow-tools Bash Write Edit --max-cost-usd 20 
 ```
 
 - `--scaffold` is required: every case builds its fixture wiki with a scaffold script.
-- Results go to `src/skills/sllmwiki/evals/results/`, which is git-ignored; never commit them.
+- Results go to `evals/results/`, which is git-ignored; never commit them.
 - On macOS with Apple's `git`, `git` can't run inside the eval sandbox, so cases that need a git branch (`narrative-publish`'s `run-branch`) fail there. Note it in the pull request rather than working around it.
 
 ## Writing evals
 
-- **One folder per case** in `src/skills/sllmwiki/evals/`: `prompt.md` (settings in the frontmatter: `max_turns`, `runs`, `tags`, `allowed_tools`), `case.yaml` (`context.scaffold_script`), `scaffold.sh`, and `graders/*.md`, one grader per file. Grader fields must match the CLI's schema; `claude plugin eval` refuses a case file it can't load and names the bad key.
+- **One folder per case** in `evals/`: `prompt.md` (settings in the frontmatter: `max_turns`, `runs`, `tags`, `allowed_tools`), `case.yaml` (`context.scaffold_script`), `scaffold.sh`, and `graders/*.md`, one grader per file. Grader fields must match the CLI's schema; `claude plugin eval` refuses a case file it can't load and names the bad key.
 - **Fixture:** `scaffold.sh` calls `../_fixture/wiki.sh`, which builds the unit tests' fixture wiki (`src/skills/sllmwiki/tests/helpers.py`) as a git repo with a local `origin` in the run's working directory, then changes only what the case needs. When a case needs new fixture content, add it to `src/skills/sllmwiki/tests/helpers.py`, so unit tests and evals keep sharing one fixture.
 - **Prefer graders that check behavior over wording:**
   - which file was read, or which command ran (`tool_used` with `input_match`);
@@ -97,7 +98,7 @@ claude plugin eval . --scaffold --allow-tools Bash Write Edit --max-cost-usd 20 
   - which files exist (`file_exists`).
   These are deterministic and free. Use an `llm` grader only for judgments the deterministic ones can't make, such as whether an answer is grounded. Write its criteria to say exactly what passes and what fails, including what not to count. It reads a produced file with `focus: {source: file, path: …}`.
 - **Tags:** `smoke` for cheap cases that should pass on every behavior change, `full` for long end-to-end cases; add a topic tag (`routing`, `query`, `safety`, …) so a run can select by area.
-- **Keep the case table in `src/skills/sllmwiki/evals/README.md` current** when you add or change a case.
+- **Keep the case table in `evals/README.md` current** when you add or change a case.
 
 ## Writing scripts
 

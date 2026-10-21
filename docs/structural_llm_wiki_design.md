@@ -62,11 +62,11 @@ sllmwiki/
 │   │   ├── scripts/                       # the deterministic scripts, each documented by its --help
 │   │   │   └── lib/                       # shared modules
 │   │   ├── templates/                     # narratives/ (templates and guides); wiki/ (what init installs)
-│   │   ├── tests/                         # unit tests for the scripts, and the instruction budgets
-│   │   └── evals/                         # behavior evals
+│   │   └── tests/                         # unit tests for the scripts, and the instruction budgets
 │   ├── commands/                          # Claude Code commands, one per workflow and step
 │   ├── actions/                           # GitHub actions a wiki's CI calls
 │   └── tools/                             # CI-only tools outside the skill (check-yaml)
+├── evals/                                 # behavior evals, outside the skill so they never ship with it
 └── docs/
     ├── structural_llm_wiki_design.md      # this file
     └── skill_execution_plan.md            # how it is built

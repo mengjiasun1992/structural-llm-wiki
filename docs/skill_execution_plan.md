@@ -47,8 +47,8 @@ claude plugin eval . --tag smoke --scaffold --allow-tools Bash \
   --runs 1 --ablation none --model sonnet --max-cost-usd 5 -j 8
 ```
 
-A case passes at its threshold (set in the case, never 0), so a suite summary
-can't report a failing case as passed. Each pull request says which cases ran,
+Runs use the CLI's `--threshold` (1.0: every grader must pass), so a suite
+summary can't report a failing case as passed. Each pull request says which cases ran,
 with which model, the results, the cost and the turns. Cost and turns are part
 of the result: a change that makes a case noticeably costlier says why. Cases
 that need git in the sandbox run on Linux (`AGENTS.md`).
