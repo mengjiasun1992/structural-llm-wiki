@@ -35,7 +35,7 @@ jobs:
       - name: Unit tests, with coverage (fails below 95%; see pyproject.toml)
         if: hashFiles('src/skills/sllmwiki/tests/run.py') != ''
         run: |
-          python3 -m pip install --quiet --disable-pip-version-check "coverage[toml]==7.6.10"
+          python3 -m pip install --quiet --disable-pip-version-check "coverage[toml]==7.6.10" pyyaml==6.0.2  # PyYAML for test_check_yaml only
           python3 src/skills/sllmwiki/tests/run.py --coverage
 
   lint-scripts:
