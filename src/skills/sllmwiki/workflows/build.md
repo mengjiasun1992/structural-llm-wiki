@@ -28,6 +28,10 @@ Follow `steps/ingest.md` for the questions and their tags. Then `publish.py comm
 
 For each question that isn't a reuse, follow `steps/narrative.md`. After each, `publish.py commit narrative --tags <its primary tags> --subject "<the question>"` and `publish.py pr` to update the description.
 
-## 6. Hand off
+## 6. Lint
+
+Follow `steps/lint.md` for the narratives this run wrote or updated, inside this run: its one commit and its findings go on this pull request.
+
+## 7. Hand off
 
 Run `wiki-check.py`; fix what it reports, committing again if anything changed, then `publish.py pr`. Reply with the pull request's link, the questions answered and reused, and the decisions left for the owner.
