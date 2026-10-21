@@ -227,6 +227,8 @@ class Preflight(unittest.TestCase):
         self.assertIn('missing  git (required)', p.stdout)
         self.assertIn('missing  Python 3.9 or later (required)', p.stdout)
         self.assertIn('warning  gh isn\'t signed in', p.stdout)
+        p = self.run_with({'git': 'echo "xcrun: error" >&2; exit 1'})  # a stub that can't reach a real git
+        self.assertIn('missing  git (required): `git --version` fails here', p.stdout)
         p = self.run_with({'python3': 'exit 1'})  # too old
         self.assertIn('missing  Python 3.9', p.stdout)
         self.assertIn('warning  gh (recommended', p.stdout)

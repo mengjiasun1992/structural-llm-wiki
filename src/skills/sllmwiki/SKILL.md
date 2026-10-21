@@ -20,7 +20,7 @@ A request naming a topic but not the job ("look into alpha retries"): ask whethe
 
 ## Before anything
 
-Run `bash <skill>/scripts/preflight.sh`, where `<skill>` is this skill's folder; stop if it reports something required missing. Work from the wiki's root. If `sllmwiki/tags/tags.yaml` doesn't exist, this isn't a wiki: offer `workflows/init.md` and stop.
+Run `bash <skill>/scripts/preflight.sh`, where `<skill>` is this skill's folder; stop if it reports something required missing, except that a query needs only Python. Work from the wiki's root. If `sllmwiki/tags/tags.yaml` doesn't exist, this isn't a wiki: offer `workflows/init.md` and stop.
 
 ## Scripts
 

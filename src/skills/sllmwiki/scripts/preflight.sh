@@ -14,8 +14,13 @@ install_hint() {
   esac
 }
 
-if command -v git >/dev/null 2>&1; then
-  echo "ok       git $(git --version | awk '{print $3}')"
+# Run git, not just find it: macOS's /usr/bin/git is a stub that fails when it
+# can't reach the real one (in a sandbox, or without the developer tools).
+if git_version="$(git --version 2>/dev/null)"; then
+  echo "ok       git $(echo "$git_version" | awk '{print $3}')"
+elif command -v git >/dev/null 2>&1; then
+  echo "missing  git (required): \`git --version\` fails here; install a working git ($(install_hint git git Git.Git)) or allow the sandbox to run it"
+  missing=1
 else
   echo "missing  git (required): $(install_hint git git Git.Git)"
   missing=1
