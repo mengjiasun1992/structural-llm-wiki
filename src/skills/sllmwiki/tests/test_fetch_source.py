@@ -24,6 +24,9 @@ ROUTES = {
         [pdfmaker.text((72, 700, b'Text of page %d.' % i)) for i in range(pdf.SLICE_PAGES + 1)],
         [(0, b'Part One', 0, None), (0, b'Part Two', 50, None), (0, b'', 60, None)])),
     '/image': (200, {'Content-Type': 'image/png'}, b'\x89PNG'),
+    '/ewma.go': (200, {'Content-Type': 'text/plain; charset=utf-8'}, b'package ewma\n\nfunc Next(a, x, p float64) float64 {\n\treturn a*x + (1-a)*p\n}\n'),
+    '/rfc.txt': (200, {'Content-Type': 'text/plain'}, b'Header\n\n1.  One\n\n   Text one.\n\n2.  Two\n\n   Text two.\n\n3.  Three\n\n   Text three.\n'),
+    '/numbered.md': (200, {'Content-Type': 'text/markdown'}, b'Notes\n\n1.  One\n\n2.  Two\n\n3.  Three\n'),
     '/paper.tex': (200, {'Content-Type': 'application/x-tex'}, b'\\section{Budgets}\nCap at $r \\le 0.1$.\n'),
     '/empty': (200, {'Content-Type': 'text/plain'}, b'   \n'),
     '/latin1': (200, {'Content-Type': 'text/plain'}, 'café'.encode('latin-1')),
@@ -153,6 +156,17 @@ class FetchSource(helpers.WikiTestCase):
         saved = read_bytes(os.path.join(self.root, 'sllmwiki/sources/alpha-main.md')).decode()
         self.assertTrue(saved.startswith('## Intro\n\nRead from beside it.\n'))
         self.assertNotIn('Outside', saved)
+
+    def test_code_and_plain_text_standards(self):
+        self.assertEqual(self.fetch('alpha-ewma', '/ewma.go').code, 0)
+        saved = read_bytes(os.path.join(self.root, 'sllmwiki/sources/alpha-ewma.md')).decode()
+        self.assertTrue(saved.startswith('```go\npackage ewma\n'))
+        self.assertEqual(manifest.load(self.root, 'sources')['alpha-ewma']['kind'], 'code')
+        self.assertEqual(self.fetch('alpha-rfc', '/rfc.txt').code, 0)
+        saved = read_bytes(os.path.join(self.root, 'sllmwiki/sources/alpha-rfc.md')).decode()
+        self.assertIn('## 2. Two\n\n```text\n   Text two.\n```', saved)
+        self.assertEqual(self.fetch('alpha-notes', '/numbered.md').code, 0)  # markdown is kept as it is
+        self.assertTrue(read_bytes(os.path.join(self.root, 'sllmwiki/sources/alpha-notes.md')).startswith(b'Notes\n\n1.  One'))
 
     def test_public_wiki_keeps_only_open_licenses(self):
         with mock.patch.object(policy, 'visibility', return_value='public'):

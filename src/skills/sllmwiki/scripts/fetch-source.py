@@ -9,7 +9,9 @@ Fetches URL (or reads PATH, a copy you already have of the source at URL) and
 saves it as sllmwiki/sources/<slug>.md: markdown and text byte for byte, an
 HTML page's main content converted, a PDF's text layer with its outline as
 headings, a LaTeX source's sections as headings and its math kept as TeX (its
-\input files read from beside --file), with the "Original source" footer. The source is recorded with a
+\input files read from beside --file), a plain-text standard (an RFC) with its
+numbered sections as headings, a code file in one fenced block so citations
+can name its lines (#L10-L20), with the "Original source" footer. The source is recorded with a
 starter abstract (its opening words, marked abstract_draft); read the source
 and replace it with `manifest.py set-abstract <slug> --abstract "..."`.
 
@@ -40,7 +42,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import config, fetch, footer, html2md, layout, manifest, pdf, policy, tex, wikiindex  # noqa: E402
+from lib import config, fetch, footer, html2md, layout, manifest, pdf, plaintext, policy, tex, wikiindex  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, read_bytes, today  # noqa: E402
 
@@ -74,7 +76,7 @@ def read_source(args):
     return fetch.kind_of(r.content_type, r.url), r.data, r.url, r.content_type
 
 
-def to_markdown(kind, data, url, content_type='', include=None):
+def to_markdown(kind, data, url, content_type='', include=None, name=''):
     """(the markdown, [(title, page, markdown)] slices of a long outlined PDF)."""
     if kind is None:
         cli.fail('not markdown, text, HTML or PDF; record it as a link (manifest.py put-source --kind link)')
@@ -91,10 +93,14 @@ def to_markdown(kind, data, url, content_type='', include=None):
         page = data.decode(fetch.charset(content_type) or 'utf-8', 'replace')
         return html2md.convert(page, url)[0].encode(), []
     try:
-        data.decode('utf-8')
+        text = data.decode('utf-8')
     except UnicodeDecodeError:
         cli.fail('the text isn\'t UTF-8; save a UTF-8 copy and pass it with --file')
-    return data, []
+    if kind == 'code':
+        return plaintext.code(text, name).encode(), []
+    markdown = 'markdown' in content_type or os.path.splitext(name.split('?')[0])[1].lower() in ('.md', '.markdown')
+    standard = None if markdown else plaintext.standard(text)
+    return (standard.encode() if standard else data), []
 
 
 def beside(path):
@@ -155,7 +161,7 @@ def main(argv):
         cli.fail(why)
 
     kind, data, final_url, content_type = read_source(args)
-    body, slices = to_markdown(kind, data, final_url, content_type, beside(args.file))
+    body, slices = to_markdown(kind, data, final_url, content_type, beside(args.file), args.file or final_url)
     if not body.strip():
         cli.fail('nothing to save: the source has no text')
     keep_abstract = existing and not existing.get('abstract_draft')

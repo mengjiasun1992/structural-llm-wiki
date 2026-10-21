@@ -134,10 +134,11 @@ A source is saved as the most faithful text that can be checked:
 
 | Kind | Saved as |
 |---|---|
-| `text` | markdown or plain text, byte for byte |
+| `text` | markdown or plain text, byte for byte; a plain-text standard (an RFC, three or more numbered sections) with its numbered sections as headings, each section verbatim in a fenced block, its page headers and footers left out |
 | `html` | the page's main content (`<main>` or `<article>`, without navigation, comments or scripts) converted to markdown by a small converter: headings, paragraphs, lists, tables, code, links. Images stay links to the original |
 | `pdf` | the text layer, with the PDF's own outline (its bookmarks) as the headings, so sections and citations follow its chapters and sections; `## Page <n>` headings only for a PDF without an outline |
 | `tex` | a LaTeX source's body: its sections as headings, its math kept as TeX (`$…$`, `$$…$$`), its formatting as markdown, the rest of its markup dropped; `\input` files read from beside it |
+| `code` | a code file verbatim in one fenced block, so a citation names its lines as the file numbers them: `#L10-L20` |
 | `link` | nothing: a pointer (live code, dashboards, a source that may not be copied) |
 
 Each saved file ends with a generated "Original source" footer (its URL and license), which is left out of its hash. One entry per source, keyed by slug (`<topic>-<source-name>`):
