@@ -8,8 +8,8 @@ What it checks:
     file as YAML.
   - With no files, every file git tracks in the current repository that ends
     in .yaml, .yml or .md, skipping node_modules/ and the sources folder
-    (ingested/ unless Config.toml moves it), whose files are verbatim copies
-    of other people's work. The sources' manifest is the wiki's own, so it is
+    (sllmwiki/sources/), whose files are verbatim copies of other people's
+    work. The sources' manifest is the wiki's own, so it is
     checked.
   - Every document in a file (a file can hold several, split by ---) must
     parse with PyYAML's safe loader: YAML_ERROR, with the line of the problem.
@@ -39,10 +39,9 @@ import os  # noqa: E402
 import re  # noqa: E402
 import subprocess  # noqa: E402
 
-# the skill's library: Config.toml's layout and the shared helpers
+# the skill's library: the wiki's fixed layout and the shared helpers
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'skills', 'sllmwiki', 'scripts'))
-from lib.config import Layout, layout  # noqa: E402
-from lib.util import git_root  # noqa: E402
+from lib.layout import SOURCES, SOURCES_MANIFEST  # noqa: E402
 from lib.util import dumps, read_text, setup_stdio  # noqa: E402
 
 # PyYAML is the only dependency; without it, stop with a usage error rather than skip the check
@@ -53,11 +52,10 @@ except ImportError:
     sys.exit(2)
 
 
-def skip(f, wiki=None):
+def skip(f):
     """True for a file the check leaves alone: a saved source, or anything under node_modules/."""
-    # the sources folder (Config.toml [structural-llm-wiki-paths] ingested) holds verbatim sources; its manifest is ours and is checked
-    L = wiki or Layout()
-    return (f.startswith(L.ingested + '/') and f != L.ingested_manifest) or bool(re.match(r'(.*/)?node_modules/', f))
+    # the sources folder holds verbatim sources; its manifest is the wiki's own and is checked
+    return (f.startswith(SOURCES + '/') and f != SOURCES_MANIFEST) or bool(re.match(r'(.*/)?node_modules/', f))
 
 
 def _duplicate_keys(node, findings, file, line_offset):
@@ -134,10 +132,9 @@ def main(argv):
         print('usage: check-yaml.py [--json] [<file>...]', file=sys.stderr)
         return 2
     if not files:
-        # every tracked .yaml, .yml and .md file, minus the sources folder Config.toml names
+        # every tracked .yaml, .yml and .md file, minus the saved sources
         tracked = [f for f in subprocess.run(['git', 'ls-files', '-z'], capture_output=True, text=True, check=True).stdout.split('\0') if f]
-        wiki = layout(git_root())
-        files = [f for f in tracked if re.search(r'\.(ya?ml|md)\Z', f) and not skip(f, wiki)]
+        files = [f for f in tracked if re.search(r'\.(ya?ml|md)\Z', f) and not skip(f)]
 
     findings = []
     for file in files:
