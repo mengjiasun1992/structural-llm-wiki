@@ -88,6 +88,18 @@ class Finish(helpers.WikiTestCase):
         self.assertEqual(manifest.load(self.root, 'narratives')['what-is-alpha'], entry)
         self.assertEqual(len(metadata.read(self.read(NARRATIVE))['plan']), 3)
 
+    def test_the_plan_keeps_the_narratives_read_then(self):
+        g = self.grades({'alpha-doc': {'relevance': 'high', 'authority': 'A'}})
+        r = helpers.run('reading-plan.py', ['order', '--primary', 'leaf-a', '--grades', g, '--root', self.root])
+        self.assertEqual(r.code, 0, r.err)
+        self.write('sllmwiki/narratives/later.md', helpers.narrative_text('Later?'))  # written after the plan was made
+        self.assertEqual(self.finish('later', '--primary', 'leaf-a', '--read', 'alpha-doc').code, 0)
+        self.assertEqual(self.finish('what-is-alpha', '--primary', 'leaf-a', '--grades', g).code, 0)
+        self.assertNotIn('`later`', '\n'.join(metadata.read(self.read(NARRATIVE))['plan']))
+        os.remove(g + '.plan.json')  # no saved plan: every narrative on the tags, as before
+        self.assertEqual(self.finish('what-is-alpha', '--grades', g).code, 0)
+        self.assertIn('`later`, in full: existing narrative, background', metadata.read(self.read(NARRATIVE))['plan'])
+
     def test_the_model_comes_from_the_session(self):
         session = helpers.write(self.tmp, 'claude/projects/-w/s-1.jsonl',
                                 json.dumps({'type': 'assistant', 'message': {'model': 'claude-fable-5-1'}}) + '\n')

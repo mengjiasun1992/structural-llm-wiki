@@ -17,6 +17,8 @@
       first), so the most relevant, authoritative and newest material is read
       last. Low-relevance sources are
       read by abstract only; links aren't read. Paste the plan into the PR.
+      The plan is also kept in GRADES.json.plan.json, so finish-narrative
+      records the narratives read then, not ones written since.
 
 Only the given tags' own narratives and sources are candidates: their parents'
 and siblings' are noted, never read. Options: --json, --root <wiki>.
@@ -24,6 +26,7 @@ Exit code: 0, 1 when grades are missing or invalid, 2 on a usage error.
 """
 
 import argparse
+import json
 import sys
 
 sys.dont_write_bytecode = True
@@ -69,6 +72,8 @@ def main(argv):
     rows, problems = readingplan.order(found, grades)
     if problems:
         cli.fail('grade every saved source first: ' + '; '.join(problems))
+    with open(readingplan.plan_path(args.grades), 'w', encoding='utf-8') as f:
+        json.dump(rows, f, indent=2)
     if args.json:
         print(dumps({'plan': rows, 'noted_not_read': found['noted_not_read']}))
         return 0

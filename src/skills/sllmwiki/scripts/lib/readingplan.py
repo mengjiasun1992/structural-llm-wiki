@@ -72,6 +72,21 @@ def load_grades(path):
     return grades
 
 
+def plan_path(grades_path):
+    """Where reading-plan.py order keeps the plan it printed: beside the grades file."""
+    return grades_path + '.plan.json'
+
+
+def narratives_read(grades_path):
+    """The narratives the saved plan had the reader read, or None without a saved plan."""
+    try:
+        with open(plan_path(grades_path), encoding='utf-8') as f:
+            rows = json.load(f)
+    except (OSError, ValueError):
+        return None
+    return {r.get('slug') for r in rows if isinstance(r, dict) and r.get('why') == 'existing narrative, background'}
+
+
 def metadata_lines(rows):
     """The plan's steps as the Metadata's Reading plan lists them."""
     return [f'`{r["slug"]}`, {r["read"]}: {r["why"]}' for r in rows]
