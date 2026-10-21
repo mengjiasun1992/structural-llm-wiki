@@ -1,0 +1,60 @@
+"""Fetching a source over HTTP(S), and telling what kind of source it is.
+
+A page behind a login, a paywall or anti-bot protection is never worked around
+(design doc §4.7): its refusal is reported, and the source becomes a link.
+"""
+
+import os
+import re
+import urllib.error
+import urllib.request
+
+USER_AGENT = 'sllmwiki (+https://github.com/mengjiasun1992/structural-llm-wiki)'
+MAX_BYTES = 20 * 1024 * 1024
+BLOCKED = (401, 402, 403, 407, 429, 451)
+
+
+class FetchError(Exception):
+    pass
+
+
+class Response:
+    def __init__(self, url, status, content_type, data):
+        self.url, self.status, self.content_type, self.data = url, status, content_type, data
+
+
+def fetch(url, timeout=30):
+    """The response for url, following redirects; raises FetchError."""
+    if not re.match(r'https?://', url):
+        raise FetchError(f'{url}: only http(s) URLs are fetched')
+    req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT, 'Accept': 'text/html,text/markdown,text/plain,application/pdf;q=0.9,*/*;q=0.5'})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            data = r.read(MAX_BYTES + 1)
+            if len(data) > MAX_BYTES:
+                raise FetchError(f'{url}: over {MAX_BYTES // (1024 * 1024)} MB; record it as a link')
+            return Response(r.geturl(), r.status, r.headers.get('Content-Type', ''), data)
+    except urllib.error.HTTPError as e:
+        e.close()
+        if e.code in BLOCKED:
+            raise FetchError(f'{url}: HTTP {e.code}: it needs a login or payment, or refuses automated fetches; '
+                             'record it as a link, and never get around it') from None
+        raise FetchError(f'{url}: HTTP {e.code}') from None
+    except (urllib.error.URLError, OSError, ValueError) as e:
+        raise FetchError(f'{url}: {getattr(e, "reason", e)}') from None
+
+
+def kind_of(content_type, name):
+    """'text', 'html' or 'pdf' from a content type, else from the file name's extension; None when neither tells."""
+    ct = (content_type or '').split(';')[0].strip().lower()
+    by_type = {'text/markdown': 'text', 'text/x-markdown': 'text', 'text/plain': 'text', 'text/html': 'html',
+               'application/xhtml+xml': 'html', 'application/pdf': 'pdf'}
+    if ct in by_type:
+        return by_type[ct]
+    ext = os.path.splitext(name.split('?')[0].split('#')[0])[1].lower()
+    return {'.md': 'text', '.markdown': 'text', '.txt': 'text', '.html': 'html', '.htm': 'html', '.pdf': 'pdf'}.get(ext)
+
+
+def charset(content_type):
+    m = re.search(r'charset=([\w-]+)', content_type or '', re.I)
+    return m.group(1) if m else None

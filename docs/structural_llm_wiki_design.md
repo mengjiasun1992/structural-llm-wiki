@@ -150,6 +150,7 @@ gateway-design-doc:
   ingested: "2026-07-14"
   license: "CC-BY-4.0"                     # SPDX id, or "unknown" or "proprietary"
   license_url: https://docs.example.com/license
+  # permission: "Jane Doe, 2026-07-14: may keep a copy"   # only with --allow-restricted
   tags: [gateway, routing]
   abstract: "Original gateway architecture and design rationale. …"   # 150–250 words
 ```
@@ -205,7 +206,7 @@ The wiki keeps verbatim copies, so the skill follows a source policy ("Source po
 - **What may be copied depends on who can see the wiki.** A private repository keeps reference copies unless a source's terms forbid sharing; a public one keeps only openly licensed sources. Anything else is a `link`. A team whose policy allows no copies at all sets `source_copies = "links-only"` (§4.9), and every source is a `link`.
 - **No personal data or secrets,** whatever the license; sections holding them are left out with a marker, never edited.
 
-The judgment is the agent's: it reads the source's license or terms and records them (`--license`, `--license-url`). The scripts enforce what can be checked: `fetch-source` asks GitHub whether the repository is public and refuses to save a copy whose recorded license isn't open there (`--allow-restricted` records the owner's permission instead), or any copy at all under `links-only`, and `wiki-check` fails the wiki's CI (`SOURCE_POLICY`) on any saved copy a public wiki may not hold, or any saved source without its URL and license.
+The judgment is the agent's: it reads the source's license or terms and records them (`--license`, `--license-url`). The scripts enforce what can be checked: `fetch-source` asks GitHub whether the repository is public and refuses to save a copy whose recorded license isn't open there (`--allow-restricted "<who, when>"` records the owner's permission instead, as the source's `permission`), or any copy at all under `links-only`, and `wiki-check` fails the wiki's CI (`SOURCE_POLICY`) on any saved copy a public wiki may not hold, or any saved source without its URL and license.
 
 ### 4.8 Markdown everyone renders alike, and Obsidian
 
