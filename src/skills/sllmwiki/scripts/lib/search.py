@@ -9,7 +9,7 @@ import math
 import os
 import re
 
-from . import layout, manifest, metadata, numbering
+from . import layout, manifest, metadata, numbering, plaintext
 from .util import read_bytes, read_text, split_footer
 
 STOP = set('a an and are as at be but by can do does for from how i in is it its of on or that the their this to was what when '
@@ -107,6 +107,10 @@ def outline(text):
 
 
 def section(text, anchor):
-    """The section's text, its heading included; None when there is no such section."""
+    """The section's text, its heading included, or a code source's lines (#L10-L20), numbered; None when there is no such section."""
+    code = plaintext.lines(text, anchor)
+    if code is not None:
+        start = int(plaintext.LINES.match(anchor).group('start'))
+        return '\n'.join(f'{start + i}: {line}' for i, line in enumerate(code)) + '\n'
     span = numbering.section(text, anchor)
     return '\n'.join(text.split('\n')[span[0]:span[1]]).rstrip('\n') + '\n' if span else None

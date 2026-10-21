@@ -17,6 +17,7 @@ case "$1 $2" in
   "auth status") exit {auth} ;;
   "pr create") echo "https://github.com/o/r/pull/7" ;;
   "pr edit") exit {edit} ;;
+  "pr view") cat "{view}" 2>/dev/null || exit 1 ;;
 esac
 '''
 GIT_ENV = {'GIT_AUTHOR_NAME': 't', 'GIT_AUTHOR_EMAIL': 't@example.com', 'GIT_COMMITTER_NAME': 't',
@@ -45,7 +46,7 @@ class Publish(helpers.WikiTestCase):
         super().tearDown()
 
     def fake_gh(self, auth=0, edit=0):
-        helpers.write(self.bin, 'gh', FAKE_GH.format(log=self.log, auth=auth, edit=edit))
+        helpers.write(self.bin, 'gh', FAKE_GH.format(log=self.log, auth=auth, edit=edit, view=os.path.join(self.outside, 'view.json')))
         os.chmod(os.path.join(self.bin, 'gh'), 0o755)
 
     def pub(self, *argv):
@@ -106,10 +107,16 @@ class Publish(helpers.WikiTestCase):
         helpers.git(self.root, 'switch', '-q', 'mainline')
         self.pub('start', 'beta-cache', '--title', 'Beta?', '--prompt', 'p')  # the next run starts clean
         self.assertIn('summaries: none; pull request: not opened yet', self.pub('status').out)
-        self.assertFalse(os.path.exists(os.path.join(self.root, '.git', 'sllmwiki', 'pr.md')))
+        self.assertFalse(os.path.exists(self.state_path('pr.md', 'beta-cache')))
+        r = self.pub('resume', 'alpha-retries')  # back to the earlier run, its summaries kept
+        self.assertEqual(r.out, 'on sllmwiki/alpha-retries; pull request: https://github.com/o/r/pull/7\n')
+        self.assertIn('summaries: ingest, narrative.why-b, narrative.why-a', self.pub('status').out)
 
-    def read_state(self, name):
-        with open(os.path.join(self.root, '.git', 'sllmwiki', name), encoding='utf-8') as f:
+    def state_path(self, name, slug='alpha-retries'):
+        return os.path.join(self.root, '.git', 'sllmwiki', 'runs', slug, name)
+
+    def read_state(self, name, slug='alpha-retries'):
+        with open(self.state_path(name, slug), encoding='utf-8') as f:
             return f.read()
 
     def test_start_refusals(self):
@@ -212,11 +219,65 @@ class Publish(helpers.WikiTestCase):
         helpers.git(self.root, 'remote', 'set-head', 'origin', '-d')
         self.assertEqual(self.pub('start', 'run', '--title', 't', '--prompt', 'p').out, 'started sllmwiki/run from origin/mainline\n')
 
-    def test_a_resumed_branch_must_be_the_recorded_run(self):
-        self.pub('start', 'one', '--title', 't', '--prompt', 'p')
+    def test_a_run_started_elsewhere_is_rebuilt_from_its_branch_and_pull_request(self):
+        self.pub('start', 'alpha-retries', '--title', 'How do alpha systems retry?', '--prompt', 'Build alpha.\n\nShort.')
+        self.write('sllmwiki/narratives/a.md', '# A?\n')
+        self.summary('narrative', title='Why A?', checklist=['Why A?: answers it'], decisions=['Keep A?'], body='Wrote A.')
+        self.pub('commit', 'narrative', '--tags', 'leaf-a', '--subject', 'Why A?')
+        self.write('sllmwiki/narratives/b.md', '# B?\n')
+        self.summary('narrative', title='Why B?', body='Wrote B.')
+        self.pub('commit', 'narrative', '--tags', 'leaf-a', '--subject', 'Why B?')
+        self.pub('pr')
+        body = self.read_state('pr.md').replace('- [ ] Why A?', '- [x] Why A?')
+        helpers.write(self.outside, 'view.json', json.dumps({'url': 'https://github.com/o/r/pull/7', 'title': 'Alpha retries',
+                                                             'state': 'OPEN', 'body': body}))
+        clone = os.path.join(self.outside, 'clone')  # another clone, with no state
+        helpers.git(self.outside, 'clone', '-q', self.origin, clone)
+        helpers.git(clone, 'remote', 'set-head', 'origin', 'mainline')
+        r = helpers.run('publish.py', ['--root', clone, 'resume', 'alpha-retries'])
+        self.assertEqual(r.out, 'on sllmwiki/alpha-retries (its state rebuilt from the branch and pull request); '
+                                'pull request: https://github.com/o/r/pull/7\n')
+        helpers.write(clone, 'sllmwiki/narratives/a.md', '# A, again?\n')
+        helpers.run('publish.py', ['--root', clone, 'summary', 'narrative', '--json',
+                                   json.dumps({'title': 'Why A?', 'checklist': ['A again'], 'body': 'Rewrote A.'})])
+        helpers.run('publish.py', ['--root', clone, 'commit', 'narrative', '--tags', 'leaf-a', '--subject', 'Why A?'])
+        self.assertIn('Prompt:\n> Build alpha.\n>\n> Short.\n', helpers.git(clone, 'log', '-1', '--format=%B').stdout)
+        self.assertEqual(helpers.run('publish.py', ['--root', clone, 'pr']).out, 'updated https://github.com/o/r/pull/7\n')
+        with open(os.path.join(clone, '.git', 'sllmwiki', 'runs', 'alpha-retries', 'pr.md'), encoding='utf-8') as f:
+            rebuilt = f.read()
+        self.assertEqual((rebuilt.count('## Why A?'), rebuilt.count('Wrote A.'), rebuilt.count('Rewrote A.'), rebuilt.count('Wrote B.')),
+                         (1, 0, 1, 1))
+        self.assertIn('- [ ] Why A?: answers it\n', rebuilt)  # unticked again, for the re-review
+        self.assertIn('- [ ] A again\n', rebuilt)
+        self.assertIn('## Decisions for you\n\n- Keep A?\n', rebuilt)
+        self.assertIn('## Prompt\n\n> Build alpha.\n>\n> Short.\n', rebuilt)
+
+    def test_a_rebuilt_run_without_a_pull_request(self):
+        self.pub('start', 'alpha-retries', '--title', 't', '--prompt', 'p')
+        self.write('sllmwiki/narratives/a.md', '# A?\n')
+        self.summary('narrative', title='Why A?', body='Wrote A.')
+        self.pub('commit', 'narrative', '--tags', 'leaf-a', '--subject', 'Why A?')
+        shutil.rmtree(os.path.join(self.root, '.git', 'sllmwiki'))
         helpers.git(self.root, 'switch', '-q', 'mainline')
-        self.pub('start', 'two', '--title', 't', '--prompt', 'p')
-        self.assertIn('the recorded run is sllmwiki/two', self.pub('resume', 'one').err)
+        self.assertIn('(its state rebuilt', self.pub('resume', 'alpha-retries').out)
+        state = json.loads(self.read_state('run.json'))
+        self.assertEqual((state['title'], state['prompt'], state['pr']), ('Why A?', 'p', None))
+        helpers.write(self.outside, 'view.json', 'not json')
+        shutil.rmtree(os.path.join(self.root, '.git', 'sllmwiki'))
+        self.assertIn('(its state rebuilt', self.pub('resume', 'alpha-retries').out)
+        self.assertIn('no run branch sllmwiki/nope', self.pub('resume', 'nope').err)
+
+    def test_the_old_single_run_state_moves_into_runs(self):
+        self.pub('start', 'alpha-retries', '--title', 't', '--prompt', 'p')
+        base = os.path.join(self.root, '.git', 'sllmwiki')
+        shutil.move(self.state_path('run.json'), os.path.join(base, 'run.json'))
+        shutil.move(self.state_path('summaries'), os.path.join(base, 'summaries'))
+        os.remove(os.path.join(base, 'current'))
+        self.assertIn('run sllmwiki/alpha-retries', self.pub('status').out)
+        self.assertTrue(os.path.isfile(self.state_path('run.json')))
+        self.assertFalse(os.path.exists(os.path.join(base, 'summaries')))
+        helpers.write(base, 'current', 'gone')
+        self.assertIn('no run in progress here', self.pub('status').err)
 
 
 class Preflight(unittest.TestCase):

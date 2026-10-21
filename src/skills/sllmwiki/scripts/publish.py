@@ -20,11 +20,16 @@
       time, and its turns and tokens from the session's transcript (--cost USD
       adds dollars, when the caller knows them). Without gh, prints the link
       to open it; without a remote, keeps the commits on the branch.
-  publish.py resume <slug>     back to a run's branch
+  publish.py resume <slug>
+      Back to a run's branch, to rework it: any run started here, or one whose
+      state is elsewhere (another clone, or cleared), rebuilt from its branch
+      and pull request: the prompt from its commits, the title, checklist,
+      decisions and step reports from the pull request's description. A
+      reworked step's summary replaces the section with its title.
   publish.py status            the run, its summaries and its pull request
 
-A run never merges its pull request: the owner does. Its state lives in
-.git/sllmwiki/, never committed. Options: --root <wiki>.
+A run never merges its pull request: the owner does. Each run's state lives in
+.git/sllmwiki/runs/<slug>/, never committed. Options: --root <wiki>.
 Exit code: 0, 1 refused or failed (the reason is printed), 2 usage error.
 """
 
@@ -41,7 +46,7 @@ sys.dont_write_bytecode = True
 from lib import runstats  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.policy import github_repo  # noqa: E402
-from lib.util import write_text  # noqa: E402
+from lib.util import read_text, write_text  # noqa: E402
 
 cli = Cli('publish.py', 'usage: publish.py start|summary|commit|pr|resume|status ...; see --help')
 ACTIONS = ('init', 'tags', 'ingest', 'smes', 'narrative', 'lint')
@@ -60,8 +65,30 @@ def state_dir(root):
     return os.path.join(root, git(root, 'rev-parse', '--git-dir'), 'sllmwiki')
 
 
+def current(root):
+    """The current run's slug. A state from before runs/ (one run.json) is moved into it first."""
+    base = state_dir(root)
+    if os.path.isfile(os.path.join(base, 'run.json')):
+        with open(os.path.join(base, 'run.json'), encoding='utf-8') as f:
+            slug = json.load(f)['slug']
+        folder = os.path.join(base, 'runs', slug)
+        os.makedirs(folder, exist_ok=True)
+        for name in ('run.json', 'summaries', 'pr.md'):
+            if os.path.exists(os.path.join(base, name)):
+                shutil.move(os.path.join(base, name), os.path.join(folder, name))
+        write_text(os.path.join(base, 'current'), slug)
+    if not os.path.isfile(os.path.join(base, 'current')):
+        cli.fail('no run in progress here; start one with publish.py start')
+    return read_text(os.path.join(base, 'current')).strip()
+
+
+def run_dir(root, slug=None):
+    """A run's folder: its run.json, summaries and pr.md; the current run's without a slug."""
+    return os.path.join(state_dir(root), 'runs', slug or current(root))
+
+
 def load_state(root):
-    path = os.path.join(state_dir(root), 'run.json')
+    path = os.path.join(run_dir(root), 'run.json')
     if not os.path.isfile(path):
         cli.fail('no run in progress here; start one with publish.py start')
     with open(path, encoding='utf-8') as f:
@@ -69,8 +96,10 @@ def load_state(root):
 
 
 def save_state(root, state):
-    os.makedirs(os.path.join(state_dir(root), 'summaries'), exist_ok=True)
-    write_text(os.path.join(state_dir(root), 'run.json'), json.dumps(state, indent=2, ensure_ascii=False))
+    """Save the run's state and make it the current run."""
+    os.makedirs(os.path.join(run_dir(root, state['slug']), 'summaries'), exist_ok=True)
+    write_text(os.path.join(run_dir(root, state['slug']), 'run.json'), json.dumps(state, indent=2, ensure_ascii=False))
+    write_text(os.path.join(state_dir(root), 'current'), state['slug'])
 
 
 def has_remote(root):
@@ -118,9 +147,7 @@ def start(root, slug, title, prompt):
             cli.fail(f'your {base} has commits origin/{base} doesn\'t; sort that out first (a clone made before a rename?)')
         git(root, 'switch', '--quiet', '-C', base, f'origin/{base}')
     git(root, 'switch', '--quiet', '-c', branch, base)
-    shutil.rmtree(os.path.join(state_dir(root), 'summaries'), ignore_errors=True)  # an earlier run's, never this one's
-    if os.path.exists(os.path.join(state_dir(root), 'pr.md')):
-        os.remove(os.path.join(state_dir(root), 'pr.md'))
+    shutil.rmtree(run_dir(root, slug), ignore_errors=True)  # an earlier run's under this name, never this one's
     save_state(root, {'slug': slug, 'branch': branch, 'base': base, 'title': title, 'prompt': prompt, 'pr': None,
                       'started': runstats.now().isoformat()})
     print(f'started {branch} from {"origin/" if has_remote(root) else ""}{base}')
@@ -139,18 +166,18 @@ def record_summary(root, step, data):
     state['recorded'] = state.get('recorded', 0) + 1
     save_state(root, state)
     data = dict(data, recorded=state['recorded'])
-    write_text(os.path.join(state_dir(root), 'summaries', f'{name}.json'), json.dumps(data, indent=2, ensure_ascii=False))
+    write_text(os.path.join(run_dir(root, state['slug']), 'summaries', f'{name}.json'), json.dumps(data, indent=2, ensure_ascii=False))
     print(f'recorded the {step} summary "{data["title"]}" for {state["branch"]}')
 
 
 def summaries(root):
-    folder = os.path.join(state_dir(root), 'summaries')
+    folder = os.path.join(run_dir(root), 'summaries')
     found = {}
     for name in sorted(os.listdir(folder)) if os.path.isdir(folder) else []:
         if name.endswith('.json'):
             with open(os.path.join(folder, name), encoding='utf-8') as f:
                 found[name[:-5]] = json.load(f)
-    order = {s: i for i, s in enumerate(STEP_ORDER)}
+    order = dict({s: i for i, s in enumerate(STEP_ORDER)}, earlier=-1)  # a rebuilt run's sections keep their place first
     return dict(sorted(found.items(), key=lambda kv: (order.get(kv[0].split('.')[0], len(order)), kv[1].get('recorded', 0), kv[0])))
 
 
@@ -188,14 +215,17 @@ def commit(root, action, tags, subject):
 
 
 def description(state, found, run=()):
-    checklist = [item for s in found.values() for item in s.get('checklist', [])]
-    decisions = [item for s in found.values() for item in s.get('decisions', [])]
+    redone = {s['title'] for k, s in found.items() if not k.startswith('earlier.')}
+    found = {k: s for k, s in found.items() if not (k.startswith('earlier.') and s['title'] in redone)}  # a rework replaces its section
+    checklist = list(dict.fromkeys(item for s in found.values() for item in s.get('checklist', [])))
+    decisions = list(dict.fromkeys(item for s in found.values() for item in s.get('decisions', [])))
     lines = ['## Review checklist', '', 'Tick each box as you check it; the "Review checklist" check turns green when all are ticked.', '']
     lines += [f'- [ ] {item}' for item in checklist] or ['- [ ] The changes in this pull request']
     if decisions:
         lines += ['', '## Decisions for you', ''] + [f'- {d}' for d in decisions]
     for s in found.values():
-        lines += ['', f'## {s["title"]}', '', (s.get('body') or '').strip()]
+        if s['title']:
+            lines += ['', f'## {s["title"]}', '', (s.get('body') or '').strip()]
     if run:
         lines += [''] + list(run)
     lines += ['', '## Prompt', '', quote(state['prompt']), '', 'This pull request was opened by a run; the owner merges it.']
@@ -209,7 +239,7 @@ def pr(root, cost=None):
         save_state(root, state)
     run = runstats.section(state.get('started'), state.get('cost'), path=runstats.transcript())
     body = description(state, summaries(root), run)
-    body_path = os.path.join(state_dir(root), 'pr.md')
+    body_path = os.path.join(run_dir(root), 'pr.md')
     write_text(body_path, body)
     if not has_remote(root):
         print(f'no remote: the commits stay on {state["branch"]}; the description is in {body_path}')
@@ -236,15 +266,65 @@ def pr(root, cost=None):
     print(f'{verb} {state["pr"]}')
 
 
+def unquote(message):
+    """The request a commit message quotes in its Prompt: block, or None."""
+    m = re.search(r'^Prompt:\n((?:>.*(?:\n|\Z))+)', message, re.M)
+    return '\n'.join(re.sub(r'^> ?', '', line) for line in m.group(1).rstrip('\n').split('\n')) if m else None
+
+
+def earlier(body):
+    """Summaries rebuilt from a pull request's description: its checklist and decisions, then each step's section."""
+    checklist, decisions, sections = [], [], []
+    for part in re.split(r'(?m)^## ', body)[1:]:
+        title, _, text = part.partition('\n')
+        if title.strip() == 'Review checklist':
+            checklist = [i for i in re.findall(r'(?m)^- \[[ xX]\] (.+)$', text) if i != 'The changes in this pull request']
+        elif title.strip() == 'Decisions for you':
+            decisions = re.findall(r'(?m)^- (.+)$', text)
+        elif title.strip() not in ('Run', 'Prompt'):
+            sections.append({'title': title.strip(), 'body': text.strip()})
+    return [{'title': '', 'checklist': checklist, 'decisions': decisions}] + sections
+
+
+def rebuild(root, slug, branch):
+    """A run's state from its branch and pull request, for a run started elsewhere."""
+    messages = git(root, 'log', '-50', '--format=%B%x00', branch).split('\x00')
+    prompt = next((p for p in map(unquote, messages) if p), '')
+    subjects = git(root, 'log', '--reverse', '--format=%s', f'{default_branch(root)}..{branch}', check=False).split('\n')
+    title = re.sub(r'^(\[[^\]]*\])+\s*', '', subjects[0]) if subjects[0] else slug
+    state = {'slug': slug, 'branch': branch, 'base': default_branch(root), 'title': title, 'prompt': prompt, 'pr': None,
+             'started': runstats.now().isoformat()}
+    info = None
+    if has_remote(root) and gh_available():
+        p = subprocess.run(['gh', 'pr', 'view', branch, '--json', 'url,title,body,state'], cwd=root, capture_output=True, text=True)
+        try:
+            info = json.loads(p.stdout) if p.returncode == 0 else None
+        except ValueError:
+            info = None
+    if isinstance(info, dict) and info.get('state') == 'OPEN':
+        state.update(pr=info.get('url'), title=info.get('title') or title)
+    save_state(root, state)
+    for n, data in enumerate(earlier(info.get('body') or '') if state['pr'] else []):
+        write_text(os.path.join(run_dir(root, slug), 'summaries', f'earlier.{n:03d}.json'),
+                   json.dumps(dict(data, recorded=n - 1000), indent=2, ensure_ascii=False))
+    return state
+
+
 def resume(root, slug):
     branch = f'sllmwiki/{slug}'
+    if not git(root, 'rev-parse', '--verify', '--quiet', f'refs/heads/{branch}', check=False) and has_remote(root):
+        git(root, 'fetch', '--quiet', 'origin', branch, check=False)
+        if git(root, 'rev-parse', '--verify', '--quiet', f'refs/remotes/origin/{branch}', check=False):
+            git(root, 'branch', '--quiet', '--track', branch, f'origin/{branch}')
     if not git(root, 'rev-parse', '--verify', '--quiet', f'refs/heads/{branch}', check=False):
         cli.fail(f'no run branch {branch}')
     git(root, 'switch', '--quiet', branch)
-    state = load_state(root)
-    if state['branch'] != branch:
-        cli.fail(f'the recorded run is {state["branch"]}; start a new run for {slug}')
-    print(f'on {branch}; pull request: {state.get("pr") or "not opened yet"}')
+    if os.path.isfile(os.path.join(run_dir(root, slug), 'run.json')):
+        write_text(os.path.join(state_dir(root), 'current'), slug)
+        state, how = load_state(root), ''
+    else:
+        state, how = rebuild(root, slug, branch), ' (its state rebuilt from the branch and pull request)'
+    print(f'on {branch}{how}; pull request: {state.get("pr") or "not opened yet"}')
 
 
 def main(argv):

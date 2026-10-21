@@ -7,10 +7,18 @@
 
 Fetches URL (or reads PATH, a copy you already have of the source at URL) and
 saves it as sllmwiki/sources/<slug>.md: markdown and text byte for byte, an
-HTML page's main content converted, with the "Original source" footer. The
-source is recorded with a starter abstract (its opening words, marked
-abstract_draft); read the source and replace it with
-`manifest.py set-abstract <slug> --abstract "..."`.
+HTML page's main content converted, a PDF's text layer with its outline as
+headings, a LaTeX source's sections as headings and its math kept as TeX (its
+\input files read from beside --file), a plain-text standard (an RFC) with its
+numbered sections as headings, a code file in one fenced block so citations
+can name its lines (#L10-L20), with the "Original source" footer. The source is recorded with a
+starter abstract (its opening words, marked abstract_draft); read the source
+and replace it with `manifest.py set-abstract <slug> --abstract "..."`.
+
+A PDF over 100 pages with an outline is saved as one source per top-level
+outline entry, <slug>-<n>-<chapter>, each with a starter abstract to replace
+when a question first reads it. Such slices can't be refreshed yet; save the
+PDF again under a new slug.
 
 --license is what you found in the source's license or terms (an SPDX id such
 as CC-BY-4.0, or "unknown", or "proprietary"). The source policy decides
@@ -34,7 +42,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import config, fetch, footer, html2md, layout, manifest, policy, wikiindex  # noqa: E402
+from lib import config, fetch, footer, html2md, layout, manifest, pdf, plaintext, policy, tex, wikiindex  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, read_bytes, today  # noqa: E402
 
@@ -68,19 +76,51 @@ def read_source(args):
     return fetch.kind_of(r.content_type, r.url), r.data, r.url, r.content_type
 
 
-def to_markdown(kind, data, url, content_type=''):
-    if kind == 'pdf':
-        cli.fail('PDFs can\'t be saved yet; record it as a link (manifest.py put-source --kind link)')
+def to_markdown(kind, data, url, content_type='', include=None, name=''):
+    """(the markdown, [(title, page, markdown)] slices of a long outlined PDF)."""
     if kind is None:
         cli.fail('not markdown, text, HTML or PDF; record it as a link (manifest.py put-source --kind link)')
+    if kind == 'pdf':
+        try:
+            doc = pdf.read(data)
+        except pdf.PdfError as e:
+            cli.fail(f'{e}; record it as a link (manifest.py put-source --kind link)')
+        text = pdf.markdown(doc)
+        return text.encode(), pdf.slices(doc, text)
+    if kind == 'tex':
+        return tex.convert(data.decode('utf-8', 'replace'), include).encode(), []
     if kind == 'html':
         page = data.decode(fetch.charset(content_type) or 'utf-8', 'replace')
-        return html2md.convert(page, url)[0].encode()
+        return html2md.convert(page, url)[0].encode(), []
     try:
-        data.decode('utf-8')
+        text = data.decode('utf-8')
     except UnicodeDecodeError:
         cli.fail('the text isn\'t UTF-8; save a UTF-8 copy and pass it with --file')
-    return data
+    if kind == 'code':
+        return plaintext.code(text, name).encode(), []
+    markdown = 'markdown' in content_type or os.path.splitext(name.split('?')[0])[1].lower() in ('.md', '.markdown')
+    standard = None if markdown else plaintext.standard(text)
+    return (standard.encode() if standard else data), []
+
+
+def beside(path):
+    """A reader of the files next to path, for a LaTeX source's \\input; None without a path."""
+    if not path:
+        return None
+    base = os.path.dirname(os.path.abspath(path))
+
+    def include(name):
+        for candidate in (name, name + '.tex'):
+            full = os.path.abspath(os.path.join(base, candidate))
+            if full.startswith(base + os.sep) and os.path.isfile(full):
+                return read_bytes(full).decode('utf-8', 'replace')
+        return None
+    return include
+
+
+def slice_slug(slug, n, title):
+    words = re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-')[:40].strip('-')
+    return f'{slug}-{n}-{words}' if words else f'{slug}-{n}'
 
 
 def main(argv):
@@ -121,36 +161,50 @@ def main(argv):
         cli.fail(why)
 
     kind, data, final_url, content_type = read_source(args)
-    body = to_markdown(kind, data, final_url, content_type)
+    body, slices = to_markdown(kind, data, final_url, content_type, beside(args.file), args.file or final_url)
     if not body.strip():
         cli.fail('nothing to save: the source has no text')
-    rel = f'sources/{args.slug}.md'
-    saved = footer.add(body, args.url, args.license, args.license_url)
     keep_abstract = existing and not existing.get('abstract_draft')
-    fields = {
-        'file': rel, 'kind': kind, 'url': args.url, 'published': args.published or (existing or {}).get('published'),
-        'ingested': today(), 'license': args.license, 'license_url': args.license_url, 'permission': args.allow_restricted,
-        'tags': args.tags,
-        'abstract': existing['abstract'] if keep_abstract else draft_abstract(body.decode()),
-        'abstract_draft': None if keep_abstract else True,
-    }
-    try:
-        manifest.save(root, 'sources', args.slug, fields)  # checked before anything is written
-    except manifest.ManifestError as e:
-        cli.fail(str(e))
-    path = os.path.join(root, layout.in_content(rel))
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, 'wb') as f:
-        f.write(saved)
-    wikiindex.sync(root, write=True)  # the tag pages list the new source
-    result = {'slug': args.slug, 'file': layout.in_content(rel), 'kind': kind, 'bytes': len(saved), 'refreshed': bool(existing),
-              'abstract_draft': not keep_abstract, 'policy': why}
-    if args.json:
-        print(dumps(result))
+    if slices and existing:
+        cli.fail(f'{args.slug} is now over {pdf.SLICE_PAGES} pages with an outline, so it would be saved in slices; save it again under a new slug')
+    if slices:
+        parts = [(slice_slug(args.slug, n, title), text.encode(), args.url + (f'#page={page + 1}' if page is not None else ''),
+                  f'{title}: {draft_abstract(text)}') for n, (title, page, text) in enumerate(slices, 1)]
+        taken = [s for s, _, _, _ in parts if s in sources]
+        if taken:
+            cli.fail(f'already saved: {", ".join(taken)}')
     else:
-        print(f'{"refreshed" if existing else "saved"} {result["file"]} ({kind}, {len(saved):,} bytes): {why}')
-        if not keep_abstract:
-            print(f'next: read it and write its abstract: manifest.py set-abstract {args.slug} --abstract "..."')
+        parts = [(args.slug, body, args.url, existing['abstract'] if keep_abstract else draft_abstract(body.decode()))]
+    results = []
+    for slug, text, url, abstract in parts:
+        rel = f'sources/{slug}.md'
+        saved = footer.add(text, url, args.license, args.license_url)
+        fields = {
+            'file': rel, 'kind': kind, 'url': url, 'published': args.published or (existing or {}).get('published'),
+            'ingested': today(), 'license': args.license, 'license_url': args.license_url, 'permission': args.allow_restricted,
+            'tags': args.tags, 'abstract': abstract, 'abstract_draft': None if keep_abstract else True,
+        }
+        try:
+            manifest.save(root, 'sources', slug, fields)  # checked before anything is written
+        except manifest.ManifestError as e:
+            cli.fail(str(e))
+        path = os.path.join(root, layout.in_content(rel))
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, 'wb') as f:
+            f.write(saved)
+        results.append({'slug': slug, 'file': layout.in_content(rel), 'kind': kind, 'bytes': len(saved), 'refreshed': bool(existing),
+                        'abstract_draft': not keep_abstract, 'policy': why})
+    wikiindex.sync(root, write=True)  # the tag pages list the new source
+    if args.json:
+        print(dumps(results[0] if not slices else {'slices': results}))
+        return 0
+    if slices:
+        print(f'saved {args.slug} in {len(results)} slices, one per top-level outline entry ({why}):')
+    for r in results:
+        print(f'{"refreshed" if existing else "saved"} {r["file"]} ({kind}, {r["bytes"]:,} bytes)' + ('' if slices else f': {why}'))
+    if not keep_abstract:
+        print('next: write the abstract of each slice a question reads' if slices else
+              f'next: read it and write its abstract: manifest.py set-abstract {args.slug} --abstract "..."')
     return 0
 
 

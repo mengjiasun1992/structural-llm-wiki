@@ -88,11 +88,18 @@ class ReadingPlan(helpers.WikiTestCase):
     def grades(self, data):
         return helpers.write(self.tmp, 'grades.json', json.dumps(data))
 
+    def test_undated_sources_count_as_oldest(self):
+        from lib import readingplan
+        found = {'narratives': [], 'sources': [{'slug': s, 'kind': 'text', 'date': d} for s, d in (('new', '2026-01-01'), ('nodate', ''), ('old', '2001-01-01'))]}
+        rows, problems = readingplan.order(found, {s: {'relevance': 'high', 'authority': 'A'} for s in ('new', 'nodate', 'old')})
+        self.assertEqual(([r['slug'] for r in rows], problems), (['nodate', 'old', 'new'], []))  # the newest read last
+        self.assertTrue(rows[0]['why'].endswith('undated'))
+
     def test_list(self):
         out = self.plan('list', '--primary', 'leaf-a', '--supporting', 'leaf-b').out
         self.assertIn('narrative what-is-alpha: What is alpha?', out)
         self.assertIn('source alpha-doc [text, 215 bytes, 2026-09-01]: Alpha systems', out)
-        self.assertIn('source gamma-link [link, no saved copy, 2026-09-02]', out)
+        self.assertIn('source gamma-link [link, no saved copy, undated]', out)
         self.assertIn('noted, not read: root-topic', out)
         found = json.loads(self.plan('list', '--primary', 'leaf-b', '--json').out)
         self.assertEqual(([s['slug'] for s in found['sources']], found['noted_not_read']), (['beta-doc'], ['leaf-a', 'root-topic']))

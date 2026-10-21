@@ -14,7 +14,7 @@ A narrative answers one question, for the reader its template's guide names. It 
 ## Citations
 
 Every claim a source makes is cited, after a space, with a numbered link to the section that makes it:
-`Retries back off exponentially. [\[3\]](../sources/<slug>.md#<section>)`. Numbers run 1, 2, 3 in order of first use; the brackets stay escaped so Obsidian doesn't read them as a wikilink. Cite the section, never just the file: a reader checks one section, not a whole source.
+`Retries back off exponentially. [\[3\]](../sources/<slug>.md#<section>)`. Numbers run 1, 2, 3 in order of first use; the brackets stay escaped so Obsidian doesn't read them as a wikilink. Cite the section, never just the file: a reader checks one section, not a whole source. In a code source, cite the lines: `#L10-L20`.
 
 ## What the sources don't say
 

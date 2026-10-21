@@ -29,7 +29,7 @@ def candidates(root, primary, supporting):
         e = tree.sources[slug]
         path = os.path.join(root, layout.in_content(e['file'])) if e.get('file') else None
         sources.append({'slug': slug, 'kind': e.get('kind'), 'bytes': os.path.getsize(path) if path and os.path.isfile(path) else None,
-                        'date': e.get('published') or e.get('ingested') or '', 'abstract': e.get('abstract'),
+                        'date': e.get('published') or '', 'abstract': e.get('abstract'),
                         'abstract_draft': bool(e.get('abstract_draft')), 'tags': e.get('tags')})
     noted = sorted({a for t in tags for a in tree.ancestors(t) + tree.adjacent(t)} - set(tags))
     return {'narratives': narratives, 'sources': sources, 'noted_not_read': noted}

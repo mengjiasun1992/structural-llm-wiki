@@ -7,7 +7,8 @@ import unittest
 from unittest import mock
 
 import helpers
-from lib import footer, manifest, policy
+import pdfmaker
+from lib import footer, manifest, pdf, policy
 from lib.util import read_bytes, source_hash
 
 MD = b'# Retry budgets\n\nA retry budget caps retries at a share of requests.\n\n## How\n\nTen percent.\n'
@@ -17,7 +18,16 @@ ROUTES = {
     '/budget.md': (200, {'Content-Type': 'text/markdown; charset=utf-8'}, MD),
     '/backoff': (200, {'Content-Type': 'text/html; charset=utf-8'}, HTML),
     '/paper.pdf': (200, {'Content-Type': 'application/pdf'}, b'%PDF-1.4'),
+    '/real.pdf': (200, {'Content-Type': 'application/pdf'}, pdfmaker.make(
+        [pdfmaker.text((72, 700, b'1 Introduction'), (72, 680, b'Why retries need a budget.'))], [(0, b'Introduction', 0, None)], title=b'Budgets')),
+    '/book.pdf': (200, {'Content-Type': 'application/pdf'}, pdfmaker.make(
+        [pdfmaker.text((72, 700, b'Text of page %d.' % i)) for i in range(pdf.SLICE_PAGES + 1)],
+        [(0, b'Part One', 0, None), (0, b'Part Two', 50, None), (0, b'', 60, None)])),
     '/image': (200, {'Content-Type': 'image/png'}, b'\x89PNG'),
+    '/ewma.go': (200, {'Content-Type': 'text/plain; charset=utf-8'}, b'package ewma\n\nfunc Next(a, x, p float64) float64 {\n\treturn a*x + (1-a)*p\n}\n'),
+    '/rfc.txt': (200, {'Content-Type': 'text/plain'}, b'Header\n\n1.  One\n\n   Text one.\n\n2.  Two\n\n   Text two.\n\n3.  Three\n\n   Text three.\n'),
+    '/numbered.md': (200, {'Content-Type': 'text/markdown'}, b'Notes\n\n1.  One\n\n2.  Two\n\n3.  Three\n'),
+    '/paper.tex': (200, {'Content-Type': 'application/x-tex'}, b'\\section{Budgets}\nCap at $r \\le 0.1$.\n'),
     '/empty': (200, {'Content-Type': 'text/plain'}, b'   \n'),
     '/latin1': (200, {'Content-Type': 'text/plain'}, 'café'.encode('latin-1')),
     '/login': (403, {}, b''),
@@ -98,13 +108,65 @@ class FetchSource(helpers.WikiTestCase):
         self.assertIn('no such tag(s): nope', r.err)
 
     def test_what_cant_be_saved(self):
-        for path, msg in (('/paper.pdf', 'PDFs can\'t be saved yet'), ('/image', 'not markdown, text, HTML or PDF'),
+        for path, msg in (('/paper.pdf', 'a broken PDF: no catalog; record it as a link'), ('/image', 'not markdown, text, HTML or PDF'),
                           ('/empty', 'nothing to save'), ('/latin1', 'isn\'t UTF-8'), ('/login', 'never get around it')):
             r = self.fetch('x', path)
             self.assertEqual(r.code, 1, path)
             self.assertIn(msg, r.err)
             self.assertNotIn('x', manifest.load(self.root, 'sources'))
             self.assertFalse(os.path.exists(os.path.join(self.root, 'sllmwiki/sources/x.md')))
+
+    def test_a_pdf(self):
+        r = self.fetch('alpha-budgets', '/real.pdf', '--json')
+        self.assertEqual(r.code, 0, r.err)
+        self.assertEqual(json.loads(r.out)['kind'], 'pdf')
+        saved = read_bytes(os.path.join(self.root, 'sllmwiki/sources/alpha-budgets.md')).decode()
+        self.assertTrue(saved.startswith('# Budgets\n\n## Introduction\n\nWhy retries need a budget.\n'))
+        self.assertEqual(manifest.load(self.root, 'sources')['alpha-budgets']['abstract'], 'Why retries need a budget.')
+
+    def test_a_long_outlined_pdf_is_saved_in_slices(self):
+        r = self.fetch('alpha-book', '/book.pdf')
+        self.assertEqual(r.code, 0, r.err)
+        self.assertIn('saved alpha-book in 2 slices', r.out)
+        sources = manifest.load(self.root, 'sources')
+        one, two = sources['alpha-book-1-part-one'], sources['alpha-book-2-part-two']
+        self.assertEqual((one['url'].split('#')[1], two['url'].split('#')[1], one['abstract_draft']), ('page=1', 'page=51', True))
+        self.assertEqual(two['abstract'].split(':')[0], 'Part Two')
+        self.assertNotIn('alpha-book', sources)
+        self.assertIn('already saved: alpha-book-1-part-one', self.fetch('alpha-book', '/book.pdf').err)
+        manifest.save(self.root, 'sources', 'alpha-long', dict(one, file='sources/alpha-long.md'))
+        helpers.write(self.root, 'sllmwiki/sources/alpha-long.md', 'x')
+        self.assertIn('would be saved in slices', self.fetch('alpha-long', '/book.pdf', '--refresh').err)
+        r = self.fetch('alpha-other', '/book.pdf', '--json')
+        self.assertEqual([s['slug'] for s in json.loads(r.out)['slices']], ['alpha-other-1-part-one', 'alpha-other-2-part-two'])
+        self.assertEqual(helpers.load_script('fetch-source.py').slice_slug('x', 3, '!!!'), 'x-3')
+
+    def test_a_latex_source(self):
+        self.assertEqual(self.fetch('alpha-tex', '/paper.tex').code, 0)
+        saved = read_bytes(os.path.join(self.root, 'sllmwiki/sources/alpha-tex.md')).decode()
+        self.assertTrue(saved.startswith('## Budgets\n\nCap at $r \\le 0.1$.\n'))
+        self.assertEqual(manifest.load(self.root, 'sources')['alpha-tex']['kind'], 'tex')
+        folder = os.path.join(self.tmp, 'paper')
+        helpers.write(folder, 'main.tex', '\\begin{document}\\input{intro}\\input{../secret}\\input{gone}\\end{document}')
+        helpers.write(folder, 'intro.tex', '\\section{Intro}Read from beside it.')
+        helpers.write(self.tmp, 'secret.tex', 'Outside the folder.')
+        r = helpers.run('fetch-source.py', ['alpha-main', '--url', 'https://e.com/main.tex', '--tags', 'leaf-a', '--license', 'CC-BY-4.0',
+                                            '--file', os.path.join(folder, 'main.tex'), '--root', self.root])
+        self.assertEqual(r.code, 0, r.err)
+        saved = read_bytes(os.path.join(self.root, 'sllmwiki/sources/alpha-main.md')).decode()
+        self.assertTrue(saved.startswith('## Intro\n\nRead from beside it.\n'))
+        self.assertNotIn('Outside', saved)
+
+    def test_code_and_plain_text_standards(self):
+        self.assertEqual(self.fetch('alpha-ewma', '/ewma.go').code, 0)
+        saved = read_bytes(os.path.join(self.root, 'sllmwiki/sources/alpha-ewma.md')).decode()
+        self.assertTrue(saved.startswith('```go\npackage ewma\n'))
+        self.assertEqual(manifest.load(self.root, 'sources')['alpha-ewma']['kind'], 'code')
+        self.assertEqual(self.fetch('alpha-rfc', '/rfc.txt').code, 0)
+        saved = read_bytes(os.path.join(self.root, 'sllmwiki/sources/alpha-rfc.md')).decode()
+        self.assertIn('## 2. Two\n\n```text\n   Text two.\n```', saved)
+        self.assertEqual(self.fetch('alpha-notes', '/numbered.md').code, 0)  # markdown is kept as it is
+        self.assertTrue(read_bytes(os.path.join(self.root, 'sllmwiki/sources/alpha-notes.md')).startswith(b'Notes\n\n1.  One'))
 
     def test_public_wiki_keeps_only_open_licenses(self):
         with mock.patch.object(policy, 'visibility', return_value='public'):

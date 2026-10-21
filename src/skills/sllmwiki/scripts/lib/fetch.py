@@ -10,6 +10,8 @@ import ssl
 import urllib.error
 import urllib.request
 
+from . import plaintext
+
 USER_AGENT = 'sllmwiki (+https://github.com/mengjiasun1992/structural-llm-wiki)'
 MAX_BYTES = 20 * 1024 * 1024
 BLOCKED = (401, 402, 403, 407, 429, 451)
@@ -60,14 +62,17 @@ def fetch(url, timeout=30):
 
 
 def kind_of(content_type, name):
-    """'text', 'html' or 'pdf' from a content type, else from the file name's extension; None when neither tells."""
+    """'text', 'html', 'pdf', 'tex' or 'code' from a content type, else from the file name's extension; None when neither tells.
+    A code file served as plain text is code."""
     ct = (content_type or '').split(';')[0].strip().lower()
+    ext = os.path.splitext(name.split('?')[0].split('#')[0])[1].lower()
+    if ext in plaintext.LANGUAGES and (ct in ('', 'text/plain', 'application/octet-stream') or ct.startswith('text/x-')):
+        return 'code'
     by_type = {'text/markdown': 'text', 'text/x-markdown': 'text', 'text/plain': 'text', 'text/html': 'html',
-               'application/xhtml+xml': 'html', 'application/pdf': 'pdf'}
+               'application/xhtml+xml': 'html', 'application/pdf': 'pdf', 'application/x-tex': 'tex', 'text/x-tex': 'tex'}
     if ct in by_type:
         return by_type[ct]
-    ext = os.path.splitext(name.split('?')[0].split('#')[0])[1].lower()
-    return {'.md': 'text', '.markdown': 'text', '.txt': 'text', '.html': 'html', '.htm': 'html', '.pdf': 'pdf'}.get(ext)
+    return {'.md': 'text', '.markdown': 'text', '.txt': 'text', '.html': 'html', '.htm': 'html', '.pdf': 'pdf', '.tex': 'tex'}.get(ext)
 
 
 def charset(content_type):
