@@ -1,4 +1,4 @@
-# Wiki checks for an LLM wiki's pull requests: the same checks the skills run,
+# Wiki checks for a Structural LLM Wiki's pull requests: the same checks the skills run,
 # taken from this repository at run time, so a wiki keeps no copy of them.
 #
 # In the wiki's .github/workflows/wiki-checks.yml (init installs it):

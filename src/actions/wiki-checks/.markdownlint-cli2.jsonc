@@ -1,4 +1,4 @@
-// markdownlint rules for LLM wikis (used by src/actions/wiki-checks): only rules that catch markdown
+// markdownlint rules for Structural LLM Wikis (used by src/actions/wiki-checks): only rules that catch markdown
 // that renders wrong or breaks, not style. See https://github.com/DavidAnson/markdownlint
 {
   "config": {

@@ -1,6 +1,6 @@
 ---
 name: sllmwiki
-description: Build and maintain a structural LLM wiki, a git repository of topic tags, verbatim sources and narratives where every claim traces to a source and every run lands as one pull request.
+description: Build and maintain a Structural LLM Wiki, a git repository of topic tags, verbatim sources and narratives where every claim traces to a source and every run lands as one pull request.
 ---
 
 # sllmwiki

@@ -1,6 +1,6 @@
 {
   "name": "structural-llm-wiki",
-  "description": "LLM wiki skills that structure knowledge in git with tags, lineage, and version control.",
+  "description": "Structural LLM Wiki skills that structure knowledge in git with tags, lineage, and version control.",
   "owner": {
     "name": "Mengjia Sun"
   },
@@ -8,7 +8,7 @@
     {
       "name": "sllmwiki",
       "source": "./",
-      "description": "Set up and maintain an LLM wiki repository: init, build (tags, ingest, SMEs, narrative, lint) and query."
+      "description": "Set up and maintain a Structural LLM Wiki repository: init, build (tags, ingest, SMEs, narrative, lint) and query."
     }
   ]
 }
