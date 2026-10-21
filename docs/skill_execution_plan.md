@@ -214,7 +214,7 @@ outline and none, a long outlined one sliced, no text layer).
 
 | # | Code change | What it does |
 |---|---|---|
-| 5.1 | `README.md` | Rewritten to the design as built; the CI badges; a demo from a public wiki that holds only openly licensed sources, reviewed against the source policy before it goes public |
+| 5.1 | `README.md` | Checked against the skill as built, its "being rebuilt" note removed; the CI badges; a demo from a public wiki that holds only openly licensed sources, reviewed against the source policy before it goes public |
 | 5.2 | `.claude-plugin/plugin.json`, `templates/*.yml` | The version, and the CI templates' `@v<version>`, bumped together, only when the owner asks (`AGENTS.md`) |
 | 5.3 | (GitHub) | A ruleset on `mainline` requiring the checks; tag `v<version>`; release notes |
 
