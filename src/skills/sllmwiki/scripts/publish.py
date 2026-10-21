@@ -15,8 +15,10 @@
   publish.py pr
       Pushes the branch and opens its pull request, or updates it, with a
       description built from the summaries: the review checklist first, then
-      the decisions, then each step's report. Without gh, prints the link to
-      open it; without a remote, keeps the commits on the branch.
+      the decisions, then each step's report, then what the run cost: its
+      time, and its turns and tokens from the session's transcript (--cost USD
+      adds dollars, when the caller knows them). Without gh, prints the link
+      to open it; without a remote, keeps the commits on the branch.
   publish.py resume <slug>     back to a run's branch
   publish.py status            the run, its summaries and its pull request
 
@@ -35,6 +37,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
+from lib import runstats  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.policy import github_repo  # noqa: E402
 from lib.util import write_text  # noqa: E402
@@ -117,7 +120,8 @@ def start(root, slug, title, prompt):
     shutil.rmtree(os.path.join(state_dir(root), 'summaries'), ignore_errors=True)  # an earlier run's, never this one's
     if os.path.exists(os.path.join(state_dir(root), 'pr.md')):
         os.remove(os.path.join(state_dir(root), 'pr.md'))
-    save_state(root, {'slug': slug, 'branch': branch, 'base': base, 'title': title, 'prompt': prompt, 'pr': None})
+    save_state(root, {'slug': slug, 'branch': branch, 'base': base, 'title': title, 'prompt': prompt, 'pr': None,
+                      'started': runstats.now().isoformat()})
     print(f'started {branch} from {"origin/" if has_remote(root) else ""}{base}')
 
 
@@ -170,7 +174,7 @@ def commit(root, action, tags, subject):
     print(f'committed {git(root, "rev-parse", "--short", "HEAD")} {msg.splitlines()[0]}')
 
 
-def description(state, found):
+def description(state, found, run=()):
     checklist = [item for s in found.values() for item in s.get('checklist', [])]
     decisions = [item for s in found.values() for item in s.get('decisions', [])]
     lines = ['## Review checklist', '', 'Tick each box as you check it; the "Review checklist" check turns green when all are ticked.', '']
@@ -179,13 +183,19 @@ def description(state, found):
         lines += ['', '## Decisions for you', ''] + [f'- {d}' for d in decisions]
     for s in found.values():
         lines += ['', f'## {s["title"]}', '', (s.get('body') or '').strip()]
+    if run:
+        lines += [''] + list(run)
     lines += ['', '## Prompt', '', quote(state['prompt']), '', 'This pull request was opened by a run; the owner merges it.']
     return '\n'.join(line for line in lines).rstrip() + '\n'
 
 
-def pr(root):
+def pr(root, cost=None):
     state = load_state(root)
-    body = description(state, summaries(root))
+    if cost is not None:
+        state['cost'] = cost
+        save_state(root, state)
+    run = runstats.section(state.get('started'), state.get('cost'), path=runstats.transcript())
+    body = description(state, summaries(root), run)
     body_path = os.path.join(state_dir(root), 'pr.md')
     write_text(body_path, body)
     if not has_remote(root):
@@ -241,7 +251,8 @@ def main(argv):
     c.add_argument('action', choices=ACTIONS)
     c.add_argument('--tags', required=True, type=lambda v: [t.strip() for t in v.split(',') if t.strip()])
     c.add_argument('--subject', required=True)
-    sub.add_parser('pr')
+    o = sub.add_parser('pr')
+    o.add_argument('--cost', type=float, help='what the run cost so far, in US dollars, when the caller knows it')
     r = sub.add_parser('resume')
     r.add_argument('slug')
     sub.add_parser('status')
@@ -265,7 +276,7 @@ def main(argv):
     elif args.command == 'commit':
         commit(root, args.action, args.tags, args.subject)
     elif args.command == 'pr':
-        pr(root)
+        pr(root, args.cost)
     elif args.command == 'resume':
         resume(root, args.slug)
     else:

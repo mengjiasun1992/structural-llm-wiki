@@ -35,7 +35,8 @@ class Publish(helpers.WikiTestCase):
         self.bin = os.path.join(self.outside, 'bin')
         self.log = os.path.join(self.outside, 'gh.log')
         self.fake_gh()
-        self.env = mock.patch.dict(os.environ, dict(GIT_ENV, PATH=self.bin + os.pathsep + os.environ['PATH']))
+        self.env = mock.patch.dict(os.environ, dict(GIT_ENV, PATH=self.bin + os.pathsep + os.environ['PATH'],
+                                                   CLAUDE_CODE_SESSION_ID='', CLAUDE_CONFIG_DIR=self.outside))
         self.env.start()
 
     def tearDown(self):
@@ -79,10 +80,15 @@ class Publish(helpers.WikiTestCase):
         self.assertIn('## Decisions for you\n\n- Re-ingest beta-doc?\n', body)
         self.assertIn('## Sources\n\nSaved new.\n', body)
         self.assertIn('## Prompt\n\n> Build up alpha retries.\n> Keep it short.\n', body)
+        self.assertIn('## Run\n\n- Time: 0 min since the run started\n- Turns and tokens: no session transcript', body)
+        self.assertLess(body.index('## Run'), body.index('## Prompt'))
         self.assertIn('sllmwiki/alpha-retries', helpers.git(self.origin, 'branch').stdout)
         self.summary('narrative', title='Narrative', checklist=['The narrative reads well'], body='Wrote it.')
-        r = self.pub('pr')
+        r = self.pub('pr', '--cost', '1.5')
         self.assertEqual(r.out, 'updated https://github.com/o/r/pull/7\n')
+        self.assertIn('- Cost: $1.50\n', self.read_state('pr.md'))
+        self.pub('pr')
+        self.assertIn('- Cost: $1.50\n', self.read_state('pr.md'))  # kept until a new figure
         self.assertIn('pr edit https://github.com/o/r/pull/7 --body-file', open(self.log).read())
         body = self.read_state('pr.md')
         self.assertLess(body.index('## Sources'), body.index('## Narrative'))  # steps in pipeline order
