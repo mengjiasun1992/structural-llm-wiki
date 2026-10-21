@@ -108,17 +108,17 @@ ABSTRACT = ' '.join(['word'] * 170)
 TAGS_YAML = '''# The tag tree: each tag's description, parent and SMEs.
 
 root-topic:
-  description: "The root topic"
+  description: The root topic
   parent: null
 
 leaf-a:
-  description: "First leaf, about alpha systems"
+  description: First leaf, about alpha systems
   parent: root-topic
   smes:
     - "@ann: wrote the alpha doc"
 
 leaf-b:
-  description: "Second leaf, about beta caching"
+  description: Second leaf, about beta caching
   parent: root-topic
 '''
 
@@ -175,7 +175,7 @@ alpha-doc:
   ingested: "2026-09-02"
   license: CC-BY-4.0
   tags: [leaf-a]
-  abstract: "Alpha systems and how they retry failed requests."
+  abstract: Alpha systems and how they retry failed requests.
 
 beta-doc:
   file: sources/beta-doc.md
@@ -184,7 +184,7 @@ beta-doc:
   ingested: "2026-09-02"
   license: CC0-1.0
   tags: [leaf-b]
-  abstract: "Beta caching keeps hot data close to readers."
+  abstract: Beta caching keeps hot data close to readers.
 
 gamma-link:
   kind: link
@@ -192,7 +192,7 @@ gamma-link:
   ingested: "2026-09-02"
   license: unknown
   tags: [leaf-a]
-  abstract: "A pointer to the gamma code."
+  abstract: A pointer to the gamma code.
 ''')
     write(root, 'sllmwiki/narratives/what-is-alpha.md', narrative_text())
     write(root, 'sllmwiki/narratives/manifest.yaml', f'''# Narratives, keyed by question slug.
