@@ -1,0 +1,20 @@
+# Lint and coverage configuration for the plugin's scripts (src/skills/sllmwiki/scripts/, src/tools/).
+# The scripts use only the standard library and support Python 3.9.
+
+[tool.ruff]
+target-version = "py39"
+line-length = 200
+
+[tool.ruff.lint]
+# pyflakes and pycodestyle errors (the defaults), plus bugbear for likely bugs.
+select = ["E4", "E7", "E9", "F", "B"]
+
+[tool.coverage.run]
+# Line coverage of the skill's scripts; the tests live in src/skills/sllmwiki/tests/.
+source = ["src/skills/sllmwiki/scripts"]
+omit = ["*/__init__.py"]
+
+[tool.coverage.report]
+fail_under = 95
+show_missing = true
+skip_covered = true
