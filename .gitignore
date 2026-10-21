@@ -1,1 +1,3 @@
 src/skills/sllmwiki/evals/results/
+.coverage
+.coverage.*
