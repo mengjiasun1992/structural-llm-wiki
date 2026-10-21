@@ -29,6 +29,7 @@
 - **A copy:** `fetch-source.py <topic>-<source-name> --url <url> --tags <tags> --license <id> [--license-url <url>] [--published YYYY-MM-DD]`.
   - Add `--file <path>` for a copy you already have, or `--refresh` to save a changed source again.
   - PDFs and LaTeX are converted. A LaTeX source in several files: put them in one folder and pass the main one with `--file`.
+  - A table or figure a page only links to ("Full size table"): when a question needs it, save the linked page too, as its own source.
   - When it refuses (the source policy, a login, a format it can't read), record a link instead.
 - **A link:** `manifest.py put-source <slug> --kind link --url <url> --license <id> --tags <tags> --abstract "<abstract>"`.
 
