@@ -3,11 +3,13 @@
 ## 1. Find
 
 - Look for 3-5 good sources per question; fewer good ones beat many weak ones.
-- Prefer, in order, the most authoritative:
-  - A: the code, specifications and standards, original papers or creators, official docs;
-  - B: textbooks and references;
-  - C: practitioner write-ups.
-- Among equally authoritative sources, prefer the newest.
+- Rank candidates by, in order:
+  1. **Relevance:** the most relevant to the question and its tags first.
+  2. **Authority,** among the sources you have access and a license to use:
+     - A: the code, specifications and standards, original papers or creators, official docs;
+     - B: textbooks and references;
+     - C: practitioner write-ups.
+  3. **Recency:** among equally relevant and authoritative sources, the newest, for the latest understanding of the topic.
 - Skip any source already saved (`search.py sources "<keywords>"`); refresh one `wiki-check.py` reports as SOURCE_UPSTREAM_CHANGED.
 
 ## 2. Judge before saving
