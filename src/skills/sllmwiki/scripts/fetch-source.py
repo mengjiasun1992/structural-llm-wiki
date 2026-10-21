@@ -42,7 +42,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import config, fetch, footer, html2md, layout, manifest, pdf, plaintext, policy, tex, wikiindex  # noqa: E402
+from lib import config, convert, fetch, footer, layout, manifest, pdf, policy, wikiindex  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, read_bytes, today  # noqa: E402
 
@@ -78,29 +78,10 @@ def read_source(args):
 
 def to_markdown(kind, data, url, content_type='', include=None, name=''):
     """(the markdown, [(title, page, markdown)] slices of a long outlined PDF)."""
-    if kind is None:
-        cli.fail('not markdown, text, HTML or PDF; record it as a link (manifest.py put-source --kind link)')
-    if kind == 'pdf':
-        try:
-            doc = pdf.read(data)
-        except pdf.PdfError as e:
-            cli.fail(f'{e}; record it as a link (manifest.py put-source --kind link)')
-        text = pdf.markdown(doc)
-        return text.encode(), pdf.slices(doc, text)
-    if kind == 'tex':
-        return tex.convert(data.decode('utf-8', 'replace'), include).encode(), []
-    if kind == 'html':
-        page = data.decode(fetch.charset(content_type) or 'utf-8', 'replace')
-        return html2md.convert(page, url)[0].encode(), []
     try:
-        text = data.decode('utf-8')
-    except UnicodeDecodeError:
-        cli.fail('the text isn\'t UTF-8; save a UTF-8 copy and pass it with --file')
-    if kind == 'code':
-        return plaintext.code(text, name).encode(), []
-    markdown = 'markdown' in content_type or os.path.splitext(name.split('?')[0])[1].lower() in ('.md', '.markdown')
-    standard = None if markdown else plaintext.standard(text)
-    return (standard.encode() if standard else data), []
+        return convert.convert(kind, data, url, content_type, include, name)
+    except convert.ConvertError as e:
+        cli.fail(str(e))
 
 
 def beside(path):

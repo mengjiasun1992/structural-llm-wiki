@@ -31,6 +31,7 @@ Run them with `python3 <skill>/scripts/<name>` from the wiki's root; each explai
 - `tag-tree.py`: the tag tree
 - `manifest.py`: tags, link sources, abstracts
 - `fetch-source.py`: save a source
+- `check-upstream.py`: which saved sources changed where they came from
 - `reading-plan.py`: what a narrative reads, in order
 - `cited-sections.py`: each section a narrative cites, with its claims
 - `narrative-format.py`: a narrative's skeleton, and its checks

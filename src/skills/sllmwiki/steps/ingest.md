@@ -16,7 +16,7 @@
      - B: textbooks and references;
      - C: practitioner write-ups and encyclopedias; use an encyclopedia to get oriented and to find the sources it cites.
   3. **Recency:** among equally relevant and authoritative sources, the newest, for the latest understanding of the topic.
-- Skip any source already saved (`search.py sources "<keywords>"`); refresh one `wiki-check.py` reports as SOURCE_UPSTREAM_CHANGED.
+- Skip any source already saved (`search.py sources "<keywords>"`); refresh one `wiki-check.py` reports as SOURCE_UPSTREAM_CHANGED. To find those, `check-upstream.py [<slugs>] [--tags <tags>]` fetches saved sources again and marks the changed ones.
 
 ## 2. Judge before saving
 
