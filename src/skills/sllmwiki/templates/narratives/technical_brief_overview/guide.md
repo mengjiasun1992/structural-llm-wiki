@@ -2,7 +2,9 @@
 
 ## Audience and purpose
 
-An engineer, or an agent, new to this system, who needs to understand how it works well enough to use it, change it or debug it. Every passage serves that; anything that doesn't (the history of the field, related systems, how the narrative was written) is left out. A neighboring topic worth its own explanation becomes its own question, linked from here.
+**Takeaway:** a reader who didn't know the solution or design has learned it by the end.
+
+An engineer, or an agent, new to this solution or design, who needs to understand how it works well enough to use it, change it or debug it. Every passage serves that; anything that doesn't (the history of the field, related systems, how the narrative was written) is left out. A neighboring topic worth its own explanation becomes its own question, linked from here.
 
 ## Voice and tone
 

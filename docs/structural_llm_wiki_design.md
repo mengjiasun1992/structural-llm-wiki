@@ -183,12 +183,12 @@ One question per file in `narratives/`; the question is the title, unchanged.
 
 A template is chosen by the subject, not the question's wording:
 
-| Template | Subject | Focus | Budget |
-|---|---|---|---|
-| `concept_brief_overview` | A concrete subject that has a concise, precise definition | The definition, and what it is and isn't | 900 words |
-| `technical_brief_overview` | A solution, an algorithm, or the design of a component or for a problem | How it works: a flow diagram and walkthrough | 1,800 words |
-| `comparison` | A choice among common candidates | The trade-offs: every dimension to think through when choosing, and when to pick which | 1,200 words |
-| `survey` | Anything not concrete: a domain, or an umbrella term for subtopics or directions that each go deep their own way | Wide over deep: the main dishes on the table that one can't miss, how they relate, where to go deeper | 2,200 words |
+| Template | Subject | Focus | Takeaway: a reader new to the subject … | Budget |
+|---|---|---|---|---|
+| `concept_brief_overview` | A concrete subject that has a concise, precise definition | The definition, and what it is and isn't | has learned the concept | 900 words |
+| `technical_brief_overview` | A solution, an algorithm, or the design of a component or for a problem | How it works: a flow diagram and walkthrough | has learned the solution or design | 1,800 words |
+| `comparison` | A choice among common candidates | The trade-offs: every dimension to think through when choosing, and when to pick which | can make the choice, knowing what each candidate costs | 1,200 words |
+| `survey` | Anything not concrete: a domain, or an umbrella term for subtopics or directions that each go deep their own way | Wide over deep: the main dishes on the table that one can't miss, how they relate, where to go deeper | knows the main areas of the domain and where to go deeper in each | 2,200 words |
 
 **A wiki's own templates.** A team can bring its own: a folder in the wiki's `templates/` with a `template.md` and a `guide.md` is offered next to the bundled ones, and is checked the same way; one with a bundled template's name replaces it. A wiki that only wants a different budget for a template sets it in `Config.toml` (§4.9) instead of copying the template.
 
