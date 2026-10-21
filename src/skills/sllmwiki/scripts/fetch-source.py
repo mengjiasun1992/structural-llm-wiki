@@ -9,7 +9,7 @@ Fetches URL (or reads PATH, a copy you already have of the source at URL) and
 saves it as sllmwiki/sources/<slug>.md: markdown and text byte for byte, an
 HTML page's main content converted, a PDF's text layer with its outline as
 headings, a LaTeX source's sections as headings and its math kept as TeX (its
-\input files read from beside --file), a plain-text standard (an RFC) with its
+\\input files read from beside --file), a plain-text standard (an RFC) with its
 numbered sections as headings, a code file in one fenced block so citations
 can name its lines (#L10-L20), with the "Original source" footer. The source is recorded with a
 starter abstract (its opening words, marked abstract_draft); read the source
