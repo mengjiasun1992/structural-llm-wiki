@@ -4,13 +4,13 @@
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](#requirements)
 
-Agent skills for a structural LLM wiki: knowledge kept in git, organized by topic tags, traced to its sources, and versioned like code.
+Agent skills for a Structural LLM Wiki: knowledge kept in git, organized by topic tags, traced to its sources, and versioned like code.
 
-Inspired by Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), where an LLM incrementally builds and maintains a persistent, interlinked markdown wiki from raw sources. Structural LLMWiki adds the structure a team needs on top of that idea: topic tags that link sources, narratives and people; every claim traced to a saved source; and every change landing as a reviewable pull request.
+Inspired by Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), where an LLM incrementally builds and maintains a persistent, interlinked markdown wiki from raw sources. Structural LLM Wiki adds the structure a team needs on top of that idea: topic tags that link sources, narratives and people; every claim traced to a saved source; and every change landing as a reviewable pull request.
 
 Most team knowledge is scattered: design docs that have drifted from the code, decisions buried in chat threads, and the rest in a few people's heads. Ask an AI assistant and you get an answer once. It's unverified, it's gone when the session ends, and it's stale by next quarter.
 
-A structural LLM wiki turns that into a knowledge base that compounds. Your coding agent does the research and the upkeep; your team reviews it like code.
+A Structural LLM Wiki turns that into a knowledge base that compounds. Your coding agent does the research and the upkeep; your team reviews it like code.
 
 - **Every claim is traceable.** Narratives cite the exact sources they're built on, and those sources are saved verbatim in the repo, so anyone can check a claim. Lint flags any claim that no source supports.
 - **Reading is planned around the model's attention.** Hierarchical topic tags link sources, narratives, and people into a topic graph. Before writing, the agent uses that graph to order its reading by relevance, then authority, then date: related narratives first for background, supporting sources next, and the most relevant, most authoritative and newest sources last, where attention is strongest. Parent and neighboring topics are noted but not read, so the context stays focused.

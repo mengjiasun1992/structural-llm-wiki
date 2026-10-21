@@ -10,7 +10,7 @@ AI assistants help, but only for the moment: an answer from a chat session is go
 
 ### The approach
 
-The structural LLM wiki gives that knowledge a durable home: a git repository the coding agent maintains and the team reviews. The work happens in five moves:
+The Structural LLM Wiki gives that knowledge a durable home: a git repository the coding agent maintains and the team reviews. The work happens in five moves:
 
 1. **Collect.** For a topic, the agent searches docs, code, and discussions and saves the useful sources into the wiki verbatim, so they can be checked later.
 2. **Organize.** Every source is attached to hierarchical topic tags. The tags form a graph that connects sources, narratives, and the people who know each area.

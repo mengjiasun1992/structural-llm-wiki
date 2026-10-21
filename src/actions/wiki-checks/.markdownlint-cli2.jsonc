@@ -1,0 +1,24 @@
+// markdownlint rules for Structural LLM Wikis (used by src/actions/wiki-checks): only rules that catch markdown
+// that renders wrong or breaks, not style. See https://github.com/DavidAnson/markdownlint
+{
+  "config": {
+    "default": false,
+    "MD001": true, // heading levels go up one at a time
+    "MD011": true, // reversed link syntax (text)[url]
+    "MD018": true, // "#Heading" without a space is not a heading
+    "MD019": true,
+    "MD023": true, // indented headings don't render as headings
+    "MD033": { "allowed_elements": ["br", "details", "summary", "sub", "sup", "kbd"] }, // <placeholder> text is hidden as HTML
+    "MD037": true, // spaces inside emphasis markers
+    "MD038": true, // spaces inside code spans
+    "MD039": true, // spaces inside link text
+    "MD040": true, // code blocks need a language (use text when nothing fits)
+    "MD042": true, // empty links
+    "MD051": true, // #fragment links point to a real heading
+    "MD052": true, // reference links are defined
+    "MD056": true  // table rows match the header's column count
+  },
+  // ingested/ holds verbatim copies, never edited; templates/ holds the wiki's own narrative
+  // templates, full of <placeholder> text by design (narrative-format checks them instead)
+  "ignores": ["ingested/**", "templates/**", "**/node_modules/**"]
+}
