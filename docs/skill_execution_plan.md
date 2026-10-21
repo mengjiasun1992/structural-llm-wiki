@@ -209,7 +209,7 @@ resolve; one past the end doesn't).
 | 4.4 | `build` | `lint` added after `narrative` |
 | 4.5 | `scripts/contributors.py`, `steps/smes.md` | Ranking people from git history, `CODEOWNERS`, doc authorship and reviews, never anyone in `smes_exclude`; the `smes` step, in `build` when the topic has code or authored docs |
 | 4.6 | `workflows/query.md` | Offering to file a stitched answer; the labeled DRAFT answer and the offer to `build` |
-| 4.7 | `scripts/obsidian-check.py` | Compatible markdown on every page outside the sources |
+| 4.7 | `wiki-check.py` | Compatible markdown on every page outside the sources (`lib/compat.py`'s checks, which `narrative-format` runs on one narrative, run on every page; done in Phase 5) |
 
 **Test.** `test_cited_sections`, `test_quotes` (found, cut with an ellipsis,
 too long, not found), `test_check_upstream` (over `LocalServer`),
