@@ -31,7 +31,7 @@ jobs:
           python3 -m pip install --quiet --disable-pip-version-check pyyaml==6.0.2
           python3 src/tools/check-yaml.py
 
-      # only the rules in .markdownlint-cli2.jsonc: markdown that renders wrong or breaks
+      # only the rules in .markdownlint.jsonc: markdown that renders wrong or breaks
       - name: Markdown renders correctly
         if: success() || failure()
         run: npx --yes markdownlint-cli2@0.13.0 "**/*.md"

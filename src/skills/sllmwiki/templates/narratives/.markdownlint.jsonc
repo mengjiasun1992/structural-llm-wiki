@@ -1,0 +1,6 @@
+// The repository's rules, except that the skeletons' <placeholder> text, which
+// markdownlint reads as inline HTML, is allowed here: a narrative replaces it.
+{
+  "extends": "../../../../../.markdownlint.jsonc",
+  "MD033": false
+}
