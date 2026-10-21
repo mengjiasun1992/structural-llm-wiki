@@ -1,0 +1,16 @@
+{
+  "name": "sllmwiki",
+  "description": "One skill for an LLM-maintained wiki repository, with workflows to resolve topic tags, ingest sources verbatim, find SMEs, write grounded narratives, and lint them; each run lands as one pull request for review.",
+  "author": {
+    "name": "Mengjia Sun",
+    "url": "https://github.com/mengjiasun1992"
+  },
+  "repository": "https://github.com/mengjiasun1992/structural-llm-wiki",
+  "license": "Apache-2.0",
+  "skills": [
+    "./src/skills/"
+  ],
+  "commands": [
+    "./src/commands/"
+  ]
+}
