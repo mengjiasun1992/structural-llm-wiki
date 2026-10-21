@@ -11,6 +11,8 @@ Unit tests (`src/skills/sllmwiki/tests/`) check the scripts; these evals check t
 | route-query | a "what does the wiki say" question fires the skill, reads `query.md` and starts with `search.py context` | smoke, routing |
 | route-lint | a lint request reads `steps/lint.md` and gets each cited section from `cited-sections.py` | smoke, routing |
 | route-smes | a "who knows" request reads `steps/smes.md` and ranks people with `contributors.py` | smoke, routing |
+| route-ingest | a request to save a source reads `steps/ingest.md` and saves through `fetch-source.py` | routing |
+| route-ambiguous | a request naming only a topic asks whether to answer or research, and changes nothing | smoke, routing |
 | query-answer | the answer comes from the wiki, cites its narrative or source, and changes nothing | smoke, query |
 | query-file | an answer stitched from a narrative and an uncovered source, with an offer to file it as a narrative; nothing written | query |
 | query-gap | a question the wiki doesn't cover gets a DRAFT answer and an offer to research it; nothing written | smoke, query |
@@ -33,5 +35,5 @@ A wiki case's `scaffold.sh` calls `_fixture/wiki.sh`, which builds the unit test
 
 ## Known limits
 
-- **macOS and git.** With Apple's `git` (the Xcode command-line tools shim), `git` can't run inside the eval sandbox, so cases that need it (init-new, route-smes, the ingest cases and the full cases) fail there; preflight says so and the run stops. Run them where `git` is a plain binary (Linux, or a non-Xcode `git` first on `PATH`), and say so in the pull request.
+- **macOS and git.** With Apple's `git` (the Xcode command-line tools shim), `git` can't run inside the eval sandbox, so cases that need it (init-new, route-smes, route-ingest, the ingest cases and the full cases) fail there; preflight says so and the run stops. Run them where `git` is a plain binary (Linux, or a non-Xcode `git` first on `PATH`), and say so in the pull request.
 - **Variance.** One run can pass or fail by chance; for a decision, use three runs per case.
