@@ -73,8 +73,18 @@ quotes or publishes says how it stays within the source policy (`AGENTS.md`,
 **Done.** A phase is done when its pull requests are merged, CI is green on
 `mainline`, coverage is at 95% or above, and its eval cases pass (from Phase 5).
 
-**Pull requests.** One per row group in each phase's table, in the order
-given, each from the up-to-date `mainline`. The owner merges.
+**Source of truth.** Every task is implemented from this repository: the
+design doc, this plan, `AGENTS.md` and the code already merged. The code and its
+tests are written for the task, not taken from elsewhere. When a task needs an
+intent or decision these documents don't state, it is added to the design doc
+or this plan first, in the same pull request, so the documents stay the one
+place it is recorded.
+
+**Commits and pull requests.** One task at a time, in the order given: each
+numbered task is built, tested and evaluated on its own and lands as a local
+commit (`Part of #<issue>`). When a phase's tasks are done, its branch, made from
+the up-to-date `mainline`, opens one pull request that closes the phase's issue.
+The owner merges.
 
 ## 3. Order
 
