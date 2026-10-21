@@ -146,6 +146,36 @@ class Lexer:
         return tok
 
 
+def lzw_decode(data, early=1):
+    """LZW-compressed bytes, as older PDFs write them: codes of 9 to 12 bits, most significant
+    bit first, 256 to clear the table and 257 to end; early=1 widens the code one entry sooner."""
+    out, table = bytearray(), [bytes([i]) for i in range(256)] + [b'', b'']
+    width, buf, bits, prev = 9, 0, 0, None
+    for byte in data:
+        buf, bits = (buf << 8) | byte, bits + 8
+        while bits >= width:
+            bits -= width
+            code, buf = buf >> bits, buf & ((1 << bits) - 1)
+            if code == 256:
+                table, width, prev = table[:258], 9, None
+                continue
+            if code == 257:
+                return bytes(out)
+            if code < len(table) and code not in (256, 257):
+                entry = table[code]
+            elif code == len(table) and prev is not None:
+                entry = prev + prev[:1]
+            else:
+                raise ValueError(f'a bad LZW code {code}')
+            if prev is not None:
+                table.append(prev + entry[:1])
+            out += entry
+            prev = entry
+            if len(table) + early >= (1 << width) and width < 12:
+                width += 1
+    return bytes(out)
+
+
 def _refs(items):
     out = []
     for it in items:
@@ -240,6 +270,9 @@ class Document:
                 elif f in ('ASCIIHexDecode', 'AHx'):
                     digits = re.sub(rb'[^0-9A-Fa-f]', b'', data.split(b'>')[0])
                     data = bytes.fromhex((digits + b'0' * (len(digits) % 2)).decode())
+                elif f in ('LZWDecode', 'LZW'):
+                    params = self.get(stream.info.get('DecodeParms'), {})
+                    data = lzw_decode(data, self.get(params.get('EarlyChange'), 1) if isinstance(params, dict) else 1)
                 elif f in ('ASCII85Decode', 'A85'):
                     data = base64.a85decode(re.sub(rb'\s', b'', data).split(b'~>')[0].lstrip(b'<~'))
                 else:
@@ -576,7 +609,13 @@ def _clean(text):
 
 
 def _join(runs):
-    """Runs of text into lines: the same baseline continues a line, with a space for a gap."""
+    """Runs of text into lines: the same baseline continues a line, with a space for a gap.
+    In letter-spaced text (runs of one or two letters), a run of spaces the next run
+    draws back over isn't a space."""
+    runs = [r for i, r in enumerate(runs) if not (not r[4].strip() and 0 < i < len(runs) - 1
+                                                   and len(runs[i - 1][4].strip()) <= 2 and len(runs[i + 1][4].strip()) <= 2
+                                                   and abs(runs[i + 1][0] - r[0]) <= 0.5 * (r[3] or 1)
+                                                   and runs[i + 1][1] < (r[1] + r[2]) / 2)]
     lines = []
     for y, x0, x1, size, text in runs:
         size = size or 1

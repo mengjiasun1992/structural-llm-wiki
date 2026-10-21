@@ -3,7 +3,12 @@
 ## 1. Find
 
 - Look for 3-5 good sources per question; fewer good ones beat many weak ones.
-- Search first for the question's source of record: the original definition for "What is X?", official design principles or a survey for "What are the principles of X?", the paper or specification a method comes from. Then widen.
+- First list what the question's narrative can't miss, by its template's subject (design doc §4.5):
+  - concept: the standard definition;
+  - technical: the specification or paper the method comes from, and how it's used;
+  - comparison: each common candidate, and every dimension the choice turns on;
+  - survey: every main area of the field, and its official or classic lists.
+- Search for each, the source of record first, then widen, until a source covers it or the searches show none does. Keep the searches you ran.
 - Rank candidates by, in order:
   1. **Relevance:** the most relevant to the question and its tags first.
   2. **Authority,** among the sources you have access and a license to use:
@@ -11,7 +16,7 @@
      - B: textbooks and references;
      - C: practitioner write-ups and encyclopedias; use an encyclopedia to get oriented and to find the sources it cites.
   3. **Recency:** among equally relevant and authoritative sources, the newest, for the latest understanding of the topic.
-- Skip any source already saved (`search.py sources "<keywords>"`); refresh one `wiki-check.py` reports as SOURCE_UPSTREAM_CHANGED.
+- Skip any source already saved (`search.py sources "<keywords>"`); refresh one `wiki-check.py` reports as SOURCE_UPSTREAM_CHANGED. To find those, `check-upstream.py [<slugs>] [--tags <tags>]` fetches saved sources again and marks the changed ones.
 
 ## 2. Judge before saving
 
@@ -24,6 +29,7 @@
 - **A copy:** `fetch-source.py <topic>-<source-name> --url <url> --tags <tags> --license <id> [--license-url <url>] [--published YYYY-MM-DD]`.
   - Add `--file <path>` for a copy you already have, or `--refresh` to save a changed source again.
   - PDFs and LaTeX are converted. A LaTeX source in several files: put them in one folder and pass the main one with `--file`.
+  - A table or figure a page only links to ("Full size table"): when a question needs it, save the linked page too, as its own source.
   - When it refuses (the source policy, a login, a format it can't read), record a link instead.
 - **A link:** `manifest.py put-source <slug> --kind link --url <url> --license <id> --tags <tags> --abstract "<abstract>"`.
 
@@ -37,4 +43,4 @@ Read each saved source once, and write its abstract: 150-250 words on what it sa
 - `title`: "Sources";
 - `checklist`: "Sources: each is one you'd trust";
 - `decisions`: anything the owner must decide, such as permission to keep a copy, and each A source you couldn't use or save, with its link and why;
-- `body`: a table of slug, kind, size, license, and why it was chosen or kept as a link.
+- `body`: what the question can't miss, each with the source that covers it or "none found"; the searches you ran; then a table of slug, kind, size, license, and why it was chosen or kept as a link.

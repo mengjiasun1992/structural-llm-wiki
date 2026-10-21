@@ -53,6 +53,8 @@ def check(text, on=True):
         if not _BEFORE_OK.search(before) and not re.search(CITE.pattern + r'[ \t]*\Z', before):  # after a citation is a sentence start
             out.append(('error', 'MARKER_PLACEMENT', i + 1, f'{m} goes at the start of the sentence it covers'))
         rest = lines[i][col + len(m):]
+        cell = re.search(r'(?<!\\)\|', rest) if lines[i].lstrip().startswith('|') else None
+        rest = rest[:cell.start()] if cell else rest  # in a table, each cell is its own claim
         end = _SENTENCE_END.search(rest)
         sentence, after = (rest[:end.end()], rest[end.end():]) if end else (rest, '')
         if CITE.search(sentence) or re.match(r'\s*' + CITE.pattern, after):  # a citation follows its sentence's period

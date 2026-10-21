@@ -7,7 +7,7 @@
 ## 2. Plan the reading
 
 1. `reading-plan.py list --primary <tags> --supporting <tags>` lists the candidates.
-2. Grade each saved source in a JSON file: `{"<slug>": {"relevance": "high|medium|low", "authority": "A|B|C"}}`.
+2. Grade each saved source in a JSON file outside the wiki, in a temporary folder: `{"<slug>": {"relevance": "high|medium|low", "authority": "A|B|C"}}`.
 3. `reading-plan.py order --primary <tags> --supporting <tags> --grades <file>` prints the plan.
 
 Read in that order, each source once, and only what the plan says: whole sources for high and medium relevance (or the sections that matter, with `search.py section`), and abstracts only for low. Keep the plan's table for the summary.
@@ -18,7 +18,8 @@ Read in that order, each source once, and only what the plan says: whole sources
 - **Where:** save the narrative as `sllmwiki/narratives/<question-slug>.md`.
 - **What to follow:**
   - the template's `guide.md`, for its reader, structure and style;
-  - `templates/narratives/shared.md`, for what every narrative shares: citations, markers and quoting.
+  - `templates/narratives/shared.md`, for what every narrative shares: citations, markers and quoting;
+  - `templates/narratives/shared-guide.md`, for the style every narrative shares: diagrams, pseudocode and math.
 - **Updating:** keep the narrative's version history and say what changed.
 
 ## 4. Finish

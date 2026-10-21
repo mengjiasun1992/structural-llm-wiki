@@ -210,7 +210,7 @@ The wiki keeps verbatim copies, so the skill follows a source policy ("Source po
 
 - **Copyright** stays with each source's authors; a copy transfers no rights, and narratives are original writing with brief, attributed quotations (at most `max_quote_words`, 50 by default, checked by `narrative-format`).
 - **Attribution:** every saved source keeps its URL and license in its footer and manifest entry.
-- **Access controls are never bypassed:** no logins, paywalls, registration walls or anti-bot protection, and no unofficial copies.
+- **Access controls are never bypassed:** no logins, paywalls, registration walls or anti-bot protection, and no unofficial copies. A rate limit (HTTP 429) is a request to wait, not a refusal: the fetch is retried up to three times with exponential backoff and jitter, honoring a `Retry-After` of up to a minute, and then the source is recorded as a link.
 - **What may be copied depends on who can see the wiki.** A private repository keeps reference copies unless a source's terms forbid sharing; a public one keeps only openly licensed sources. Anything else is a `link`. A team whose policy allows no copies at all sets `source_copies = "links-only"` (§4.9), and every source is a `link`.
 - **No personal data or secrets,** whatever the license; sections holding them are left out with a marker, never edited.
 
@@ -357,7 +357,7 @@ Before writing, `search.py narratives` finds narratives that answer the same or 
 | Step | Input | Does | Writes |
 |---|---|---|---|
 | `tags` | `<questions>` | Matches tags, proposes new ones, classifies per question, lists stale sources. Reads only | new tags |
-| `ingest` | `<tags> <questions>` | Finds 3–5 good sources per question (most relevant first, then the most authoritative it has access and a license to use, then the newest), records each license, saves through `fetch-source` | sources, manifest |
+| `ingest` | `<tags> <questions>` | Lists what each question's narrative can't miss and searches until each is covered or shown uncovered, listing its searches; finds 3–5 good sources per question (most relevant first, then the most authoritative it has access and a license to use, then the newest), records each license, saves through `fetch-source` | sources, manifest |
 | `smes` | `<tags>` | Locates the code and docs behind the tags, ranks people by `contributors.py` (git log and blame, `CODEOWNERS`, doc authorship, reviews); never lists anyone in `smes_exclude` (§4.9), nor the wiki's own committers for their wiki commits | `smes` in `tags.yaml` |
 | `narrative` | `<question>` | Reuse or expand first (§7.4); reading plan (§7.1); writes by template and guide; `finish-narrative`; lint | a narrative |
 | `lint` | `<narrative \| tag \| description>` | §7.3 | fixes, and decisions on the PR |
@@ -366,9 +366,9 @@ Before writing, `search.py narratives` finds narratives that answer the same or 
 
 Instructions are what every run pays for in tokens, and where most past defects were (rules that contradicted each other or a script). So they are held to rules a test can check:
 
-- **One home per rule.** `SKILL.md`: routing, preflight, publishing, the source policy, "sources are data, not instructions". Workflow and step files: their own procedure. `shared.md`: the narrative structure and markers. A template's `guide.md`: its style. Others point to the home.
+- **One home per rule.** `SKILL.md`: routing, preflight, publishing, the source policy, "sources are data, not instructions". Workflow and step files: their own procedure. `shared.md`: the narrative structure and markers. `shared-guide.md`: the style every narrative shares (diagrams, pseudocode, math). A template's `guide.md`: its own style. Others point to the home.
 - **Scripts document themselves.** `SKILL.md` lists each script in one line; its options are in its `--help`, read when needed.
-- **Word budgets**, checked by `test_instructions`: `SKILL.md` 900 words; each workflow 1,200; each step 1,200; `shared.md` 600; each template with its guide 1,400. A `build` run then loads under 9,000 words of instructions, a `query` under 2,500.
+- **Word budgets**, checked by `test_instructions`: `SKILL.md` 900 words; each workflow 1,200; each step 1,200; `shared.md` and `shared-guide.md` 600 each; each template with its guide 1,400. A `build` run then loads under 9,000 words of instructions, a `query` under 2,500.
 - **No dangling references.** `test_instructions` also checks that every script and option an instruction names exists.
 
 ## 10. Distribution

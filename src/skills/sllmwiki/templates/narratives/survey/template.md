@@ -22,8 +22,7 @@ abstract_words: [150, 250]
 ## 6. How they relate
 
 ```mermaid
-graph LR
-    A[<item>] --> B[<item>]
+%% <the diagram that shows how the items relate best: a flowchart, mindmap, quadrantChart, ...>
 ```
 
 <Walk through the map: which items support each other, which pull against each other, and which overlap.>

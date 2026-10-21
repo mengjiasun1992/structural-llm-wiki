@@ -18,3 +18,4 @@ Answer a question from what the wiki already knows, reading as little as possibl
    - When the answer stitched together several narratives, or used sources no narrative covers, offer to file it as a narrative (`steps/narrative.md`).
    - When nothing covers the question, answer from what you know, labeled **DRAFT** and marked as not from the wiki, and offer to research it (`workflows/build.md`).
    - Start neither until asked. Another agent asking gets the answer and the offer.
+   - Asked to file it: `publish.py start <question-slug>`, follow `steps/narrative.md` for the question, then `publish.py commit narrative` and `publish.py pr`. Asked to research it: follow `workflows/build.md`.

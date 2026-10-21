@@ -34,6 +34,10 @@ class Markers(unittest.TestCase):
         self.assertEqual(self.codes(doc(f'{R} Mine, cited. {CITE}', defined)), [('MARKER_AND_CITATION', 11)])
         self.assertEqual(self.codes(doc(f'{R} Mine {CITE} inline.', defined)), [('MARKER_AND_CITATION', 11)])
         self.assertEqual(self.codes(doc(f'{R} Mine. Then cited. {CITE}', defined)), [])
+        row = f'| Window | {R} None, by design | 10 samples {CITE} |'
+        self.assertEqual(self.codes(doc(row, defined)), [])  # each cell is its own claim
+        self.assertEqual(self.codes(doc(f'| Window | {R} None {CITE} | 10 |', defined)), [('MARKER_AND_CITATION', 11)])
+        self.assertEqual(self.codes(doc(f'| A \\| B | {R} Mine, a \\| pipe {CITE} |', defined)), [('MARKER_AND_CITATION', 11)])
 
     def test_undefined_and_off(self):
         self.assertEqual(self.codes(doc(f'{G} Unknown.')), [('MARKER_UNDEFINED', 10)])
@@ -83,6 +87,18 @@ class Finish(helpers.WikiTestCase):
         self.assertEqual(r.code, 0, r.out)
         self.assertEqual(manifest.load(self.root, 'narratives')['what-is-alpha'], entry)
         self.assertEqual(len(metadata.read(self.read(NARRATIVE))['plan']), 3)
+
+    def test_the_plan_keeps_the_narratives_read_then(self):
+        g = self.grades({'alpha-doc': {'relevance': 'high', 'authority': 'A'}})
+        r = helpers.run('reading-plan.py', ['order', '--primary', 'leaf-a', '--grades', g, '--root', self.root])
+        self.assertEqual(r.code, 0, r.err)
+        self.write('sllmwiki/narratives/later.md', helpers.narrative_text('Later?'))  # written after the plan was made
+        self.assertEqual(self.finish('later', '--primary', 'leaf-a', '--read', 'alpha-doc').code, 0)
+        self.assertEqual(self.finish('what-is-alpha', '--primary', 'leaf-a', '--grades', g).code, 0)
+        self.assertNotIn('`later`', '\n'.join(metadata.read(self.read(NARRATIVE))['plan']))
+        os.remove(g + '.plan.json')  # no saved plan: every narrative on the tags, as before
+        self.assertEqual(self.finish('what-is-alpha', '--grades', g).code, 0)
+        self.assertIn('`later`, in full: existing narrative, background', metadata.read(self.read(NARRATIVE))['plan'])
 
     def test_the_model_comes_from_the_session(self):
         session = helpers.write(self.tmp, 'claude/projects/-w/s-1.jsonl',

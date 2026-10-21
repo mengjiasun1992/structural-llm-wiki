@@ -80,7 +80,8 @@ def main(argv):
             given = readingplan.load_grades(args.grades)
         except ValueError as e:
             cli.fail(str(e))
-        found['narratives'] = [n for n in found['narratives'] if n['slug'] != args.slug]
+        read_then = readingplan.narratives_read(args.grades)  # the narratives the plan had read, not ones written since
+        found['narratives'] = [n for n in found['narratives'] if n['slug'] != args.slug and (read_then is None or n['slug'] in read_then)]
         rows, problems = readingplan.order(found, given)
         if problems:
             cli.fail('grade every saved source first: ' + '; '.join(problems))
