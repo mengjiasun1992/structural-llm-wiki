@@ -3,11 +3,14 @@
 ## 1. Find
 
 - Look for 3-5 good sources per question; fewer good ones beat many weak ones.
-- Prefer, in order, the most authoritative:
-  - A: the code, specifications and standards, original papers or creators, official docs;
-  - B: textbooks and references;
-  - C: practitioner write-ups.
-- Among equally authoritative sources, prefer the newest.
+- Search first for the question's source of record: the original definition for "What is X?", official design principles or a survey for "What are the principles of X?", the paper or specification a method comes from. Then widen.
+- Rank candidates by, in order:
+  1. **Relevance:** the most relevant to the question and its tags first.
+  2. **Authority,** among the sources you have access and a license to use:
+     - A: the code, specifications and standards, original papers or creators, official docs;
+     - B: textbooks and references;
+     - C: practitioner write-ups and encyclopedias; use an encyclopedia to get oriented and to find the sources it cites.
+  3. **Recency:** among equally relevant and authoritative sources, the newest, for the latest understanding of the topic.
 - Skip any source already saved (`search.py sources "<keywords>"`); refresh one `wiki-check.py` reports as SOURCE_UPSTREAM_CHANGED.
 
 ## 2. Judge before saving
@@ -32,5 +35,5 @@ Read each saved source once, and write its abstract: 150-250 words on what it sa
 `publish.py summary ingest --json '{...}'` with:
 - `title`: "Sources";
 - `checklist`: "Sources: each is one you'd trust";
-- `decisions`: anything the owner must decide, such as permission to keep a copy;
+- `decisions`: anything the owner must decide, such as permission to keep a copy, and each A source you couldn't use or save, with its link and why;
 - `body`: a table of slug, kind, size, license, and why it was chosen or kept as a link.

@@ -55,6 +55,13 @@ class Library(helpers.WikiTestCase):
         with self.assertRaises(ManifestError):
             manifest.set_abstract(self.root, 'nope', 'x')
 
+    def test_put_narrative_keeps_grades_and_adds_models(self):
+        grades = {'alpha-doc': {'relevance': 'high', 'authority': 'A'}}
+        manifest.put_narrative(self.root, 'what-is-alpha', 'technical_brief_overview', ['leaf-a'], [], ['alpha-doc'], grades, ('1.0', 'claude-opus-5-5'))
+        manifest.put_narrative(self.root, 'what-is-alpha', 'technical_brief_overview', ['leaf-a'], [], ['alpha-doc'], None, ('1.1', 'claude-fable-5-1'))
+        entry = manifest.load(self.root, 'narratives')['what-is-alpha']
+        self.assertEqual((entry['grades'], entry['models']), (grades, {'1.0': 'claude-opus-5-5', '1.1': 'claude-fable-5-1'}))
+
     def test_put_narrative_checks_tags_file_and_sources(self):
         with self.assertRaises(ManifestError) as e:
             manifest.put_narrative(self.root, 'what-is-alpha', 't', ['nope'], [], [])

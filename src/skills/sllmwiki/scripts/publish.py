@@ -7,7 +7,8 @@
       then starts the run's branch, sllmwiki/<slug>, from it.
   publish.py summary <step> --json '{"title": ..., "checklist": [...], "decisions": [...], "body": "..."}'
       Records a step's summary: its review checklist items, the decisions it
-      leaves to the owner, and its report. (Or --file SUMMARY.json.)
+      leaves to the owner, and its report. (Or --file SUMMARY.json.) A
+      narrative's is one per question, its title; the others, one per step.
   publish.py commit <action> --tags a,b --subject TEXT
       Commits everything the run changed with the message
       [sllmwiki][<action>][<tags>] <subject>, the step's report, and the
@@ -15,8 +16,10 @@
   publish.py pr
       Pushes the branch and opens its pull request, or updates it, with a
       description built from the summaries: the review checklist first, then
-      the decisions, then each step's report. Without gh, prints the link to
-      open it; without a remote, keeps the commits on the branch.
+      the decisions, then each step's report, then what the run cost: its
+      time, and its turns and tokens from the session's transcript (--cost USD
+      adds dollars, when the caller knows them). Without gh, prints the link
+      to open it; without a remote, keeps the commits on the branch.
   publish.py resume <slug>     back to a run's branch
   publish.py status            the run, its summaries and its pull request
 
@@ -29,11 +32,13 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 
 sys.dont_write_bytecode = True
 
+from lib import runstats  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.policy import github_repo  # noqa: E402
 from lib.util import write_text  # noqa: E402
@@ -113,7 +118,11 @@ def start(root, slug, title, prompt):
             cli.fail(f'your {base} has commits origin/{base} doesn\'t; sort that out first (a clone made before a rename?)')
         git(root, 'switch', '--quiet', '-C', base, f'origin/{base}')
     git(root, 'switch', '--quiet', '-c', branch, base)
-    save_state(root, {'slug': slug, 'branch': branch, 'base': base, 'title': title, 'prompt': prompt, 'pr': None})
+    shutil.rmtree(os.path.join(state_dir(root), 'summaries'), ignore_errors=True)  # an earlier run's, never this one's
+    if os.path.exists(os.path.join(state_dir(root), 'pr.md')):
+        os.remove(os.path.join(state_dir(root), 'pr.md'))
+    save_state(root, {'slug': slug, 'branch': branch, 'base': base, 'title': title, 'prompt': prompt, 'pr': None,
+                      'started': runstats.now().isoformat()})
     print(f'started {branch} from {"origin/" if has_remote(root) else ""}{base}')
 
 
@@ -124,8 +133,14 @@ def record_summary(root, step, data):
     for key in ('checklist', 'decisions'):
         if not isinstance(data.get(key, []), list):
             cli.fail(f'"{key}" is a list of strings')
-    write_text(os.path.join(state_dir(root), 'summaries', f'{step}.json'), json.dumps(data, indent=2, ensure_ascii=False))
-    print(f'recorded the {step} summary for {state["branch"]}')
+    # One summary per step, except narrative: one per question, so each narrative
+    # keeps its own section and commit; recording a question again replaces it.
+    name = f'{step}.{re.sub(r"[^a-z0-9]+", "-", data["title"].lower()).strip("-")[:80]}' if step == 'narrative' else step
+    state['recorded'] = state.get('recorded', 0) + 1
+    save_state(root, state)
+    data = dict(data, recorded=state['recorded'])
+    write_text(os.path.join(state_dir(root), 'summaries', f'{name}.json'), json.dumps(data, indent=2, ensure_ascii=False))
+    print(f'recorded the {step} summary "{data["title"]}" for {state["branch"]}')
 
 
 def summaries(root):
@@ -136,7 +151,13 @@ def summaries(root):
             with open(os.path.join(folder, name), encoding='utf-8') as f:
                 found[name[:-5]] = json.load(f)
     order = {s: i for i, s in enumerate(STEP_ORDER)}
-    return dict(sorted(found.items(), key=lambda kv: (order.get(kv[0], len(order)), kv[0])))
+    return dict(sorted(found.items(), key=lambda kv: (order.get(kv[0].split('.')[0], len(order)), kv[1].get('recorded', 0), kv[0])))
+
+
+def latest(found, step):
+    """The step's most recently recorded summary, or {}."""
+    mine = [s for k, s in found.items() if k.split('.')[0] == step]
+    return max(mine, key=lambda s: s.get('recorded', 0)) if mine else {}
 
 
 def quote(prompt):
@@ -158,7 +179,7 @@ def commit(root, action, tags, subject):
     git(root, 'add', '-A', '--', '.', *[f':(exclude){p}' for p in IGNORED])
     if not git(root, 'diff', '--cached', '--name-only'):
         cli.fail('nothing to commit')
-    report = summaries(root).get(action, {}).get('body', '')
+    report = latest(summaries(root), action).get('body', '')
     msg = message(state, action, tags, subject, report)
     p = subprocess.run(['git', 'commit', '--quiet', '-F', '-'], cwd=root, input=msg, capture_output=True, text=True)
     if p.returncode:
@@ -166,7 +187,7 @@ def commit(root, action, tags, subject):
     print(f'committed {git(root, "rev-parse", "--short", "HEAD")} {msg.splitlines()[0]}')
 
 
-def description(state, found):
+def description(state, found, run=()):
     checklist = [item for s in found.values() for item in s.get('checklist', [])]
     decisions = [item for s in found.values() for item in s.get('decisions', [])]
     lines = ['## Review checklist', '', 'Tick each box as you check it; the "Review checklist" check turns green when all are ticked.', '']
@@ -175,13 +196,19 @@ def description(state, found):
         lines += ['', '## Decisions for you', ''] + [f'- {d}' for d in decisions]
     for s in found.values():
         lines += ['', f'## {s["title"]}', '', (s.get('body') or '').strip()]
+    if run:
+        lines += [''] + list(run)
     lines += ['', '## Prompt', '', quote(state['prompt']), '', 'This pull request was opened by a run; the owner merges it.']
     return '\n'.join(line for line in lines).rstrip() + '\n'
 
 
-def pr(root):
+def pr(root, cost=None):
     state = load_state(root)
-    body = description(state, summaries(root))
+    if cost is not None:
+        state['cost'] = cost
+        save_state(root, state)
+    run = runstats.section(state.get('started'), state.get('cost'), path=runstats.transcript())
+    body = description(state, summaries(root), run)
     body_path = os.path.join(state_dir(root), 'pr.md')
     write_text(body_path, body)
     if not has_remote(root):
@@ -237,7 +264,8 @@ def main(argv):
     c.add_argument('action', choices=ACTIONS)
     c.add_argument('--tags', required=True, type=lambda v: [t.strip() for t in v.split(',') if t.strip()])
     c.add_argument('--subject', required=True)
-    sub.add_parser('pr')
+    o = sub.add_parser('pr')
+    o.add_argument('--cost', type=float, help='what the run cost so far, in US dollars, when the caller knows it')
     r = sub.add_parser('resume')
     r.add_argument('slug')
     sub.add_parser('status')
@@ -261,7 +289,7 @@ def main(argv):
     elif args.command == 'commit':
         commit(root, args.action, args.tags, args.subject)
     elif args.command == 'pr':
-        pr(root)
+        pr(root, args.cost)
     elif args.command == 'resume':
         resume(root, args.slug)
     else:

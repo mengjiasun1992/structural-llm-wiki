@@ -32,9 +32,10 @@ class Read(unittest.TestCase):
     def test_title_abstract_and_fields(self):
         self.assertEqual(metadata.title(DOC), 'What is X?')
         self.assertEqual(metadata.abstract(DOC), 'First paragraph on two lines.\n\nSecond.')
-        self.assertEqual(metadata.read(DOC), {'version': '1.1', 'template': 'concept_brief_overview', 'created': '2026-10-01',
+        self.assertEqual(metadata.read(DOC), {'version': '1.1', 'template': 'concept_brief_overview', 'model': None, 'created': '2026-10-01',
                                               'last_modified': '2026-10-02',
-                                              'history': [('1.1', '2026-10-02', 'Wider scope.'), ('1.0', '2026-10-01', 'First version.')]})
+                                              'history': [('1.1', '2026-10-02', 'Wider scope.'), ('1.0', '2026-10-01', 'First version.')],
+                                              'plan': []})
 
     def test_missing_parts(self):
         self.assertIsNone(metadata.title('No title\n'))
@@ -57,6 +58,16 @@ class Write(unittest.TestCase):
         self.assertIn('A note someone left.', out)
         self.assertTrue(out.endswith('A note someone left.\n'))
         self.assertEqual(metadata.write(out, {}), out)  # writing what's there changes nothing
+
+    def test_model_and_reading_plan(self):
+        out = metadata.write(DOC, {'model': 'claude-opus-5-5'}, plan=['`a`, in full: high relevance, authority A, 2026-01-01', '`b`, not read: a link'])
+        self.assertIn('- **Template:** concept_brief_overview\n- **Model:** claude-opus-5-5\n- **Created:**', out)
+        self.assertIn('  - 1.0 (2026-10-01): First version.\n- **Reading plan:**\n  1. `a`, in full: high relevance, authority A, 2026-01-01\n'
+                      '  2. `b`, not read: a link\n\nA note someone left.\n', out)
+        meta = metadata.read(out)
+        self.assertEqual((meta['model'], len(meta['plan']), len(meta['history'])), ('claude-opus-5-5', 2, 2))
+        self.assertEqual(metadata.write(out, {}), out)  # the plan is kept unless given
+        self.assertEqual(metadata.read(metadata.write(out, {}, plan=['`c`, abstract only: low relevance']))['plan'], ['`c`, abstract only: low relevance'])
 
     def test_a_section_after_metadata_is_kept(self):
         text = '# T\n\n## 1. Metadata\n\n- **Version:** 1.0\n\n## 2. After\n\nKept.\n'

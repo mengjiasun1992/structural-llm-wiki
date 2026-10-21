@@ -41,8 +41,16 @@ else
 fi
 
 if command -v gh >/dev/null 2>&1; then
-  if gh auth status >/dev/null 2>&1; then
+  if auth="$(gh auth status 2>&1)"; then
     echo "ok       gh, signed in"
+    # Over HTTPS, gh's token can't push .github/workflows/ (init's CI) without
+    # the workflow scope. Tokens that don't list their scopes aren't judged.
+    case "$(git remote get-url origin 2>/dev/null)" in
+      https://github.com/*)
+        if echo "$auth" | grep -q 'Token scopes:' && ! echo "$auth" | grep -q "'workflow'"; then
+          echo "warning  gh's token lacks the workflow scope, so a push can't add or change .github/workflows/: gh auth refresh -h github.com -s workflow"
+        fi ;;
+    esac
   else
     echo "warning  gh isn't signed in (recommended): gh auth login"
   fi

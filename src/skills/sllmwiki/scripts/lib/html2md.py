@@ -4,6 +4,8 @@ The main content is the page's <main>, else its <article>, else its <body>;
 navigation, headers, footers, sidebars, forms, scripts, comments and anything
 hidden are left out. Headings, paragraphs, lists, block quotes, code, tables,
 links, emphasis and line breaks are kept; images stay links to the original.
+Math is kept as TeX, $...$ or $$...$$, from MathML's alttext or TeX annotation,
+even where the page hides the MathML behind an image (as Wikipedia does).
 Links are made absolute against the page's URL.
 """
 
@@ -91,6 +93,8 @@ class _Writer:
         for c in node.children:
             if isinstance(c, str):
                 out.append(_escape(re.sub(r'\s+', ' ', c)))
+            elif _math_holder(c):
+                out.append(_math(c))
             elif _hidden(c):
                 continue
             elif c.tag == 'br':
@@ -196,6 +200,45 @@ class _Writer:
         rows = [r + [''] * (width - len(r)) for r in rows]
         lines = ['| ' + ' | '.join(rows[0]) + ' |', '|' + '---|' * width] + ['| ' + ' | '.join(r) + ' |' for r in rows[1:]]
         return ['\n'.join(lines)]
+
+
+def _math_holder(node):
+    """A <math> element, or a wrapper around one and its image fallback (MediaWiki's mwe-math-element)."""
+    return node.tag == 'math' or 'mwe-math-element' in (node.attrs.get('class') or '').split()
+
+
+def _descendant(node, tag):
+    for c in node.children:
+        if isinstance(c, Node):
+            if c.tag == tag:
+                return c
+            found = _descendant(c, tag)
+            if found:
+                return found
+    return None
+
+
+def _math(node):
+    """The formula in node as $TeX$, or $$TeX$$ for display math; its text when it has no TeX."""
+    math = node if node.tag == 'math' else _descendant(node, 'math')
+    if math is None:
+        return ''
+    annotation = next((a for a in _all(math, 'annotation') if 'tex' in (a.attrs.get('encoding') or '')), None)
+    tex = (math.attrs.get('alttext') or (_text(annotation) if annotation else '')).strip()
+    m = re.fullmatch(r'\{\\(?:displaystyle|textstyle)\s*(.*)\}', tex, re.S)
+    tex = re.sub(r'\s+', ' ', m.group(1) if m else tex).strip()
+    if not tex:
+        return _escape(re.sub(r'\s+', ' ', _text(math)).strip())
+    block = (math.attrs.get('display') == 'block' or 'mwe-math-element-block' in (node.attrs.get('class') or '').split())
+    return f'$${tex}$$' if block else f'${tex}$'
+
+
+def _all(node, tag):
+    for c in node.children:
+        if isinstance(c, Node):
+            if c.tag == tag:
+                yield c
+            yield from _all(c, tag)
 
 
 def _text(node):

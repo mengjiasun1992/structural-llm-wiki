@@ -14,7 +14,7 @@ Read in that order, each source once, and only what the plan says: whole sources
 
 ## 3. Write
 
-- **Template:** pick one with `narrative-format.py --templates`, by its use_when, and start from `narrative-format.py --skeleton <template>`.
+- **Template:** pick one with `narrative-format.py --templates`, by its use_when, and start from `narrative-format.py --skeleton <template>`. When none fits the subject, take the closest.
 - **Where:** save the narrative as `sllmwiki/narratives/<question-slug>.md`.
 - **What to follow:**
   - the template's `guide.md`, for its reader, structure and style;
@@ -23,7 +23,7 @@ Read in that order, each source once, and only what the plan says: whole sources
 
 ## 4. Finish
 
-1. Run `finish-narrative.py <slug> --primary <tags> --supporting <tags> --read <the slugs read in full>`.
+1. Run `finish-narrative.py <slug> --primary <tags> --supporting <tags> --read <the slugs read in full> --grades <file>`, with the grades file from step 3.
    - On an update, add `--bump minor --note "<what changed>"`, or `major` for a new answer.
 2. Fix every error it reports, by editing the narrative, then run it again until none are left.
 
@@ -34,5 +34,6 @@ Read in that order, each source once, and only what the plan says: whole sources
 - `checklist`: `"<the question>: answers it, every claim cited or marked, reads well"`;
 - `body`:
   - reuse, expand or new, and why;
+  - the template, and why it fits the subject; or, when none fits, that none does, the closest taken, and what it leaves out;
   - the reading plan's table;
   - the narrative's outline, with a link to it.

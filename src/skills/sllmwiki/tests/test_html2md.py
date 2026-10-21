@@ -71,5 +71,16 @@ class Convert(unittest.TestCase):
         self.assertEqual(convert('<p><em>a<span hidden>gone</span></em></p>')[0], '*a*\n')
 
 
+    def test_math_is_kept_as_tex(self):
+        wiki = ('<p>Here <span class="mwe-math-element mwe-math-element-inline"><span style="display: none;">'
+                '<math alttext="{\\textstyle s_{t}=\\alpha x_{t}}"><semantics><mi>s</mi></semantics></math></span>'
+                '<img class="mwe-math-fallback-image-inline" src="/m.svg" alt="s"></span> holds.</p>'
+                '<dl><dd><span class="mwe-math-element mwe-math-element-block"><math alttext="{\\displaystyle\n x^{2}}"></math></span></dd></dl>')
+        self.assertEqual(convert(wiki)[0], 'Here $s_{t}=\\alpha x_{t}$ holds.\n\n$$x^{2}$$\n')
+        mathml = ('<p><math display="block"><semantics><mi>a</mi><annotation encoding="application/x-tex">a_1</annotation></semantics></math> '
+                  '<math><mi>b</mi></math> <span class="mwe-math-element"></span></p>')
+        self.assertEqual(convert(mathml)[0], '$$a_1$$ b\n')  # TeX annotation, else its text; an empty holder adds nothing
+
+
 if __name__ == '__main__':
     unittest.main()

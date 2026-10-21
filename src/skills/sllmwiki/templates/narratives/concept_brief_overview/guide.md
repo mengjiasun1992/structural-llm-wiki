@@ -2,6 +2,8 @@
 
 ## Audience and purpose
 
+**Takeaway:** a reader who didn't know the concept has learned it by the end.
+
 A reader meeting the idea for the first time, who needs to know what it means, why it matters and how to tell it apart from its neighbors, so they can follow anything built on it. It stays at definition level: how a particular system implements the idea, or a subtopic worth its own explanation, is another question, named under Where to go next.
 
 ## Voice and tone

@@ -9,7 +9,7 @@ A narrative answers one question, for the reader its template's guide names. It 
 - **Terminology:** every term and acronym the reader meets before its first use, one line each.
 - **SMEs** (when known): who to ask, the evidence, and one specific question each.
 - **References:** the sources read in full, then the Citations list, which gives each citation number its target once.
-- **Metadata:** version, template, dates and history. `finish-narrative.py` keeps it.
+- **Metadata:** version, template, model, dates, history and the reading plan. `finish-narrative.py` keeps it.
 
 ## Citations
 

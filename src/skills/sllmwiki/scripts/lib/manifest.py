@@ -89,16 +89,23 @@ def pins(root, slugs):
     return out
 
 
-def put_narrative(root, slug, template, primary, supporting, read):
-    """Write a narrative's entry: its template, tags and the current pins of the sources it read."""
+def put_narrative(root, slug, template, primary, supporting, read, grades=None, model=None):
+    """Write a narrative's entry: its template, tags and the current pins of the sources it read;
+    grades, the reading plan's, replace the recorded ones; model, (version, name), is added to models."""
     tags = load(root, 'tags')
     unknown = [t for t in list(primary) + list(supporting) if t not in tags]
     if unknown:
         raise ManifestError(f'no such tag(s): {", ".join(unknown)}; add them first (manifest.py add-tag)')
     if not os.path.isfile(os.path.join(root, layout.NARRATIVES, f'{slug}.md')):
         raise ManifestError(f'no narrative {layout.NARRATIVES}/{slug}.md')
-    return save(root, 'narratives', slug, {'template': template, 'tags': {'primary': list(primary), 'supporting': list(supporting)},
-                                            'read': pins(root, read)})
+    entry = {'template': template, 'tags': {'primary': list(primary), 'supporting': list(supporting)}, 'read': pins(root, read)}
+    recorded = load(root, 'narratives').get(slug) or {}
+    if grades or recorded.get('grades'):
+        entry['grades'] = dict(grades or recorded['grades'])
+    models = dict(recorded.get('models') or {}, **dict([model] if model else []))
+    if models:
+        entry['models'] = models
+    return save(root, 'narratives', slug, entry)
 
 
 def add_tag(root, name, description, parent=None):

@@ -35,7 +35,8 @@ class Publish(helpers.WikiTestCase):
         self.bin = os.path.join(self.outside, 'bin')
         self.log = os.path.join(self.outside, 'gh.log')
         self.fake_gh()
-        self.env = mock.patch.dict(os.environ, dict(GIT_ENV, PATH=self.bin + os.pathsep + os.environ['PATH']))
+        self.env = mock.patch.dict(os.environ, dict(GIT_ENV, PATH=self.bin + os.pathsep + os.environ['PATH'],
+                                                   CLAUDE_CODE_SESSION_ID='', CLAUDE_CONFIG_DIR=self.outside))
         self.env.start()
 
     def tearDown(self):
@@ -79,14 +80,33 @@ class Publish(helpers.WikiTestCase):
         self.assertIn('## Decisions for you\n\n- Re-ingest beta-doc?\n', body)
         self.assertIn('## Sources\n\nSaved new.\n', body)
         self.assertIn('## Prompt\n\n> Build up alpha retries.\n> Keep it short.\n', body)
+        self.assertIn('## Run\n\n- Time: 0 min since the run started\n- Turns and tokens: no session transcript', body)
+        self.assertLess(body.index('## Run'), body.index('## Prompt'))
         self.assertIn('sllmwiki/alpha-retries', helpers.git(self.origin, 'branch').stdout)
-        self.summary('narrative', title='Narrative', checklist=['The narrative reads well'], body='Wrote it.')
-        r = self.pub('pr')
+        self.write('sllmwiki/narratives/a.md', '# A?\n')
+        self.summary('narrative', title='Why A?', checklist=['A reads well'], body='Wrote A.')
+        self.pub('commit', 'narrative', '--tags', 'leaf-a', '--subject', 'Why A?')
+        self.write('sllmwiki/narratives/b.md', '# B?\n')
+        self.summary('narrative', title='Why B?', checklist=['B reads well'], body='Wrote B.')
+        self.pub('commit', 'narrative', '--tags', 'leaf-a', '--subject', 'Why B?')
+        self.assertIn('\n\nWrote B.\n\nPrompt:', helpers.git(self.root, 'log', '-1', '--format=%B').stdout)  # each commit its own report
+        self.summary('narrative', title='Why A?', checklist=['A reads well, reworked'], body='Rewrote A.')  # replaces A's
+        r = self.pub('pr', '--cost', '1.5')
         self.assertEqual(r.out, 'updated https://github.com/o/r/pull/7\n')
+        self.assertIn('- Cost: $1.50\n', self.read_state('pr.md'))
+        self.pub('pr')
+        self.assertIn('- Cost: $1.50\n', self.read_state('pr.md'))  # kept until a new figure
         self.assertIn('pr edit https://github.com/o/r/pull/7 --body-file', open(self.log).read())
         body = self.read_state('pr.md')
-        self.assertLess(body.index('## Sources'), body.index('## Narrative'))  # steps in pipeline order
-        self.assertIn('summaries: ingest, narrative; pull request: https://github.com/o/r/pull/7', self.pub('status').out)
+        self.assertLess(body.index('## Sources'), body.index('## Why B?'))  # steps in pipeline order
+        self.assertLess(body.index('## Why B?'), body.index('## Why A?'))  # then as last recorded
+        self.assertEqual((body.count('## Why A?'), body.count('Wrote A.')), (1, 0))
+        self.assertIn('- [ ] A reads well, reworked\n', body)
+        self.assertIn('summaries: ingest, narrative.why-b, narrative.why-a; pull request: https://github.com/o/r/pull/7', self.pub('status').out)
+        helpers.git(self.root, 'switch', '-q', 'mainline')
+        self.pub('start', 'beta-cache', '--title', 'Beta?', '--prompt', 'p')  # the next run starts clean
+        self.assertIn('summaries: none; pull request: not opened yet', self.pub('status').out)
+        self.assertFalse(os.path.exists(os.path.join(self.root, '.git', 'sllmwiki', 'pr.md')))
 
     def read_state(self, name):
         with open(os.path.join(self.root, '.git', 'sllmwiki', name), encoding='utf-8') as f:
@@ -206,7 +226,7 @@ class Preflight(unittest.TestCase):
         """Run preflight with only the named tools on PATH (bash and the basics stay)."""
         bin_dir = tempfile.mkdtemp(prefix='preflight-')
         try:
-            for name in ('uname', 'awk', 'env', 'dirname'):
+            for name in ('uname', 'awk', 'env', 'dirname', 'grep'):
                 os.symlink(shutil.which(name), os.path.join(bin_dir, name))
             for name, body in tools.items():
                 helpers.write(bin_dir, name, f'#!/bin/sh\n{body}\n')
@@ -220,6 +240,21 @@ class Preflight(unittest.TestCase):
         self.assertEqual(p.returncode, 0, p.stdout)
         self.assertIn('ok       git 2.40.0', p.stdout)
         self.assertIn('ok       gh, signed in', p.stdout)
+
+    def test_a_token_without_the_workflow_scope(self):
+        python = f'exec {shutil.which("python3")} "$@"'
+        git = 'case "$1" in remote) echo "{url}" ;; *) echo "git version 2.40.0" ;; esac'
+        gh = 'echo "  - Token scopes: {scopes}"'
+        warning = "warning  gh's token lacks the workflow scope"
+        p = self.run_with({'git': git.format(url='https://github.com/o/r.git'), 'python3': python, 'gh': gh.format(scopes="'repo'")})
+        self.assertEqual(p.returncode, 0)
+        self.assertIn(warning + ', so a push can\'t add or change .github/workflows/: gh auth refresh -h github.com -s workflow', p.stdout)
+        for url, scopes in (('https://github.com/o/r.git', "'repo', 'workflow'"),
+                            ('git@github.com:o/r.git', "'repo'")):  # SSH pushes don't use gh's token
+            p = self.run_with({'git': git.format(url=url), 'python3': python, 'gh': gh.format(scopes=scopes)})
+            self.assertNotIn(warning, p.stdout)
+        p = self.run_with({'git': git.format(url='https://github.com/o/r.git'), 'python3': python, 'gh': 'echo "  - Token: ghp_***"'})
+        self.assertNotIn(warning, p.stdout)  # scopes not listed
 
     def test_missing_and_signed_out(self):
         p = self.run_with({'gh': 'exit 1'})

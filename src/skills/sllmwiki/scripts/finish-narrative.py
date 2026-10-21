@@ -3,15 +3,18 @@
 in one command (design doc §7.5).
 
   finish-narrative.py <slug> [--primary a,b] [--supporting c] [--read s1,s2]
+                      [--grades GRADES.json] [--model NAME]
                       [--bump minor|major --note TEXT] [--json] [--root <wiki>]
 
 In order: numbers the headings; writes the renderer escapes; adds a Terminology
 row for each marker the narrative uses (when markers are on); sets the
 Metadata's dates and, for a new narrative, version 1.0 and its first history
 entry, or with --bump, the next version and --note as its history entry;
-records the narrative with its template, tags and the current pins of the
-sources it read; regenerates the index and tag pages; then checks it with
-narrative-format and prints what's left.
+records the narrative with its template, tags, the current pins of the sources
+it read, the reading plan's grades (--grades, the file given to reading-plan.py)
+and the model that wrote a new version (this session's, or --model); writes the
+model and the reading plan into the Metadata; regenerates the index and tag
+pages; then checks it with narrative-format and prints what's left.
 
 A new narrative needs --primary (its core tags) and --read (the saved sources it
 read in full); later runs reuse what was recorded unless given again.
@@ -26,12 +29,13 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import compat, config, layout, manifest, markers, metadata, numbering, templates, wikiindex  # noqa: E402
+from lib import compat, config, layout, manifest, markers, metadata, numbering, readingplan, runstats, templates, wikiindex  # noqa: E402
 from lib.narrativecheck import check as check_narrative  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, read_text, today, write_text  # noqa: E402
 
-cli = Cli('finish-narrative.py', 'usage: finish-narrative.py <slug> [--primary a,b] [--supporting c] [--read s1,s2] [--bump minor|major --note TEXT]')
+cli = Cli('finish-narrative.py', 'usage: finish-narrative.py <slug> [--primary a,b] [--supporting c] [--read s1,s2] [--grades FILE] [--model NAME] '
+          '[--bump minor|major --note TEXT]')
 
 
 def tag_list(value):
@@ -44,6 +48,8 @@ def main(argv):
     p.add_argument('--primary', type=tag_list)
     p.add_argument('--supporting', type=tag_list)
     p.add_argument('--read', type=tag_list)
+    p.add_argument('--grades')
+    p.add_argument('--model')
     p.add_argument('--bump', choices=['minor', 'major'])
     p.add_argument('--note')
     p.add_argument('--json', action='store_true')
@@ -66,6 +72,20 @@ def main(argv):
     read = args.read if args.read is not None else list((recorded or {}).get('read', {}))
     if not primary:
         cli.fail(f'{args.slug} is new: pass --primary (its core tags) and --read (the saved sources it read)')
+
+    plan, grades = None, None
+    if args.grades:
+        try:
+            found = readingplan.candidates(root, primary, supporting)
+            given = readingplan.load_grades(args.grades)
+        except ValueError as e:
+            cli.fail(str(e))
+        found['narratives'] = [n for n in found['narratives'] if n['slug'] != args.slug]
+        rows, problems = readingplan.order(found, given)
+        if problems:
+            cli.fail('grade every saved source first: ' + '; '.join(problems))
+        plan = readingplan.metadata_lines(rows)
+        grades = {s['slug']: {k: given[s['slug']][k] for k in ('relevance', 'authority')} for s in found['sources'] if s['kind'] != 'link'}
 
     text = read_text(path)
     done = []
@@ -91,10 +111,14 @@ def main(argv):
         history = (fields['version'], today(), args.note)
     if not meta['history'] and not history:
         history = (meta['version'], meta['created'] or today(), 'First version.')
-    text = metadata.write(text, fields, history)  # the template was read from the Metadata section, so there is one
+    model = args.model or (runstats.model(runstats.transcript()) if history else None)
+    version = fields.get('version') or meta['version']
+    if model:
+        fields['model'] = model
+    text = metadata.write(text, fields, history, plan)  # the template was read from the Metadata section, so there is one
     write_text(path, text)
     try:
-        manifest.put_narrative(root, args.slug, name, primary, supporting, read)
+        manifest.put_narrative(root, args.slug, name, primary, supporting, read, grades, (version, model) if model else None)
     except manifest.ManifestError as e:
         cli.fail(f'recording {args.slug}: {e}')
     done.append(f'recorded {args.slug} (version {metadata.read(text)["version"]}, pins: {", ".join(read) or "none"})')

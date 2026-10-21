@@ -41,6 +41,8 @@ class Fields(unittest.TestCase):
     def test_complete_entries_pass(self):
         self.assertEqual(validate('sources', {'a': SOURCE}, 'm'), [])
         self.assertEqual(validate('narratives', {'q': NARRATIVE}, 'm'), [])
+        full = with_(NARRATIVE, grades={'a': {'relevance': 'high', 'authority': 'A'}}, models={'1.0': 'claude-opus-5-5', '1.1': 'claude-fable-5-1'})
+        self.assertEqual(validate('narratives', {'q': full}, 'm'), [])
         self.assertEqual(validate('tags', {'t': TAG, 'u': with_(TAG, parent='t', smes=...)}, 't'), [])
 
     def test_each_kind_of_bad_value(self):
@@ -60,6 +62,9 @@ class Fields(unittest.TestCase):
             ('narratives', with_(NARRATIVE, read={'a': 'xyz'}), ('q', 'read.a', 'BAD_VALUE')),
             ('narratives', with_(NARRATIVE, read={'Bad Key': 'fe7e08edc87d3fd71895ec611efdb04e'}), ('q', 'read', 'BAD_VALUE')),
             ('narratives', with_(NARRATIVE, read=['a']), ('q', 'read', 'BAD_TYPE')),
+            ('narratives', with_(NARRATIVE, grades={'a': {'relevance': 'very', 'authority': 'A'}}), ('q', 'grades.a.relevance', 'BAD_VALUE')),
+            ('narratives', with_(NARRATIVE, grades={'a': {'relevance': 'high'}}), ('q', 'grades.a.authority', 'MISSING_FIELD')),
+            ('narratives', with_(NARRATIVE, models={'one': 'claude-opus-5-5'}), ('q', 'models', 'BAD_VALUE')),
             ('narratives', with_(NARRATIVE, tags={'primary': [], 'supporting': []}), ('q', 'tags.primary', 'BAD_VALUE')),
             ('narratives', with_(NARRATIVE, tags={'primary': ['x']}), ('q', 'tags.supporting', 'MISSING_FIELD')),
             ('narratives', with_(NARRATIVE, tags={'primary': ['x'], 'supporting': [], 'other': []}), ('q', 'tags.other', 'UNKNOWN_FIELD')),
