@@ -226,7 +226,7 @@ class Preflight(unittest.TestCase):
         """Run preflight with only the named tools on PATH (bash and the basics stay)."""
         bin_dir = tempfile.mkdtemp(prefix='preflight-')
         try:
-            for name in ('uname', 'awk', 'env', 'dirname'):
+            for name in ('uname', 'awk', 'env', 'dirname', 'grep'):
                 os.symlink(shutil.which(name), os.path.join(bin_dir, name))
             for name, body in tools.items():
                 helpers.write(bin_dir, name, f'#!/bin/sh\n{body}\n')
@@ -240,6 +240,21 @@ class Preflight(unittest.TestCase):
         self.assertEqual(p.returncode, 0, p.stdout)
         self.assertIn('ok       git 2.40.0', p.stdout)
         self.assertIn('ok       gh, signed in', p.stdout)
+
+    def test_a_token_without_the_workflow_scope(self):
+        python = f'exec {shutil.which("python3")} "$@"'
+        git = 'case "$1" in remote) echo "{url}" ;; *) echo "git version 2.40.0" ;; esac'
+        gh = 'echo "  - Token scopes: {scopes}"'
+        warning = "warning  gh's token lacks the workflow scope"
+        p = self.run_with({'git': git.format(url='https://github.com/o/r.git'), 'python3': python, 'gh': gh.format(scopes="'repo'")})
+        self.assertEqual(p.returncode, 0)
+        self.assertIn(warning + ', so a push can\'t add or change .github/workflows/: gh auth refresh -h github.com -s workflow', p.stdout)
+        for url, scopes in (('https://github.com/o/r.git', "'repo', 'workflow'"),
+                            ('git@github.com:o/r.git', "'repo'")):  # SSH pushes don't use gh's token
+            p = self.run_with({'git': git.format(url=url), 'python3': python, 'gh': gh.format(scopes=scopes)})
+            self.assertNotIn(warning, p.stdout)
+        p = self.run_with({'git': git.format(url='https://github.com/o/r.git'), 'python3': python, 'gh': 'echo "  - Token: ghp_***"'})
+        self.assertNotIn(warning, p.stdout)  # scopes not listed
 
     def test_missing_and_signed_out(self):
         p = self.run_with({'gh': 'exit 1'})
