@@ -28,7 +28,7 @@ This document covers the architecture and the decisions behind it. The skill's f
 
 - **The wiki is a dedicated git repository.** Git provides history, review and rollback.
 - **Sources are ground truth.** Sources are saved verbatim (§4.3) and never summarized or edited. Narratives are built from them and checked against them.
-- **Every claim is traceable.** A claim in a narrative cites a section of a saved source with a numbered link (`claim. [\[3\]](../sources/<file>.md#<section>)`, brackets escaped so Obsidian doesn't read `[[3]]` as a wikilink), or is marked as the narrative's own reasoning (`[sllmwiki_reasoning]`) or as a gap the sources don't answer (`[sllmwiki_gap]`).
+- **Every claim is traceable.** A claim in a narrative cites a section of a saved source with a numbered link (`claim. [\[3\]](../sources/<file>.md#<section>)`, brackets escaped so Obsidian doesn't read `[[3]]` as a wikilink), or is marked as the narrative's own reasoning (`[sllmwiki_reasoning]`) or as a gap the sources don't answer (`[sllmwiki_gap]`). A wiki can turn the markers off (`markers = false`, §4.9): an uncited sentence is then the narrative's own, a gap is said in words, and lint still flags any factual claim without a citation.
 - **The question drives the run.** Tags, sources and the reading plan are chosen for the questions asked, not for a topic in general, so nothing is collected that no answer uses.
 - **Runs are unattended; review happens on one pull request.** A run takes its questions at the start and doesn't pause; what it can't decide goes to the top of its pull request. The owner reviews, ticks the review checklist and merges.
 - **Build on what exists.** One narrative per question. Before writing, look for a narrative that already covers it, and reuse or expand it (§7.4).
@@ -136,7 +136,7 @@ A source is saved as the most faithful text that can be checked:
 |---|---|
 | `text` | markdown or plain text, byte for byte |
 | `html` | the page's main content (`<main>` or `<article>`, without navigation, comments or scripts) converted to markdown by a small converter: headings, paragraphs, lists, tables, code, links. Images stay links to the original |
-| `pdf` | the text layer, extracted page by page under `## Page <n>` headings, so citations point at a page |
+| `pdf` | the text layer, with the PDF's own outline (its bookmarks) as the headings, so sections and citations follow its chapters and sections; `## Page <n>` headings only for a PDF without an outline |
 | `link` | nothing: a pointer (live code, dashboards, a source that may not be copied) |
 
 Each saved file ends with a generated "Original source" footer (its URL and license), which is left out of its hash. One entry per source, keyed by slug (`<topic>-<source-name>`):
@@ -155,6 +155,8 @@ gateway-design-doc:
 ```
 
 The file's size and hash are read from the file. A source is **stale** when `check-upstream` fetches it again and the content differs from the saved copy; it is marked with `upstream_changed: "<date>"` until it is re-ingested. A large source is saved like any other and listed with its size in the run's pull request; reading by section (§6.1) keeps its size from mattering.
+
+**Large outlined documents are sliced by chapter.** Reading by section makes a file's size harmless, but choosing what to read happens by abstract, and one abstract is too coarse for a book. So a PDF over 100 pages that has an outline is saved as one source per top-level outline entry (`<slug>-<n>-<chapter>`), each tagged on its own. Shorter documents, and documents without an outline, stay one file. A slice starts with a script-written abstract (its title and opening paragraph, `abstract_draft: true`), which costs no tokens; the agent replaces it with a real one only when a question first reads the slice.
 
 ### 4.4 Narratives and `narratives/manifest.yaml`
 
@@ -187,7 +189,7 @@ One question per file in `narratives/`; the question is the title, unchanged.
 
 **A wiki's own templates.** A team can bring its own: a folder in the wiki's `templates/` with a `template.md` and a `guide.md` is offered next to the bundled ones, and is checked the same way; one with a bundled template's name replaces it. A wiki that only wants a different budget for a template sets it in `Config.toml` (§4.9) instead of copying the template.
 
-**What scripts do for every narrative.** After any edit, the agent runs one command, `finish-narrative` (§7.5): it numbers the headings, escapes what the renderers would misread (§4.8), adds a Terminology row for each marker the narrative uses, bumps the version and history when asked, writes the manifest entry with the current pins, and regenerates the index and tag pages. The agent writes the content; the script does the rest.
+**What scripts do for every narrative.** After any edit, the agent runs one command, `finish-narrative` (§7.5): it numbers the headings, escapes what the renderers would misread (§4.8), adds a Terminology row for each marker the narrative uses (when markers are on), bumps the version and history when asked, writes the manifest entry with the current pins, and regenerates the index and tag pages. The agent writes the content; the script does the rest.
 
 ### 4.6 Why YAML
 
@@ -224,6 +226,7 @@ A wiki can keep a `Config.toml` at its root. Every setting has a default, so the
 source_copies = "allow"     # "allow": a private wiki keeps reference copies, a public one only openly licensed sources (§4.7); "links-only": no copies, every source a link
 max_quote_words = 50        # the longest quotation a narrative may take from a source
 smes_exclude = []           # never listed as SMEs, such as the wiki's owner or bots: ["@alice", "dependabot"]
+markers = true              # false: no [sllmwiki_reasoning] or [sllmwiki_gap] markers; an uncited sentence is the narrative's own, a gap is said in words
 
 [structural-llm-wiki-templates.technical_brief_overview]   # a template's budgets, over its header
 max_words = 3000
@@ -233,7 +236,7 @@ abstract_words = [150, 300]
 obsidian = false            # true: the Obsidian add-on (§4.8)
 ```
 
-- **What earns a setting.** A real wiki or a team's policy needs it, it has a safe default, and a script enforces it. Each setting above meets all three: the one real wiki raised a template's budget, set the Obsidian add-on on, and had its owner wrongly listed as an SME; `source_copies` and `max_quote_words` are what a legal team may need to tighten. Nothing configures the layout (§3).
+- **What earns a setting.** A real wiki or a team's policy needs it, it has a safe default, and a script enforces it. Each setting above meets all three: the one real wiki raised a template's budget, set the Obsidian add-on on, and had its owner wrongly listed as an SME; its owner found the markers cluttering and asked what they meant; `source_copies` and `max_quote_words` are what a legal team may need to tighten. Nothing configures the layout (§3).
 - **Add-ons** are optional features, each a key in `[structural-llm-wiki-addons]`, off by default. An add-on is listed only once it exists, and its work (files written, builds run) happens only when it is on, so a wiki that doesn't use it never waits for it.
 - **One reader.** Every script reads the file through `lib/config.py`. An unknown table key, a mistyped value or an unknown template is an error: `wiki-check` reports it (`CONFIG_INVALID`) and the scripts that write refuse to run until it's fixed. The tables are prefixed with the project's name, so the file can also hold other tools' tables, which are left alone.
 
@@ -357,12 +360,12 @@ Each waits until a real wiki needs it; adding one later starts as a proposal in 
 
 | Not in v1 | Instead | Why it waits |
 |---|---|---|
-| Configurable paths, markers, a default template, hiding bundled templates | One layout; fixed markers; the narrative step picks a template by its `use_when` | Never changed in the one real wiki, and the source of most of the churn |
+| Configurable paths, custom marker text, a default template, hiding bundled templates | One layout; fixed markers, on or off; the narrative step picks a template by its `use_when` | Never changed in the one real wiki, and the source of most of the churn |
 | Book builds (mdBook, Sphinx) | The markdown stays book-ready (§4.8); each build arrives later as an add-on, off by default, so a wiki that doesn't want a book never pays for one | No one has asked for a book yet |
 | Draft narratives and their states | A labeled DRAFT answer in `query`'s reply, and an offer to `build` | The one real wiki never kept a draft |
 | Tag abstracts rolled up the tree | `query` starts from narrative abstracts | Rewriting every abstract up to the root on each change was the costliest bookkeeping |
 | The `decision_record` template | The other four; a wiki can add its own | Never used |
-| PDF slicing into many sources | Page headings, read by section | Section reads make size harmless; slices multiplied sources no narrative used |
+| Slicing every large PDF by headings guessed from font sizes | Outline headings; only outlined documents over 100 pages sliced, by chapter, with script-written starter abstracts | Guessed headings caused bugs; a 20-page paper sliced into 11 sources no narrative used |
 | Downloading a source's images | Links to the originals | Copying images raises copyright questions for little gain |
 | Automatic license lookup | The agent records what it finds; scripts check visibility and the recorded license | The judgment was always the agent's |
 | Cross-link script | Lint's consistency category | Lint already reads related narratives |
