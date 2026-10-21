@@ -31,7 +31,7 @@ Formatting, links and numbering are `narrative-format.py`'s and `wiki-check.py`'
 ## 5. Summary and commit
 
 `publish.py summary lint --json '{...}'` with:
-- `title`: "Lint";
+- `title`: "Lint: " and what this lint checked, so a later lint in the same run keeps its own section;
 - `checklist`: "Lint: every H finding fixed or decided";
 - `decisions`: each big finding, with its number;
 - `body`: a table of number, narrative and line, finding, and fixed or left as a decision.

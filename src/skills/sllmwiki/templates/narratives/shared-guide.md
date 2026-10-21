@@ -4,7 +4,7 @@ Each template's guide holds its own reader, structure and style; this one holds 
 
 ## Context first
 
-Set clear context before anything the reader must interpret, so nothing reads ambiguously: the narrative opens with the problem and who has it; each section, scenario, comparison, formula or piece of pseudocode opens with what it's about and why the reader needs it here; each term is defined before its first use. Depth comes after context, never instead of it.
+Set clear context before anything the reader must interpret, so nothing reads ambiguously: the narrative opens with the problem and who has it, even in the Abstract, before its answer; each section, scenario, comparison, formula or piece of pseudocode opens with what it's about and why the reader needs it here; each term is defined before its first use. Depth comes after context, never instead of it.
 
 ## Examples
 

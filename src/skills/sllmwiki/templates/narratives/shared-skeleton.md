@@ -2,7 +2,7 @@
 
 ## 1. Abstract
 
-<150-250 words: the answer in brief, for a reader deciding whether to read on.>
+<150-250 words: the problem and who has it in one sentence, then the answer in brief, for a reader deciding whether to read on.>
 
 ## 2. Terminology
 

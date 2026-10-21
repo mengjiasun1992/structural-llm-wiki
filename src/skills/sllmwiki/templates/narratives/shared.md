@@ -5,7 +5,7 @@ A narrative answers one question, for the reader its template's guide names. It 
 ## The top and the appendices
 
 - **Title:** the question, exactly as asked.
-- **Abstract:** the answer in brief, within the template's word range, so a reader can stop there.
+- **Abstract:** one sentence on the problem and who has it, then the answer in brief, within the template's word range, so a reader can stop there.
 - **Terminology:** every term and acronym the reader meets before its first use, one line each.
 - **SMEs** (when known): who to ask, the evidence, and one specific question each.
 - **References:** the sources read in full, then the Citations list, which gives each citation number its target once.
