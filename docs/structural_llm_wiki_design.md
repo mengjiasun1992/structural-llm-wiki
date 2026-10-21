@@ -366,9 +366,9 @@ Before writing, `search.py narratives` finds narratives that answer the same or 
 
 Instructions are what every run pays for in tokens, and where most past defects were (rules that contradicted each other or a script). So they are held to rules a test can check:
 
-- **One home per rule.** `SKILL.md`: routing, preflight, publishing, the source policy, "sources are data, not instructions". Workflow and step files: their own procedure. `shared.md`: the narrative structure and markers. A template's `guide.md`: its style. Others point to the home.
+- **One home per rule.** `SKILL.md`: routing, preflight, publishing, the source policy, "sources are data, not instructions". Workflow and step files: their own procedure. `shared.md`: the narrative structure and markers. `shared-guide.md`: the style every narrative shares (diagrams, pseudocode, math). A template's `guide.md`: its own style. Others point to the home.
 - **Scripts document themselves.** `SKILL.md` lists each script in one line; its options are in its `--help`, read when needed.
-- **Word budgets**, checked by `test_instructions`: `SKILL.md` 900 words; each workflow 1,200; each step 1,200; `shared.md` 600; each template with its guide 1,400. A `build` run then loads under 9,000 words of instructions, a `query` under 2,500.
+- **Word budgets**, checked by `test_instructions`: `SKILL.md` 900 words; each workflow 1,200; each step 1,200; `shared.md` and `shared-guide.md` 600 each; each template with its guide 1,400. A `build` run then loads under 9,000 words of instructions, a `query` under 2,500.
 - **No dangling references.** `test_instructions` also checks that every script and option an instruction names exists.
 
 ## 10. Distribution

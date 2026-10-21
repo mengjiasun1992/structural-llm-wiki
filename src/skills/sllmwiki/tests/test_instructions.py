@@ -10,14 +10,15 @@ import helpers
 
 SKILL = helpers.SKILL_DIR
 COMMANDS = os.path.join(os.path.dirname(os.path.dirname(SKILL)), 'commands')
-BUDGETS = {  # words per file; a run loads SKILL.md, a workflow, its steps, shared.md and one template with its guide
+BUDGETS = {  # words per file; a run loads SKILL.md, a workflow, its steps, shared.md, shared-guide.md and one template with its guide
     'SKILL.md': 900,
     'workflows/*.md': 1200,
     'steps/*.md': 1200,
     'templates/narratives/shared.md': 600,
+    'templates/narratives/shared-guide.md': 600,
 }
 TEMPLATE_AND_GUIDE = 1400
-BUILD_LOAD = 9000  # SKILL.md, build, its steps, shared.md and the largest template with its guide
+BUILD_LOAD = 9000  # SKILL.md, build, its steps, shared.md, shared-guide.md and the largest template with its guide
 QUERY_LOAD = 2500  # SKILL.md and query
 
 
@@ -27,7 +28,8 @@ def words(path):
 
 
 def instruction_files():
-    files = [os.path.join(SKILL, 'SKILL.md'), os.path.join(SKILL, 'templates', 'narratives', 'shared.md')]
+    files = [os.path.join(SKILL, 'SKILL.md'), os.path.join(SKILL, 'templates', 'narratives', 'shared.md'),
+             os.path.join(SKILL, 'templates', 'narratives', 'shared-guide.md')]
     files += glob.glob(os.path.join(SKILL, 'workflows', '*.md')) + glob.glob(os.path.join(SKILL, 'steps', '*.md'))
     files += glob.glob(os.path.join(SKILL, 'templates', 'narratives', '*', '*.md')) + glob.glob(os.path.join(COMMANDS, '*.md'))
     return sorted(files)
@@ -50,7 +52,8 @@ class Budgets(unittest.TestCase):
         steps = sum(words(os.path.join(SKILL, 'steps', f'{s}.md')) for s in ('tags', 'ingest', 'narrative'))
         largest = max(words(os.path.join(f, 'template.md')) + words(os.path.join(f, 'guide.md'))
                       for f in glob.glob(os.path.join(SKILL, 'templates', 'narratives', '*', '')))
-        build = skill + words(os.path.join(SKILL, 'workflows', 'build.md')) + steps + words(os.path.join(SKILL, 'templates', 'narratives', 'shared.md')) + largest
+        build = skill + words(os.path.join(SKILL, 'workflows', 'build.md')) + steps + words(os.path.join(SKILL, 'templates', 'narratives', 'shared.md')) + largest \
+            + words(os.path.join(SKILL, 'templates', 'narratives', 'shared-guide.md'))
         self.assertLessEqual(build, BUILD_LOAD)
         self.assertLessEqual(skill + words(os.path.join(SKILL, 'workflows', 'query.md')), QUERY_LOAD)
 

@@ -18,7 +18,8 @@ Read in that order, each source once, and only what the plan says: whole sources
 - **Where:** save the narrative as `sllmwiki/narratives/<question-slug>.md`.
 - **What to follow:**
   - the template's `guide.md`, for its reader, structure and style;
-  - `templates/narratives/shared.md`, for what every narrative shares: citations, markers and quoting.
+  - `templates/narratives/shared.md`, for what every narrative shares: citations, markers and quoting;
+  - `templates/narratives/shared-guide.md`, for the style every narrative shares: diagrams, pseudocode and math.
 - **Updating:** keep the narrative's version history and say what changed.
 
 ## 4. Finish
