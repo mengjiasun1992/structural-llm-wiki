@@ -34,5 +34,6 @@ Read in that order, each source once, and only what the plan says: whole sources
 - `checklist`: `"<the question>: answers it, every claim cited or marked, reads well"`;
 - `body`:
   - reuse, expand or new, and why;
+  - the template, and why it fits the subject;
   - the reading plan's table;
   - the narrative's outline, with a link to it.
