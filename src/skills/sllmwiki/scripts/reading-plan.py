@@ -13,8 +13,9 @@
       encyclopedias.)
       Prints the plan: existing narratives first, as background; then the
       medium-relevance sources; the high-relevance ones last. Within each, least
-      to most authoritative, then oldest to newest, so the most relevant,
-      authoritative and newest material is read last. Low-relevance sources are
+      to most authoritative, then oldest to newest by publication date (undated
+      first), so the most relevant, authoritative and newest material is read
+      last. Low-relevance sources are
       read by abstract only; links aren't read. Paste the plan into the PR.
 
 Only the given tags' own narratives and sources are candidates: their parents'

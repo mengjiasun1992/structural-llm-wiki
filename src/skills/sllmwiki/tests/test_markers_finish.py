@@ -73,7 +73,7 @@ class Finish(helpers.WikiTestCase):
         self.assertEqual(r.code, 0, r.out)
         meta = metadata.read(self.read(NARRATIVE))
         self.assertEqual(meta['model'], 'claude-opus-5-5')
-        self.assertEqual(meta['plan'], ['`beta-doc`, in full: medium relevance, authority C, 2026-09-02',  # the narrative itself isn't background
+        self.assertEqual(meta['plan'], ['`beta-doc`, in full: medium relevance, authority C, undated',  # the narrative itself isn't background
                                         '`alpha-doc`, in full: high relevance, authority A, 2026-09-01',
                                         '`gamma-link`, not read: a link, no saved copy'])
         entry = manifest.load(self.root, 'narratives')['what-is-alpha']
