@@ -14,6 +14,8 @@ This repository is the `sllmwiki` plugin: one Agent Skill (`src/skills/sllmwiki/
 
 ## Rules
 
+- **Prefer a deterministic script to an instruction.** Whenever a workflow, step, template or `SKILL.md` asks the agent to do mechanical work, anything that given the same files must always give the same result (counting, hashing, numbering, formatting, escaping, keeping YAML in sync, checking structure or syntax, building links or indexes), move it into a script with tests and have the instructions call the script. Instructions keep only judgment: choosing sources, grading relevance, writing and verifying narratives. When you add or review instructions, look for such work and propose the script, even if the change at hand doesn't need it yet.
+- **Markdown renders the same on GitHub, in Obsidian, in mdBook and in Sphinx.** Everything the skill writes or checks (narratives, tag pages, the index, templates, the wiki's README) uses only the syntax the four render alike, as `lib/compat.py` defines it; see "Markdown compatibility" below.
 - **Every logic change comes with unit tests.** Any change to a script's behavior (in `src/skills/sllmwiki/scripts/` or `src/tools/`), whether a new feature, a bug fix or a changed rule, adds or updates tests in `src/skills/sllmwiki/tests/` in the same pull request. A bug fix adds a test that fails without the fix. A change to instructions only (`SKILL.md`, `workflows/`, `steps/`, templates' prose) needs no unit test, but behavior the instructions rely on does.
 - **Coverage stays at 95% or above.** CI measures line coverage of `src/skills/sllmwiki/scripts/` and fails below 95% (`fail_under` in `pyproject.toml`). Don't lower the threshold, and don't exclude code from coverage to pass it; test it instead.
 - **Tests are standard library only.** Use `unittest`; don't add test dependencies beyond `coverage` (CI-only, pinned). Tests never use the network: serve fixtures from a local `http.server`. They never write outside a temporary directory.
@@ -26,6 +28,22 @@ This repository is the `sllmwiki` plugin: one Agent Skill (`src/skills/sllmwiki/
 - **One pull request per change,** against `mainline`, from a branch made from the up-to-date `mainline`; the owner merges. Describe what changed, why, and how it was tested.
 - **Commit messages** start with a short imperative subject, and their body quotes the owner's request that started the change, verbatim, in a `Prompt:` block. Check the staged files before committing; never commit eval results or other tool output.
 - **A release bumps two places together:** `version` in `.claude-plugin/plugin.json` and the `@v<version>` the wiki CI templates (`src/skills/sllmwiki/templates/*.yml`) call the actions at, so wikis that rerun `init` after updating the plugin move to it. Merge that, then tag the merge commit `v<version>` and publish the release. Bump only when the owner asks for a release.
+
+## Markdown compatibility
+
+A wiki is read on GitHub, opened as an Obsidian vault, and built as a book with mdBook or with Sphinx and MyST-Parser, so its markdown has to mean the same thing in all four. `lib/compat.py` is the one definition of that common syntax, and every check and writer uses it: `narrative-format` and `obsidian-check` report what breaks it, and `escape()` (through `narrative-format --fix-style`, the tag pages and the index) fixes what can be fixed mechanically.
+
+- **What's allowed:** markdown links with paths relative to the linking file and spaces written `%20`, to files rather than folders; GitHub's five alerts as the only callouts; `$$` math only where GitHub renders it unchanged; escaped citation brackets (`[\[3\]](…)`); URLs as links, never bare; headings that don't skip a level.
+- **What's not:** wikilinks and embeds, highlights, `%%` comments, block IDs, inline `#tags`, emoji shortcodes, MyST directives, roles and targets, and anything a book reads as its own syntax unless escaped: a `%` starting a line (a MyST comment), `{…}` ending a heading (mdBook's heading attributes), `$` before a number (MyST math), single tildes (strikethrough on GitHub and mdBook only), `{{#include …}}` (expanded by mdBook even in code).
+- **Verify against the renderers before changing a rule.** A rule records how each renderer actually behaves, not how its docs describe it. Check every new or changed rule in all four, at pinned versions: GitHub through the contents API (`Accept: application/vnd.github.html`, not the markdown API, which renders differently), Obsidian, mdBook 0.5.4 and Sphinx 9.1 with MyST-Parser 5.1. Say in the pull request what you rendered and what each showed, and when a renderer's version changes, recheck the rules it affects.
+- **Every rule is tested from the start.** A rule doesn't land without its tests in `tests/test_compat.py`, written as a table of cases, each with:
+  - a line that breaks the rule, reported with its code and line number, and a line that follows it, not reported;
+  - the same text inside a fenced code block and inside a code span, not reported (except `{{#include …}}`, which mdBook expands even in code);
+  - YAML front matter and an indented code block, not mistaken for markdown;
+  - when the rule has a fix, `escape()`'s output, its count, a second run that changes nothing, and the escaped text no longer reported;
+  - a comment naming the renderers and versions the behavior was checked in.
+  A false positive is a bug: fix it with a test that fails without the fix, like any other.
+- **Sources are exempt.** Files in a wiki's sources folder are verbatim copies and are never checked or escaped.
 
 ## Running the checks
 
