@@ -19,12 +19,12 @@ Every claim a source makes is cited, after a space, with a numbered link to the 
 
 ## What the sources don't say
 
-Write it as yours, marked, never as a source's. When markers are on (the default), start the sentence with:
+Write it as yours, marked, never as a source's. When markers are on (the default), put the marker where a citation would go, after the statement (a sentence, a list item or a table cell):
 
-- `[sllmwiki_reasoning]`: your own conclusion, comparison, grouping or reconstruction, which no cited source states;
-- `[sllmwiki_gap]`: something the question needs that the sources don't answer. Say what's missing; never fill it with a guess.
+- `[->]`: your own conclusion, comparison, grouping, worked example or reconstruction, which no cited source states: `Both trade latency for consistency. [->]`;
+- `[?]`: something the question needs that the sources don't answer. Say what's missing; never fill it with a guess.
 
-A sentence is cited or marked, never both. With `markers = false` in Config.toml, leave markers out: an uncited sentence is then your own, and a gap is said in words ("the sources don't say …").
+Mark at the level the reasoning spans: a section that is all yours (applying the ideas, a constructed scenario) marks its heading once, `## 8. Applying them [->]`, not each sentence. A statement is cited or marked, never both. With `markers = false` in Config.toml, leave markers out: an uncited sentence is then your own, and a gap is said in words ("the sources don't say …").
 
 ## Quoting
 

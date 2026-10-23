@@ -28,6 +28,7 @@ def check_sections(text, template):
     want = template.sections()
     pos = 0
     for h in heads:
+        h.title = markers.unmark(h.title)  # a marked heading is still its section
         at = next((j for j in range(pos, len(want)) if want[j].matches(h.title)), None)
         if at is None:
             if any(s.matches(h.title) for s in want):

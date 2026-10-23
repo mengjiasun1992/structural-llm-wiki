@@ -63,9 +63,11 @@ class Checks(helpers.WikiTestCase):
         self.assertIn('CITATION_UNLISTED', [c for c, _ in self.codes(text.replace('1. [alpha-doc: details]', '- [alpha-doc: details]'))])
 
     def test_markers(self):
-        marked = helpers.narrative_text(extra='\n[sllmwiki_reasoning] Doubling the wait suits most clients.\n')
+        marked = helpers.narrative_text(extra='\nDoubling the wait suits most clients. [->]\n')
         self.assertIn('MARKER_UNDEFINED', [c for c, _ in self.codes(marked)])
         self.assertIn('MARKER_OFF', [c for c, _ in self.codes(marked, markers=False)])
+        heading = helpers.narrative_text().replace('## 7. Limitations and failure modes\n\nRetries', '## 7. Limitations and failure modes [->]\n\nRetries')
+        self.assertEqual([c for c, _ in self.codes(heading) if c.startswith(('MISSING', 'SECTION', 'EXTRA'))], [])  # a marked heading is still its section
 
     def test_placeholders_and_markdown(self):
         text = helpers.narrative_text()

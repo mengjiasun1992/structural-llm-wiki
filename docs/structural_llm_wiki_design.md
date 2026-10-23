@@ -28,7 +28,7 @@ This document covers the architecture and the decisions behind it. The skill's f
 
 - **The wiki is a dedicated git repository.** Git provides history, review and rollback.
 - **Sources are ground truth.** Sources are saved verbatim (§4.3) and never summarized or edited. Narratives are built from them and checked against them.
-- **Every claim is traceable.** A claim in a narrative cites a section of a saved source with a numbered link (`claim. [\[3\]](../sources/<file>.md#<section>)`, brackets escaped so Obsidian doesn't read `[[3]]` as a wikilink), or is marked as the narrative's own reasoning (`[sllmwiki_reasoning]`) or as a gap the sources don't answer (`[sllmwiki_gap]`). §4.10 defines the markers, and how a wiki turns them off.
+- **Every claim is traceable.** A claim in a narrative cites a section of a saved source with a numbered link (`claim. [\[3\]](../sources/<file>.md#<section>)`, brackets escaped so Obsidian doesn't read `[[3]]` as a wikilink), or is marked as the narrative's own reasoning (`[->]`) or as a gap the sources don't answer (`[?]`). §4.10 defines the markers, and how a wiki turns them off.
 - **The question drives the run.** Tags, sources and the reading plan are chosen for the questions asked, not for a topic in general, so nothing is collected that no answer uses.
 - **Runs are unattended; review happens on one pull request.** A run takes its questions at the start and doesn't pause; what it can't decide goes to the top of its pull request. The owner reviews, ticks the review checklist and merges.
 - **Build on what exists.** One narrative per question. Before writing, look for a narrative that already covers it, and reuse or expand it (§7.4).
@@ -238,7 +238,7 @@ A wiki can keep a `Config.toml` at its root. Every setting has a default, so the
 source_copies = "allow"     # "allow": a private wiki keeps reference copies, a public one only openly licensed sources (§4.7); "links-only": no copies, every source a link
 max_quote_words = 50        # the longest quotation a narrative may take from a source
 smes_exclude = []           # never listed as SMEs, such as the wiki's owner or bots: ["@alice", "dependabot"]
-markers = true              # false: no [sllmwiki_reasoning] or [sllmwiki_gap] markers (§4.10)
+markers = true              # false: no [->] or [?] markers (§4.10)
 images = true               # false: diagrams in mermaid only, no generated figures (§4.5)
 
 [structural-llm-wiki-templates.technical_brief_overview]   # a template's budgets, over its header
@@ -255,18 +255,19 @@ obsidian = false            # true: the Obsidian add-on (§4.8)
 
 ### 4.10 Markers
 
-A narrative says plainly what its sources don't. Two markers do it, each written at the start of the sentence it covers:
+A narrative says plainly what its sources don't. Two markers do it, each written where a citation would go: after the statement it covers, or at the end of a heading, where it covers the whole section.
 
 | Marker | Means | Example |
 |---|---|---|
-| `[sllmwiki_reasoning]` | The narrative's own reasoning: a conclusion, recommendation, grouping, comparison or reconstruction that no cited source states | `[sllmwiki_reasoning] Both designs trade latency for consistency, in opposite directions.` |
-| `[sllmwiki_gap]` | Something the question needs that the sources don't answer. It is stated as a gap, never filled with a guess | `[sllmwiki_gap] None of the sources say how the gateway picks a backend after a timeout.` |
+| `[->]` | Our own reasoning: a conclusion, recommendation, grouping, comparison, worked example or reconstruction that no cited source states | `Both designs trade latency for consistency, in opposite directions. [->]` |
+| `[?]` | A gap: something the question needs that the sources don't answer, stated as a gap, never filled with a guess | `None of the sources say how the gateway picks a backend after a timeout. [?]` |
 
-- **What a marker covers.** The one sentence, or table cell, it starts. A paragraph of reasoning marks each sentence that is reasoning, so a cited sentence next to it stays plainly cited.
-- **A sentence is cited or marked, never both.** If a source states it, it gets a citation instead.
-- **Why these words.** They are fixed, so scripts and `grep` find every one, and they render as plain text everywhere: brackets with no link after them are text on GitHub, in Obsidian and in both book renderers (§4.8). Their names say what they are, and the `sllmwiki_` prefix keeps them from colliding with anything a source or a writer would type.
-- **Defined where they're used.** A reader can't be expected to know them, so `finish-narrative` adds a Terminology row for each marker a narrative uses, and only those.
-- **Checked.** `narrative-format` reports a marker that isn't at a sentence's start, or that shares its sentence with a citation. Lint reports a factual claim that is neither cited nor marked, and a marked sentence that a source does state, which should be cited instead.
+- **Where it goes.** After the statement, like a citation: the reader meets the idea first and the marker second, and the eye skips it as it skips `[3]`. A statement is a sentence, a list item or a table cell.
+- **At the right level.** A section that is all our own reasoning, such as "Applying them", marks its heading once (`## 8. Applying them [->]`) instead of every sentence; inside it, a sentence a source states is still cited. `narrative-format` suggests the heading when a section marks four or more statements and cites none.
+- **A statement is cited or marked, never both.** If a source states it, it gets a citation instead.
+- **Why these symbols.** They are short, so they read like a citation, not a label; fixed, so scripts and `grep` find every one; and plain text everywhere: brackets with no link after them are text on GitHub, in Obsidian and in both book renderers (§4.8). `[->]` reads as "follows from", `[?]` as "unknown".
+- **Defined where they're used.** A reader can't be expected to know them, so `finish-narrative` adds a Terminology row for each marker a narrative uses, and only those. It also converts the earlier markers (`[sllmwiki_reasoning]`, `[sllmwiki_gap]`, written at a sentence's start), which `narrative-format` reports as `MARKER_OLD`.
+- **Checked.** `narrative-format` reports a marker that doesn't follow its statement, or that shares it with a citation. Lint reports a factual claim that is neither cited nor marked, and a marked statement that a source does state, which should be cited instead.
 - **Turned off.** With `markers = false` (§4.9), narratives use no markers and Terminology gets no marker rows. An uncited sentence is then the narrative's own reasoning, a gap is said in words ("the sources don't say …"), and lint still reports a factual claim without a citation. The wiki's README says which convention the wiki uses.
 
 ## 5. Building knowledge: `build`

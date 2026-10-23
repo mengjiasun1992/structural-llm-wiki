@@ -97,6 +97,8 @@ def main(argv):
     text, n = compat.escape(text)
     done += [f'wrote {n} renderer escape(s)'] if n else []
     if settings['markers']:
+        text, n = markers.migrate(text)
+        done += [f'converted {n} old marker(s)'] if n else []
         text, n = markers.add_rows(text)
         done += [f'defined {n} marker(s) in Terminology'] if n else []
     meta = metadata.read(text)

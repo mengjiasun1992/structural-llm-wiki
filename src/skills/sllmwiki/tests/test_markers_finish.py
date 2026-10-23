@@ -9,8 +9,9 @@ import helpers
 from lib import manifest, markers, metadata
 
 NARRATIVE = 'sllmwiki/narratives/what-is-alpha.md'
-R, G = '[sllmwiki_reasoning]', '[sllmwiki_gap]'
+R, G = '[->]', '[?]'
 CITE = '[\\[1\\]](../sources/alpha-doc.md#details)'
+DEFINED = f'| **{R}** | x |\n| **{G}** | y |\n'
 
 
 def doc(body, terms=''):
@@ -22,37 +23,56 @@ class Markers(unittest.TestCase):
         return [(c, n) for _, c, n, _ in markers.check(text, on)]
 
     def test_placement(self):
-        defined = f'| **{R}** | x |\n| **{G}** | y |\n'
-        for body in (f'{R} Mine.', f'Cited. {CITE} {R} Mine.', f'- {R} In a list.', f'1. {G} Unknown.', f'| a | {R} In a table. |',
-                     f'> {R} Quoted.', f'Two: {R} after a colon.'):
-            self.assertEqual(self.codes(doc(body, defined)), [], body)
-        self.assertEqual(self.codes(doc(f'In the {R} middle.', defined)), [('MARKER_PLACEMENT', 12)])
-        self.assertEqual(self.codes(doc(f'`{R}` in code is fine.', defined)), [])
+        for body in (f'Mine. {R}', f'Cited. {CITE} Mine. {R}', f'- In a list {R}', f'1. Unknown? {G}', f'| a | In a table {R} |',
+                     f'> Quoted. {R}', f'Mine. {R} Then more.', f'## 3. Applying them {R}', 'A [?](not-a-marker.md) link.'):
+            self.assertEqual(self.codes(doc(body, DEFINED)), [], body)
+        for body in (f'{R} Before.', f'In the {R} middle.', f'Glued.{R}', f'- {G} Listed first.', f'| a | {R} cell |',
+                     f'## 3. Marked {R} too early'):
+            self.assertEqual(self.codes(doc(body, DEFINED)), [('MARKER_PLACEMENT', 12)], body)
+        self.assertEqual(self.codes(doc(f'`{R}` in code and ${G}$ in math are fine.', DEFINED)), [])
 
     def test_marked_and_cited(self):
-        defined = f'| **{R}** | x |\n'
-        self.assertEqual(self.codes(doc(f'{R} Mine, cited. {CITE}', defined)), [('MARKER_AND_CITATION', 11)])
-        self.assertEqual(self.codes(doc(f'{R} Mine {CITE} inline.', defined)), [('MARKER_AND_CITATION', 11)])
-        self.assertEqual(self.codes(doc(f'{R} Mine. Then cited. {CITE}', defined)), [])
-        row = f'| Window | {R} None, by design | 10 samples {CITE} |'
-        self.assertEqual(self.codes(doc(row, defined)), [])  # each cell is its own claim
-        self.assertEqual(self.codes(doc(f'| Window | {R} None {CITE} | 10 |', defined)), [('MARKER_AND_CITATION', 11)])
-        self.assertEqual(self.codes(doc(f'| A \\| B | {R} Mine, a \\| pipe {CITE} |', defined)), [('MARKER_AND_CITATION', 11)])
+        self.assertEqual(self.codes(doc(f'Mine, cited. {CITE} {R}', DEFINED)), [('MARKER_AND_CITATION', 12)])
+        self.assertEqual(self.codes(doc(f'Mine. {R} {CITE}', DEFINED)), [('MARKER_AND_CITATION', 12)])
+        self.assertEqual(self.codes(doc(f'Cited. {CITE} Then mine. {R}', DEFINED)), [])
+        self.assertEqual(self.codes(doc(f'| Window | None, by design {R} | 10 samples {CITE} |', DEFINED)), [])  # each cell is its own claim
+        self.assertEqual(self.codes(doc(f'| Window | None {CITE} {R} | 10 |', DEFINED)), [('MARKER_AND_CITATION', 12)])
 
-    def test_undefined_and_off(self):
-        self.assertEqual(self.codes(doc(f'{G} Unknown.')), [('MARKER_UNDEFINED', 10)])
-        self.assertEqual(self.codes(doc(f'{G} Unknown.'), on=False), [('MARKER_OFF', 10)])
+    def test_level(self):
+        many = '\n'.join(f'Point {n}. {R}' for n in range(markers.LEVEL_HINT))
+        self.assertEqual(self.codes(doc(many, DEFINED)), [('MARKER_LEVEL', 10)])
+        self.assertEqual(self.codes(doc(many + f'\nCited. {CITE}', DEFINED)), [])
+
+    def test_undefined_old_and_off(self):
+        self.assertEqual(self.codes(doc(f'Unknown. {G}')), [('MARKER_UNDEFINED', 10)])
+        self.assertEqual(self.codes(doc(f'Unknown. {G}'), on=False), [('MARKER_OFF', 10)])
         self.assertEqual(self.codes(doc('No markers.'), on=False), [])
+        self.assertEqual(self.codes(doc('[sllmwiki_reasoning] Old.', DEFINED)), [('MARKER_OLD', 12)])
+        self.assertEqual(markers.unmark('Applying them [->]'), 'Applying them')
+
+    def test_migrate(self):
+        old = doc('[sllmwiki_reasoning] Mine here. Then cited. ' + CITE + '\n\n1. [sllmwiki_reasoning] What if it fails?\n'
+                  '- [sllmwiki_gap] The sources don\'t say\n| a | [sllmwiki_reasoning] Cheap and conservative | c |\n'
+                  '[sllmwiki_reasoning] One, `x.` then. Two.', '| **[sllmwiki_reasoning]** | old |\n| **[sllmwiki_gap]** | old |\n')
+        text, n = markers.migrate(old)
+        self.assertEqual(n, 7)
+        for want in (f'Mine here. {R} Then cited.', f'1. What if it fails? {R}', f'- The sources don\'t say {G}',
+                     f'| a | Cheap and conservative {R} | c |', f'One, `x.` then. {R} Two.'):
+            self.assertIn(want, text)
+        self.assertNotIn('sllmwiki_', text)
+        text, _ = markers.add_rows(text)
+        self.assertEqual(self.codes(text), [])
+        self.assertEqual(markers.migrate(text), (text, 0))
 
     def test_add_rows(self):
-        text, n = markers.add_rows(doc(f'{R} Mine. {G} Unknown.'))
+        text, n = markers.add_rows(doc(f'Mine. {R} Unknown. {G}'))
         self.assertEqual(n, 2)
         self.assertIn(f'| **{R}** | {markers.MARKERS[R]} |\n| **{G}** |', text)
         self.assertEqual(markers.add_rows(text), (text, 0))
-        bare = '# Q\n\n## 1. Terminology\n\n## 2. Body\n\n' + f'{R} Mine.\n'
+        bare = '# Q\n\n## 1. Terminology\n\n## 2. Body\n\n' + f'Mine. {R}\n'
         text, n = markers.add_rows(bare)
         self.assertEqual(n, 1)
-        self.assertIn('## 1. Terminology\n\n| Term | Definition |\n|---|---|\n| **[sllmwiki_reasoning]**', text)
+        self.assertIn('## 1. Terminology\n\n| Term | Definition |\n|---|---|\n| **[->]**', text)
         self.assertEqual(markers.add_rows('# Q\n\nNo terminology. ' + R), ('# Q\n\nNo terminology. ' + R, 0))
 
 
@@ -119,7 +139,7 @@ class Finish(helpers.WikiTestCase):
 
     def test_a_new_narrative(self):
         text = helpers.narrative_text('How does beta caching work?', cites=(('beta-doc', 'beta'),),
-                                      extra=f'\n{R} Caching suits read-heavy loads.\n')
+                                      extra=f'\nCaching suits read-heavy loads. {R}\n')
         text = text.replace('## 3. Background', '## Background').replace('- **Version:** 1.0\n', '').replace(
             '- **Created:** 2026-10-01\n', '').replace('- **History:**\n  - 1.0 (2026-10-01): First version.\n', '')
         self.write('sllmwiki/narratives/beta-caching.md', text)
@@ -176,7 +196,7 @@ class Finish(helpers.WikiTestCase):
 
     def test_markers_off_adds_no_rows(self):
         self.write('Config.toml', '[structural-llm-wiki-settings]\nmarkers = false\n')
-        self.write(NARRATIVE, helpers.narrative_text(extra=f'\n{R} Mine.\n'))
+        self.write(NARRATIVE, helpers.narrative_text(extra=f'\nMine. {R}\n'))
         r = self.finish('what-is-alpha')
         self.assertEqual(r.code, 1)
         self.assertIn('MARKER_OFF', r.out)
