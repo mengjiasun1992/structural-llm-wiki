@@ -44,6 +44,7 @@
 
 - **Version:** 1.0
 - **Template:** <template name>
+- **Language:** <language>
 - **Created:** <YYYY-MM-DD>
 - **Last modified:** <YYYY-MM-DD>
 - **History:**

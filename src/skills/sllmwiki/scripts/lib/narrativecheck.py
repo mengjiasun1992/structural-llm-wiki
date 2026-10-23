@@ -6,7 +6,7 @@ renderer reads alike."""
 import os
 import re
 
-from . import citations, compat, figures, manifest, markers, mdlinks, metadata, numbering, quotes, xrefs
+from . import citations, compat, figures, language, manifest, markers, mdlinks, metadata, numbering, quotes, xrefs
 from .compat import mask_code_spans, mask_math_spans, scan
 
 PLACEHOLDER = re.compile(r'<(?!https?://|mailto:|/)[^<>\n]*\s[^<>\n]*>')
@@ -19,9 +19,15 @@ SHARED_BOTTOM = ('Appendix', 'SMEs', 'References', 'Metadata')
 
 
 def words(lines):
-    """The words of these lines, without markdown punctuation, code fences or table rules."""
+    """The words of these lines, without markdown punctuation, code fences or table rules; CJK text counts
+    its characters, at language.CJK_CHARACTERS_PER_WORD."""
     text = '\n'.join(line for line in lines if not re.match(r'\s*(```|~~~|\|?[-: |]+\|?\s*\Z)', line))
-    return len(re.findall(r'[\w\'’-]+', re.sub(r'\]\([^)]*\)', ']', text)))
+    return language.words(re.sub(r'\]\([^)]*\)', ']', text))
+
+
+def _titles(english):
+    """The lowercase titles a shared section goes by: its English one and every language pack's."""
+    return {t.lower() for e in english for t in language.names(e)}
 
 
 def check_sections(text, template):
@@ -64,12 +70,32 @@ def _has_diagram(text, head):
     return False
 
 
+def check_language(text, template, default):
+    """Findings for a narrative's language: a language with no pack, and a heading left in English that its pack translates."""
+    tag, pack = language.for_narrative(text, default)
+    if pack is language.ENGLISH and tag.lower().split('-')[0] != 'en':
+        return [('warning', 'LANGUAGE_PACK', 1, f'no language pack for {tag}: its headings stay English; '
+                                                 f'add templates/{language.FOLDER}/{tag}.md to translate them')]
+    out = []
+    sections = template.sections()
+    for h in numbering.headings(text):
+        title = markers.unmark(h.title)
+        if h.level == 2:
+            english = next((s.title for s in sections if s.matches_english(title)), None)
+        else:
+            english = title if title in pack.strings else None
+        if english and pack.t(english) != english and title.lower() == english.lower():
+            out.append(('warning', 'HEADING_LANGUAGE', h.line + 1, f'"{title}" is in English; in {tag} it is "{pack.t(english)}"'))
+    return out
+
+
 def body_lines(text):
     """The lines of the template's own sections: after Terminology, before the appendices."""
     heads = [h for h in numbering.headings(text) if h.level == 2]
     lines = text.split('\n')
-    start = next((h.line for h in heads if h.title.lower() not in [s.lower() for s in SHARED_TOP]), None)
-    end = next((h.line for h in heads if h.title.lower() in [s.lower() for s in SHARED_BOTTOM]), len(lines))
+    top, bottom = _titles(SHARED_TOP), _titles(SHARED_BOTTOM)
+    start = next((h.line for h in heads if h.title.lower() not in top), None)
+    end = next((h.line for h in heads if h.title.lower() in bottom), len(lines))
     return lines[start:end] if start is not None and start < end else []
 
 
@@ -103,6 +129,7 @@ def check(root, rel, text, settings, offered):
         out.append(('error', 'UNKNOWN_TEMPLATE', 1, f'no template {name}; there are {", ".join(sorted(offered))}'))
     else:
         out += check_sections(text, template)
+        out += check_language(text, template, settings['language'])
         n = words(metadata.abstract(text).split('\n'))
         lo, hi = template.abstract_words
         if not lo <= n <= hi:
@@ -145,7 +172,7 @@ def stats(root, rel, text, offered):
     sections = []
     for i, h in enumerate(heads):
         title = markers.unmark(h.title)
-        if title.lower() in [s.lower() for s in SHARED_TOP + SHARED_BOTTOM] and title != 'Appendix':
+        if title.lower() in _titles(SHARED_TOP + SHARED_BOTTOM) - _titles(['Appendix']):
             continue
         end = heads[i + 1].line if i + 1 < len(heads) else len(lines)
         part = '\n'.join(lines[h.line + 1:end])

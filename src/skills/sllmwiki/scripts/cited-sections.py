@@ -26,7 +26,7 @@ from lib.util import dumps, read_text  # noqa: E402
 
 cli = Cli('cited-sections.py', 'usage: cited-sections.py <narrative> [--claims-only] [--json]')
 _LINKS = re.compile(r'\[\\\[[0-9]+\\\]\]\([^)\s]*\)')
-_SENTENCE_END = re.compile(r'(?<=[.!?:;])[*_]*\s+(?=\S)')
+_SENTENCE_END = re.compile(r'(?<=[.!?:;])[*_]*\s+(?=\S)|(?<=[。！？；：])[*_]*\s*(?=\S)')
 
 
 def claim(line, start):

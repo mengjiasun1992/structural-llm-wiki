@@ -22,7 +22,7 @@ unused(root) -> findings for figures no narrative shows (FIGURE_UNUSED, warning)
 import os
 import re
 
-from . import layout, numbering
+from . import language, layout, numbering
 from .compat import mask_code_spans, scan
 from .util import read_bytes, read_text
 
@@ -32,12 +32,25 @@ MAX_SVG_BYTES = 40_000    # an SVG is text an agent may read: keep it to a few t
 MAX_PNG_BYTES = 150_000
 MAX_PNG_WIDTH = 1600      # pixels: wider only costs bytes and tokens, no page shows more
 IMAGE = re.compile(r'!\[([^\]]*)\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)')
-CAPTION = re.compile(r'\*Figure (\d+)-(\d+): \S.*\*\Z')
-LABEL = re.compile(r'\bFigure (\d+)-(\d+)\b')
 PNG = b'\x89PNG\r\n\x1a\n'
 _MERMAID = re.compile(r' {0,3}(`{3,}|~{3,})[ \t]*mermaid\b')
 _UNSAFE = re.compile(r'<script|<foreignObject|\son\w+\s*=|(?:xlink:)?href\s*=\s*["\'](?!#)', re.I)
 _BACKGROUND = re.compile(r'<rect\b[^>]*\bfill\s*=\s*["\'](?!none|transparent)|background(?:-color)?\s*:', re.I)
+
+
+def _word():
+    """The word a caption starts with, in English or any language pack's: (?:Figure|图)."""
+    return '(?:' + '|'.join(re.escape(w) for w in language.names('Figure')) + ')'
+
+
+def caption_re():
+    """*Figure 5-1: what it shows.*, or its language pack's form, *图 5-1：……*"""
+    return re.compile(r'\*' + _word() + r' ?(\d+)-(\d+)[:：] ?\S.*\*\Z')
+
+
+def label_re():
+    """A reference to a figure in the text: Figure 5-1."""
+    return re.compile(r'(?<![A-Za-z0-9_])(' + _word() + r' ?)(\d+)-(\d+)(?!\w)')
 
 
 def images(text):
@@ -116,7 +129,7 @@ def pictures(text):
         k = end + 1
         while k < len(lines) and not lines[k].strip():
             k += 1
-        caption = k if k < len(lines) and kinds[k] == 'text' and lines[k].strip().startswith('*Figure') else None
+        caption = k if k < len(lines) and kinds[k] == 'text' and re.match(r'\*' + _word(), lines[k].strip()) else None
         out.append((i, end, caption))
         i = end + 1
     return out
@@ -146,7 +159,7 @@ def check_captions(text):
     want = dict(_labels(text))
     carried = set()
     for line, label in want.items():
-        m = CAPTION.match(lines[line].strip())
+        m = caption_re().match(lines[line].strip())
         if not m:
             out.append(('error', 'FIGURE_CAPTION', line + 1, 'write the caption as *Figure 5-1: what it shows.*, in one line'))
             continue
@@ -156,8 +169,8 @@ def check_captions(text):
     kinds, _ = scan(lines)
     for i, line in enumerate(lines):
         if kinds[i] == 'text' and i not in want:
-            for m in LABEL.finditer(mask_code_spans(line)):
-                if f'{m.group(1)}-{m.group(2)}' not in carried:
+            for m in label_re().finditer(mask_code_spans(line)):
+                if f'{m.group(2)}-{m.group(3)}' not in carried:
                     out.append(('warning', 'FIGURE_REF', i + 1, f'"{m.group(0)}": no caption carries that number'))
     return out
 
@@ -167,20 +180,20 @@ def renumber(text):
     lines = text.split('\n')
     moves, changed = {}, 0
     for line, label in _labels(text):
-        m = CAPTION.match(lines[line].strip())
+        m = caption_re().match(lines[line].strip())
         if not m:
             continue
         old = f'{m.group(1)}-{m.group(2)}'
         if old != label:
             moves.setdefault(old, label)
-            lines[line] = lines[line].replace(f'Figure {old}:', f'Figure {label}:', 1)
+            lines[line] = re.sub(r'(' + _word() + r' ?)' + re.escape(old) + r'(?=[:：])', lambda x: x.group(1) + label, lines[line], count=1)
             changed += 1
     if moves:
         captions = {line for line, _ in _labels(text)}
         kinds, _ = scan(lines)
         for i, line in enumerate(lines):
             if kinds[i] == 'text' and i not in captions:
-                lines[i] = LABEL.sub(lambda m: f'Figure {moves.get(m.group(1) + "-" + m.group(2), m.group(1) + "-" + m.group(2))}', line)
+                lines[i] = label_re().sub(lambda m: m.group(1) + moves.get(f'{m.group(2)}-{m.group(3)}', f'{m.group(2)}-{m.group(3)}'), line)
     return '\n'.join(lines), changed
 
 

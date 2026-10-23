@@ -35,7 +35,7 @@
 
 ## 4. Abstract
 
-Read each saved source once, and write its abstract: 150-250 words on what it says and covers, using the source's own abstract when it has one. Save it with `manifest.py set-abstract <slug> --abstract "<abstract>"`. Note what each source says that the questions need: the narrative step reads that note instead of the whole source again.
+A saved source stays in the language it was written in: never translate it. Read each saved source once, and write its abstract, in the wiki's language: 150-250 words on what it says and covers, using the source's own abstract when it has one. Save it with `manifest.py set-abstract <slug> --abstract "<abstract>"`. Note what each source says that the questions need: the narrative step reads that note instead of the whole source again.
 
 ## 5. Summary
 

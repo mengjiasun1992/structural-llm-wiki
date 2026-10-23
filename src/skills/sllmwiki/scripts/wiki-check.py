@@ -5,6 +5,8 @@
 
 Errors:
   CONFIG_INVALID            Config.toml has a problem
+  LANGUAGE_PACK_INVALID     a language pack in templates/languages/ can't be read
+  LANGUAGE_PACK             Config.toml's language has no pack, so headings stay English (warning)
   YAML_INVALID              tags.yaml or a manifest can't be read
   MISSING_FIELD, UNKNOWN_FIELD, BAD_TYPE, BAD_VALUE, BAD_ENTRY
                             an entry doesn't match the schema (lib/schema.py)
@@ -41,7 +43,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import compat, config, figures, footer, layout, manifest, policy, schema, tagtree, wikiindex, wikiyaml, xrefs  # noqa: E402
+from lib import compat, config, figures, footer, language, layout, manifest, policy, schema, tagtree, wikiindex, wikiyaml, xrefs  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, read_bytes, read_text, source_hash  # noqa: E402
 
@@ -55,6 +57,11 @@ def check(root, fix=False, seen_by=None):
     for p in config.problems(root):
         add(('error', 'CONFIG_INVALID', layout.CONFIG, p))
     settings = config.get(root).settings
+    for p in language.use(root):
+        add(('error', 'LANGUAGE_PACK_INVALID', f'{layout.TEMPLATES}/{language.FOLDER}', p))
+    if not language.pack(settings['language']):
+        add(('warning', 'LANGUAGE_PACK', layout.CONFIG, f'no language pack for {settings["language"]}: narratives\' headings stay English; '
+                                                       f'add {layout.TEMPLATES}/{language.FOLDER}/{settings["language"]}.md to translate them'))
     data = {}
     for kind in ('tags', 'sources', 'narratives'):
         rel = manifest.FILES[kind]

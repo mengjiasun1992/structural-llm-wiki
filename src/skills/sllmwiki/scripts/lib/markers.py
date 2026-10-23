@@ -22,7 +22,7 @@ LEVEL_HINT = 4  # this many statement markers of a kind in one uncited section: 
 _ANY = re.compile(r'\[→\](?!\()|\[\?\](?!\()')
 _ASCII = re.compile(r'\[->\](?!\()')
 _OLD = re.compile('|'.join(re.escape(m) for m in OLD))
-_SENTENCE_END = re.compile(r'[.!?][)"”’*]*(?=\s|\Z)')
+_SENTENCE_END = re.compile(r'[.!?][)"”’*]*(?=\s|\Z)|[。！？][)"”’*）」]*')
 _HEADING = re.compile(r' {0,3}#{1,6}[ \t]')
 
 
@@ -139,17 +139,19 @@ def migrate(text):
     return '\n'.join(out), moved
 
 
-def add_rows(text):
-    """(text, rows added): a Terminology row for each marker the narrative uses and doesn't define yet."""
+def add_rows(text, pack=None):
+    """(text, rows added): a Terminology row for each marker the narrative uses and doesn't define yet,
+    in the language pack's words when there is one."""
+    t = pack.t if pack else (lambda s: s)
     span = numbering.section(text, 'Terminology')
     need = [m for m in MARKERS if m in {u[2] for u in uses(text)} and m not in defined(text)]
     if not need or not span:
         return text, 0
     lines = text.split('\n')
     last_row = max((i for i in range(span[0], span[1]) if lines[i].lstrip().startswith('|')), default=None)
-    rows = [f'| **{m}** | {MARKERS[m]} |' for m in need]
+    rows = [f'| **{m}** | {t(MARKERS[m])} |' for m in need]
     if last_row is None:
-        rows = ['| Term | Definition |', '|---|---|'] + rows
+        rows = [f'| {t("Term")} | {t("Definition")} |', '|---|---|'] + rows
         at = span[0] + 1
         lines[at:at] = [''] + rows
     else:

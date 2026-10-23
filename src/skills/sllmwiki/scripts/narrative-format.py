@@ -5,7 +5,7 @@ narrative shares (design doc §4.5, §4.8, §4.10).
   narrative-format.py [<narrative.md> ...] [--fix-numbering] [--fix-style] [--json]
       Checks the given narratives, or every one in sllmwiki/narratives/:
         the # title; the template named in Metadata; the template's sections, in
-        order, and its diagrams; heading numbers; the Abstract's word range and
+        order, and its diagrams, in the narrative's language; heading numbers; the Abstract's word range and
         the body's budget; citations (numbered in order, listed, pointing at an
         existing section of a saved source); the markers; leftover <placeholders>;
         and markdown every renderer reads alike, links included.
@@ -17,7 +17,8 @@ narrative shares (design doc §4.5, §4.8, §4.10).
       by the authority of the sources they cite (the reading plan's grades), and
       pictures.
   narrative-format.py --templates     the templates this wiki offers, with use_when and budgets
-  narrative-format.py --skeleton NAME the skeleton a new narrative starts from
+  narrative-format.py --skeleton NAME the skeleton a new narrative starts from, in the wiki's language
+                     [--language TAG]  or in another one (a BCP 47 tag, such as zh-Hans)
 
 Options: --root <wiki>. Exit code: 0 with no errors (warnings are printed),
 1 with errors, 2 on a usage error.
@@ -30,12 +31,12 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import citations, compat, config, figures, layout, numbering, templates  # noqa: E402
+from lib import citations, compat, config, figures, language, layout, numbering, templates  # noqa: E402
 from lib.narrativecheck import check, stats  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, read_text, write_text  # noqa: E402
 
-cli = Cli('narrative-format.py', 'usage: narrative-format.py [<narrative.md> ...] [--fix-numbering] [--fix-style] | --templates | --skeleton NAME')
+cli = Cli('narrative-format.py', 'usage: narrative-format.py [<narrative.md> ...] [--fix-numbering] [--fix-style] | --templates | --skeleton NAME [--language TAG]')
 def main(argv):
     p = argparse.ArgumentParser(prog='narrative-format.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('files', nargs='*')
@@ -43,6 +44,7 @@ def main(argv):
     p.add_argument('--fix-style', action='store_true')
     p.add_argument('--templates', action='store_true')
     p.add_argument('--skeleton', metavar='NAME')
+    p.add_argument('--language', metavar='TAG')
     p.add_argument('--stats', action='store_true')
     p.add_argument('--json', action='store_true')
     p.add_argument('--root')
@@ -64,7 +66,11 @@ def main(argv):
     if args.skeleton:
         if args.skeleton not in offered:
             cli.fail(f'no template {args.skeleton}; there are {", ".join(sorted(offered))}')
-        print(offered[args.skeleton].skeleton(), end='')
+        tag = args.language or config.get(root).settings['language']
+        if not language.pack(tag):
+            print(f'narrative-format: no language pack for {tag}, so the headings are English; '
+                  f'add templates/{language.FOLDER}/{tag}.md to translate them', file=sys.stderr)
+        print(offered[args.skeleton].skeleton(tag), end='')
         return 0
 
     settings = config.get(root).settings

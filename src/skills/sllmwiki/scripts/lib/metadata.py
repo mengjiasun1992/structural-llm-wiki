@@ -4,6 +4,7 @@
 
     - **Version:** 1.1
     - **Template:** technical_brief_overview
+    - **Language:** en
     - **Model:** claude-opus-5-5
     - **Created:** 2026-10-01
     - **Last modified:** 2026-10-21
@@ -22,7 +23,7 @@ import re
 
 from . import numbering
 
-FIELDS = (('version', 'Version'), ('template', 'Template'), ('model', 'Model'), ('created', 'Created'), ('last_modified', 'Last modified'))
+FIELDS = (('version', 'Version'), ('template', 'Template'), ('language', 'Language'), ('model', 'Model'), ('created', 'Created'), ('last_modified', 'Last modified'))
 _FIELD = re.compile(r'- \*\*(?P<name>[^*]+):\*\*[ \t]*(?P<value>.*)\Z')
 _ENTRY = re.compile(r'[ \t]+- (?P<version>[0-9]+\.[0-9]+) \((?P<date>[0-9-]+)\): (?P<note>.*)\Z')
 _STEP = re.compile(r'[ \t]+[0-9]+\. (?P<step>.*)\Z')

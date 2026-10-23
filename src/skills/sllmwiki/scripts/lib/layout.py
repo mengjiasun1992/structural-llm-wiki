@@ -71,6 +71,8 @@ class Cli:
         root = os.path.abspath(root) if root else find_root()
         if not is_wiki(root):
             self.fail(f'{root} is not a wiki (no {TAGS}): run /sllmwiki:init first')
+        from . import language
+        language.use(root)  # a pack that doesn't parse is wiki-check's to report
         return root
 
 
