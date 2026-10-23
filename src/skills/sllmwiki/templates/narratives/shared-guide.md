@@ -32,6 +32,10 @@ The body holds what the reader needs to follow the answer; what they may want bu
 
 Most narratives need at least one diagram, of the flow or of how the parts relate; add more where each shows something new, never one that repeats another's idea. Each is the type that shows its idea best, not always a flowchart: `sequenceDiagram` for messages between parties, `stateDiagram-v2` for states and transitions, `timeline` for history, `quadrantChart` for trade-offs on two axes, `mindmap` for a field's parts, `flowchart` for a process or how parts connect. Color what carries meaning (a group, the failure path, the recommended choice) with `classDef` fills light enough for dark text in light and dark themes, and say in the text what each color means. Keep labels plain text (`s_t`): not every renderer draws math in a diagram.
 
+## Figures
+
+When a mermaid diagram can't show an idea well (a curve or measured data with annotations, geometry, a layout drawn to scale, many series at once) and the wiki's `images` setting is on (the default), draw a figure instead: an SVG you write yourself, or with a short script you run, computed from the narrative's own formulas or from numbers it cites, never traced or copied from a source's figure. Save it as `sllmwiki/narratives/figures/<slug>/<name>.svg` (or `.png`), and show it with `![<what it shows>](figures/<slug>/<name>.svg)`. Start the SVG with a light `<rect>` the size of the figure, with dark text, so it reads in dark themes; keep it self-contained, with no scripts or links. As with a diagram, say before it what it shows and cite the source of its numbers. With `images = false`, use mermaid only.
+
 ## Pseudocode
 
 Pseudocode, in a ```text block, explains an algorithm or a procedure step by step, under the same rule: where it shows what the prose and diagrams don't, never repeating them. Write it yourself in the narrative's notation, and cite the source it follows in the sentence before it; don't copy a source's code.

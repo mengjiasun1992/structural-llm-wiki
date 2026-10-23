@@ -26,6 +26,7 @@ Warnings:
   SOURCE_UPSTREAM_CHANGED   check-upstream found the original changed: re-ingest it
   ABSTRACT_DRAFT            a source still has its starter abstract
   PAGE_HANDWRITTEN          a page where a generated one would go, left alone
+  FIGURE_UNUSED             a figure in narratives/figures/ that no narrative shows
 
 --visibility skips asking GitHub who can see the wiki. Exit code: 0 with no
 errors, 1 with errors, 2 on a usage error.
@@ -37,7 +38,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import compat, config, footer, layout, manifest, policy, schema, tagtree, wikiindex, wikiyaml  # noqa: E402
+from lib import compat, config, figures, footer, layout, manifest, policy, schema, tagtree, wikiindex, wikiyaml  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, read_bytes, read_text, source_hash  # noqa: E402
 
@@ -112,6 +113,7 @@ def check(root, fix=False, seen_by=None):
                 add(('warning', 'NARRATIVE_SOURCE_CHANGED', f'{layout.NARRATIVES}/{slug}.md',
                      f'{slug} was built on an older version of {src}: lint it against the new one'))
 
+    out += figures.unused(root)
     findings, changed = wikiindex.sync(root, fix)
     out += [(sev, code, rel, msg) for sev, code, rel, msg in findings if not (fix and rel in changed)]
     for rel in pages(root):  # after --fix, so a page it regenerates is checked as it now is

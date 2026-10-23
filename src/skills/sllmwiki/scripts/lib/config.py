@@ -5,6 +5,7 @@
     max_quote_words = 50
     smes_exclude = []
     markers = true
+    images = true
 
     [structural-llm-wiki-templates.technical_brief_overview]
     max_words = 3000
@@ -38,6 +39,7 @@ DEFAULTS = {
     'max_quote_words': 50,     # the longest quotation a narrative may take from a source
     'smes_exclude': [],        # people and bots never listed as SMEs
     'markers': True,           # the [sllmwiki_reasoning] and [sllmwiki_gap] markers (design doc §4.10)
+    'images': True,            # generated figures in narratives/figures/, where mermaid can't show an idea well (design doc §4.5)
 }
 SOURCE_COPIES = ('allow', 'links-only')
 TEMPLATE_KEYS = ('max_words', 'abstract_words')

@@ -120,6 +120,7 @@ source_copies = "allow"     # or "links-only": keep no copies, only links
 max_quote_words = 50        # the longest quotation a narrative may take
 smes_exclude = []           # never listed as SMEs, such as the wiki's owner or bots
 markers = true              # false: no reasoning or gap markers
+images = true               # false: diagrams in mermaid only, no generated figures
 
 [structural-llm-wiki-templates.technical_brief_overview]
 max_words = 3000            # a template's word budget, over its own
