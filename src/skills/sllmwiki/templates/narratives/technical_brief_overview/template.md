@@ -23,15 +23,15 @@ abstract_words: [80, 150]
 
 ## 6. Variants (optional)
 
-<Each common variant of the basic form: what it changes, and when to use it.>
+<At most two variants of the basic form, those the running example needs or a reader is likely to meet: what each changes, and when to use it.>
 
 ## 7. Design decisions and trade-offs
 
-<Each decision: the choice, what it buys, what it costs, and when the other choice wins; each parameter with a typical value and a rule for choosing it.>
+<The decisions that change how the running example behaves, about three: the choice, what it buys, what it costs, and when the other choice wins; each parameter with a typical value and a rule for choosing it.>
 
 ## 8. Limitations and failure modes
 
-<What breaks, how it shows, and what to do about it.>
+<The few limits that matter most, about three: what breaks, how it shows, and what to do about it.>
 
 ## 9. Misconceptions (optional)
 

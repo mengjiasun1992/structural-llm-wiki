@@ -133,3 +133,33 @@ def check(root, rel, text, settings, offered):
     out += compat.check(text)
     out += compat.check_links(text, os.path.dirname(os.path.join(root, rel)), root)
     return sorted(out, key=lambda f: f[2])
+
+
+def stats(root, rel, text, offered):
+    """The numbers lint grades a narrative's aim with: its body against the budget, the words in each of
+    its template's sections, its subsections, citations by the authority of what they cite, markers and pictures."""
+    name = metadata.read(text)['template']
+    template = offered.get(name)
+    heads = [h for h in numbering.headings(text) if h.level == 2]
+    lines = text.split('\n')
+    sections = []
+    for i, h in enumerate(heads):
+        title = markers.unmark(h.title)
+        if title.lower() in [s.lower() for s in SHARED_TOP + SHARED_BOTTOM] and title != 'Appendix':
+            continue
+        end = heads[i + 1].line if i + 1 < len(heads) else len(lines)
+        sections.append({'section': title, 'words': words(lines[h.line + 1:end]),
+                         'subsections': sum(1 for s in numbering.headings('\n'.join(lines[h.line + 1:end])) if s.level in (3, 4))})
+    slug = os.path.splitext(os.path.basename(rel))[0]
+    grades = (manifest.load(root, 'narratives').get(slug) or {}).get('grades') or {}
+    by = {'A': 0, 'B': 0, 'C': 0, 'ungraded': 0}
+    for c in citations.cites(text):
+        if c.slug:
+            by[(grades.get(c.slug) or {}).get('authority', 'ungraded')] += 1
+    used = markers.uses(text)
+    return {'file': rel, 'template': name, 'budget': template.max_words if template else None,
+            'body_words': words(body_lines(text)), 'abstract_words': words(metadata.abstract(text).split('\n')),
+            'sections': sections, 'citations': by,
+            'markers': {'statements': sum(1 for i, _, _ in used if not lines[i].lstrip().startswith('#')),
+                        'headings': sum(1 for i, _, _ in used if lines[i].lstrip().startswith('#'))},
+            'pictures': len(figures.pictures(text))}

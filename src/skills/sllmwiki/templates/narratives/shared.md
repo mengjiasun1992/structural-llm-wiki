@@ -14,7 +14,7 @@ A narrative answers one question, for the reader its template's guide names. It 
 
 ## Other narratives
 
-When the narrative mentions a concept another narrative covers, reuse that narrative's own sentence for it, word for word (its definition, or the sentence that sums the concept up), and link to it there, to its section where one fits, instead of explaining it again. The reading plan names the related narratives.
+When the narrative mentions a concept another narrative covers, say it in a sentence consistent with that narrative and link to it there, to its section where one fits, instead of explaining it again. The reading plan names the related narratives.
 
 ## Citations
 

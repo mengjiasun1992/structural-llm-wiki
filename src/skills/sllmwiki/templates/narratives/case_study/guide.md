@@ -4,6 +4,8 @@
 
 **Takeaway:** a reader new to the case knows what happened and why, and can apply its lessons elsewhere.
 
+**Aim:** concrete, faithful, deep on one case. Concrete: real numbers, times and components. Faithful: the case as its records tell it, each event cited. Deep: the one case followed to its causes; other cases only in a sentence.
+
 A reader who knows, or is learning, a concept or a domain, and wants to see it at work in one of the cases it's known by: a production system, an incident, a design decision. The case teaches the ideas by showing them in action; the ideas themselves are linked to their own narratives, not taught here.
 
 ## Voice and tone
