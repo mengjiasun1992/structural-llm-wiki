@@ -2,7 +2,7 @@
 description: How a system or mechanism works, end to end
 use_when: 'A solution, an algorithm, or the design of a component or for a problem: "How does X work?", "What is X, and how does it work?", "How does X do Y?"'
 max_words: 1800
-abstract_words: [80, 200]
+abstract_words: [80, 150]
 ---
 
 ## 3. Background

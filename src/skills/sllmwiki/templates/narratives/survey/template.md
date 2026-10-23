@@ -2,7 +2,7 @@
 description: The main parts of a domain or an umbrella term, wide over deep
 use_when: 'Anything not concrete, a domain or an umbrella term over subtopics that each go deep: "What are the principles of X?", "What are the main approaches to X?", "What does X cover?"'
 max_words: 2200
-abstract_words: [80, 200]
+abstract_words: [80, 150]
 ---
 
 ## 3. Overview

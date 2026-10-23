@@ -2,7 +2,7 @@
 
 ## 1. Abstract
 
-<One sentence on the problem and who has it, then the answer in two or three, for a reader deciding whether to read on.>
+<One sentence on the problem and who has it, then the answer in two or three, for a reader deciding whether to read on; with the takeaways, at most 150 words.>
 
 **Key takeaways:**
 

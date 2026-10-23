@@ -19,7 +19,7 @@ class Bundled(helpers.WikiTestCase):
         self.assertEqual(sorted(found), ['case_study', 'comparison', 'concept_brief_overview', 'survey', 'technical_brief_overview'])
         self.assertEqual([found[n].max_words for n in sorted(found)], [1500, 1200, 900, 2200, 1800])
         t = found['technical_brief_overview']
-        self.assertEqual((t.source, t.max_words, t.abstract_words), ('bundled', 1800, [80, 200]))
+        self.assertEqual((t.source, t.max_words, t.abstract_words), ('bundled', 1800, [80, 150]))
         self.assertTrue(t.use_when.startswith('A solution, an algorithm'))
 
     def test_the_skeleton_is_the_schema(self):
@@ -87,7 +87,7 @@ class WikiTemplates(helpers.WikiTestCase):
                                   '[structural-llm-wiki-templates.concept_brief_overview]\nabstract_words = [100, 300]\n')
         found, problems = templates.available(self.root)
         self.assertEqual(problems, [])
-        self.assertEqual((found['technical_brief_overview'].max_words, found['technical_brief_overview'].abstract_words), (3000, [80, 200]))
+        self.assertEqual((found['technical_brief_overview'].max_words, found['technical_brief_overview'].abstract_words), (3000, [80, 150]))
         self.assertEqual(found['concept_brief_overview'].abstract_words, [100, 300])
 
     def test_problems(self):

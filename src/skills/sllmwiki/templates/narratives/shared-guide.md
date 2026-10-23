@@ -26,11 +26,11 @@ A template's sections are where content goes, not a form to fill. When an option
 
 ## Detail in its place
 
-The body holds what the reader needs to follow the answer; what they may want but don't need goes in the Appendix, linked from where it's relevant. Over the template's budget, move a secondary example or variant to the Appendix, or cut it; never cut the context.
+The body holds what the reader needs to follow the answer; what they may want but don't need goes in the Appendix, linked from where it's relevant. The budget is a ceiling, not a target: stop once the question is answered. Over it, move a secondary example or variant to the Appendix; never cut context.
 
 ## Diagrams
 
-Most narratives need at least one diagram, of the flow or of how the parts relate; add more where each shows something new, never one that repeats another's idea. Each is the type that shows its idea best, not always a flowchart: `sequenceDiagram` for messages between parties, `stateDiagram-v2` for states and transitions, `timeline` for history, `quadrantChart` for trade-offs on two axes, `mindmap` for a field's parts, `flowchart` for a process or how parts connect. Color what carries meaning (a group, the failure path, the recommended choice) with `classDef` fills light enough for dark text in light and dark themes. Keep labels plain text (`s_t`): not every renderer draws math in a diagram.
+Most narratives need at least one diagram, of the flow or how the parts relate; add more only where each shows something new. Each is the type that shows its idea best, not always a flowchart: `sequenceDiagram` for messages between parties, `stateDiagram-v2` for states and transitions, `timeline` for history, `quadrantChart` for trade-offs on two axes, `mindmap` for a field's parts, `flowchart` for a process or how parts connect. Color what carries meaning (a group, the failure path, the recommended choice) with `classDef` fills light enough for dark text in light and dark themes. Keep labels plain text (`s_t`): not every renderer draws math in a diagram.
 
 **Captions.** After each diagram or figure, on a line of its own, its caption: `*Figure 5-1: <what it shows; what each color means>.*`, numbered by its ## section and its place there. Say what a picture shows once, in its caption: no sentence before it describes it again. The text names it by its label where the reader should look ("the groups in Figure 4-1"). With the alt text, the caption spares an agent opening the image. `finish-narrative.py` keeps the numbers in order.
 

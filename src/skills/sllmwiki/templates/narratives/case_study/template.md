@@ -2,7 +2,7 @@
 description: One classic case of a concept or domain, gone deep, and what it teaches
 use_when: 'A particular system, incident or decision that a concept or domain is known by, studied in depth: "How does <system> use X?", "What happened in <incident>, and what does it teach?", "Case study: X at <organization>"'
 max_words: 1500
-abstract_words: [80, 200]
+abstract_words: [80, 150]
 ---
 
 ## 3. Context
