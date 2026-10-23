@@ -1,5 +1,7 @@
 # {📖} Structural LLM Wiki
 
+![Structural LLM Wiki: your sources, papers, code, web pages and design docs, are drawn into braces around an open book, each claim on its pages tied by a thread to the source it came from. Ask your agent a question; get an answer that teaches, every claim tied to its source, reviewed like code.](docs/images/hero.svg)
+
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757.svg)](#setup)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](#requirements)
@@ -12,12 +14,7 @@
 - **For tech leads,** it's onboarding that stays current, with every change reviewed and the reasons behind the design kept next to it.
 - **For researchers,** it's a structured, cited review of a field: definitions taken from the sources that state them most rigorously, and every claim one click from its evidence.
 
-![What using it is like: you ask in one line and review one pull request; your agent does the research in between, saving 29 sources, writing 4 narratives and citing 255 claims, each checked against its source; you get a wiki of answers that last, every claim one click from its source](docs/images/what-you-get.svg)
-
 Unlike an answer in a chat session, the knowledge stays: narratives build on and link to each other, and when a source changes, exactly the narratives built on it are flagged for review.
-
-> [!NOTE]
-> The skill is being rebuilt to the design below, phase by phase ([the plan](docs/skill_execution_plan.md)). Until its first release, installing it gives you an unfinished skill.
 
 ## Why it's different
 
@@ -33,33 +30,7 @@ Inspired by Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpath
 
 ## What it's like to use
 
-Three moments, from your side:
-
-```mermaid
-sequenceDiagram
-    actor You
-    participant A as Your agent
-    participant W as {📖} Your wiki
-    rect rgb(237, 233, 254)
-    Note over You,W: Ask anything, any time
-    You->>A: /sllmwiki:query "How does the gateway retry?"
-    A->>W: reads the least that answers
-    A-->>You: an answer in seconds: each claim cited, and who to ask
-    end
-    rect rgb(219, 234, 254)
-    Note over You,W: Grow it by asking questions
-    You->>A: /sllmwiki:build "Why does the gateway retry, and when does it stop?"
-    Note over A: researches, writes and checks, while you're away
-    A-->>You: one pull request: a checklist, the open decisions first
-    You->>A: a comment where it should change
-    A-->>You: the same pull request, reworked
-    You->>W: merge
-    end
-    rect rgb(254, 243, 199)
-    Note over You,W: It stays true
-    W-->>You: a source changed: exactly the answers built on it are flagged
-    end
-```
+![Three moments, from your side. Ask anything: an answer in seconds, each claim cited, and who to ask. Grow it by asking: it researches while you're away, and you review one pull request; nothing lands till you merge. It stays true: when a source changes, exactly the answers that rest on it are flagged, and the rest stay untouched.](docs/images/three-moments.svg)
 
 **Ask anything, any time.** `/sllmwiki:query` answers from what the wiki already knows, reading as little as it can, so most answers come back in seconds. Every claim cites the narrative or source it came from, and the answer names the people who know the area. If the wiki doesn't cover the question yet, you still get an answer, clearly labeled DRAFT, and an offer to research it properly.
 
@@ -67,7 +38,7 @@ sequenceDiagram
 
 **It stays true.** Every answer records the source versions it was built from and the answers it builds on. When a source changes, or an answer is rewritten, exactly the answers that depend on it are flagged, so you recheck those and nothing else.
 
-![The five kinds of answers: "What is X?" gets a one-line definition that builds the intuition, then the rigorous one and its edge cases; "How does X work?" gets one real example walked through with its numbers and a diagram; "What are the principles of X?" gets a map of the field first; "X or Y?" gets the answer first as a decision tree, then each option and when it wins; "What happened in X?" gets the timeline, the chain of causes and lessons](docs/images/answer-shapes.svg)
+![Every kind of question gets the shape that teaches it. What is X? In short, then rigorously, and its edge cases. How does X work? One real example, walked through with its numbers. Principles of X? The field mapped first, then each idea in brief. X or Y? Every option compared, and the rule for when each wins. What happened? The timeline, the chain of causes, and the lessons.](docs/images/answer-shapes.svg)
 
 ### What's in your wiki
 
@@ -190,4 +161,4 @@ claude --plugin-dir .
 
 ## License
 
-[Apache 2.0](LICENSE)
+Copyright 2026 Mengjia Sun. Licensed under the [Apache License, Version 2.0](LICENSE); see [NOTICE](NOTICE).

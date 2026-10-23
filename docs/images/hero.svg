@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="440" viewBox="0 0 1200 440" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#f5b544" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#f5b544" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.2" fill="#2c3263"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="440" rx="18" fill="#161a36"/>
+  <rect width="1200" height="440" rx="18" fill="url(#dots)"/>
+
+  <!-- the sources, loose -->
+  <g stroke-linecap="round">
+    <g transform="translate(70 70) rotate(-8)">
+      <rect width="120" height="150" rx="8" fill="#f3ecdc"/>
+      <rect x="14" y="16" width="70" height="9" rx="4" fill="#161a36"/>
+      <path d="M14 40h92M14 54h92M14 68h80M14 90h92M14 104h92M14 118h60" stroke="#b8ad95" stroke-width="5"/>
+      <text x="14" y="140" font-size="11" font-weight="700" fill="#8a7f68">PAPER</text>
+    </g>
+    <g transform="translate(212 52) rotate(6)">
+      <rect width="128" height="104" rx="8" fill="#232a55"/>
+      <circle cx="14" cy="14" r="4" fill="#f26d6d"/><circle cx="28" cy="14" r="4" fill="#f5b544"/><circle cx="42" cy="14" r="4" fill="#6fd39a"/>
+      <path d="M16 40h30M30 56h58M30 70h40M16 86h22" stroke="#8fa2ff" stroke-width="5"/>
+      <text x="80" y="96" font-size="11" font-weight="700" fill="#8fa2ff">CODE</text>
+    </g>
+    <g transform="translate(96 262) rotate(5)">
+      <rect width="132" height="112" rx="8" fill="#f3ecdc"/>
+      <rect width="132" height="22" rx="8" fill="#ddd3bd"/>
+      <path d="M14 42h104M14 56h104M14 70h70M14 84h104" stroke="#b8ad95" stroke-width="5"/>
+      <text x="14" y="104" font-size="11" font-weight="700" fill="#8a7f68">WEB PAGE</text>
+    </g>
+    <g transform="translate(250 196) rotate(-5)">
+      <rect width="112" height="140" rx="8" fill="#f3ecdc"/>
+      <path d="M14 22h60M14 40h84M14 54h84M14 68h56M14 86h84M14 100h70" stroke="#b8ad95" stroke-width="5"/>
+      <text x="14" y="128" font-size="11" font-weight="700" fill="#8a7f68">DESIGN DOC</text>
+    </g>
+  </g>
+
+  <!-- the mark: braces around an open book -->
+  <circle cx="610" cy="220" r="190" fill="url(#glow)"/>
+  <g fill="none" stroke="#f5b544" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M470 80 C 438 80 434 92 434 120 L 434 182 C 434 204 424 218 404 220 C 424 222 434 236 434 258 L 434 320 C 434 348 438 360 470 360"/>
+    <path d="M750 80 C 782 80 786 92 786 120 L 786 182 C 786 204 796 218 816 220 C 796 222 786 236 786 258 L 786 320 C 786 348 782 360 750 360"/>
+  </g>
+  <g>
+    <path d="M610 142 C 572 124 524 120 482 130 L 482 306 C 524 296 572 300 610 318 Z" fill="#fbf6ea"/>
+    <path d="M610 142 C 648 124 696 120 738 130 L 738 306 C 696 296 648 300 610 318 Z" fill="#f3ecdc"/>
+    <path d="M610 142 L 610 318" stroke="#d6cbb2" stroke-width="2"/>
+    <g stroke="#9b917b" stroke-width="4" stroke-linecap="round">
+      <path d="M500 160 h58 M500 176 h88 M500 192 h70 M500 214 h54 M500 230 h88 M500 246 h70 M500 278 h56"/>
+      <path d="M628 160 h90 M628 176 h40 M628 192 h76 M628 214 h90 M628 230 h70 M628 256 h90 M628 272 h48"/>
+    </g>
+    <g font-size="11" font-weight="800" fill="#161a36" text-anchor="middle">
+      <rect x="566" y="152" width="20" height="16" rx="4" fill="#f5b544"/><text x="576" y="164">1</text>
+      <rect x="562" y="206" width="20" height="16" rx="4" fill="#f5b544"/><text x="572" y="218">2</text>
+      <rect x="564" y="270" width="20" height="16" rx="4" fill="#f5b544"/><text x="574" y="282">3</text>
+      <rect x="676" y="168" width="20" height="16" rx="4" fill="#f5b544"/><text x="686" y="180">4</text>
+    </g>
+  </g>
+
+  <!-- the threads: each claim back to its source -->
+  <g fill="none" stroke="#f5b544" stroke-width="2" stroke-dasharray="2 6" stroke-linecap="round" opacity="0.85">
+    <path d="M196 118 C 330 100, 470 150, 566 160"/>
+    <path d="M336 96 C 470 60, 640 120, 686 168"/>
+    <path d="M364 250 C 440 240, 500 220, 562 214"/>
+    <path d="M228 330 C 380 340, 500 300, 564 280"/>
+  </g>
+
+  <!-- the words -->
+  <text x="868" y="168" font-size="34" font-weight="800" fill="#fbf6ea">Structural</text>
+  <text x="868" y="208" font-size="34" font-weight="800" fill="#fbf6ea">LLM Wiki</text>
+  <text x="868" y="252" font-size="17" fill="#c9c3b3">Ask your agent a question.</text>
+  <text x="868" y="276" font-size="17" fill="#c9c3b3">Get an answer that teaches,</text>
+  <text x="868" y="300" font-size="17" fill="#c9c3b3">every claim tied to its source,</text>
+  <text x="868" y="324" font-size="17" fill="#f5b544" font-weight="700">reviewed like code.</text>
+</svg>
