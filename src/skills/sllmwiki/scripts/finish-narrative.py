@@ -6,8 +6,9 @@ in one command (design doc §7.5).
                       [--grades GRADES.json] [--model NAME]
                       [--bump minor|major --note TEXT] [--json] [--root <wiki>]
 
-In order: numbers the headings and figure captions; writes the renderer escapes; adds a Terminology
-row for each marker the narrative uses (when markers are on); sets the
+In order: numbers the headings and figure captions; repairs links to a renumbered
+section of another narrative; writes the renderer escapes; converts old markers
+and adds a Terminology row for each marker the narrative uses (when markers are on); sets the
 Metadata's dates and, for a new narrative, version 1.0 and its first history
 entry, or with --bump, the next version and --note as its history entry;
 records the narrative with its template, tags, the current pins of the sources
@@ -29,7 +30,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import compat, config, figures, layout, manifest, markers, metadata, numbering, readingplan, runstats, templates, wikiindex  # noqa: E402
+from lib import compat, config, figures, layout, manifest, markers, metadata, numbering, readingplan, runstats, templates, wikiindex, xrefs  # noqa: E402
 from lib.narrativecheck import check as check_narrative  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, read_text, today, write_text  # noqa: E402
@@ -94,6 +95,8 @@ def main(argv):
     done += [f'numbered {n} heading(s)'] if n else []
     text, n = figures.renumber(text)
     done += [f'numbered {n} figure caption(s)'] if n else []
+    text, n = xrefs.repair(root, rel, text)
+    done += [f'repaired {n} link(s) to a renumbered section of another narrative'] if n else []
     text, n = compat.escape(text)
     done += [f'wrote {n} renderer escape(s)'] if n else []
     if settings['markers']:

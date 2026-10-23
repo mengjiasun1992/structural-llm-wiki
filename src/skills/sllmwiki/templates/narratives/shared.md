@@ -12,6 +12,10 @@ A narrative answers one question, for the reader its template's guide names. It 
 - **References:** the sources read in full, then the Citations list, which gives each citation number its target once.
 - **Metadata:** version, template, model, dates, history and the reading plan. `finish-narrative.py` keeps it.
 
+## Other narratives
+
+When the narrative mentions a concept another narrative covers, link to it there, to its section where one fits, instead of explaining it again: at most a sentence, in that narrative's words. The reading plan names the related narratives.
+
 ## Citations
 
 Every claim a source makes is cited, after a space, with a numbered link to the section that makes it:
