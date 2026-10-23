@@ -2,7 +2,6 @@
 
     ## 9. Metadata
 
-    - **ID:** retry-backoff
     - **Version:** 1.1
     - **Template:** technical_brief_overview
     - **Model:** claude-opus-5-5
@@ -23,7 +22,7 @@ import re
 
 from . import numbering
 
-FIELDS = (('id', 'ID'), ('version', 'Version'), ('template', 'Template'), ('model', 'Model'), ('created', 'Created'), ('last_modified', 'Last modified'))
+FIELDS = (('version', 'Version'), ('template', 'Template'), ('model', 'Model'), ('created', 'Created'), ('last_modified', 'Last modified'))
 _FIELD = re.compile(r'- \*\*(?P<name>[^*]+):\*\*[ \t]*(?P<value>.*)\Z')
 _ENTRY = re.compile(r'[ \t]+- (?P<version>[0-9]+\.[0-9]+) \((?P<date>[0-9-]+)\): (?P<note>.*)\Z')
 _STEP = re.compile(r'[ \t]+[0-9]+\. (?P<step>.*)\Z')

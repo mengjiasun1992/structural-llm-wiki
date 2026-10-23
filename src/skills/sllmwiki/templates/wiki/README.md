@@ -4,7 +4,7 @@ A Structural LLM Wiki: this team's knowledge, kept in git by a coding agent with
 
 - **Ask it:** `/sllmwiki:query "How does the gateway retry failed requests?"` answers from what the wiki already knows, citing it.
 - **Grow it:** `/sllmwiki:build "How does the gateway route requests?"` finds sources, writes an answer whose every claim is cited, and opens one pull request for you to review and merge.
-- **Browse it:** [SLLMWIKI_INDICES.md](SLLMWIKI_INDICES.md) maps the topics; each opens a page of its narratives, sources and who to ask. [SLLMWIKI_TERMS.md](SLLMWIKI_TERMS.md) lists the terms the narratives define.
+- **Browse it:** [SLLMWIKI_INDICES.md](SLLMWIKI_INDICES.md) maps the topics; each opens a page of its narratives, sources and who to ask.
 
 ## What's here
 

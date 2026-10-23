@@ -16,16 +16,15 @@ Read in that order, each source once, and only what the plan says: whole sources
 
 - **Template:** pick one with `narrative-format.py --templates`, by its use_when, and start from `narrative-format.py --skeleton <template>`. When none fits the subject, take the closest.
 - **Where:** save the narrative as `sllmwiki/narratives/<question-slug>.md`.
-- **ID:** a short kebab-case name for its subject, unique in the wiki (`distributed-system`, `ewma`), which other narratives use to borrow its terms; pass it once, as `finish-narrative.py --id`.
 - **What to follow:**
   - the template's `guide.md`, for its reader, structure and style;
-  - `templates/narratives/shared.md`, for what every narrative shares: one language with the rest of the wiki, citations, markers and quoting;
+  - `templates/narratives/shared.md`, for what every narrative shares: citations, markers and quoting;
   - `templates/narratives/shared-guide.md`, for the style every narrative shares: diagrams, pseudocode and math.
 - **Updating:** keep the narrative's version history and say what changed.
 
 ## 4. Finish
 
-1. Run `finish-narrative.py <slug> --id <id> --primary <tags> --supporting <tags> --read <the slugs read in full> --grades <file>`, with the grades file from step 3 (`--id` only the first time).
+1. Run `finish-narrative.py <slug> --primary <tags> --supporting <tags> --read <the slugs read in full> --grades <file>`, with the grades file from step 3.
    - On an update, add `--bump minor --note "<what changed>"`, or `major` for a new answer.
 2. Fix every error it reports, by editing the narrative, then run it again until none are left.
 

@@ -5,7 +5,7 @@ citations, markers, placeholders and markdown every renderer reads alike."""
 import os
 import re
 
-from . import citations, compat, figures, manifest, markers, mdlinks, metadata, numbering, quotes, vocabulary
+from . import citations, compat, figures, manifest, markers, mdlinks, metadata, numbering, quotes
 from .compat import mask_code_spans, mask_math_spans, scan
 
 PLACEHOLDER = re.compile(r'<(?!https?://|mailto:|/)[^<>\n]*\s[^<>\n]*>')
@@ -114,7 +114,6 @@ def check(root, rel, text, settings, offered):
     out += quotes.check(root, rel, text, settings['max_quote_words'])
     out += figures.check(root, rel, text, settings['images'])
     out += figures.check_captions(text)
-    out += vocabulary.check_one(root, rel, text)
     lines = text.split('\n')
     kinds, _ = scan(lines)
     for i, line in enumerate(lines):

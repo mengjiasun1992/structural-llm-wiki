@@ -42,7 +42,7 @@ PLUGIN_JSON = os.path.normpath(os.path.join(SKILL, '..', '..', '..', '.claude-pl
 WORKFLOWS = ('wiki-checks.yml', 'review-checklist.yml')
 # What may already be in a folder that becomes a wiki: a new repository's files
 EXPECTED = {'.git', 'README.md', 'LICENSE', 'LICENSE.md', '.gitignore', '.github', '.claude', 'CLAUDE.md', 'AGENTS.md', '.DS_Store',
-            'Config.toml', 'SLLMWIKI_INDICES.md', 'SLLMWIKI_TERMS.md', 'sllmwiki', 'templates'}
+            'Config.toml', 'SLLMWIKI_INDICES.md', 'sllmwiki', 'templates'}
 
 
 def action_ref():

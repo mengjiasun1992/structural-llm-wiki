@@ -31,7 +31,6 @@ A wiki is its own git repository. Its knowledge lives in `sllmwiki/`:
 | **Tags** | `sllmwiki/tags/` | A tree of topics, each with a page listing its sources, narratives and the people who know it |
 | **Narratives** | `sllmwiki/narratives/` | One answer per question, opening with an abstract, every claim cited |
 | **Index** | `SLLMWIKI_INDICES.md` | A clickable map of the tag tree, for GitHub |
-| **Terms** | `SLLMWIKI_TERMS.md` | Every term the narratives define, each in one narrative that the others borrow it from |
 
 Two workflows use it: `build` adds knowledge and `query` answers from it.
 

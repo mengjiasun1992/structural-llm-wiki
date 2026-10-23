@@ -15,12 +15,8 @@ Errors:
   PIN_UNKNOWN               a narrative is pinned to a source that isn't recorded or has no copy
   SOURCE_ATTRIBUTION        a saved source lacks its footer, or the footer's URL isn't its recorded URL
   SOURCE_POLICY             a saved copy the source policy doesn't allow (design doc §4.7)
-  INDEX_OUTDATED, TERMS_OUTDATED, TAG_PAGE_OUTDATED, TAG_PAGE_ORPHAN
+  INDEX_OUTDATED, TAG_PAGE_OUTDATED, TAG_PAGE_ORPHAN
                             a generated page is out of date (--fix rewrites it)
-  NARRATIVE_ID_DUPLICATE    two narratives share an ID
-  TERM_OWNER                a borrowed term whose narrative doesn't exist or doesn't define it
-  NARRATIVE_ANCHOR          a link to a section of another narrative that isn't there (--fix
-                            repairs one whose section only moved)
   WIKILINK, HIGHLIGHT, CALLOUT, DOLLAR_MATH, LINK_PATH, ...
                             on any page under sllmwiki/ but the sources, markdown a
                             renderer would show wrong: GitHub, Obsidian or a book
@@ -31,9 +27,6 @@ Warnings:
   ABSTRACT_DRAFT            a source still has its starter abstract
   PAGE_HANDWRITTEN          a page where a generated one would go, left alone
   FIGURE_UNUSED             a figure in narratives/figures/ that no narrative shows
-  NARRATIVE_ID_MISSING      a narrative with no ID in its Metadata
-  TERM_DEFINED_TWICE        two narratives define the same term: one should borrow it
-  TERM_DRIFT                a borrowed term no longer matches its owner's definition
 
 --visibility skips asking GitHub who can see the wiki. Exit code: 0 with no
 errors, 1 with errors, 2 on a usage error.
@@ -45,7 +38,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import compat, config, figures, footer, layout, manifest, policy, schema, tagtree, vocabulary, wikiindex, wikiyaml  # noqa: E402
+from lib import compat, config, figures, footer, layout, manifest, policy, schema, tagtree, wikiindex, wikiyaml  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, read_bytes, read_text, source_hash  # noqa: E402
 
@@ -121,7 +114,6 @@ def check(root, fix=False, seen_by=None):
                      f'{slug} was built on an older version of {src}: lint it against the new one'))
 
     out += figures.unused(root)
-    out += vocabulary.check(root, fix)
     findings, changed = wikiindex.sync(root, fix)
     out += [(sev, code, rel, msg) for sev, code, rel, msg in findings if not (fix and rel in changed)]
     for rel in pages(root):  # after --fix, so a page it regenerates is checked as it now is

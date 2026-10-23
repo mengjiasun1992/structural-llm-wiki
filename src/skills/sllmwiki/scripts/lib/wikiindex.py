@@ -4,7 +4,7 @@ nested list; and pages(), every generated page with its text."""
 
 import os
 
-from . import layout, metadata, tagpages, tagtree, vocabulary
+from . import layout, metadata, tagpages, tagtree
 from .compat import escape
 from .util import read_text
 
@@ -48,7 +48,7 @@ def pages(root):
     """{repository-relative path: text} of every page the wiki generates."""
     tree = tagtree.load(root)
     qs = questions(root, tree)
-    out = {layout.INDEX: render(tree, qs), layout.TERMS: vocabulary.render(root)}
+    out = {layout.INDEX: render(tree, qs)}
     for tag in tree.tags:
         out[tagpages.path(tag)] = tagpages.render(tree, tag, qs)
     return out
@@ -65,11 +65,10 @@ def sync(root, write):
         have = read_text(path) if os.path.isfile(path) else None
         if have == text:
             continue
-        if have is not None and not (tagpages.is_generated(have) or GENERATED in have or vocabulary.GENERATED in have):
+        if have is not None and not (tagpages.is_generated(have) or GENERATED in have):
             findings.append(('warning', 'PAGE_HANDWRITTEN', rel, f'{rel} has no generated marker, so it\'s left alone; rename it to let the wiki generate it'))
             continue
-        code = {layout.INDEX: 'INDEX_OUTDATED', layout.TERMS: 'TERMS_OUTDATED'}.get(rel, 'TAG_PAGE_OUTDATED')
-        findings.append(('error', code, rel, f'{rel} is out of date (wiki-check.py --fix)'))
+        findings.append(('error', 'INDEX_OUTDATED' if rel == layout.INDEX else 'TAG_PAGE_OUTDATED', rel, f'{rel} is out of date (wiki-check.py --fix)'))
         if write:
             os.makedirs(os.path.dirname(path) or root, exist_ok=True)
             with open(path, 'w', encoding='utf-8', newline='') as f:

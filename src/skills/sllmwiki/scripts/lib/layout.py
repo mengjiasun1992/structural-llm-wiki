@@ -20,7 +20,6 @@ NARRATIVES = f'{CONTENT}/narratives'
 NARRATIVES_MANIFEST = f'{NARRATIVES}/manifest.yaml'
 OBSIDIAN_GRAPH = f'{CONTENT}/.obsidian/graph.json'
 INDEX = 'SLLMWIKI_INDICES.md'
-TERMS = 'SLLMWIKI_TERMS.md'
 TEMPLATES = 'templates'
 CONFIG = 'Config.toml'
 
