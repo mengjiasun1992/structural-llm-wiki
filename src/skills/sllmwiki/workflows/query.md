@@ -1,6 +1,6 @@
 # query: answer from the wiki
 
-Answer a question from what the wiki already knows, reading as little as possible. Never change the wiki.
+Answer a question from what the wiki already knows, reading as little as possible. Never change the wiki. A request that names only a topic isn't a question yet: ask first (`SKILL.md`).
 
 1. **Find.** Turn the question into keywords with synonyms, then `search.py context "<keywords>"`: the matching tags and the top narratives' abstracts.
 2. **Answer from the smallest thing that answers,** stopping as soon as you can:

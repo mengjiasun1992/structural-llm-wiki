@@ -1,6 +1,6 @@
 ---
 name: sllmwiki
-description: Build and use a Structural LLM Wiki, a git repository of topic tags, verbatim sources and narratives where every claim traces to a source section and every change lands as one pull request. Use to answer a question from the wiki in this repository (even "just answer" ones), to research questions and add the answers, to save sources, to write or update a narrative, or to set up a wiki repository. Triggers include "according to the wiki", "what does the wiki say about", "ask the wiki", "build up", "add to the wiki", "ingest", "write a narrative", "set up a wiki".
+description: Build and use a Structural LLM Wiki, a git repository of topic tags, verbatim sources and narratives where every claim traces to a source section and every change lands as one pull request. Use to answer a question from the wiki in this repository (even "just answer" ones), to research questions and add the answers, to save sources, to write or update a narrative, or to set up a wiki repository. Also use for a bare topic named in a wiki repository ("look into X", "dig into X", "X?"), to ask what to do with it. Triggers include "according to the wiki", "what does the wiki say about", "ask the wiki", "look into", "build up", "add to the wiki", "ingest", "write a narrative", "set up a wiki".
 ---
 
 # sllmwiki
@@ -9,6 +9,7 @@ A wiki is a git repository whose knowledge lives in `sllmwiki/`: sources saved v
 
 | The request | Read |
 |---|---|
+| **A topic named alone, with no question or job** ("look into alpha retries") | nothing yet: ask first (below) |
 | A question to answer from the wiki | `workflows/query.md` |
 | Questions to research and add to the wiki | `workflows/build.md` |
 | Set up a wiki repository | `workflows/init.md` |
@@ -18,7 +19,7 @@ A wiki is a git repository whose knowledge lives in `sllmwiki/`: sources saved v
 | Check narratives against their sources, the code and each other | `steps/lint.md` |
 | Find the people who know a topic | `steps/smes.md` |
 
-A request naming a topic but not the job ("look into alpha retries"): ask whether to answer from the wiki or to research it, recommending one; change nothing until told.
+**Ask first on a bare topic.** Don't answer it and don't research it: run `search.py context "<topic>"` to see what the wiki already has, then ask whether to answer from the wiki or to research it and add the answers, saying what the wiki holds on it (the matching narratives' questions) and recommending one, with two or three questions a narrative could answer. Read no narrative and change nothing until told.
 
 ## Before anything
 
