@@ -7,7 +7,7 @@
 ## 2. Plan the reading
 
 1. `reading-plan.py list --primary <tags> --supporting <tags>` lists the candidates.
-2. Grade each saved source in a JSON file outside the wiki, in a temporary folder: `{"<slug>": {"relevance": "high|medium|low", "authority": "A|B|C"}}`.
+2. Grade each saved source in a JSON file outside the wiki, in a temporary folder: `{"<slug>": {"relevance": "high|medium|low", "authority": "A|B|C"}}`. Grade each existing narrative by relevance only, `{"<slug>": {"relevance": "high"}}`: high when this narrative builds on it, using its definition or linking to what it explains.
 3. `reading-plan.py order --primary <tags> --supporting <tags> --grades <file>` prints the plan.
 
 Read in that order, each source once, and only what the plan says: whole sources for high and medium relevance (or the sections that matter, with `search.py section`), and abstracts only for low. Keep the plan's table for the summary.

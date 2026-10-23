@@ -47,12 +47,22 @@ def order(found, grades):
             problems.append(f'{s["slug"]}: needs {{"relevance": "high|medium|low", "authority": "A|B|C"}}')
         else:
             graded[s['slug']] = (g, s)
-    rows = [{'read': 'in full', 'slug': n['slug'], 'why': 'existing narrative, background'}
-            for n in sorted(found['narratives'], key=lambda n: n['created'])]
+    narratives = {}  # an existing narrative is graded by relevance only; ungraded, it is background
+    for n in sorted(found['narratives'], key=lambda n: n['created']):
+        g = grades.get(n['slug'])
+        level = g.get('relevance') if isinstance(g, dict) else None
+        if g is not None and level not in RELEVANCE:
+            problems.append(f'{n["slug"]}: an existing narrative needs {{"relevance": "high|medium|low"}}')
+        narratives.setdefault(level if level in RELEVANCE else None, []).append(n)
+    rows = [{'read': 'in full', 'slug': n['slug'], 'why': 'existing narrative, background'} for n in narratives.get(None, [])]
+    rows += [{'read': 'in full', 'slug': n['slug'], 'why': 'existing narrative, medium relevance'} for n in narratives.get('medium', [])]
     for level in ('medium', 'high'):
         chosen = [(g, s) for g, s in graded.values() if g['relevance'] == level]
         for g, s in sorted(chosen, key=lambda gs: (-AUTHORITY.index(gs[0]['authority']), gs[1]['date'])):
             rows.append({'read': 'in full', 'slug': s['slug'], 'why': f'{level} relevance, authority {g["authority"]}, {s["date"] or "undated"}'})
+    # built on: read last, so its wording is the freshest when the narrative reuses it
+    rows += [{'read': 'in full', 'slug': n['slug'], 'why': 'existing narrative, high relevance: built on'} for n in narratives.get('high', [])]
+    rows += [{'read': 'abstract only', 'slug': n['slug'], 'why': 'existing narrative, low relevance'} for n in narratives.get('low', [])]
     rows += [{'read': 'abstract only', 'slug': s['slug'], 'why': 'low relevance'} for g, s in graded.values() if g['relevance'] == 'low']
     rows += [{'read': 'not read', 'slug': s['slug'], 'why': 'a link, no saved copy'} for s in found['sources'] if s['kind'] == 'link']
     for i, r in enumerate(rows, 1):
@@ -61,7 +71,8 @@ def order(found, grades):
 
 
 def load_grades(path):
-    """The grades file's {slug: {relevance, authority}}; ValueError when unreadable."""
+    """The grades file's {slug: {relevance, authority}} for sources and {slug: {relevance}} for existing
+    narratives; ValueError when unreadable."""
     try:
         with open(path, encoding='utf-8') as f:
             grades = json.load(f)
@@ -84,7 +95,7 @@ def narratives_read(grades_path):
             rows = json.load(f)
     except (OSError, ValueError):
         return None
-    return {r.get('slug') for r in rows if isinstance(r, dict) and r.get('why') == 'existing narrative, background'}
+    return {r.get('slug') for r in rows if isinstance(r, dict) and str(r.get('why', '')).startswith('existing narrative')}
 
 
 def metadata_lines(rows):
