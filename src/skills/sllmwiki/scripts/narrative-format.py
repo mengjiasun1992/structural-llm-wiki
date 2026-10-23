@@ -67,9 +67,14 @@ def main(argv):
         if args.skeleton not in offered:
             cli.fail(f'no template {args.skeleton}; there are {", ".join(sorted(offered))}')
         tag = args.language or config.get(root).settings['language']
-        if not language.pack(tag):
+        p = language.pack(tag)
+        if not p:
             print(f'narrative-format: no language pack for {tag}, so the headings are English; '
                   f'add templates/{language.FOLDER}/{tag}.md to translate them', file=sys.stderr)
+        elif p.source == 'wiki' and p.tag not in language.bundled():
+            print(f'narrative-format: {p.name} is this wiki\'s own pack; the skill hasn\'t evaluated writing in it', file=sys.stderr)
+        if p and p.writing:
+            print(f'narrative-format: write in {p.name}: follow the Writing section of {p.path}', file=sys.stderr)
         print(offered[args.skeleton].skeleton(tag), end='')
         return 0
 
