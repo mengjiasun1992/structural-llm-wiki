@@ -68,7 +68,7 @@
     <path d="M228 330 C 380 340, 500 300, 564 280"/>
   </g>
 
-  <!-- the repository: a git history the team shares and grows -->
+  <!-- the repository: a git history the group shares and grows -->
   <g stroke-linecap="round" fill="none">
     <path d="M300 432 H 860" stroke="#8fa2ff" stroke-width="4"/>
     <path d="M560 432 C 584 432 590 470 614 470 H 676 C 700 470 706 432 730 432" stroke="#f5b544" stroke-width="4"/>
@@ -82,23 +82,42 @@
   <circle cx="730" cy="432" r="12" fill="#f5b544"/>
   <path d="M724 432 l4 4 l8 -8" fill="none" stroke="#161a36" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
   <text x="645" y="498" font-size="12" font-weight="700" fill="#f5b544" text-anchor="middle">pull request</text>
-  <text x="300" y="410" font-size="13" fill="#8fa2ff" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">your-team-wiki.git</text>
+  <text x="300" y="410" font-size="13" fill="#8fa2ff" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">project-foobar-sllmwiki.git</text>
   <text x="300" y="470" font-size="13" fill="#c9c3b3">a git repository: clone it, share it,</text>
   <text x="300" y="490" font-size="13" fill="#c9c3b3">and every question asked grows it</text>
   <g>
     <circle cx="900" cy="432" r="15" fill="#8fa2ff"/><circle cx="932" cy="432" r="15" fill="#6fd39a" stroke="#161a36" stroke-width="3"/>
     <circle cx="964" cy="432" r="15" fill="#f26d6d" stroke="#161a36" stroke-width="3"/><circle cx="996" cy="432" r="15" fill="#f5b544" stroke="#161a36" stroke-width="3"/>
-    <text x="1030" y="428" font-size="13" fill="#c9c3b3">your team, and</text>
+    <text x="1030" y="428" font-size="13" fill="#c9c3b3">your group, and</text>
     <text x="1030" y="446" font-size="13" fill="#c9c3b3">their agents</text>
   </g>
   <path d="M860 432 H 878" stroke="#8fa2ff" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 8"/>
 
+  <!-- you and your agent -->
+  <g transform="translate(880 28)">
+    <circle cx="22" cy="18" r="12" fill="#fbf6ea"/>
+    <path d="M2 62 C 2 40 42 40 42 62 Z" fill="#fbf6ea"/>
+    <text x="22" y="80" font-size="12" font-weight="700" fill="#c9c3b3" text-anchor="middle">you</text>
+    <rect x="58" y="4" width="96" height="34" rx="12" fill="#fbf6ea"/>
+    <path d="M70 38 l-8 10 l18 -10 z" fill="#fbf6ea"/>
+    <text x="106" y="26" font-size="13" font-weight="700" fill="#161a36" text-anchor="middle">a question</text>
+    <path d="M164 34 h40" stroke="#f5b544" stroke-width="3" stroke-linecap="round"/>
+    <path d="M198 27 l8 7 l-8 7" fill="none" stroke="#f5b544" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="222" y="8" width="48" height="40" rx="12" fill="#8fa2ff"/>
+    <path d="M246 8 v-8" stroke="#8fa2ff" stroke-width="3" stroke-linecap="round"/><circle cx="246" cy="-2" r="4" fill="#f5b544"/>
+    <circle cx="236" cy="27" r="5" fill="#161a36"/><circle cx="256" cy="27" r="5" fill="#161a36"/>
+    <rect x="228" y="52" width="36" height="12" rx="5" fill="#8fa2ff"/>
+    <text x="246" y="80" font-size="12" font-weight="700" fill="#c9c3b3" text-anchor="middle">your agent</text>
+  </g>
+
   <!-- the words -->
-  <text x="868" y="168" font-size="34" font-weight="800" fill="#fbf6ea">Structural</text>
-  <text x="868" y="208" font-size="34" font-weight="800" fill="#fbf6ea">LLM Wiki</text>
-  <text x="868" y="252" font-size="17" fill="#c9c3b3">Ask your agent a question.</text>
-  <text x="868" y="276" font-size="17" fill="#c9c3b3">Get an answer that teaches,</text>
-  <text x="868" y="300" font-size="17" fill="#c9c3b3">every claim tied to its source,</text>
-  <text x="868" y="324" font-size="17" fill="#c9c3b3">reviewed like code,</text>
-  <text x="868" y="348" font-size="17" fill="#f5b544" font-weight="700">kept in git for your team.</text>
+  <text x="868" y="166" font-size="34" font-weight="800" fill="#fbf6ea">Structural</text>
+  <text x="868" y="206" font-size="34" font-weight="800" fill="#fbf6ea">LLM Wiki</text>
+  <g font-size="17" fill="#c9c3b3">
+    <circle cx="874" cy="242" r="3.5" fill="#f5b544"/><text x="888" y="248">Ask your agent a question</text>
+    <circle cx="874" cy="270" r="3.5" fill="#f5b544"/><text x="888" y="276">Get an answer that teaches</text>
+    <circle cx="874" cy="298" r="3.5" fill="#f5b544"/><text x="888" y="304">Every claim tied to its source</text>
+    <circle cx="874" cy="326" r="3.5" fill="#f5b544"/><text x="888" y="332">Reviewed like code</text>
+    <circle cx="874" cy="354" r="3.5" fill="#f5b544"/><text x="888" y="360" fill="#f5b544" font-weight="700">Kept in git for your group</text>
+  </g>
 </svg>

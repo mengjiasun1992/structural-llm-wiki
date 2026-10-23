@@ -1,12 +1,12 @@
 # {📖} Structural LLM Wiki
 
-![Structural LLM Wiki: your sources, papers, code, web pages and design docs, are drawn into braces around an open book, each claim on its pages tied by a thread to the source it came from. Under it, the book is a git repository: each answer merges in by pull request, and your team and their agents clone it, share it and grow it with every question. Ask your agent a question; get an answer that teaches, every claim tied to its source, reviewed like code, kept in git for your team.](docs/images/hero.svg)
+![Structural LLM Wiki. You ask your agent a question. Your sources, papers, code, web pages and design docs, are drawn into braces around an open book, each claim on its pages tied by a thread to the source it came from. Under it, the book is a git repository, project-foobar-sllmwiki.git: each answer merges in by pull request, and your group and their agents clone it, share it and grow it with every question. Ask your agent a question; get an answer that teaches; every claim tied to its source; reviewed like code; kept in git for your group.](docs/images/hero.svg)
 
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757.svg)](#setup)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](#requirements)
 
-**Your team's knowledge, researched by your coding agent, cited to the exact source, and reviewed like code.**
+**Your group's knowledge, researched by your coding agent, cited to the exact source, and reviewed like code.**
 
 **What it is.** Structural LLM Wiki is a set of agent skills, packaged as a Claude Code plugin, that turns a git repository into a wiki your coding agent researches and keeps up to date. You give it questions. It finds the sources that answer them (design docs, code, specifications, papers, web pages), saves them in the repository, and writes one *narrative* per question: a short document that teaches the answer, with every claim linked to the section of a saved source that supports it. Topic tags tie the sources, the narratives and the people who know each area together, and every run arrives as one pull request you review.
 
@@ -26,7 +26,7 @@ Unlike an answer in a chat session, the knowledge stays: narratives build on and
 - **Frugal and repeatable.** Scripts do everything mechanical; the agent reads the smallest thing that answers and nothing twice, so your tokens go to judgment.
 - **Yours, in plain files.** Markdown and YAML in git: browse it on GitHub, open it as an Obsidian vault, keep it ready to build as a book, and run it from any agent that supports [Agent Skills](https://agentskills.io).
 
-Inspired by Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), where an LLM builds and maintains a persistent, interlinked markdown wiki from raw sources. Structural LLM Wiki adds what a team needs on top: topic tags that link sources, narratives and people; every claim traced to a section of a saved source; templates that teach; and every change reviewed.
+Inspired by Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), where an LLM builds and maintains a persistent, interlinked markdown wiki from raw sources. Structural LLM Wiki adds what a group needs on top: topic tags that link sources, narratives and people; every claim traced to a section of a saved source; templates that teach; and every change reviewed.
 
 ## What it's like to use
 
