@@ -43,8 +43,9 @@ _ROW = re.compile(r'\|(?P<english>(?:[^|\\]|\\.)*)\|(?P<translation>(?:[^|\\]|\\
 
 
 class Pack:
-    def __init__(self, tag, name, strings, source):
+    def __init__(self, tag, name, strings, source, path=None, writing=False):
         self.tag, self.name, self.strings, self.source = tag, name, strings, source
+        self.path, self.writing = path, writing  # its file, and whether it has a ## Writing section for the narrative step
 
     def t(self, english):
         """english in this language: its translation, or english when the pack has none."""
@@ -72,7 +73,13 @@ def parse(tag, text, source):
         if english in strings:
             raise ValueError(f'{tag}.md:{n}: "{english}" is translated twice')
         strings[english] = translation
-    return Pack(tag, name, strings, source)
+    return Pack(tag, name, strings, source, writing=bool(re.search(r'^## Writing[ \t]*$', text, re.M)))
+
+
+def _load(tag, path, source):
+    p = parse(tag, read_text(path), source)
+    p.path = path
+    return p
 
 
 def _read(base, source):
@@ -81,8 +88,13 @@ def _read(base, source):
         for f in sorted(os.listdir(base)):
             tag, ext = os.path.splitext(f)
             if ext == '.md' and TAG.match(tag):
-                out[tag.lower()] = parse(tag, read_text(os.path.join(base, f)), source)
+                out[tag.lower()] = _load(tag, os.path.join(base, f), source)
     return out
+
+
+def bundled():
+    """The tags of the packs the skill ships: the languages it has evaluated."""
+    return {p.tag for p in _read(BUNDLED, 'bundled').values()}
 
 
 def use(root):
@@ -100,7 +112,7 @@ def use(root):
                 problems.append(f'{TEMPLATES}/{FOLDER}/{f}: name a pack by its language tag, such as zh-Hans.md')
                 continue
             try:
-                _loaded[tag.lower()] = parse(tag, read_text(os.path.join(base, f)), 'wiki')
+                _loaded[tag.lower()] = _load(tag, os.path.join(base, f), 'wiki')
             except ValueError as e:
                 problems.append(f'{TEMPLATES}/{FOLDER}/{e}')
     return problems

@@ -142,5 +142,39 @@ class Packs(helpers.WikiTestCase):
         self.assertIn('- **Language:** en', self.read(NARRATIVE))
 
 
+class Bundled(helpers.WikiTestCase):
+    """The packs the skill ships, with no pack of the wiki's own."""
+
+    def setUp(self):
+        super().setUp()
+        language.use(self.root)
+
+    def tearDown(self):
+        language._loaded.clear()
+        super().tearDown()
+
+    def test_every_bundled_pack_translates_every_string(self):
+        keys = set(language.pack('en').strings)
+        for tag in language.bundled() - {'en'}:
+            p = language.pack(tag)
+            self.assertEqual({k for k in keys if not p.strings.get(k)}, set(), tag)
+            self.assertEqual(set(p.strings) - keys, set(), tag)  # nothing en.md doesn't list
+            self.assertTrue(p.writing, f'{tag} has a ## Writing section')
+
+    def test_simplified_chinese(self):
+        self.assertIn('zh-Hans', language.bundled())
+        r = helpers.run('narrative-format.py', ['--skeleton', 'concept_brief_overview', '--language', 'zh-Hans'], cwd=self.root)
+        self.assertEqual(r.code, 0, r)
+        self.assertIn('## 1. 摘要', r.out)
+        self.assertIn('follow the Writing section of', r.err)
+        self.assertNotIn('evaluated', r.err)
+
+    def test_a_wiki_pack_for_a_language_the_skill_does_not_ship(self):
+        self.write('templates/languages/fr.md', '# Français\n\n| English | Translation |\n|---|---|\n| Abstract | Résumé |\n')
+        r = helpers.run('narrative-format.py', ['--skeleton', 'concept_brief_overview', '--language', 'fr'], cwd=self.root)
+        self.assertIn('## 1. Résumé', r.out)
+        self.assertIn("hasn't evaluated", r.err)
+
+
 if __name__ == '__main__':
     unittest.main()
