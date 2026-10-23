@@ -282,7 +282,7 @@ A wiki is read on GitHub page by page, opened in [Obsidian](https://obsidian.md)
 
 **Tag pages, for everyone.** A generated page per tag (description, parent, children, narratives, sources, SMEs) makes each topic browsable on GitHub, and puts the tag tree in Obsidian's graph, which draws every markdown file as a node and every link as an edge. They are plain markdown, written by a script in milliseconds.
 
-**The Obsidian add-on** (`obsidian = true`, §4.9) adds what only Obsidian uses: `init` writes `sllmwiki/.obsidian/graph.json` once (tag pages gold, narratives indigo, sources gray and filtered out of the graph; a reader who wants sources out of search too excludes them in their own `app.json`), and the wiki owns it from then on; `.gitignore` shares only that file from `.obsidian/`, and `publish.py` ignores Obsidian's rewrites of it. Off, nothing Obsidian-specific is written.
+**The Obsidian add-on** (`obsidian = true`, §4.9) adds what only Obsidian uses: `init` writes `sllmwiki/.obsidian/graph.json` once (tag pages gold, narratives indigo, sources gray and filtered out of the graph; a reader who wants sources out of search too excludes them in their own `app.json`), and the wiki owns it from then on; `.gitignore` shares only that file from `.obsidian/` (off, it ignores all of `.obsidian/`, so a reader's own graph is never committed), and `publish.py` ignores Obsidian's rewrites of it. Off, nothing Obsidian-specific is written.
 
 **The index.** `SLLMWIKI_INDICES.md`, at the repository root, outside the vault, is GitHub's map: a mermaid diagram of the tag tree whose nodes open the tag pages, and the same tree as a nested list. Obsidian and a book don't need it, so it stays out of their source.
 

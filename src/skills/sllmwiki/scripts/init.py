@@ -56,6 +56,10 @@ def action_ref():
     return f'v{version}' if version else 'mainline'
 
 
+GRAPH_LINES = ('# with the Obsidian add-on, the graph\'s settings are shared', '!sllmwiki/.obsidian/graph.json')
+OLD_GITIGNORE = {'# Obsidian: share only the graph settings, not each person\'s workspace': '# Obsidian: each person\'s settings are their own'}
+
+
 class Init:
     def __init__(self, root, name):
         self.root, self.name, self.done = root, name, []
@@ -103,15 +107,24 @@ class Init:
         self.refresh('CLAUDE.md', read_text(os.path.join(WIKI, 'CLAUDE.md')))
 
     def gitignore(self):
-        want = [line for line in read_text(os.path.join(WIKI, 'gitignore')).splitlines() if line.strip()]
+        """Add the template's lines the file lacks. The add-on's lines (sharing graph.json) are there only while
+        the Obsidian add-on is on: a rerun with it off takes them out, so a person's own graph is never committed."""
+        on = config.load(self.root).addons['obsidian']
+        want = [line for line in read_text(os.path.join(WIKI, 'gitignore')).splitlines() if line.strip() and (on or line not in GRAPH_LINES)]
         rel = '.gitignore'
         have = read_text(self.path(rel)) if self.exists(rel) else ''
-        missing = [line for line in want if line not in have.splitlines()]
-        if not missing:
+        lines = [OLD_GITIGNORE.get(line, line) for line in have.splitlines()]
+        if not on:
+            lines = [line for line in lines if line not in GRAPH_LINES]
+        elif GRAPH_LINES[1] in lines and GRAPH_LINES[0] not in lines:
+            lines.insert(lines.index(GRAPH_LINES[1]), GRAPH_LINES[0])
+        missing = [line for line in want if line not in lines]
+        body = '\n'.join(lines).rstrip('\n')
+        text = (body + '\n\n' if body and missing else body + '\n' if body else '') + ('\n'.join(missing) + '\n' if missing else '')
+        if text == have:
             self.done.append(('kept', rel))
-            return
-        body = have.rstrip('\n')
-        self.put(rel, (body + '\n\n' if body else '') + '\n'.join(missing) + '\n', 'updated' if have else 'created')
+        else:
+            self.put(rel, text, 'updated' if have else 'created')
 
     def settings(self):
         rel = '.claude/settings.json'

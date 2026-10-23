@@ -123,6 +123,31 @@ class Init(unittest.TestCase):
         self.init()
         self.assertEqual(self.read(layout.OBSIDIAN_GRAPH), '{"mine": true}')  # the wiki's from then on
 
+    def test_the_graph_is_shared_only_with_the_add_on(self):
+        self.init()
+        off = self.read('.gitignore')
+        self.assertIn('sllmwiki/.obsidian/*\n', off)
+        self.assertNotIn('graph.json', off)  # off: a person's own graph is never committed
+        on = self.read('Config.toml').replace('obsidian = false', 'obsidian = true')
+        helpers.write(self.root, 'Config.toml', on)
+        self.init()
+        self.assertIn("# with the Obsidian add-on, the graph's settings are shared\n!sllmwiki/.obsidian/graph.json\n", self.read('.gitignore'))
+        helpers.write(self.root, 'Config.toml', on.replace('obsidian = true', 'obsidian = false'))
+        self.init()
+        self.assertEqual(self.read('.gitignore'), off)
+
+    def test_an_earlier_gitignore_is_brought_up_to_date(self):
+        earlier = ("node_modules/\n\n# Obsidian: share only the graph settings, not each person's workspace\n"
+                   'sllmwiki/.obsidian/*\n!sllmwiki/.obsidian/graph.json\n.DS_Store\n')
+        helpers.write(self.root, '.gitignore', earlier)
+        self.init()
+        self.assertEqual(self.read('.gitignore'), "node_modules/\n\n# Obsidian: each person's settings are their own\nsllmwiki/.obsidian/*\n.DS_Store\n")
+        helpers.write(self.root, '.gitignore', earlier)
+        helpers.write(self.root, 'Config.toml', self.read('Config.toml').replace('obsidian = false', 'obsidian = true'))
+        self.init()
+        self.assertEqual(self.read('.gitignore'), "node_modules/\n\n# Obsidian: each person's settings are their own\nsllmwiki/.obsidian/*\n"
+                                                  "# with the Obsidian add-on, the graph's settings are shared\n!sllmwiki/.obsidian/graph.json\n.DS_Store\n")
+
     def test_the_action_ref_follows_the_plugin_version(self):
         mod = helpers.load_script('init.py')
         plugin = helpers.write(self.root, 'plugin.json', json.dumps({'name': 'sllmwiki', 'version': '1.2.0'}))

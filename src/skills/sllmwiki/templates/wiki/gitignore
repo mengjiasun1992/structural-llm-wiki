@@ -1,4 +1,5 @@
-# Obsidian: share only the graph settings, not each person's workspace
+# Obsidian: each person's settings are their own
 sllmwiki/.obsidian/*
+# with the Obsidian add-on, the graph's settings are shared
 !sllmwiki/.obsidian/graph.json
 .DS_Store
