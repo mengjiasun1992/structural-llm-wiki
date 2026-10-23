@@ -1,10 +1,11 @@
 """Tests for lib/narrativecheck.py and scripts/narrative-format.py."""
 
 import json
+import os
 import unittest
 
 import helpers
-from lib import narrativecheck
+from lib import manifest, narrativecheck
 
 NARRATIVE = 'sllmwiki/narratives/what-is-alpha.md'
 
@@ -122,6 +123,23 @@ class Command(helpers.WikiTestCase):
         r = self.nf()
         self.assertEqual(r.code, 0)
         self.assertIn('BARE_URL', r.out)
+
+    def test_stats(self):
+        manifest.put_narrative(self.root, 'what-is-alpha', 'technical_brief_overview', ['leaf-a'], [], ['alpha-doc'],
+                               {'alpha-doc': {'relevance': 'high', 'authority': 'A'}})
+        self.write(NARRATIVE, helpers.narrative_text(cites=(('alpha-doc', 'details'), ('beta-doc', 'beta')),
+                                                     extra='\nMine. [→]\n').replace('## 7. Limitations and failure modes', '## 7. Limitations and failure modes [→]'))
+        path = os.path.join(self.root, NARRATIVE)
+        r = self.nf(path, '--stats', '--json')
+        s = json.loads(r.out)['narratives'][0]
+        self.assertEqual((s['template'], s['budget'], s['citations'], s['markers'], s['pictures']),
+                         ('technical_brief_overview', 1800, {'A': 1, 'B': 0, 'C': 0, 'ungraded': 1}, {'statements': 1, 'headings': 1}, 1))
+        self.assertEqual([x['section'] for x in s['sections']], ['Background', 'The core idea', 'How does it work?',
+                                                                 'Design decisions and trade-offs', 'Limitations and failure modes'])
+        out = self.nf(path, '--stats').out
+        self.assertIn('(technical_brief_overview): body', out)
+        self.assertIn('  The core idea: ', out)
+        self.assertIn('no such file', self.nf('nope.md', '--stats').err)
 
     def test_templates_and_skeleton(self):
         r = self.nf('--templates')

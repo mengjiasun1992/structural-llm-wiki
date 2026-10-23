@@ -203,6 +203,18 @@ A template is chosen by the subject, not the question's wording:
 | `survey` | Anything not concrete: a domain, or an umbrella term for subtopics or directions that each go deep their own way | Wide over deep: the main dishes on the table that one can't miss, an overview with context and scope, the items grouped and mapped first, their tensions, classic case studies, where to go deeper | knows the main areas of the domain and where to go deeper in each | 2,200 words |
 | `case_study` | One particular system, incident or decision that a concept or domain is known by | Deep on the one case: its context, what happened, the ideas at work (linked to their narratives), the lessons that carry over | knows what happened and why, and can apply its lessons elsewhere | 1,500 words |
 
+**Aims.** Each template names its aim, the few qualities its narratives are graded on, and its guide says what each means in practice:
+
+| Template | Aim |
+|---|---|
+| `concept_brief_overview` | concise, precise, rigorous |
+| `technical_brief_overview` | concise, authoritative, depth over breadth: the core idea and how it works carry at least half the body |
+| `survey` | concise, thorough, breadth over depth: every item the sources agree on, or named as left out |
+| `comparison` | precise, breadth and depth in balance: every common candidate, depth only where it decides the choice |
+| `case_study` | concrete, faithful, deep on one case |
+
+Lint grades each narrative on each axis of its template's aim, met, partly or missed, with the evidence, helped by `narrative-format.py --stats` (the body against its budget, words per section, citations by the authority of what they cite, markers).
+
 **A wiki's own templates.** A team can bring its own: a folder in the wiki's `templates/` with a `template.md` and a `guide.md` is offered next to the bundled ones, and is checked the same way; one with a bundled template's name replaces it. A wiki that only wants a different budget for a template sets it in `Config.toml` (§4.9) instead of copying the template.
 
 **What scripts do for every narrative.** After any edit, the agent runs one command, `finish-narrative` (§7.5): it numbers the headings, escapes what the renderers would misread (§4.8), adds a Terminology row for each marker the narrative uses (when markers are on), bumps the version and history when asked, writes the manifest entry with the current pins, and regenerates the index and tag pages. The agent writes the content; the script does the rest.

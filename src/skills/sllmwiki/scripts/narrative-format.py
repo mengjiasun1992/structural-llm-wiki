@@ -11,6 +11,10 @@ narrative shares (design doc §4.5, §4.8, §4.10).
         and markdown every renderer reads alike, links included.
       --fix-numbering renumbers the headings and figure captions; --fix-style writes the renderer
       escapes. finish-narrative.py does both, and more.
+  narrative-format.py <narrative.md> ... --stats [--json]
+      The numbers lint grades a narrative's aim with: the body against its budget,
+      the words and subsections in each section, citations by the authority of
+      the sources they cite (the reading plan's grades), markers and pictures.
   narrative-format.py --templates     the templates this wiki offers, with use_when and budgets
   narrative-format.py --skeleton NAME the skeleton a new narrative starts from
 
@@ -26,7 +30,7 @@ import sys
 sys.dont_write_bytecode = True
 
 from lib import compat, config, figures, layout, numbering, templates  # noqa: E402
-from lib.narrativecheck import check  # noqa: E402
+from lib.narrativecheck import check, stats  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, read_text, write_text  # noqa: E402
 
@@ -38,6 +42,7 @@ def main(argv):
     p.add_argument('--fix-style', action='store_true')
     p.add_argument('--templates', action='store_true')
     p.add_argument('--skeleton', metavar='NAME')
+    p.add_argument('--stats', action='store_true')
     p.add_argument('--json', action='store_true')
     p.add_argument('--root')
     args = p.parse_args(argv)
@@ -63,6 +68,8 @@ def main(argv):
 
     settings = config.get(root).settings
     files = args.files or sorted(glob.glob(os.path.join(root, layout.NARRATIVES, '*.md')))
+    if args.stats:
+        return print_stats(root, files, offered, args.json)
     results, errors = [], 0
     for f in files:
         path = f if os.path.isabs(f) else os.path.join(os.getcwd(), f)
@@ -91,6 +98,27 @@ def main(argv):
             print(f'{r["severity"]:<8} {r["code"]:<20} {r["file"]}:{r["line"]}: {r["message"]}')
         print(f'narrative-format: {errors} error(s), {len(results) - errors} warning(s) in {len(files)} narrative(s)')
     return 1 if errors else 0
+
+
+def print_stats(root, files, offered, as_json):
+    rows = []
+    for f in files:
+        path = f if os.path.isabs(f) else os.path.join(os.getcwd(), f)
+        if not os.path.isfile(path):
+            cli.fail(f'no such file: {f}')
+        rel = os.path.relpath(os.path.realpath(path), os.path.realpath(root)).replace(os.sep, '/')
+        rows.append(stats(root, rel, read_text(path), offered))
+    if as_json:
+        print(dumps({'narratives': rows}))
+        return 0
+    for r in rows:
+        c, m = r['citations'], r['markers']
+        print(f'{r["file"]} ({r["template"]}): body {r["body_words"]} of {r["budget"]} words, Abstract {r["abstract_words"]}; '
+              f'citations A {c["A"]}, B {c["B"]}, C {c["C"]}, ungraded {c["ungraded"]}; '
+              f'markers {m["statements"]} on statements, {m["headings"]} on headings; {r["pictures"]} picture(s)')
+        for s in r['sections']:
+            print(f'  {s["section"]}: {s["words"]} words' + (f', {s["subsections"]} subsections' if s['subsections'] else ''))
+    return 0
 
 
 if __name__ == '__main__':  # pragma: no cover

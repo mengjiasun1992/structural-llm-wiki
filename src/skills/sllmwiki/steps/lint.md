@@ -22,18 +22,22 @@ For consistency, read the Abstract and Terminology of each narrative sharing its
 
 Formatting, links and numbering, figure captions included, are `narrative-format.py`'s and `wiki-check.py`'s: run them, don't check by hand. A figure's caption and alt text say what it shows; open its file only to check its numbers against the source.
 
-## 4. Fix the small, report the big
+## 4. Grade the aim
+
+Each template's guide names its aim, a few axes (concept: concise, precise, rigorous; technical: concise, authoritative, depth over breadth; survey: concise, thorough, breadth over depth; comparison: precise, breadth and depth in balance; case study: concrete, faithful, deep on one case), and says what each axis means. Grade each narrative on each axis of its template's aim: **met**, **partly** or **missed**, with the evidence in a line. `narrative-format.py <file> --stats` gives the numbers: the body against its budget, the words in each section (for depth, the core sections' share), citations by the authority of what they cite, and markers. An axis partly met or missed is an M finding: fix what a sentence fixes, and report the rest as a decision.
+
+## 5. Fix the small, report the big
 
 - **Small** (a sentence, a number, a link, a term): fix it, then `finish-narrative.py <slug> --bump minor --note "Lint: <what changed>"`.
 - **Big** (a missing or wrong section, a changed answer, a source to re-ingest): don't fix it; it's a decision for the owner.
 - Number the findings by severity: H for a wrong or unsupported claim, M for a misleading or inconsistent one or a missing link, L for wording and reader aids: H1, H2, M1, L1, …
 
-## 5. Summary and commit
+## 6. Summary and commit
 
 `publish.py summary lint --json '{...}'` with:
 - `title`: "Lint: " and what this lint checked, so a later lint in the same run keeps its own section;
 - `checklist`: "Lint: every H finding fixed or decided";
 - `decisions`: each big finding, with its number;
-- `body`: a table of number, narrative and line, finding, and fixed or left as a decision.
+- `body`: the aim grades, a table of narrative and each axis of its aim, met, partly or missed, with the evidence; then a table of number, narrative and line, finding, and fixed or left as a decision.
 
 Then one commit, `publish.py commit lint --tags <tags> --subject "Lint: <narratives>"`, and `publish.py pr`.
