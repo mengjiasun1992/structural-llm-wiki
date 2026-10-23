@@ -154,6 +154,8 @@ graph LR
     A[Request fails] --> B[Wait, then retry]
 ```
 
+*Figure 4-1: A failed request waits, then retries.*
+
 ## 5. How does it work?
 
 Alpha systems retry, each time waiting twice as long.{marks}

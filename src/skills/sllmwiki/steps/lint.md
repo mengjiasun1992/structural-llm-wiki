@@ -20,7 +20,7 @@ For consistency, read the Abstract and Terminology of each narrative sharing its
 | Consistency | a contradiction or a different term across narratives sharing tags; a missing link between them |
 | Reader | the template's guide and `shared-guide.md`: a term used before it's defined, notation that changes, a section, scenario or formula without its context first, more than two key examples in the body or one whose scene isn't set, prose that tallies sources instead of stating the idea, a long list not grouped, a slot filled with filler, detail the Appendix should hold, content that doesn't serve the question |
 
-Formatting, links and numbering are `narrative-format.py`'s and `wiki-check.py`'s: run them, don't check by hand.
+Formatting, links and numbering, figure captions included, are `narrative-format.py`'s and `wiki-check.py`'s: run them, don't check by hand. A figure's caption and alt text say what it shows; open its file only to check its numbers against the source.
 
 ## 4. Fix the small, report the big
 

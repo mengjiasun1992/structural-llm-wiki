@@ -30,11 +30,20 @@ The body holds what the reader needs to follow the answer; what they may want bu
 
 ## Diagrams
 
-Most narratives need at least one diagram, of the flow or of how the parts relate; add more where each shows something new, never one that repeats another's idea. Each is the type that shows its idea best, not always a flowchart: `sequenceDiagram` for messages between parties, `stateDiagram-v2` for states and transitions, `timeline` for history, `quadrantChart` for trade-offs on two axes, `mindmap` for a field's parts, `flowchart` for a process or how parts connect. Color what carries meaning (a group, the failure path, the recommended choice) with `classDef` fills light enough for dark text in light and dark themes, and say in the text what each color means. Keep labels plain text (`s_t`): not every renderer draws math in a diagram.
+Most narratives need at least one diagram, of the flow or of how the parts relate; add more where each shows something new, never one that repeats another's idea. Each is the type that shows its idea best, not always a flowchart: `sequenceDiagram` for messages between parties, `stateDiagram-v2` for states and transitions, `timeline` for history, `quadrantChart` for trade-offs on two axes, `mindmap` for a field's parts, `flowchart` for a process or how parts connect. Color what carries meaning (a group, the failure path, the recommended choice) with `classDef` fills light enough for dark text in light and dark themes. Keep labels plain text (`s_t`): not every renderer draws math in a diagram.
+
+**Captions.** Before a diagram or figure, a sentence says why the reader needs it here. After it, on a line of its own, its caption: `*Figure 5-1: <what it shows; what each color means>.*`, numbered by its ## section and its place there. The text refers to it by that label. Caption and alt text together say what the picture shows, so an agent reading the narrative never has to open the image. `finish-narrative.py` keeps the numbers in order.
 
 ## Figures
 
-When a mermaid diagram can't show an idea well (a curve or measured data with annotations, geometry, a layout drawn to scale, many series at once) and the wiki's `images` setting is on (the default), draw a figure instead: an SVG you write yourself, or with a short script you run, computed from the narrative's own formulas or from numbers it cites, never traced or copied from a source's figure. Save it as `sllmwiki/narratives/figures/<slug>/<name>.svg` (or `.png`), and show it with `![<what it shows>](figures/<slug>/<name>.svg)`. Start the SVG with a light `<rect>` the size of the figure, with dark text, so it reads in dark themes; keep it self-contained, with no scripts or links. As with a diagram, say before it what it shows and cite the source of its numbers. With `images = false`, use mermaid only.
+When a mermaid diagram can't show an idea well (a curve or measured data with annotations, geometry, a layout drawn to scale, many series at once) and the wiki's `images` setting is on (the default), draw a figure instead. Compute it from the narrative's own formulas or from numbers it cites, and cite their source; never trace or copy a source's figure.
+
+- **Format:** SVG, written yourself or by a short script you run: GitHub, Obsidian, mdBook and Sphinx all show it, it stays sharp, and its diff is readable. PNG only for what SVG can't hold, such as a dense heatmap.
+- **Where:** `sllmwiki/narratives/figures/<slug>/<name>.svg`, shown with `![<what it shows>](figures/<slug>/<name>.svg)` on a line of its own.
+- **Readable in dark themes:** start the SVG with a light `<rect>` the size of the figure, dark text on it, and a generic font (`font-family="sans-serif"`).
+- **Small:** an SVG under 40 KB: no more points than the eye can tell apart (a couple of hundred per curve), coordinates rounded to one decimal, styles shared in one `<style>`, no metadata, comments or embedded images. A PNG under 150 KB and 1600 px wide. Self-contained: no scripts or links.
+
+With `images = false`, use mermaid only.
 
 ## Pseudocode
 

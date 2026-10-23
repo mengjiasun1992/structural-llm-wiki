@@ -112,6 +112,7 @@ def check(root, rel, text, settings, offered):
     out += markers.check(text, settings['markers'])
     out += quotes.check(root, rel, text, settings['max_quote_words'])
     out += figures.check(root, rel, text, settings['images'])
+    out += figures.check_captions(text)
     lines = text.split('\n')
     kinds, _ = scan(lines)
     for i, line in enumerate(lines):
