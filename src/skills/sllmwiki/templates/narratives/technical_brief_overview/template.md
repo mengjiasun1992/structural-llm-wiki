@@ -7,7 +7,7 @@ abstract_words: [80, 150]
 
 ## 3. Background
 
-<The problem X solves, shown through the running example: its scene, what goes wrong without X, and what the reader needs to know before the mechanism.>
+<A few sentences to orient the reader: what X is in a line, where and when it's used, and by whom; then the problem it solves, through the running example: its scene, what goes wrong without X, and what the reader needs to know before the mechanism.>
 
 ## 4. The core idea
 

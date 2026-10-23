@@ -12,7 +12,7 @@ Plain, direct and specific: active voice, present tense, second person where it 
 
 ## Structure
 
-- **Context before mechanics.** Background opens with the problem, through the running example, then the prerequisites.
+- **Context before mechanics.** Background orients the reader in a few sentences (what it is, where and when it's used, by whom), then shows the problem through the running example, then the prerequisites.
 - **The core idea before any detail:** in plain words first (what it does, as you'd say it to a colleague), then the one rule or formula, then the diagram that shows it.
 - **How it works, worked:** a numbered walkthrough, one step per arrow or transition of the diagram, each on the running example.
 - **One notation throughout.** Define each symbol once, with its meaning; write step-by-step quantities with an index ($x_t$, $x_{t+1}$), and never switch to another name for the same thing. A source's own notation is translated, not adopted.

@@ -4,7 +4,7 @@ Each template's guide holds its own reader, structure and style; this one holds 
 
 ## Context first
 
-Set clear context before anything the reader must interpret, so nothing reads ambiguously: the narrative opens with the problem and who has it, even in the Abstract, before its answer; each section, scenario, comparison, formula or piece of pseudocode opens with what it's about and why the reader needs it here; each term is defined before its first use. Depth comes after context, never instead of it.
+Set clear context before anything the reader must interpret, so nothing reads ambiguously: the narrative opens with the problem and who has it, even in the Abstract, before its answer; its first section orients the reader in a few sentences, before any definition or mechanism: what the subject is, where and when one meets it, who deals with it, and why it matters; each section, scenario, comparison, formula or piece of pseudocode opens with what it's about and why the reader needs it here; each term is defined before its first use. Depth comes after context, never instead of it.
 
 ## Ideas first, sources second
 
@@ -16,7 +16,7 @@ Show the whole before its parts: what the narrative covers and how its parts fit
 
 ## Examples
 
-One or two key examples carry the whole narrative, never more. The first is the running example: introduce it once, where the template says, with its scene set for a reader who doesn't know it, in a few plain sentences: what the system does, the problem it has, what goes wrong without the answer, and what each quantity means in it. Then come back to it in each section that explains something, so the reader never switches context to follow a point. A second key example is only for what the first can't show. When a related narrative's key example fits this question, reuse it and link there for its scene, so the wiki's readers meet one system across narratives; pick a new one only to show what that one can't. Any other example goes in the Appendix, or is named in a sentence with a link.
+One or two key examples carry the whole narrative, never more. The first is the running example: introduce it once, where the template says, with its scene set for a reader who doesn't know it, in a few plain sentences: what the system does, the problem it has, what goes wrong without the answer, and what each quantity means in it. Then come back to it in each section that explains something, so the reader never switches context to follow a point. A second key example is only for what the first can't show. Each narrative picks the examples that fit its own question; when a related narrative's key example fits just as well, reuse it and link there for its scene. Any other example goes in the Appendix, or is named in a sentence with a link.
 
 For anything computed, work the running example with numbers, step by step, in a small table where it helps: a reader follows three numbers faster than one formula.
 

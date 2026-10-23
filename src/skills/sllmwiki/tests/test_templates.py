@@ -17,7 +17,7 @@ class Bundled(helpers.WikiTestCase):
         found, problems = templates.available(self.root)
         self.assertEqual(problems, [])
         self.assertEqual(sorted(found), ['case_study', 'comparison', 'concept_brief_overview', 'survey', 'technical_brief_overview'])
-        self.assertEqual([found[n].max_words for n in sorted(found)], [1500, 1200, 900, 2200, 1800])
+        self.assertEqual([found[n].max_words for n in sorted(found)], [1500, 1500, 900, 2200, 1800])
         t = found['technical_brief_overview']
         self.assertEqual((t.source, t.max_words, t.abstract_words), ('bundled', 1800, [80, 150]))
         self.assertTrue(t.use_when.startswith('A solution, an algorithm'))
@@ -37,11 +37,11 @@ class Bundled(helpers.WikiTestCase):
 
     def test_the_concept_template(self):
         titles = [s.title for s in templates.get(self.root, 'concept_brief_overview').sections()]
-        self.assertEqual(titles[2:7], ['Definition', 'Why it matters', 'Key ideas', 'Boundaries', 'Where to go next'])
+        self.assertEqual(titles[2:7], ['Overview', 'Definition', 'Key ideas', 'Boundaries', 'Where to go next'])
 
     def test_the_comparison_and_survey_templates(self):
         got = [(s.title, s.optional, s.diagram) for s in templates.get(self.root, 'comparison').sections()][2:9]
-        self.assertEqual(got, [('The choice', False, False), ('When to choose which', False, True), ('At a glance', False, False),
+        self.assertEqual(got, [('The choices', False, False), ('When to choose which', False, True), ('At a glance', False, False),
                                ('Dimensions to think through', False, False), ('Pitfalls', True, False), ('Where to go next', True, False),
                                ('Appendix', True, False)])
         got = [(s.title, s.optional, s.diagram) for s in templates.get(self.root, 'survey').sections()][2:10]

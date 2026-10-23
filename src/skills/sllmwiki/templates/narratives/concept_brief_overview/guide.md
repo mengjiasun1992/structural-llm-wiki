@@ -12,8 +12,8 @@ Plain words, short sentences, present tense. Define before you use; no jargon th
 
 ## Structure
 
-- **Definition first.** Start from the most authoritative source's definition, quoted briefly with its citation, then restate it in plain words. Add another source's definition only when it differs in substance; when there's no single accepted definition, say so and give the one the wiki follows.
-- **The key example early,** making the idea concrete.
+- **Overview first,** in a few sentences: what it is in a line, where and when one meets it, who deals with it and why it matters, through the key example.
+- **Then the definition.** Start from the most authoritative source's definition, quoted briefly with its citation, then restate it in plain words. Add another source's definition only when it differs in substance; when there's no single accepted definition, say so and give the one the wiki follows.
 - **Key ideas:** only those a newcomer needs, each in its own short paragraph, in the order they build on each other.
 - **Boundaries** draw the line against the ideas it's confused with, and correct what newcomers commonly get wrong.
 
@@ -23,8 +23,8 @@ One key example, a case the reader can picture:
 
 | Section | The key example's part |
 |---|---|
+| Overview | its scene: where the reader meets the concept, and what goes wrong without it |
 | Definition | the definition, in its terms, in a sentence |
-| Why it matters | its scene and what goes wrong there, in a short paragraph |
 | Key ideas | where each idea shows in it, a sentence each |
 | Boundaries | what it would look like if it were the neighbor instead |
 
@@ -41,6 +41,6 @@ Short: a reader should finish it in a few minutes. Everything beyond definition 
 ## Checklist
 
 - [ ] The definition is quoted briefly, cited, and restated in plain words.
-- [ ] The key example appears before the key ideas and runs through them.
+- [ ] The Overview orients the reader through the key example before the definition, and the example runs through the key ideas.
 - [ ] Nothing goes below definition level; deeper topics are named as next questions.
 - [ ] Every claim is cited to a section, or marked.
