@@ -70,6 +70,9 @@ class Publish(helpers.WikiTestCase):
                               'Prompt:\n> Build up alpha retries.\n> Keep it short.\n\n')  # git log adds a newline
         committed = helpers.git(self.root, 'show', '--name-only', '--format=').stdout.split()
         self.assertEqual(committed, ['sllmwiki/sources/new.md'])
+        self.write('Config.toml', '[structural-llm-wiki-settings]\n')
+        self.pub('commit', 'init', '--subject', 'Bring the wiki up to date')  # init has no tags
+        self.assertEqual(helpers.git(self.root, 'log', '-1', '--format=%s').stdout.strip(), '[sllmwiki][init] Bring the wiki up to date')
         r = self.pub('pr')
         self.assertEqual(r.out, 'opened https://github.com/o/r/pull/7\n')
         with open(self.log) as f:

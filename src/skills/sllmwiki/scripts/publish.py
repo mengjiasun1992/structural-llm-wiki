@@ -9,7 +9,7 @@
       Records a step's summary: its review checklist items, the decisions it
       leaves to the owner, and its report. (Or --file SUMMARY.json.) A
       narrative's is one per question and a lint's one per scope, by title; the others, one per step.
-  publish.py commit <action> --tags a,b --subject TEXT
+  publish.py commit <action> [--tags a,b] --subject TEXT
       Commits everything the run changed with the message
       [sllmwiki][<action>][<tags>] <subject>, the step's report, and the
       request that started the run, verbatim, in a Prompt: block.
@@ -193,7 +193,7 @@ def quote(prompt):
 
 
 def message(state, action, tags, subject, report):
-    parts = [f'[sllmwiki][{action}][{",".join(tags)}] {subject}']
+    parts = [f'[sllmwiki][{action}]' + (f'[{",".join(tags)}]' if tags else '') + f' {subject}']  # init has no tags
     if report:
         parts.append(report.strip())
     parts.append('Prompt:\n' + quote(state['prompt']))
@@ -346,7 +346,7 @@ def main(argv):
     g.add_argument('--file')
     c = sub.add_parser('commit')
     c.add_argument('action', choices=ACTIONS)
-    c.add_argument('--tags', required=True, type=lambda v: [t.strip() for t in v.split(',') if t.strip()])
+    c.add_argument('--tags', default=[], type=lambda v: [t.strip() for t in v.split(',') if t.strip()])
     c.add_argument('--subject', required=True)
     o = sub.add_parser('pr')
     o.add_argument('--cost', type=float, help='what the run cost so far, in US dollars, when the caller knows it')

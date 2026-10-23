@@ -15,8 +15,9 @@ Config.toml's values, every source, narrative and tag. GitHub's one-line
 starter README is replaced.
 
 It stops when the folder holds files that aren't a wiki's (code, documents),
-unless --force says the owner agreed. --commit commits the result, with the
-request that started it (--prompt) in the message. It never pushes.
+unless --force says the owner agreed. --commit commits what it wrote, and nothing
+else, with the request that started it (--prompt) in the message: for the
+first setup. It never pushes; a rerun on a wiki is published as a pull request.
 
 Exit code: 0 done, 1 refused (the reason is printed), 2 usage error.
 """
@@ -227,7 +228,9 @@ def main(argv):
     run.obsidian()
     run.pages()
     if args.commit:
-        subprocess.run(['git', 'add', '-A'], cwd=root, check=True)
+        written = sorted({rel for verb, rel in run.done if verb != 'kept'})
+        if written:  # only what init wrote: the owner's other untracked files stay theirs
+            subprocess.run(['git', 'add', '--', *written], cwd=root, check=True)
         msg = '[sllmwiki][init] Set up the wiki\n\nPrompt:\n' + '\n'.join('> ' + line if line else '>' for line in args.prompt.split('\n')) + '\n'
         c = subprocess.run(['git', 'commit', '-q', '-F', '-'], cwd=root, input=msg, capture_output=True, text=True)
         if c.returncode and 'nothing to commit' not in c.stdout + c.stderr:
