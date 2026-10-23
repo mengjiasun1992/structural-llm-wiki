@@ -1,6 +1,6 @@
 # Behavior evals
 
-Unit tests (`src/skills/sllmwiki/tests/`) check the scripts; these evals check the skill's behavior: does a request reach the right workflow or step, and does a run follow the rules that matter most. They run with `claude plugin eval`, each run a real Claude session on the operator's account, so they cost money and CI doesn't run them. How to run and write them: "Running evals" and "Writing evals" in the repository's `AGENTS.md`.
+Unit tests (`src/skills/sllmwiki/tests/`) check the scripts; these evals check the skill's behavior: does a request reach the right workflow or step, and does a run follow the rules that matter most. They run with `claude plugin eval`, each run a real Claude session on the operator's account, so they cost money and CI doesn't run them on its own. On macOS, cases that need git can't run in the eval sandbox; the manual **Evals** workflow runs them on Linux (`AGENTS.md`, "Running evals"). How to run and write them: "Running evals" and "Writing evals" in the repository's `AGENTS.md`.
 
 ## Cases
 
