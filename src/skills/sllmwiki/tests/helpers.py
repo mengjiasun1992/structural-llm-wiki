@@ -182,6 +182,7 @@ Retries add load when many clients fail at once.
 
 ## 9. Metadata
 
+- **ID:** alpha
 - **Version:** 1.0
 - **Template:** technical_brief_overview
 - **Created:** 2026-10-01

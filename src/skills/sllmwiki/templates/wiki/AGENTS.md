@@ -4,7 +4,7 @@ This repository is a Structural LLM Wiki, kept with the sllmwiki skill (<https:/
 
 ## Rules
 
-- Change the wiki through the skill (`/sllmwiki:build`, `/sllmwiki:query`, and its steps): its scripts keep the manifests, tags and generated pages in step with the files. Never edit `sllmwiki/tags/tags.yaml`, a `manifest.yaml`, `SLLMWIKI_INDICES.md` or a tag page by hand.
+- Change the wiki through the skill (`/sllmwiki:build`, `/sllmwiki:query`, and its steps): its scripts keep the manifests, tags and generated pages in step with the files. Never edit `sllmwiki/tags/tags.yaml`, a `manifest.yaml`, `SLLMWIKI_INDICES.md`, `SLLMWIKI_TERMS.md` or a tag page by hand.
 - A file in `sllmwiki/sources/` is a verbatim copy of its source, with a generated footer. Never edit, summarize or reformat one; save it again instead.
 - Every claim in a narrative cites a section of a saved source, or is marked as the narrative's own reasoning or as a gap (see the README).
 - Each run is one pull request against the default branch, from a branch made from the up-to-date default branch. The owner reviews it, ticks its checklist and merges; a run never merges.

@@ -10,7 +10,11 @@ A narrative answers one question, for the reader its template's guide names. It 
 - **Appendix** (when needed): what a reader may want but doesn't need to follow the answer: the Glossary, a derivation, an example beyond the key ones, a table of values, a lesser variant. Each item is a ### subsection that still serves the question, and the body links to it where it's relevant.
 - **SMEs** (when known): who to ask, the evidence, and one specific question each.
 - **References:** the sources read in full, then the Citations list, which gives each citation number its target once.
-- **Metadata:** version, template, model, dates, history and the reading plan. `finish-narrative.py` keeps it.
+- **Metadata:** ID, version, template, model, dates, history and the reading plan. `finish-narrative.py` keeps it.
+
+## One language
+
+The wiki describes each thing one way. Before writing, look up the terms you'll use in `SLLMWIKI_TERMS.md`. A term another narrative defines is borrowed, never redefined: its row reads `| **Node** | From [distributed-system](what-is-a-distributed-system.md#2-terminology). |`, and `finish-narrative.py` fills in that narrative's definition. In the body, a concept another narrative explains gets at most a sentence, in its words, linked to its section. Define a term yourself only when it belongs to your narrative's subject.
 
 ## Citations
 

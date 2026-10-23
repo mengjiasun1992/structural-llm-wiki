@@ -32,7 +32,7 @@ class Read(unittest.TestCase):
     def test_title_abstract_and_fields(self):
         self.assertEqual(metadata.title(DOC), 'What is X?')
         self.assertEqual(metadata.abstract(DOC), 'First paragraph on two lines.\n\nSecond.')
-        self.assertEqual(metadata.read(DOC), {'version': '1.1', 'template': 'concept_brief_overview', 'model': None, 'created': '2026-10-01',
+        self.assertEqual(metadata.read(DOC), {'id': None, 'version': '1.1', 'template': 'concept_brief_overview', 'model': None, 'created': '2026-10-01',
                                               'last_modified': '2026-10-02',
                                               'history': [('1.1', '2026-10-02', 'Wider scope.'), ('1.0', '2026-10-01', 'First version.')],
                                               'plan': []})

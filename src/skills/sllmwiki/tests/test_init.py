@@ -38,7 +38,7 @@ class Init(unittest.TestCase):
                     'README.md', 'AGENTS.md', 'CLAUDE.md', '.gitignore', '.claude/settings.json',
                     '.github/workflows/wiki-checks.yml', '.github/workflows/review-checklist.yml'):
             self.assertEqual(done[rel], 'created', rel)
-        self.assertEqual(done['SLLMWIKI_INDICES.md'], 'generated')
+        self.assertEqual((done['SLLMWIKI_INDICES.md'], done.get('SLLMWIKI_TERMS.md')), ('generated', 'generated'))
         self.assertTrue(self.read('README.md').startswith('# demo-wiki\n'))
         self.assertEqual(self.read('CLAUDE.md'), '@AGENTS.md\n')
         self.assertIn('src/actions/wiki-checks@mainline', self.read('.github/workflows/wiki-checks.yml'))

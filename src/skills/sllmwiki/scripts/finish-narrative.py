@@ -6,15 +6,18 @@ in one command (design doc §7.5).
                       [--grades GRADES.json] [--model NAME]
                       [--bump minor|major --note TEXT] [--json] [--root <wiki>]
 
-In order: numbers the headings and figure captions; writes the renderer escapes; adds a Terminology
-row for each marker the narrative uses (when markers are on); sets the
+In order: numbers the headings and figure captions; repairs links to a section of
+another narrative that moved; fills each borrowed term with its owner's definition;
+writes the renderer escapes; converts old markers and adds a Terminology row for
+each marker the narrative uses (when markers are on); sets the ID (--id, needed
+once, a short kebab-case name for the subject), the
 Metadata's dates and, for a new narrative, version 1.0 and its first history
 entry, or with --bump, the next version and --note as its history entry;
 records the narrative with its template, tags, the current pins of the sources
 it read, the reading plan's grades (--grades, the file given to reading-plan.py)
 and the model that wrote a new version (this session's, or --model); writes the
-model and the reading plan into the Metadata; regenerates the index and tag
-pages; then checks it with narrative-format and prints what's left.
+model and the reading plan into the Metadata; regenerates the index, terms and
+tag pages; then checks it with narrative-format and prints what's left.
 
 A new narrative needs --primary (its core tags) and --read (the saved sources it
 read in full); later runs reuse what was recorded unless given again.
@@ -29,13 +32,13 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import compat, config, figures, layout, manifest, markers, metadata, numbering, readingplan, runstats, templates, wikiindex  # noqa: E402
+from lib import compat, config, figures, layout, manifest, markers, metadata, numbering, readingplan, runstats, templates, vocabulary, wikiindex  # noqa: E402
 from lib.narrativecheck import check as check_narrative  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, read_text, today, write_text  # noqa: E402
 
 cli = Cli('finish-narrative.py', 'usage: finish-narrative.py <slug> [--primary a,b] [--supporting c] [--read s1,s2] [--grades FILE] [--model NAME] '
-          '[--bump minor|major --note TEXT]')
+          '[--id NAME] [--bump minor|major --note TEXT]')
 
 
 def tag_list(value):
@@ -50,6 +53,7 @@ def main(argv):
     p.add_argument('--read', type=tag_list)
     p.add_argument('--grades')
     p.add_argument('--model')
+    p.add_argument('--id')
     p.add_argument('--bump', choices=['minor', 'major'])
     p.add_argument('--note')
     p.add_argument('--json', action='store_true')
@@ -90,10 +94,16 @@ def main(argv):
 
     text = read_text(path)
     done = []
+    if args.id and (not vocabulary.ID.match(args.id) or len(args.id) > vocabulary.MAX_ID):
+        cli.usage(f'--id is a short kebab-case name for the subject, at most {vocabulary.MAX_ID} characters, such as {vocabulary.suggest_id(args.slug)}')
     text, n = numbering.renumber(text)
     done += [f'numbered {n} heading(s)'] if n else []
     text, n = figures.renumber(text)
     done += [f'numbered {n} figure caption(s)'] if n else []
+    text, n = vocabulary.repair_links(root, rel, text)
+    done += [f'repaired {n} link(s) to a moved section'] if n else []
+    text, n, _ = vocabulary.sync(root, text, args.slug)  # an unknown owner is check_one's TERM_OWNER
+    done += [f'filled {n} borrowed term(s) from their narratives'] if n else []
     text, n = compat.escape(text)
     done += [f'wrote {n} renderer escape(s)'] if n else []
     if settings['markers']:
@@ -107,7 +117,9 @@ def main(argv):
         templates.get(root, name or '')
     except templates.TemplateError as e:
         cli.fail(f'Metadata names no template this wiki offers: {e}')
-    fields = {'last_modified': today(), 'created': meta['created'] or today()}
+    if not args.id and not vocabulary.narrative_id(text):
+        cli.fail(f'{args.slug} has no ID yet: pass --id, a short name for its subject, such as --id {vocabulary.suggest_id(args.slug)}')
+    fields = {'last_modified': today(), 'created': meta['created'] or today(), 'id': args.id}
     history = None
     if not meta['version']:
         fields['version'], history = '1.0', ('1.0', today(), 'First version.')
