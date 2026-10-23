@@ -133,7 +133,20 @@ obsidian = false            # true: set the wiki up to open as an Obsidian vault
 
 **Obsidian.** With `obsidian = true` and `/sllmwiki:init` rerun, open `sllmwiki/` as a vault: tags, narratives and sources form one graph, colored by kind.
 
-**Source policy.** The wiki keeps copies of other people's work, so the skill follows a policy: copyright stays with the authors; every source keeps its URL and license; narratives quote briefly; logins and paywalls are never bypassed; a private wiki keeps reference copies unless a source's terms forbid it, and a public wiki only openly licensed ones; no personal data or secrets. The scripts enforce what they can, and the wiki's CI fails on a copy a public wiki may not hold. It's a cautious default, not legal advice.
+## Licenses, sources and your responsibility
+
+A wiki holds other people's work next to text an LLM wrote, so it's worth knowing who owns what and who answers for it.
+
+- **The skill** is open source under the [Apache License 2.0](LICENSE), copyright 2026 Mengjia Sun ([NOTICE](NOTICE)). It covers the skill's code, templates and docs, not what you put in your wiki.
+- **Your wiki is yours.** The skill picks no license for it: what your narratives may be shared under is your call, and a wiki made from your company's code and docs falls under your company's rules.
+- **Sources stay their authors'.** Copyright stays with each source's authors, and every saved source keeps its URL and license. Narratives quote only briefly, at most `max_quote_words` words, and cite the rest.
+- **Copies follow a source policy.** A private wiki keeps reference copies unless a source's terms forbid sharing; a public wiki keeps only openly licensed ones, and its CI fails on a copy it may not hold. With `source_copies = "links-only"` it keeps no copies at all. Review `sllmwiki/sources/` before you make a private wiki public.
+- **Fair access only.** The skill never gets around a login, paywall or anti-bot protection, and uses no unofficial copies; when it may not keep a copy, it records a link instead, and when in doubt it asks.
+- **No personal data or secrets** go into the wiki, even when a source contains them.
+- **Your model provider sees what your agent reads.** Questions and sources go to the model your agent runs on, under that provider's terms: ingest only what you may share with it.
+- **Narratives are written by an LLM.** Every claim cites its source, and what no source states is marked, but a narrative can still be wrong: review each pull request before you merge it, and check a claim's source before you rely on it.
+
+The scripts enforce what they can. This is a cautious default, not legal advice: for anything that matters, ask your own counsel.
 
 ## Design
 
