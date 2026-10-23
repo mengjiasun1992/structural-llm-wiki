@@ -48,8 +48,8 @@ class Bundled(helpers.WikiTestCase):
         self.assertEqual(got, [('Overview', False, False), ('The map', False, True), ('The main items', False, False),
                                ('Tensions and trade-offs', True, False), ('Classic case studies', True, False), ('Applying them', True, False),
                                ('Where to go next', False, False), ('Appendix', True, False)])
-        got = [(s.title, s.optional, s.diagram) for s in templates.get(self.root, 'case_study').sections()][2:10]
-        self.assertEqual(got, [('Context', False, False), ('The problem', False, False), ('What happened', False, True),
+        got = [(s.title, s.optional, s.diagram) for s in templates.get(self.root, 'case_study').sections()][2:11]
+        self.assertEqual(got, [('Context', False, False), ('The problem', False, False), ('What happened', False, True), ('Why', False, False),
                                ('The ideas at work', False, False), ('Outcome', True, False), ('Lessons', False, False),
                                ('Where to go next', True, False), ('Appendix', True, False)])
         for name in ('case_study', 'comparison', 'survey'):

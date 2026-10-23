@@ -201,7 +201,7 @@ A template is chosen by the subject, not the question's wording:
 | `technical_brief_overview` | A solution, an algorithm, or the design of a component or for a problem | How it works: the core idea and its picture first, then a walkthrough on one running example, then variants and trade-offs | has learned the solution or design | 1,800 words |
 | `comparison` | A choice among common candidates | Each candidate in turn on one base scenario, a condition changed until it wins; then when to pick which, and every dimension to think through | knows each candidate, what sets it apart, and which one their situation calls for | 1,500 words |
 | `survey` | Anything not concrete: a domain, or an umbrella term for subtopics or directions that each go deep their own way | Wide over deep: the main dishes on the table that one can't miss, an overview with context and scope, the items grouped and mapped first, their tensions, classic case studies, where to go deeper | knows the main areas of the domain and where to go deeper in each | 2,200 words |
-| `case_study` | One particular system, incident or decision that a concept or domain is known by | Deep on the one case: its context, what happened, the ideas at work (linked to their narratives), the lessons that carry over | knows what happened and why, and can apply its lessons elsewhere | 1,500 words |
+| `case_study` | One real, documented instance a concept or domain is known by: an incident, a production system, a design decision | Deep on the one case, in one of two shapes (an incident's timeline, a decision's options): its context, what happened, why (the causal chain), the ideas at work (linked to their narratives), the lessons that carry over | knows what happened and why, and can apply its lessons elsewhere | 1,500 words |
 
 **Aims.** Each template names its aim, the few qualities its narratives are graded on, and its guide says what each means in practice:
 
@@ -211,9 +211,9 @@ A template is chosen by the subject, not the question's wording:
 | `technical_brief_overview` | concise, authoritative, depth over breadth: the core idea and how it works carry at least half the body |
 | `survey` | concise, thorough, breadth over depth: every item the sources agree on, or named as left out |
 | `comparison` | precise, breadth and depth in balance: every common candidate, depth only where it decides the choice |
-| `case_study` | concrete, faithful, deep on one case |
+| `case_study` | faithful, causal, transferable; deep on one case: every event cited, the chain from trigger to impact explained, each lesson with when it holds |
 
-Lint grades each narrative on each axis of its template's aim, met, partly or missed, with the evidence, helped by `narrative-format.py --stats` (the body against its budget, words per section, citations by the authority of what they cite, markers).
+Lint grades each narrative on each axis of its template's aim, met, partly or missed, with the evidence, helped by `narrative-format.py --stats` (the body against its budget; words, citations and markers per section; citations by the authority of what they cite).
 
 **A wiki's own templates.** A team can bring its own: a folder in the wiki's `templates/` with a `template.md` and a `guide.md` is offered next to the bundled ones, and is checked the same way; one with a bundled template's name replaces it. A wiki that only wants a different budget for a template sets it in `Config.toml` (§4.9) instead of copying the template.
 
