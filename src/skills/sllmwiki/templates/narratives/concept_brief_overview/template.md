@@ -7,7 +7,7 @@ abstract_words: [80, 150]
 
 ## 3. Overview
 
-<A few sentences to orient the reader: what it is in a line, where and when one meets it, who deals with it, and why it matters, through the key example.>
+<The orientation, through the key example: what it is in a line, where and when one meets it, who deals with it, and why it matters.>
 
 ## 4. Definition
 

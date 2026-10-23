@@ -7,7 +7,7 @@ abstract_words: [80, 150]
 
 ## 3. The choices
 
-<A few sentences on where and when this choice comes up, who faces it and what it decides; then the base scenario.>
+<The orientation: where and when this choice comes up, who faces it and what it decides; then the base scenario.>
 
 ### 3.1 <Candidate>
 

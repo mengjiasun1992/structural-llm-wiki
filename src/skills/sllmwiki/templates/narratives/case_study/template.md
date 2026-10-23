@@ -7,7 +7,7 @@ abstract_words: [80, 150]
 
 ## 3. Context
 
-<The system and its situation, for a reader who doesn't know it: what it does, who runs it, what it must achieve, and the constraints it works under.>
+<The orientation, for a reader who doesn't know the system: what it does, who runs it, what it must achieve, and the constraints it works under.>
 
 ## 4. The problem
 

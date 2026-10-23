@@ -15,7 +15,7 @@ BUDGETS = {  # words per file; a run loads SKILL.md, a workflow, its steps, shar
     'workflows/*.md': 1200,
     'steps/*.md': 1200,
     'templates/narratives/shared.md': 600,
-    'templates/narratives/shared-guide.md': 1100,
+    'templates/narratives/shared-guide.md': 900,
 }
 TEMPLATE_AND_GUIDE = 1400
 BUILD_LOAD = 9000  # SKILL.md, build, its steps, shared.md, shared-guide.md and the largest template with its guide
