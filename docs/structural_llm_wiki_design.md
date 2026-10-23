@@ -1,4 +1,4 @@
-# Structural LLM Wiki — Design
+# 📖 Structural LLM Wiki — Design
 
 ## 1. Overview
 

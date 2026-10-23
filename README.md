@@ -1,4 +1,4 @@
-# Structural LLM Wiki
+# 📖 Structural LLM Wiki
 
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757.svg)](#setup)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
@@ -12,7 +12,7 @@
 - **For tech leads,** it's onboarding that stays current, with every change reviewed and the reasons behind the design kept next to it.
 - **For researchers,** it's a structured, cited review of a field: definitions taken from the sources that state them most rigorously, and every claim one click from its evidence.
 
-![The knowledge loop: you ask; your coding agent collects sources and writes the answers; scripts and lint verify them; you review one pull request; people and agents use the cited answers, and what the wiki can't answer yet starts the next run](docs/images/knowledge-loop.svg)
+![What using it is like: you ask in one line and review one pull request; your agent does the research in between, saving 29 sources, writing 4 narratives and citing 255 claims, each checked against its source; you get a wiki of answers that last, every claim one click from its source](docs/images/what-you-get.svg)
 
 Unlike an answer in a chat session, the knowledge stays: narratives build on and link to each other, and when a source changes, exactly the narratives built on it are flagged for review.
 
