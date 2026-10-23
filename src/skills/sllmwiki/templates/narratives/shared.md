@@ -5,8 +5,9 @@ A narrative answers one question, for the reader its template's guide names. It 
 ## The top and the appendices
 
 - **Title:** the question, exactly as asked.
-- **Abstract:** one sentence on the problem and who has it, then the answer in brief, within the template's word range, so a reader can stop there.
-- **Terminology:** every term and acronym the reader meets before its first use, one line each.
+- **Abstract:** one sentence on the problem and who has it, the answer in two or three, then 3-5 key takeaways, each a line the reader should remember; all within the template's word range, so a reader can stop there.
+- **Terminology:** only the terms the whole narrative leans on, and every abbreviation it uses, one line each. Define any other term in a clause where it's first used, and put it in the Appendix's Glossary when a reader may need it again.
+- **Appendix** (when needed): what a reader may want but doesn't need to follow the answer: the Glossary, a derivation, an example beyond the key ones, a table of values, a lesser variant. Each item is a ### subsection that still serves the question, and the body links to it where it's relevant.
 - **SMEs** (when known): who to ask, the evidence, and one specific question each.
 - **References:** the sources read in full, then the Citations list, which gives each citation number its target once.
 - **Metadata:** version, template, model, dates, history and the reading plan. `finish-narrative.py` keeps it.

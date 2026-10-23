@@ -19,7 +19,7 @@ class Bundled(helpers.WikiTestCase):
         self.assertEqual(sorted(found), ['comparison', 'concept_brief_overview', 'survey', 'technical_brief_overview'])
         self.assertEqual([found[n].max_words for n in sorted(found)], [1200, 900, 2200, 1800])
         t = found['technical_brief_overview']
-        self.assertEqual((t.source, t.max_words, t.abstract_words), ('bundled', 1800, [150, 250]))
+        self.assertEqual((t.source, t.max_words, t.abstract_words), ('bundled', 1800, [80, 200]))
         self.assertTrue(t.use_when.startswith('A solution, an algorithm'))
 
     def test_the_skeleton_is_the_schema(self):
@@ -32,7 +32,7 @@ class Bundled(helpers.WikiTestCase):
         self.assertEqual(got, [('Abstract', False, False), ('Terminology', False, False), ('Background', False, False),
                                ('What is <X>?', True, False), ('How does it work?', False, True),
                                ('Design decisions and trade-offs', False, False), ('Limitations and failure modes', False, False),
-                               ('FAQ', True, False), ('SMEs', True, False), ('References', False, False), ('Metadata', False, False)])
+                               ('FAQ', True, False), ('Appendix', True, False), ('SMEs', True, False), ('References', False, False), ('Metadata', False, False)])
 
     def test_the_concept_template(self):
         titles = [s.title for s in templates.get(self.root, 'concept_brief_overview').sections()]
@@ -80,7 +80,7 @@ class WikiTemplates(helpers.WikiTestCase):
                                   '[structural-llm-wiki-templates.concept_brief_overview]\nabstract_words = [100, 300]\n')
         found, problems = templates.available(self.root)
         self.assertEqual(problems, [])
-        self.assertEqual((found['technical_brief_overview'].max_words, found['technical_brief_overview'].abstract_words), (3000, [150, 250]))
+        self.assertEqual((found['technical_brief_overview'].max_words, found['technical_brief_overview'].abstract_words), (3000, [80, 200]))
         self.assertEqual(found['concept_brief_overview'].abstract_words, [100, 300])
 
     def test_problems(self):

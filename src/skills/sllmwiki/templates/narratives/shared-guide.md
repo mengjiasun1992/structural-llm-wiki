@@ -1,14 +1,32 @@
 # Writing guide: every narrative
 
-Each template's guide holds its own reader, structure and style; this one holds what every narrative's style shares.
+Each template's guide holds its own reader, structure and style; this one holds what every narrative's style shares. The reader is from a technical or research field but new to this topic: define the topic's own terms, not general computing ones. When two rules pull apart, the earlier one wins.
 
 ## Context first
 
 Set clear context before anything the reader must interpret, so nothing reads ambiguously: the narrative opens with the problem and who has it, even in the Abstract, before its answer; each section, scenario, comparison, formula or piece of pseudocode opens with what it's about and why the reader needs it here; each term is defined before its first use. Depth comes after context, never instead of it.
 
+## Ideas first, sources second
+
+Say each idea in your own words, then cite it. Name a source in the prose only when who said it matters: a definition, a landmark paper, a disagreement, a measurement. Never tally who agrees ("X says …, Y agrees, Z adds …"): give the idea once, with all its citations after it.
+
+## Map before details
+
+Show the whole before its parts: what the narrative covers and how its parts fit, then each part. When a list runs past five to seven items, group it under a few named areas, each with a sentence on what holds it together, so the reader holds a few groups rather than many items.
+
 ## Examples
 
-Context first applies most to examples. Before an example from a particular system (TCP's retransmission timer, the Linux kernel), set its scene for a reader who doesn't know that system, in a few plain sentences: what the system does, the problem the example solves there, what goes wrong without it, and what each quantity means in it. Then go as deep as the example deserves.
+One or two key examples carry the whole narrative, never more. The first is the running example: introduce it once, where the template says, with its scene set for a reader who doesn't know it, in a few plain sentences: what the system does, the problem it has, what goes wrong without the answer, and what each quantity means in it. Then come back to it in each section that explains something, so the reader never switches context to follow a point. A second key example is only for what the first can't show. Any other example goes in the Appendix, or is named in a sentence with a link.
+
+For anything computed, work the running example with numbers, step by step, in a small table where it helps: a reader follows three numbers faster than one formula.
+
+## The shape fits the content
+
+A template's sections are where content goes, not a form to fill. When an optional section or a part of an item's shape has nothing real to say for this subject, leave it out rather than fill it: an example that isn't one, or a "why" that only repeats the "what", costs the reader more than its absence.
+
+## Detail in its place
+
+The body holds what the reader needs to follow the answer; what they may want but don't need goes in the Appendix, linked from where it's relevant. Over the template's budget, move a secondary example or variant to the Appendix, or cut it; never cut the context.
 
 ## Diagrams
 
@@ -20,4 +38,4 @@ Pseudocode, in a ```text block, explains an algorithm or a procedure step by ste
 
 ## Math
 
-Write formulas and their symbols as TeX: `$x_t$` inline, and a display formula between `$$` lines of its own, one equation per block (GitHub's renderer changes `&` and `\\` inside one). Define each symbol in Terminology.
+Write formulas and their symbols as TeX: `$x_t$` inline, and a display formula between `$$` lines of its own, one equation per block (GitHub's renderer changes `&` and `\\` inside one). Define each symbol in Terminology, or, when it's used in one section only, in the sentence before its formula.

@@ -2,7 +2,7 @@
 description: What a concrete subject is, at definition level
 use_when: 'A concrete subject that has a concise, precise definition: "What is X?"'
 max_words: 900
-abstract_words: [150, 250]
+abstract_words: [80, 200]
 ---
 
 ## 3. Definition

@@ -103,7 +103,7 @@ def git_init(root):
 FOOTER = '\n\n<!-- sllmwiki:original-source -->\n## Original source\n\n- URL: <{url}>\n- License: {license}\n'
 ALPHA = '# Alpha\n\nAlpha systems retry failed requests.\n\n## Details\n\nEach retry waits twice as long as the last.\n'
 BETA = '# Beta\n\nBeta caching keeps hot data close to readers.\n'
-ABSTRACT = ' '.join(['word'] * 170)
+ABSTRACT = ' '.join(['word'] * 120)
 
 TAGS_YAML = '''# The tag tree: each tag's description, parent and SMEs.
 

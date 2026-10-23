@@ -2,33 +2,45 @@
 
 ## 1. Abstract
 
-<150-250 words: the problem and who has it in one sentence, then the answer in brief, for a reader deciding whether to read on.>
+<One sentence on the problem and who has it, then the answer in two or three, for a reader deciding whether to read on.>
+
+**Key takeaways:**
+
+- <one thing to remember, in a line>
 
 ## 2. Terminology
 
 | Term | Definition |
 |---|---|
-| **<term or acronym>** | <what it means here, in one line> |
+| **<term or abbreviation>** | <what it means here, in one line> |
 
 <!-- sllmwiki:body -->
 
-## 8. SMEs (optional)
+## 8. Appendix (optional)
+
+### 8.1 Glossary
+
+| Term | Definition |
+|---|---|
+| **<term>** | <what it means here, in one line> |
+
+## 9. SMEs (optional)
 
 | Person | Why them | Ask them |
 |---|---|---|
 | <@name> | <the evidence> | <one specific question> |
 
-## 9. References
+## 10. References
 
-### 9.1 Sources read
+### 10.1 Sources read
 
 - [<slug>](../sources/<slug>.md): <what it contributed>
 
-### 9.2 Citations
+### 10.2 Citations
 
 1. [<slug>: <section>](../sources/<slug>.md#<section>)
 
-## 10. Metadata
+## 11. Metadata
 
 - **Version:** 1.0
 - **Template:** <template name>

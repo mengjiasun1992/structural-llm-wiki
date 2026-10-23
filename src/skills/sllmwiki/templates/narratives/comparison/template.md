@@ -2,7 +2,7 @@
 description: How the common candidates for one choice compare, and when to pick which
 use_when: 'A choice among common candidates: "X or Y?", "When should I use X instead of Y?", "Which X should I pick?"'
 max_words: 1200
-abstract_words: [150, 250]
+abstract_words: [80, 200]
 ---
 
 ## 3. The choice
