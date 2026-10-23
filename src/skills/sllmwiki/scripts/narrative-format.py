@@ -9,8 +9,8 @@ narrative shares (design doc §4.5, §4.8, §4.10).
         the body's budget; citations (numbered in order, listed, pointing at an
         existing section of a saved source); the markers; leftover <placeholders>;
         and markdown every renderer reads alike, links included.
-      --fix-numbering renumbers the headings and figure captions; --fix-style writes the renderer
-      escapes. finish-narrative.py does both, and more.
+      --fix-numbering renumbers the headings and figure captions; --fix-style moves references inside
+      their sentence and writes the renderer escapes. finish-narrative.py does both, and more.
   narrative-format.py <narrative.md> ... --stats [--json]
       The numbers lint grades a narrative's aim with: the body against its budget,
       the words, subsections, citations and markers in each section, citations
@@ -30,7 +30,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import compat, config, figures, layout, numbering, templates  # noqa: E402
+from lib import citations, compat, config, figures, layout, numbering, templates  # noqa: E402
 from lib.narrativecheck import check, stats  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, read_text, write_text  # noqa: E402
@@ -82,7 +82,7 @@ def main(argv):
         if args.fix_numbering:
             fixed = figures.renumber(numbering.renumber(fixed)[0])[0]
         if args.fix_style:
-            fixed = compat.escape(fixed)[0]
+            fixed = compat.escape(citations.place(fixed)[0])[0]
         if fixed != text:
             write_text(path, fixed)
             print(f'fixed {rel}')

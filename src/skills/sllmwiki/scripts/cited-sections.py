@@ -34,7 +34,7 @@ def claim(line, start):
     before = _LINKS.sub('', line[:start]).strip()
     before = re.sub(r'^\s*(?:[-*+]|\d+\.|\|)\s*', '', before)
     parts = [p for p in _SENTENCE_END.split(before) if p.strip()]
-    return parts[-1].strip(' |*') if parts else ''
+    return parts[-1].strip(' |*,') if parts else ''
 
 
 def collect(text):

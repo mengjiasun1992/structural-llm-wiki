@@ -207,6 +207,17 @@ class Finish(helpers.WikiTestCase):
         self.assertIn('MARKER_OFF', r.out)
         self.assertNotIn(markers.MARKERS[R], self.read(NARRATIVE))
 
+    def test_the_old_format_is_converted(self):
+        old = helpers.narrative_text(extra='\n[sllmwiki_reasoning] Mine here. Then more.\n').replace(
+            f'twice as long {CITE}.', f'twice as long. {CITE}')
+        self.write(NARRATIVE, old)
+        r = self.finish('what-is-alpha')
+        self.assertEqual(r.code, 0, r.out + r.err)
+        self.assertIn('moved 2 reference(s) inside their sentence', r.out)
+        text = self.read(NARRATIVE)
+        self.assertIn(f'twice as long {CITE}.', text)
+        self.assertIn(f'Mine here {R}. Then more.', text)
+
 
 
 if __name__ == '__main__':

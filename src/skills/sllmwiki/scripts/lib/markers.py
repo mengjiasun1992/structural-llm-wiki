@@ -1,8 +1,9 @@
 """The two markers a narrative puts after what its sources don't say (design doc
 §4.10): where they may go, their Terminology rows, and the move from the old ones.
 
-A marker sits where a citation would: after the statement it covers, or at the
-end of a heading, where it covers the whole section.
+A marker sits where a citation would: at the end of the statement it covers,
+before its closing punctuation ("… opposite directions [→]."), or at the end of
+a heading, where it covers the whole section.
 """
 
 import re
@@ -78,7 +79,7 @@ def check(text, on=True):
                 out.append(('error', 'MARKER_PLACEMENT', i + 1, f'{m} on a heading goes at its end, after the title'))
         elif not before.strip() or re.fullmatch(r'\s*(?:[-*+]|[0-9]+[.)]|>|\|)\s*', before) or not before.endswith(' ') \
                 or re.match(r'\s*[a-z]', after):
-            out.append(('error', 'MARKER_PLACEMENT', i + 1, f'{m} goes after the statement it covers, like a citation: "… statement. {m}"'))
+            out.append(('error', 'MARKER_PLACEMENT', i + 1, f'{m} goes at the end of the statement it covers, like a citation: "… statement {m}."'))
         else:
             statements.append((i, m))
             if re.search(CITE.pattern + r'[ \t]*\Z', before) or re.match(r'\s*' + CITE.pattern, after):  # a citation sits where the marker does
