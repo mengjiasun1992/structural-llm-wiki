@@ -1,6 +1,6 @@
 # {📖} Structural LLM Wiki
 
-![Structural LLM Wiki: your sources, papers, code, web pages and design docs, are drawn into braces around an open book, each claim on its pages tied by a thread to the source it came from. Ask your agent a question; get an answer that teaches, every claim tied to its source, reviewed like code.](docs/images/hero.svg)
+![Structural LLM Wiki: your sources, papers, code, web pages and design docs, are drawn into braces around an open book, each claim on its pages tied by a thread to the source it came from. Under it, the book is a git repository: each answer merges in by pull request, and your team and their agents clone it, share it and grow it with every question. Ask your agent a question; get an answer that teaches, every claim tied to its source, reviewed like code, kept in git for your team.](docs/images/hero.svg)
 
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757.svg)](#setup)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)

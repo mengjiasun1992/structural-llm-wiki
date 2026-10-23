@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="440" viewBox="0 0 1200 440" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif">
   <defs>
     <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
       <stop offset="0" stop-color="#f5b544" stop-opacity="0.28"/>
@@ -8,8 +8,8 @@
       <circle cx="2" cy="2" r="1.2" fill="#2c3263"/>
     </pattern>
   </defs>
-  <rect width="1200" height="440" rx="18" fill="#161a36"/>
-  <rect width="1200" height="440" rx="18" fill="url(#dots)"/>
+  <rect width="1200" height="520" rx="18" fill="#161a36"/>
+  <rect width="1200" height="520" rx="18" fill="url(#dots)"/>
 
   <!-- the sources, loose -->
   <g stroke-linecap="round">
@@ -68,11 +68,37 @@
     <path d="M228 330 C 380 340, 500 300, 564 280"/>
   </g>
 
+  <!-- the repository: a git history the team shares and grows -->
+  <g stroke-linecap="round" fill="none">
+    <path d="M300 432 H 860" stroke="#8fa2ff" stroke-width="4"/>
+    <path d="M560 432 C 584 432 590 470 614 470 H 676 C 700 470 706 432 730 432" stroke="#f5b544" stroke-width="4"/>
+    <path d="M610 326 C 610 380 730 370 730 418" stroke="#f5b544" stroke-width="2" stroke-dasharray="2 6"/>
+  </g>
+  <g fill="#161a36" stroke="#8fa2ff" stroke-width="4">
+    <circle cx="330" cy="432" r="9"/><circle cx="410" cy="432" r="9"/><circle cx="490" cy="432" r="9"/><circle cx="560" cy="432" r="9"/>
+    <circle cx="800" cy="432" r="9"/>
+  </g>
+  <g fill="#161a36" stroke="#f5b544" stroke-width="4"><circle cx="645" cy="470" r="8"/></g>
+  <circle cx="730" cy="432" r="12" fill="#f5b544"/>
+  <path d="M724 432 l4 4 l8 -8" fill="none" stroke="#161a36" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="645" y="498" font-size="12" font-weight="700" fill="#f5b544" text-anchor="middle">pull request</text>
+  <text x="300" y="410" font-size="13" fill="#8fa2ff" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">your-team-wiki.git</text>
+  <text x="300" y="470" font-size="13" fill="#c9c3b3">a git repository: clone it, share it,</text>
+  <text x="300" y="490" font-size="13" fill="#c9c3b3">and every question asked grows it</text>
+  <g>
+    <circle cx="900" cy="432" r="15" fill="#8fa2ff"/><circle cx="932" cy="432" r="15" fill="#6fd39a" stroke="#161a36" stroke-width="3"/>
+    <circle cx="964" cy="432" r="15" fill="#f26d6d" stroke="#161a36" stroke-width="3"/><circle cx="996" cy="432" r="15" fill="#f5b544" stroke="#161a36" stroke-width="3"/>
+    <text x="1030" y="428" font-size="13" fill="#c9c3b3">your team, and</text>
+    <text x="1030" y="446" font-size="13" fill="#c9c3b3">their agents</text>
+  </g>
+  <path d="M860 432 H 878" stroke="#8fa2ff" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 8"/>
+
   <!-- the words -->
   <text x="868" y="168" font-size="34" font-weight="800" fill="#fbf6ea">Structural</text>
   <text x="868" y="208" font-size="34" font-weight="800" fill="#fbf6ea">LLM Wiki</text>
   <text x="868" y="252" font-size="17" fill="#c9c3b3">Ask your agent a question.</text>
   <text x="868" y="276" font-size="17" fill="#c9c3b3">Get an answer that teaches,</text>
   <text x="868" y="300" font-size="17" fill="#c9c3b3">every claim tied to its source,</text>
-  <text x="868" y="324" font-size="17" fill="#f5b544" font-weight="700">reviewed like code.</text>
+  <text x="868" y="324" font-size="17" fill="#c9c3b3">reviewed like code,</text>
+  <text x="868" y="348" font-size="17" fill="#f5b544" font-weight="700">kept in git for your team.</text>
 </svg>
