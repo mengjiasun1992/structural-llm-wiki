@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="470" viewBox="0 0 820 470" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+  <style>
+    .n { font-size: 15px; font-weight: 700; fill: #111827; }
+    .q { font-size: 12px; fill: #374151; font-style: italic; }
+    .a { font-size: 12px; fill: #1f2937; }
+    .ax { font-size: 13px; fill: #4b5563; font-weight: 600; }
+    .tick { font-size: 11px; fill: #6b7280; }
+  </style>
+  <defs>
+    <marker id="h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"/></marker>
+  </defs>
+  <rect width="820" height="470" rx="14" fill="#ffffff"/>
+  <text x="410" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#111827">Five templates, chosen by the subject: how wide and how deep each goes</text>
+  <line x1="80" y1="420" x2="790" y2="420" stroke="#9ca3af" stroke-width="2" marker-end="url(#h)"/>
+  <line x1="80" y1="420" x2="80" y2="55" stroke="#9ca3af" stroke-width="2" marker-end="url(#h)"/>
+  <text class="ax" x="440" y="455" text-anchor="middle">breadth: one thing → many things</text>
+  <text class="ax" x="30" y="240" text-anchor="middle" transform="rotate(-90 30 240)">depth: definition → mechanism → causes</text>
+  <g>
+    <rect x="105" y="70" width="230" height="92" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+    <text class="n" x="120" y="94">technical brief overview</text>
+    <text class="q" x="120" y="113">"How does X work?"</text>
+    <text class="a" x="120" y="133">concise · authoritative ·</text>
+    <text class="a" x="120" y="150">depth over breadth</text>
+  </g>
+  <g>
+    <rect x="350" y="70" width="230" height="92" rx="12" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+    <text class="n" x="365" y="94">case study</text>
+    <text class="q" x="365" y="113">"What happened in X, and why?"</text>
+    <text class="a" x="365" y="133">faithful · causal · transferable;</text>
+    <text class="a" x="365" y="150">deep on one case</text>
+  </g>
+  <g>
+    <rect x="105" y="250" width="230" height="92" rx="12" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+    <text class="n" x="120" y="274">concept brief overview</text>
+    <text class="q" x="120" y="293">"What is X?"</text>
+    <text class="a" x="120" y="313">concise · precise · rigorous:</text>
+    <text class="a" x="120" y="330">in short, then precisely</text>
+  </g>
+  <g>
+    <rect x="370" y="180" width="230" height="92" rx="12" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text class="n" x="385" y="204">comparison</text>
+    <text class="q" x="385" y="223">"X or Y? When which?"</text>
+    <text class="a" x="385" y="243">precise · breadth and depth</text>
+    <text class="a" x="385" y="260">in balance</text>
+  </g>
+  <g>
+    <rect x="545" y="305" width="230" height="92" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+    <text class="n" x="560" y="329">survey</text>
+    <text class="q" x="560" y="348">"What are the principles of X?"</text>
+    <text class="a" x="560" y="368">concise · thorough ·</text>
+    <text class="a" x="560" y="385">breadth over depth</text>
+  </g>
+</svg>

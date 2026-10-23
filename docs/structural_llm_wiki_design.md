@@ -10,13 +10,18 @@ AI assistants help, but only for the moment: an answer from a chat session is go
 
 ### The approach
 
-The Structural LLM Wiki gives that knowledge a durable home: a git repository the coding agent maintains and the team reviews. The work happens in five moves:
+The Structural LLM Wiki gives that knowledge a durable home: a git repository the coding agent maintains and the team reviews. The work happens in six moves:
 
 1. **Ask.** A run starts from the questions someone wants answered. The questions decide which topics, sources and people matter.
 2. **Collect.** The agent finds the sources those questions need and saves them in the wiki, verbatim, so every claim can be checked later. Each source is attached to hierarchical topic tags, which connect sources, narratives and the people who know each area.
 3. **Answer.** For each question, the agent reads what the question needs, once, and writes a narrative that answers it, with every claim traced to a section of a source.
-4. **Verify.** Scripts check everything mechanical; lint checks each claim against the source section it cites and against related narratives. When a source changes, exactly the narratives that depend on it are checked again.
-5. **Use.** A person or another agent asks the wiki a question and gets a cited answer, read from the smallest thing that answers it: a narrative's abstract, one section, one cited source section.
+4. **Verify.** Scripts check everything mechanical; lint checks each claim against the source section it cites and against related narratives, and grades each narrative against its template's aim. When a source changes, exactly the narratives that depend on it are checked again.
+5. **Review.** The run lands as one pull request with a review checklist; the owner comments or merges.
+6. **Use.** A person or another agent asks the wiki a question and gets a cited answer, read from the smallest thing that answers it: a narrative's abstract, one section, one cited source section.
+
+![The knowledge loop: you ask; your coding agent collects sources and answers; scripts and lint verify; you review one pull request; people and agents use the cited answers, and what they can't answer starts the next run](images/knowledge-loop.svg)
+
+*Figure 1-1: The knowledge loop. Green is you, blue your coding agent, amber the scripts and lint, purple the wiki in git.*
 
 Each run arrives as a single pull request against the default branch, so people stay in control of what enters the wiki without having to do the research. Over time the wiki builds up instead of decaying: answers stay linked to their evidence, new findings are reconciled with old ones, and the history shows how the team's understanding evolved.
 
@@ -32,7 +37,7 @@ This document covers the architecture and the decisions behind it. The skill's f
 - **The question drives the run.** Tags, sources and the reading plan are chosen for the questions asked, not for a topic in general, so nothing is collected that no answer uses.
 - **Runs are unattended; review happens on one pull request.** A run takes its questions at the start and doesn't pause; what it can't decide goes to the top of its pull request. The owner reviews, ticks the review checklist and merges.
 - **Build on what exists.** One narrative per question. Before writing, look for a narrative that already covers it, and reuse or expand it (§7.4).
-- **Store facts, derive the rest.** Manifests hold only what no file can tell: where a source came from, when, its license, its tags and abstract, and which source versions a narrative was built from. Sizes, hashes, titles, versions and dates are read from the files when needed, and generated pages (the index, tag pages) are rewritten by every script that writes a manifest, and by `wiki-check.py --fix`. Nothing derived is stored, so nothing derived can drift.
+- **Store facts, derive the rest.** Manifests hold only what no file can tell: where a source came from, when, its license, its tags and abstract, which source versions a narrative was built from, and which narratives it builds on. Sizes, hashes, titles, versions and dates are read from the files when needed, and generated pages (the index, tag pages) are rewritten by every script that writes a manifest, and by `wiki-check.py --fix`. Nothing derived is stored, so nothing derived can drift.
 - **Spend tokens on judgment, and keep attention on what matters.** The agent never does the same work twice and never reads more than the task needs:
   - **Repetitive work is a script's.** Counting, hashing, numbering, formatting, assembling commit messages and PR descriptions, and checking structure run as scripts, which cost no tokens and give the same answer every time.
   - **Read the smallest thing that answers.** Abstracts before sections, a section before a whole file, search results instead of browsing. Scripts print compact findings, not file contents.
@@ -47,10 +52,10 @@ This document covers the architecture and the decisions behind it. The skill's f
 
 ## 3. Layout
 
-**This package** (`sllmwiki`):
+**This package** (the `sllmwiki` plugin, in the `structural-llm-wiki` repository):
 
 ```text
-sllmwiki/
+structural-llm-wiki/
 ├── .claude-plugin/
 │   ├── plugin.json                        # Claude Code plugin manifest
 │   └── marketplace.json                   # makes this repo a plugin marketplace
@@ -68,6 +73,7 @@ sllmwiki/
 │   └── tools/                             # CI-only tools outside the skill (check-yaml)
 ├── evals/                                 # behavior evals, outside the skill so they never ship with it
 └── docs/
+    ├── images/                            # this document's and the README's figures
     ├── structural_llm_wiki_design.md      # this file
     └── skill_execution_plan.md            # how it is built
 ```
@@ -93,12 +99,37 @@ sllmwiki/
     ├── sources/              # sources, saved verbatim
     │   └── manifest.yaml
     └── narratives/           # narratives, one per question
+        ├── figures/<slug>/   # figures a narrative generates (§4.5)
         └── manifest.yaml
 ```
 
 The layout is fixed: the scripts know it, and no setting changes it. A repository is a wiki when `sllmwiki/tags/tags.yaml` exists; every workflow but `init` stops and points to `init` otherwise.
 
 ## 4. Data model
+
+```mermaid
+flowchart LR
+    subgraph T["tags.yaml: the topic tree"]
+        RH["request-handling"] --> GW["gateway"]
+        RH --> RT["routing"]
+    end
+    SME["@alice · @bob<br/>SMEs, with evidence"] --- GW
+    SRC["sources/gateway-design-doc.md<br/>saved verbatim, URL and license"] -- "tags" --> GW
+    NAR["narratives/what-is-gateway.md<br/>one per question"] -- "primary · supporting" --> GW
+    NAR -- "cites a section, pins its hash" --> SRC
+    NAR -- "builds on, pinned" --> BASE["narratives/what-is-routing.md"]
+    BASE -- "primary" --> RT
+    classDef tag fill:#ede9fe,stroke:#7c3aed,color:#111
+    classDef src fill:#dcfce7,stroke:#16a34a,color:#111
+    classDef nar fill:#dbeafe,stroke:#2563eb,color:#111
+    classDef ppl fill:#fef3c7,stroke:#d97706,color:#111
+    class RH,GW,RT tag
+    class SRC src
+    class NAR,BASE nar
+    class SME ppl
+```
+
+*Figure 4-1: The data model. Tags (purple) connect sources (green), narratives (blue) and the people who know each area (amber); a narrative cites sections of its sources and pins the versions it read, and pins the narratives it builds on.*
 
 ### 4.1 Topic tags
 
@@ -175,6 +206,8 @@ what-is-gateway:
     gateway-design-doc: {relevance: high, authority: A}
   models:                                  # the model that wrote each version
     '1.0': claude-opus-5-5
+  built_on:                                # the narratives it builds on, by a hash without their Metadata
+    what-is-routing: 3c2b1a0f9e8d…
 ```
 
 The question (the title), the Abstract, the version and the dates live in the narrative and are read from it. The grades and models are the record behind the narrative's Model and Reading plan, which `finish-narrative` writes into its Metadata, so a reader sees what was read, in what order and why, and which model wrote it. When a source is re-ingested and its hash no longer matches a pin, `wiki-check` reports `NARRATIVE_SOURCE_CHANGED` for exactly the narratives that read it. The narratives a narrative builds on, those its reading plan graded high, are pinned the same way (`built_on`, by a hash of each one's content without its Metadata), so when one is rewritten, `wiki-check` reports `NARRATIVE_BASE_CHANGED` for the narratives that rely on it.
@@ -185,13 +218,17 @@ One question per file in `narratives/`; the question is the title, unchanged.
 
 **Structure.** Every narrative has the same top and appendices, defined once in `templates/narratives/shared.md`: an **Abstract** (one sentence on the problem, the answer in two or three, then 3–5 key takeaways; 80–150 words), a small **Terminology** table of the terms the whole narrative leans on and every abbreviation, the body, then an optional **Appendix** (the Glossary, and details and examples a reader may want but doesn't need to follow the answer), **SMEs**, **References** (sources read, code references, related narratives, citations) and **Metadata** (version, template, model, history, reading plan). Every heading of level 2 to 4 is numbered (`## 1. Abstract`, `### 5.1 …`). The shared writing guide holds the style every narrative shares, each rule stated once, in priority order: context once, in layers (the Abstract for a reader deciding whether to read on, the first section's orientation, each key example's scene, each section's opening), ideas before sources, the map before the details, one or two key examples carried through the sections, a shape that fits the content, and detail in its place. A template's guide adds only what its kind of narrative needs.
 
+![Anatomy of a narrative: the question as its title; the Abstract and Terminology for a reader deciding whether to read on; the template's sections for a reader learning it; the appendices and Metadata for a reviewer checking it](images/narrative-anatomy.svg)
+
+*Figure 4-2: Anatomy of a narrative. Blue is for a reader deciding whether to read on, and for `query`; green for a reader learning the subject; amber for a reviewer checking it.*
+
 **Orientation.** Every narrative's first section orients the reader in a few sentences before any definition or mechanism: what the subject is, where and when one meets it, who deals with it, and why it matters.
 
 **Links between narratives.** A narrative that mentions a concept another narrative covers links to it, to its section where one fits, and says it in a sentence at most instead of explaining it again, so the wiki says each thing once and its narratives connect. Section anchors carry the section's number, so `narrative-format` and `wiki-check` report a link to a section that isn't there (`NARRATIVE_ANCHOR`), and `finish-narrative` and `wiki-check --fix` repair one whose section was only renumbered.
 
 **Figures.** Diagrams are mermaid by default. Where mermaid can't show an idea well, such as a curve, measured data or geometry, a narrative may embed a figure it generates, computed from its own formulas or cited numbers, never copied from a source. It is an SVG (a PNG only for what SVG can't hold), the two formats GitHub, Obsidian, mdBook and Sphinx all show, in `narratives/figures/<slug>/`, and it is kept small for the agents that may read it: an SVG under 40 KB, a PNG under 150 KB and 1600 px wide. Every diagram and figure has a caption line under it, `*Figure 5-1: what it shows.*`, numbered by its section; with the alt text, the caption says what the picture shows, so no agent needs to open it. `finish-narrative` renumbers the captions and the references to them. `narrative-format` checks a figure's place, format, alt text and size, that an SVG is self-contained and has an opaque background for dark themes, and every caption; `wiki-check` reports a figure no narrative shows. `images = false` (§4.9) keeps a wiki to mermaid.
 
-**Templates.** A template is a folder with `template.md` and `guide.md`. The skeleton is the schema: its headings are the required sections, in order; a heading ending in `(optional)` may be left out; a section holding a ` ```mermaid ` placeholder needs a diagram. A short YAML header gives `description`, `use_when`, `max_words` (the body's budget) and `abstract_words`. The guide (audience and purpose, voice and tone, structure, evidence, length, checklist, and for the bundled templates, examples) holds the style, and every template's guide is written for a reader new to the topic: the problem before the mechanism, prerequisites before use, one notation throughout, rules of thumb for every parameter. Its Examples section says where the narrative's one or two key examples appear in each of its sections, so the reader never switches context to follow a point.
+**Templates.** A template is a folder with `template.md` and `guide.md`. The skeleton is the schema: its headings are the required sections, in order; a heading ending in `(optional)` may be left out; a section holding a ` ```mermaid ` placeholder needs a diagram. A short YAML header gives `description`, `use_when`, `max_words` (the body's budget) and `abstract_words`. The guide (audience and purpose with its aim, voice and tone, structure, evidence, length, checklist, and for the bundled templates, examples) holds the style, and every template's guide is written for a reader new to the topic: the problem before the mechanism, prerequisites before use, one notation throughout, rules of thumb for every parameter. Its Examples section says where the narrative's one or two key examples appear in each of its sections, so the reader never switches context to follow a point.
 
 A template is chosen by the subject, not the question's wording:
 
@@ -205,6 +242,10 @@ A template is chosen by the subject, not the question's wording:
 
 **Aims.** Each template names its aim, the few qualities its narratives are graded on, and its guide says what each means in practice:
 
+![The five templates placed by breadth and depth: technical and case study narrow and deep; concept narrow, at definition depth; comparison in between; survey wide and shallow; each with its aim](images/template-map.svg)
+
+*Figure 4-3: The five templates by how wide and how deep each goes, with their aims.*
+
 | Template | Aim |
 |---|---|
 | `concept_brief_overview` | concise, precise, rigorous |
@@ -217,7 +258,7 @@ Lint grades each narrative on each axis of its template's aim, met, partly or mi
 
 **A wiki's own templates.** A team can bring its own: a folder in the wiki's `templates/` with a `template.md` and a `guide.md` is offered next to the bundled ones, and is checked the same way; one with a bundled template's name replaces it. A wiki that only wants a different budget for a template sets it in `Config.toml` (§4.9) instead of copying the template.
 
-**What scripts do for every narrative.** After any edit, the agent runs one command, `finish-narrative` (§7.5): it numbers the headings, escapes what the renderers would misread (§4.8), adds a Terminology row for each marker the narrative uses (when markers are on), bumps the version and history when asked, writes the manifest entry with the current pins, and regenerates the index and tag pages. The agent writes the content; the script does the rest.
+**What scripts do for every narrative.** After any edit, the agent runs one command, `finish-narrative` (§7.5): it numbers the headings and figure captions, repairs links to a renumbered section of another narrative, escapes what the renderers would misread (§4.8), converts old markers and adds a Terminology row for each marker the narrative uses (when markers are on), bumps the version and history when asked, writes the manifest entry with the current pins of the sources it read and the narratives it builds on, and regenerates the index and tag pages. The agent writes the content; the script does the rest.
 
 ### 4.6 Why YAML
 
@@ -237,7 +278,7 @@ The judgment is the agent's: it reads the source's license or terms and records 
 
 ### 4.8 Markdown everyone renders alike, and Obsidian
 
-A wiki is read on GitHub page by page, opened in [Obsidian](https://obsidian.md) as a graph, and can later be built as a book with mdBook or Sphinx and MyST-Parser. Its markdown keeps to what all four render alike, as `lib/compat.py` defines it: markdown links relative to the linking file, spaces as `%20`, links to files not folders; no wikilinks, embeds, highlights, `%%` comments, block IDs or inline `#tags`; only GitHub's five alerts as callouts; `$$` math only where GitHub renders it unchanged; escaped citation brackets; no bare URLs; and escapes for what a book reads as its own syntax (a `%` starting a line, `{…}` ending a heading, `$` before a number, single tildes, `{{#include …}}`). Code is never checked or escaped. Each rule was checked by rendering in the renderers, and `test_compat` holds the evidence (`AGENTS.md`, "Markdown compatibility"). `narrative-format` checks narratives, `obsidian-check` every other page outside the sources, and `finish-narrative` writes the escapes.
+A wiki is read on GitHub page by page, opened in [Obsidian](https://obsidian.md) as a graph, and can later be built as a book with mdBook or Sphinx and MyST-Parser. Its markdown keeps to what all four render alike, as `lib/compat.py` defines it: markdown links relative to the linking file, spaces as `%20`, links to files not folders; no wikilinks, embeds, highlights, `%%` comments, block IDs or inline `#tags`; only GitHub's five alerts as callouts; `$$` math only where GitHub renders it unchanged; escaped citation brackets; no bare URLs; and escapes for what a book reads as its own syntax (a `%` starting a line, `{…}` ending a heading, `$` before a number, single tildes, `{{#include …}}`). Code is never checked or escaped. Each rule was checked by rendering in the renderers, and `test_compat` holds the evidence (`AGENTS.md`, "Markdown compatibility"). `narrative-format` checks narratives, `wiki-check` every page under `sllmwiki/` but the saved sources, and `finish-narrative` writes the escapes.
 
 **Tag pages, for everyone.** A generated page per tag (description, parent, children, narratives, sources, SMEs) makes each topic browsable on GitHub, and puts the tag tree in Obsidian's graph, which draws every markdown file as a node and every link as an edge. They are plain markdown, written by a script in milliseconds.
 
@@ -299,6 +340,38 @@ A narrative says plainly what its sources don't. Two markers do it, each written
 | 5 | `narrative` | One narrative per question that isn't a reuse | ✓ |
 | 6 | `lint` | Check each narrative written; fix small problems | ✓ if fixes |
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor You
+    participant A as Agent
+    participant S as Scripts
+    participant GH as GitHub
+    You->>A: /sllmwiki:build "your questions"
+    rect rgb(237, 233, 254)
+    A->>S: search: reuse, expand or new, per question
+    A->>S: tag-tree, manifest: map the questions to tags
+    end
+    rect rgb(220, 252, 231)
+    A->>S: fetch-source: save each source, its license checked
+    A->>GH: commit, and open the run's pull request
+    end
+    rect rgb(219, 234, 254)
+    A->>S: reading-plan: what to read, in what order
+    A->>A: write each narrative from its template
+    A->>S: finish-narrative: number, record, pin, check
+    end
+    rect rgb(254, 243, 199)
+    A->>S: cited-sections, narrative-format --stats
+    A->>A: lint: claims, consistency, the aim's grades
+    A->>GH: commit; update the description
+    end
+    GH-->>You: one pull request: a checklist, decisions first
+    You->>GH: tick, comment, merge
+```
+
+*Figure 5-1: One `build` run. Purple: the questions mapped to what exists; green: sources saved and the pull request opened; blue: narratives written and recorded; amber: lint.*
+
 The questions and the user's words are passed to every step. A request that names a topic but no question gets one prompt before the run starts, proposing two or three questions; after that, the run doesn't pause.
 
 ### 5.2 Review model
@@ -326,6 +399,10 @@ An agent, possibly in another repository (`--root` points the scripts at a wiki 
 | 3 | the cited source section, by passing the citation link as is | `search.py section "<link>"` |
 | 4 | sources no narrative covers yet, by abstract, then one section | `search.py sources`, `section` |
 
+![The query funnel: narrative abstracts, then one narrative section, then the cited source section, then sources no narrative covers; most questions stop at the first tier, and a question nothing covers gets a DRAFT answer and an offer to build it](images/query-funnel.svg)
+
+*Figure 6-1: `query` reads down the tiers and stops at the first that answers.*
+
 The answer cites what it read, flags a narrative built on a source that changed since, says what isn't covered, names the tags' SMEs, and says how much it read.
 
 `query` never writes. When the answer had to be stitched from several narratives or from sources no narrative covers, it offers to file it as a narrative (the narrative step, in one pull request). When nothing covers the question, it answers from what it knows, labeled **DRAFT** and marked as not from the wiki, and offers to run `build` on it. Another agent calling `query` gets the answer and the offer, and nothing is written.
@@ -338,13 +415,38 @@ The answer cites what it read, flags a narrative built on a source that changed 
 
 ### 7.1 Reading once, in the right order
 
-`reading-plan.py <question-slug>` builds the narrative step's reading plan: the existing narratives on overlapping tags, then the primary and supporting tags' sources, each with its abstract and size. The agent grades each source's relevance (high, medium, low) and authority (A: the code, specs and standards, original papers or creators, official docs; B: textbooks and references; C: practitioner write-ups and encyclopedias), and each existing narrative's relevance (high when the new narrative builds on it, reusing its definition or linking to what it explains). The script orders the plan: ungraded and medium-relevance narratives first, as background; then medium-relevance sources; then high-relevance sources, within each least to most authoritative, then oldest to newest by publication date (an undated source counts as oldest); and last the narratives it builds on, so the wording it reuses is the freshest, where attention is strongest. Low-relevance sources and narratives are read by abstract only; ancestor and adjacent tags aren't read. The plan goes to the pull request, so reviewers see what was read and what was skipped, and into the narrative's Metadata, with its grades in the manifest (§4.4), so readers see it too and a later run starts from the grades. Each source in it is read once.
+`reading-plan.py <question-slug>` builds the narrative step's reading plan: the existing narratives on overlapping tags, then the primary and supporting tags' sources, each with its abstract and size. The agent grades each source's relevance (high, medium, low) and authority (A: the code, specs and standards, original papers or creators, official docs; B: textbooks and references; C: practitioner write-ups and encyclopedias), and each existing narrative's relevance (high when the new narrative builds on it, relying on its definition or linking to what it explains). The script orders the plan: ungraded and medium-relevance narratives first, as background; then medium-relevance sources; then high-relevance sources, within each least to most authoritative, then oldest to newest by publication date (an undated source counts as oldest); and last the narratives it builds on, so their wording is the freshest when it's relied on, where attention is strongest. A source that defines the subject is graded high even when the rest of it is about something else. Low-relevance sources and narratives are read by abstract only; ancestor and adjacent tags aren't read. The plan goes to the pull request, so reviewers see what was read and what was skipped, and into the narrative's Metadata, with its grades in the manifest (§4.4), so readers see it too and a later run starts from the grades. Each source in it is read once.
+
+![A reading plan in order: related narratives as background; medium-relevance sources; high-relevance sources, least to most authoritative and oldest to newest within each; and last the narratives it builds on; attention grows toward the end](images/reading-order.svg)
+
+*Figure 7-1: The order a reading plan reads in, from least to most attention.*
 
 ### 7.2 Staleness
 
 - `check-upstream` refetches saved sources the way they were saved and marks the changed ones (`upstream_changed`). It uses the network, so it runs on request, not in every check.
 - Re-ingesting a source rewrites its file; narratives pinned to the old hash are reported by `wiki-check` (`NARRATIVE_SOURCE_CHANGED`), and only those are rechecked.
+- A narrative that builds on another is pinned to it the same way (§4.4): when that one is rewritten, `wiki-check` reports `NARRATIVE_BASE_CHANGED` for the narratives that rely on it.
 - Rebuilding a narrative is never automatic: if the new source changes the story, lint says so on the pull request, and the owner reruns `narrative`.
+
+```mermaid
+flowchart LR
+    UP["a source changes upstream"] --> CU["check-upstream<br/>marks it"] --> RI["re-ingest<br/>saves the new copy"]
+    RI --> SC["NARRATIVE_SOURCE_CHANGED<br/>exactly the narratives that read it"]
+    RW["a narrative is rewritten"] --> BC["NARRATIVE_BASE_CHANGED<br/>the narratives built on it"]
+    SC --> LI["lint against<br/>the new version"]
+    BC --> LI
+    LI --> OW{"the owner:<br/>keep or rework"}
+    classDef change fill:#fee2e2,stroke:#dc2626,color:#111
+    classDef script fill:#fef3c7,stroke:#d97706,color:#111
+    classDef agent fill:#dbeafe,stroke:#2563eb,color:#111
+    classDef person fill:#dcfce7,stroke:#16a34a,color:#111
+    class UP,RW change
+    class CU,RI,SC,BC script
+    class LI agent
+    class OW person
+```
+
+*Figure 7-2: What a change sets off. Red: the change; amber: what scripts detect; blue: lint; green: the owner's decision. Only the narratives pinned to what changed are rechecked.*
 
 ### 7.3 Lint
 
@@ -352,10 +454,11 @@ Lint takes a narrative, a tag or a description. `cited-sections <narrative>` pri
 
 | Category | Catches |
 |---|---|
-| Accuracy | claims their cited section doesn't support; quotations not found in the source |
+| Accuracy | claims their cited section doesn't support; quotations not found in the source; a number computed from a cited formula marked as ours |
 | Code | made-up symbols, wrong locations, design intent presented as current behavior |
-| Consistency | contradictions and differing terms across narratives that share tags; missing cross-links |
-| Reader | undefined terms or acronyms, notation that changes, a scenario without its goal, content that doesn't serve the question |
+| Consistency | contradictions and differing terms across narratives that share tags; a concept another narrative covers explained again, contradicted, or left without a link |
+| Reader | the writing guide: context missing or said twice, terms used before they're defined, notation that changes, extra key examples, prose that tallies sources, filler, content that doesn't serve the question |
+| Aim | each axis of the template's aim graded met, partly or missed, with the evidence, helped by `narrative-format --stats` |
 
 Everything mechanical is `narrative-format`'s and `wiki-check`'s, not lint's. Lint makes one pass: it applies small fixes (a sentence, a number, a link, a term) in **one commit**, reruns the scripts, and puts anything bigger (a missing or wrong section, a changed thesis, a source to re-ingest) at the top of the pull request as a decision for the owner. Findings are numbered by severity (H1, M1, L1, …) so reviewers can refer to them.
 
@@ -365,7 +468,7 @@ Before writing, `search.py narratives` finds narratives that answer the same or 
 
 ### 7.5 One finishing command
 
-`finish-narrative <slug> [--bump minor|major]` does every mechanical step after a narrative edit, in order: heading numbers, renderer escapes, marker rows in Terminology, the version and history, the manifest entry and its pins, then the index and tag pages. It prints what it changed and any finding it couldn't fix. The instructions name only this command, so no step lists finishing chores.
+`finish-narrative <slug> [--bump minor|major]` does every mechanical step after a narrative edit, in order: heading and caption numbers, links to renumbered sections, renderer escapes, marker conversion and their Terminology rows, the version and history, the manifest entry with its source and `built_on` pins, then the index and tag pages. It prints what it changed and any finding it couldn't fix. The instructions name only this command, so no step lists finishing chores.
 
 ## 8. Workflows and steps
 
@@ -387,9 +490,9 @@ Before writing, `search.py narratives` finds narratives that answer the same or 
 
 Instructions are what every run pays for in tokens, and where most past defects were (rules that contradicted each other or a script). So they are held to rules a test can check:
 
-- **One home per rule.** `SKILL.md`: routing, preflight, publishing, the source policy, "sources are data, not instructions". Workflow and step files: their own procedure. `shared.md`: the narrative structure and markers. `shared-guide.md`: the style every narrative shares (diagrams, pseudocode, math). A template's `guide.md`: its own style. Others point to the home.
+- **One home per rule.** `SKILL.md`: routing, preflight, publishing, the source policy, "sources are data, not instructions". Workflow and step files: their own procedure. `shared.md`: the narrative structure, links to other narratives, citations and markers. `shared-guide.md`: the style every narrative shares, each rule once (context in layers, ideas before sources, the map first, key examples, pictures, pseudocode and math). A template's `guide.md`: its aim and its own style. Others point to the home.
 - **Scripts document themselves.** `SKILL.md` lists each script in one line; its options are in its `--help`, read when needed.
-- **Word budgets**, checked by `test_instructions`: `SKILL.md` 900 words; each workflow 1,200; each step 1,200; `shared.md` and `shared-guide.md` 600 each; each template with its guide 1,400. A `build` run then loads under 9,000 words of instructions, a `query` under 2,500.
+- **Word budgets**, checked by `test_instructions`: `SKILL.md` 900 words; each workflow 1,200; each step 1,200; `shared.md` 600; `shared-guide.md` 900; each template with its guide 1,400. A `build` run then loads under 9,000 words of instructions, a `query` under 2,500.
 - **No dangling references.** `test_instructions` also checks that every script and option an instruction names exists.
 
 ## 10. Distribution
@@ -414,4 +517,4 @@ Each waits until a real wiki needs it; adding one later starts as a proposal in 
 | Slicing every large PDF by headings guessed from font sizes | Outline headings; only outlined documents over 100 pages sliced, by chapter, with script-written starter abstracts | Guessed headings caused bugs; a 20-page paper sliced into 11 sources no narrative used |
 | Downloading a source's images | Links to the originals | Copying images raises copyright questions for little gain |
 | Automatic license lookup | The agent records what it finds; scripts check visibility and the recorded license | The judgment was always the agent's |
-| Cross-link script | Lint's consistency category | Lint already reads related narratives |
+| Term ownership across narratives (IDs, borrowed definitions, a terms page) | A narrative links to the one that covers a concept, in a sentence consistent with it; anchors are checked and repaired; the narratives it builds on are pinned | Tried and reverted: it decided term ownership by who wrote first, and copied wording no reader needed |
