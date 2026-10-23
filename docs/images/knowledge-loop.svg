@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="300" viewBox="0 0 960 300" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+  <style>
+    .t { font-size: 17px; font-weight: 700; fill: #111827; }
+    .s { font-size: 12.5px; fill: #374151; }
+    .w { font-size: 11px; fill: #6b7280; font-style: italic; }
+    .arrow { stroke: #6b7280; stroke-width: 2; fill: none; marker-end: url(#a); }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker>
+  </defs>
+  <rect width="960" height="300" rx="14" fill="#ffffff"/>
+  <g>
+    <rect x="20" y="70" width="135" height="110" rx="12" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+    <text class="t" x="87.5" y="102" text-anchor="middle">1 · Ask</text>
+    <text class="s" x="87.5" y="126" text-anchor="middle">your questions</text>
+    <text class="s" x="87.5" y="144" text-anchor="middle">decide what's</text>
+    <text class="s" x="87.5" y="160" text-anchor="middle">researched</text>
+  </g>
+  <g>
+    <rect x="175" y="70" width="135" height="110" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+    <text class="t" x="242.5" y="102" text-anchor="middle">2 · Collect</text>
+    <text class="s" x="242.5" y="126" text-anchor="middle">sources saved</text>
+    <text class="s" x="242.5" y="144" text-anchor="middle">verbatim, licensed,</text>
+    <text class="s" x="242.5" y="160" text-anchor="middle">tagged by topic</text>
+  </g>
+  <g>
+    <rect x="330" y="70" width="135" height="110" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+    <text class="t" x="397.5" y="102" text-anchor="middle">3 · Answer</text>
+    <text class="s" x="397.5" y="126" text-anchor="middle">one narrative per</text>
+    <text class="s" x="397.5" y="144" text-anchor="middle">question, every claim</text>
+    <text class="s" x="397.5" y="160" text-anchor="middle">cited to a section</text>
+  </g>
+  <g>
+    <rect x="485" y="70" width="135" height="110" rx="12" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text class="t" x="552.5" y="102" text-anchor="middle">4 · Verify</text>
+    <text class="s" x="552.5" y="126" text-anchor="middle">scripts check form,</text>
+    <text class="s" x="552.5" y="144" text-anchor="middle">lint checks claims</text>
+    <text class="s" x="552.5" y="160" text-anchor="middle">and grades the aim</text>
+  </g>
+  <g>
+    <rect x="640" y="70" width="135" height="110" rx="12" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+    <text class="t" x="707.5" y="102" text-anchor="middle">5 · Review</text>
+    <text class="s" x="707.5" y="126" text-anchor="middle">one pull request,</text>
+    <text class="s" x="707.5" y="144" text-anchor="middle">a checklist; you</text>
+    <text class="s" x="707.5" y="160" text-anchor="middle">merge, or comment</text>
+  </g>
+  <g>
+    <rect x="795" y="70" width="145" height="110" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+    <text class="t" x="867.5" y="102" text-anchor="middle">6 · Use</text>
+    <text class="s" x="867.5" y="126" text-anchor="middle">people and agents</text>
+    <text class="s" x="867.5" y="144" text-anchor="middle">get cited answers,</text>
+    <text class="s" x="867.5" y="160" text-anchor="middle">reading the least</text>
+  </g>
+  <path class="arrow" d="M155,125 L172,125"/>
+  <path class="arrow" d="M310,125 L327,125"/>
+  <path class="arrow" d="M465,125 L482,125"/>
+  <path class="arrow" d="M620,125 L637,125"/>
+  <path class="arrow" d="M775,125 L792,125"/>
+  <path class="arrow" d="M867,182 C867,262 87,262 87,184"/>
+  <text class="w" x="477" y="252" text-anchor="middle">new questions, gaps and DRAFT answers start the next run · a changed source flags exactly the narratives built on it</text>
+  <g font-size="12" fill="#374151">
+    <rect x="250" y="22" width="14" height="14" rx="3" fill="#dcfce7" stroke="#16a34a"/><text x="270" y="34">you</text>
+    <rect x="320" y="22" width="14" height="14" rx="3" fill="#dbeafe" stroke="#2563eb"/><text x="340" y="34">your coding agent</text>
+    <rect x="465" y="22" width="14" height="14" rx="3" fill="#fef3c7" stroke="#d97706"/><text x="485" y="34">scripts and lint</text>
+    <rect x="600" y="22" width="14" height="14" rx="3" fill="#ede9fe" stroke="#7c3aed"/><text x="620" y="34">the wiki, in git</text>
+  </g>
+</svg>

@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="440" viewBox="0 0 900 440" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+  <style>
+    .t { font-size: 13.5px; font-weight: 700; fill: #111827; }
+    .s { font-size: 11.5px; fill: #374151; }
+    .b { font-size: 12px; font-weight: 600; fill: #1f2937; }
+  </style>
+  <rect width="900" height="440" rx="14" fill="#ffffff"/>
+  <text x="450" y="28" text-anchor="middle" font-size="16" font-weight="700" fill="#111827">Anatomy of a narrative: context in layers, then depth, then the record</text>
+  <g>
+    <rect x="30" y="46" width="430" height="46" rx="8" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+    <text class="t" x="45" y="66"># The question, exactly as asked</text>
+    <text class="s" x="45" y="83">one question per narrative; the file name is its slug</text>
+  </g>
+  <g>
+    <rect x="30" y="100" width="430" height="54" rx="8" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+    <text class="t" x="45" y="120">1 · Abstract</text>
+    <text class="s" x="45" y="138">the problem, the answer, 3–5 key takeaways · ≤150 words</text>
+  </g>
+  <g>
+    <rect x="30" y="162" width="430" height="46" rx="8" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+    <text class="t" x="45" y="182">2 · Terminology</text>
+    <text class="s" x="45" y="199">the few terms the whole narrative leans on, every abbreviation</text>
+  </g>
+  <g>
+    <rect x="30" y="216" width="430" height="112" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+    <text class="t" x="45" y="236">3 … · The template's sections</text>
+    <text class="s" x="45" y="256">the first one orients: what, where and when, who, why</text>
+    <text class="s" x="45" y="274">then the answer, on one running example worked with numbers;</text>
+    <text class="s" x="45" y="292">every claim cited to a section, [→] ours, [?] a gap;</text>
+    <text class="s" x="45" y="310">diagrams and figures with numbered captions; links to related narratives</text>
+  </g>
+  <g>
+    <rect x="30" y="336" width="430" height="40" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text class="t" x="45" y="361">Appendix · SMEs · References · Metadata</text>
+  </g>
+  <text class="s" x="45" y="398">glossary and secondary detail; who to ask; sources read and citations;</text>
+  <text class="s" x="45" y="414">version, model, history and the reading plan, kept by finish-narrative</text>
+  <g>
+    <path d="M478,100 L490,100 L490,208 L478,208" fill="none" stroke="#2563eb" stroke-width="2"/>
+    <text class="b" x="502" y="140">For a reader deciding whether to read on,</text>
+    <text class="b" x="502" y="158">and for an agent answering a query:</text>
+    <text class="s" x="502" y="176">most questions stop at the Abstract</text>
+  </g>
+  <g>
+    <path d="M478,216 L490,216 L490,328 L478,328" fill="none" stroke="#16a34a" stroke-width="2"/>
+    <text class="b" x="502" y="250">For a reader learning it:</text>
+    <text class="s" x="502" y="268">the template decides the shape (concept, technical,</text>
+    <text class="s" x="502" y="284">survey, comparison, case study), its aim decides</text>
+    <text class="s" x="502" y="300">the balance, and lint grades the aim</text>
+  </g>
+  <g>
+    <path d="M478,336 L490,336 L490,418 L478,418" fill="none" stroke="#d97706" stroke-width="2"/>
+    <text class="b" x="502" y="362">For a reviewer checking it:</text>
+    <text class="s" x="502" y="380">what was read, in what order, by which model;</text>
+    <text class="s" x="502" y="396">each citation opens the exact source section</text>
+  </g>
+</svg>
