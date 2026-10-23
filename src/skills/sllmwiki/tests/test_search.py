@@ -115,6 +115,24 @@ class ReadingPlan(helpers.WikiTestCase):
         self.assertIn('| 3 | abstract only | beta-doc | low relevance |', out)
         self.assertIn('Noted, not read: root-topic.', out)
 
+    def test_graded_narratives(self):
+        from lib import readingplan
+        found = {'narratives': [{'slug': n, 'created': c} for n, c in (('built-on', '1'), ('side', '2'), ('far', '3'), ('plain', '4'))],
+                 'sources': [{'slug': 'doc', 'kind': 'text', 'date': ''}]}
+        grades = {'doc': {'relevance': 'high', 'authority': 'A'}, 'built-on': {'relevance': 'high'}, 'side': {'relevance': 'medium'},
+                  'far': {'relevance': 'low'}}
+        rows, problems = readingplan.order(found, grades)
+        self.assertEqual(problems, [])
+        self.assertEqual([(r['slug'], r['read'], r['why']) for r in rows],
+                         [('plain', 'in full', 'existing narrative, background'), ('side', 'in full', 'existing narrative, medium relevance'),
+                          ('doc', 'in full', 'high relevance, authority A, undated'),
+                          ('built-on', 'in full', 'existing narrative, high relevance: built on'),
+                          ('far', 'abstract only', 'existing narrative, low relevance')])
+        self.assertIn('plain: an existing narrative needs', readingplan.order(found, {**grades, 'plain': {'relevance': 'very'}})[1][0])
+        path = helpers.write(self.tmp, 'g.json', '{}')
+        helpers.write(self.tmp, 'g.json.plan.json', json.dumps(rows))
+        self.assertEqual(readingplan.narratives_read(path), {'plain', 'side', 'built-on', 'far'})
+
     def test_order_by_date_within_authority(self):
         manifest.put_source(self.root, 'beta-doc', tags=['leaf-a'], published='2020-01-01')
         g = self.grades({'alpha-doc': {'relevance': 'high', 'authority': 'A'}, 'beta-doc': {'relevance': 'high', 'authority': 'A'}})

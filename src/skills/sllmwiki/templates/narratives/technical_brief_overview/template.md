@@ -7,7 +7,7 @@ abstract_words: [80, 150]
 
 ## 3. Background
 
-<The problem X solves, shown through the running example: its scene, what goes wrong without X, and what the reader needs to know before the mechanism.>
+<The orientation, then the problem X solves, through the running example: its scene, what goes wrong without X, and what the reader needs to know before the mechanism.>
 
 ## 4. The core idea
 

@@ -5,13 +5,13 @@ max_words: 900
 abstract_words: [80, 150]
 ---
 
-## 3. Definition
+## 3. Overview
+
+<The orientation, through the key example: what it is in a line, where and when one meets it, who deals with it, and why it matters.>
+
+## 4. Definition
 
 <The most authoritative definition, quoted briefly and cited, then the same in plain words, and a picture of it when one helps.>
-
-## 4. Why it matters (optional)
-
-<The problem it solves or the question it answers, through the key example.>
 
 ## 5. Key ideas
 

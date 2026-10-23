@@ -12,12 +12,14 @@ from .citations import CITE
 from .compat import mask_code_spans, mask_math_spans, scan
 
 MARKERS = {
-    '[->]': 'Our own reasoning, after a statement or on a section\'s heading: a conclusion, comparison or example no cited source states.',
+    '[→]': 'Our own reasoning, after a statement or on a section\'s heading: a conclusion, comparison or example no cited source states.',
     '[?]': 'A gap, after a statement or on a heading: something the question needs that the sources don\'t answer.',
 }
-OLD = {'[sllmwiki_reasoning]': '[->]', '[sllmwiki_gap]': '[?]'}
+OLD = {'[sllmwiki_reasoning]': '[→]', '[sllmwiki_gap]': '[?]'}
+ASCII = {'[->]': '[→]'}  # the reasoning marker as typed without the arrow; finish-narrative writes the arrow
 LEVEL_HINT = 4  # this many statement markers of a kind in one uncited section: mark its heading instead
-_ANY = re.compile(r'\[->\](?!\()|\[\?\](?!\()')
+_ANY = re.compile(r'\[→\](?!\()|\[\?\](?!\()')
+_ASCII = re.compile(r'\[->\](?!\()')
 _OLD = re.compile('|'.join(re.escape(m) for m in OLD))
 _SENTENCE_END = re.compile(r'[.!?][)"”’*]*(?=\s|\Z)')
 _HEADING = re.compile(r' {0,3}#{1,6}[ \t]')
@@ -41,7 +43,7 @@ def uses(text):
 
 def unmark(title):
     """A heading's title without the marker at its end."""
-    return re.sub(r'\s*(?:\[->\]|\[\?\])\s*\Z', '', title)
+    return re.sub(r'\s*(?:\[→\]|\[->\]|\[\?\])\s*\Z', '', title)
 
 
 def defined(text):
@@ -61,6 +63,8 @@ def check(text, on=True):
     kinds, _ = scan(lines)
     out = [('error', 'MARKER_OLD', i + 1, f'{m.group(0)} is the old marker: write {OLD[m.group(0)]} after the statement (finish-narrative.py converts it)')
            for i, line in enumerate(lines) if kinds[i] == 'text' for m in _OLD.finditer(_masked(line))]
+    out += [('error', 'MARKER_OLD', i + 1, '[->] is written [→] (finish-narrative.py converts it)')
+            for i, line in enumerate(lines) if kinds[i] == 'text' for _ in _ASCII.finditer(_masked(line))]
     used = uses(text)
     if not on:
         return out + [('error', 'MARKER_OFF', i + 1, f'{m}: Config.toml turns markers off; say it in words instead') for i, _, m in used]
@@ -100,12 +104,18 @@ def _level_hints(text, lines, statements):
 
 
 def migrate(text):
-    """(text, markers converted): each old marker at a sentence's start becomes the new one after that sentence;
-    old Terminology rows go, for add_rows to write the new ones."""
+    """(text, markers converted): each old marker at a sentence's start becomes the new one after that sentence,
+    [->] becomes [→], and old Terminology rows go, for add_rows to write the new ones."""
     lines = text.split('\n')
     kinds, _ = scan(lines)
     out, moved = [], 0
     for i, line in enumerate(lines):
+        if kinds[i] == 'text' and _ASCII.search(_masked(line)):
+            masked = _masked(line)
+            spans = [m.span() for m in _ASCII.finditer(masked)]
+            for a, b in reversed(spans):
+                line = line[:a] + ASCII['[->]'] + line[b:]
+            moved += len(spans)
         if kinds[i] != 'text' or not _OLD.search(line):
             out.append(line)
             continue

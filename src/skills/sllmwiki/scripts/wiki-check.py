@@ -25,6 +25,7 @@ Errors:
                             (lib/compat.py; their warnings are warnings here too)
 Warnings:
   NARRATIVE_SOURCE_CHANGED  a narrative was built on an older version of a source: recheck it
+  NARRATIVE_BASE_CHANGED    a narrative it builds on changed since, or is gone: recheck the wording it reuses
   SOURCE_UPSTREAM_CHANGED   check-upstream found the original changed: re-ingest it
   ABSTRACT_DRAFT            a source still has its starter abstract
   PAGE_HANDWRITTEN          a page where a generated one would go, left alone
@@ -114,6 +115,12 @@ def check(root, fix=False, seen_by=None):
             if os.path.isfile(path) and source_hash(read_bytes(path)) != pin:
                 add(('warning', 'NARRATIVE_SOURCE_CHANGED', f'{layout.NARRATIVES}/{slug}.md',
                      f'{slug} was built on an older version of {src}: lint it against the new one'))
+        for base, pin in (e.get('built_on') or {}).items():
+            path = os.path.join(root, layout.NARRATIVES, f'{base}.md')
+            if not os.path.isfile(path) or manifest.narrative_hash(read_text(path)) != pin:
+                add(('warning', 'NARRATIVE_BASE_CHANGED', f'{layout.NARRATIVES}/{slug}.md',
+                     f'{slug} builds on {base}, which ' + ('changed since' if os.path.isfile(path) else 'is gone')
+                     + ': recheck the wording it reuses, and lint it'))
 
     out += figures.unused(root)
     out += xrefs.check_all(root, fix)

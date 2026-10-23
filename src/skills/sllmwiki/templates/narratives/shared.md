@@ -14,7 +14,7 @@ A narrative answers one question, for the reader its template's guide names. It 
 
 ## Other narratives
 
-When the narrative mentions a concept another narrative covers, link to it there, to its section where one fits, instead of explaining it again: at most a sentence, in that narrative's words. The reading plan names the related narratives.
+When the narrative mentions a concept another narrative covers, reuse that narrative's own sentence for it, word for word (its definition, or the sentence that sums the concept up), and link to it there, to its section where one fits, instead of explaining it again. The reading plan names the related narratives.
 
 ## Citations
 
@@ -25,10 +25,10 @@ Every claim a source makes is cited, after a space, with a numbered link to the 
 
 Write it as yours, marked, never as a source's. When markers are on (the default), put the marker where a citation would go, after the statement (a sentence, a list item or a table cell):
 
-- `[->]`: your own conclusion, comparison, grouping, worked example or reconstruction, which no cited source states: `Both trade latency for consistency. [->]`;
+- `[→]`: your own conclusion, comparison, grouping, worked example or reconstruction, which no cited source states: `Both trade latency for consistency. [→]`;
 - `[?]`: something the question needs that the sources don't answer. Say what's missing; never fill it with a guess.
 
-Mark at the level the reasoning spans: a section that is all yours (applying the ideas, a constructed scenario) marks its heading once, `## 8. Applying them [->]`, not each sentence. A statement is cited or marked, never both. With `markers = false` in Config.toml, leave markers out: an uncited sentence is then your own, and a gap is said in words ("the sources don't say …").
+A number you compute from a cited formula, with its inputs shown, isn't your own reasoning: cite the formula's section after it. Mark at the level the reasoning spans: a section that is all yours (applying the ideas, a constructed scenario) marks its heading once, `## 8. Applying them [→]`, not each sentence. A statement is cited or marked, never both. With `markers = false` in Config.toml, leave markers out: an uncited sentence is then your own, and a gap is said in words ("the sources don't say …").
 
 ## Quoting
 
@@ -36,4 +36,4 @@ Explain in your own words. Quote only a definition or one key sentence, in quota
 
 ## Formatting
 
-Write plain markdown; `finish-narrative.py` numbers the headings, escapes what a renderer would misread, adds the markers' Terminology rows, and records the narrative. Don't number headings by hand, and don't use wikilinks, highlights or other Obsidian-only syntax: `narrative-format.py` reports them.
+Write plain markdown, with no heading numbers and no Obsidian-only syntax (wikilinks, highlights): `finish-narrative.py` numbers, escapes and records the narrative, and `narrative-format.py` reports the rest.

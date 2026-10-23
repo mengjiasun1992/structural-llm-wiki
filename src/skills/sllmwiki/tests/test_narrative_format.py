@@ -63,10 +63,10 @@ class Checks(helpers.WikiTestCase):
         self.assertIn('CITATION_UNLISTED', [c for c, _ in self.codes(text.replace('1. [alpha-doc: details]', '- [alpha-doc: details]'))])
 
     def test_markers(self):
-        marked = helpers.narrative_text(extra='\nDoubling the wait suits most clients. [->]\n')
+        marked = helpers.narrative_text(extra='\nDoubling the wait suits most clients. [→]\n')
         self.assertIn('MARKER_UNDEFINED', [c for c, _ in self.codes(marked)])
         self.assertIn('MARKER_OFF', [c for c, _ in self.codes(marked, markers=False)])
-        heading = helpers.narrative_text().replace('## 7. Limitations and failure modes\n\nRetries', '## 7. Limitations and failure modes [->]\n\nRetries')
+        heading = helpers.narrative_text().replace('## 7. Limitations and failure modes\n\nRetries', '## 7. Limitations and failure modes [→]\n\nRetries')
         self.assertEqual([c for c, _ in self.codes(heading) if c.startswith(('MISSING', 'SECTION', 'EXTRA'))], [])  # a marked heading is still its section
 
     def test_placeholders_and_markdown(self):
@@ -75,6 +75,10 @@ class Checks(helpers.WikiTestCase):
         ok = text.replace('Requests fail', 'See <https://e.com> and `<not a placeholder>`. Requests fail')
         self.assertEqual(self.codes(ok), [])
         self.assertIn('WIKILINK', [c for c, _ in self.codes(text.replace('Requests fail', 'See [[note]]. Requests fail'))])
+        doubled = text.replace('Requests fail, and', 'Requests fail,, and')
+        self.assertIn('DOUBLED_PUNCTUATION', [c for c, _ in self.codes(doubled)])
+        fine = text.replace('Requests fail, and', 'Requests fail... and, see [x](../sources/alpha-doc.md#details), `a,,b` and')
+        self.assertNotIn('DOUBLED_PUNCTUATION', [c for c, _ in self.codes(fine)])
         for formula in ('s_t = a x_t', 's_{t-1} is kept', 'weights α·(1 − α)', 'with = α'):
             self.assertIn('MATH_AS_TEXT', [c for c, _ in self.codes(text.replace('Requests fail', formula + '. Requests fail'))], formula)
         for fine in ('$s_t = \\alpha x_t$', '`max_quote_words`', 'snake_case_names', 'Greek α alone'):
@@ -127,7 +131,7 @@ class Command(helpers.WikiTestCase):
         self.assertEqual([t['name'] for t in rows], ['case_study', 'comparison', 'concept_brief_overview', 'survey', 'technical_brief_overview'])
         skel = self.nf('--skeleton', 'concept_brief_overview').out
         self.assertTrue(skel.startswith('# <The question, exactly as asked>\n'))
-        self.assertIn('## 3. Definition', skel)
+        self.assertIn('## 3. Overview', skel)
         self.assertEqual(self.nf('--skeleton', 'nope').code, 1)
 
     def test_template_problems(self):

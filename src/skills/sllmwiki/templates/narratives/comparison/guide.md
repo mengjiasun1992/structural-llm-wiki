@@ -2,9 +2,9 @@
 
 ## Audience and purpose
 
-**Takeaway:** a reader new to the choice can make it, knowing what each candidate costs.
+**Takeaway:** a reader new to the choice knows each common candidate, what sets it apart, and which one their situation calls for.
 
-A reader who has to choose among the common candidates for a job and doesn't yet know what separates them. The narrative is about the trade-offs: every dimension worth thinking through before choosing, not a full account of each candidate. How a candidate works inside is another question, named under Where to go next.
+A reader who has to choose among the common candidates for a job and doesn't yet know what separates them. The narrative compares the candidates evenly, even when the question names one ("When should I use X instead of others?"): each gets its own account, and the trade-offs between them are what the reader takes away. How a candidate works in depth is another question: link its own narrative when there is one.
 
 ## Voice and tone
 
@@ -12,29 +12,29 @@ Plain, direct and even-handed: no candidate is the hero. Concrete numbers over a
 
 ## Structure
 
-- **The choice first,** through one scenario that needs exactly this choice: what the reader is building, and what the choice decides. When no source gives one, build it yourself and mark it as reasoning; never borrow a scenario that decides something else.
-- **The answer next:** When to choose which, with a decision diagram, so a reader in a hurry stops there; the rest of the narrative justifies it.
-- **The common candidates only:** the ones a practitioner would actually weigh, and that the sources describe well enough to compare. Name a rarer or thinly sourced one in a sentence, without a column.
+- **The choices:** the orientation (where and when the choice comes up, who faces it, what it decides), then the base scenario, built yourself when no source gives one. Then one subsection per common candidate, the ones a practitioner would actually weigh: what it is and how it works, in a sentence or a formula; the subtle difference from its nearest neighbor, the one a newcomer misses; and the scenario with one condition changed so that this candidate wins. A candidate the sources say little about still gets its subsection, its gaps marked; a rare one is named in a sentence.
+- **When to choose which:** a decision diagram whose questions are the conditions the scenarios changed, then rules the reader can apply ("if updates are rare and bursty, …"), not "it depends".
 - **At a glance:** one table, candidates as columns, dimensions as rows, each cell short and cited.
-- **Every dimension that matters,** each a subsection named as its table row, with why it matters here before how each candidate fares. Cover cost, behavior under failure and change, and what operating it takes, not only speed. More than about six dimensions: group them.
-- **Rules the reader can apply** ("if updates are rare and bursty, …"), not "it depends".
+- **Dimensions to think through:** each a subsection named as its table row, why it matters here before how each candidate fares. Cover cost, behavior under failure and change, and what operating it takes, not only speed; group more than about six.
 
 ## Examples
 
-The scenario in The choice is the key example. Each rule in When to choose which says what it means for the scenario, and each dimension shows what it decides there. A second scenario only where the answer flips, to show when another candidate wins. Others go in the Appendix.
+| Section | The base scenario's part |
+|---|---|
+| The choices | set once; each candidate's subsection changes one condition (the data, a requirement, a constraint) until that candidate wins |
+| When to choose which | the diagram asks those same conditions |
+| Dimensions to think through | what each dimension decides in the scenario |
 
 ## Evidence
 
-Prefer each candidate's own specification, paper or docs for what it does, and measurements with their conditions for how it performs. Mark your own weighing of the trade-offs as reasoning.
+Prefer each candidate's own specification, paper or docs for what it does, and measurements with their conditions for how it performs. Your weighing of the trade-offs, and the scenarios you build, are your own reasoning.
 
 ## Length
 
-Short enough to read before the meeting where the choice is made. If a candidate needs explaining before it can be compared, link its own narrative rather than explain it here.
+Short enough to read before the meeting where the choice is made. A candidate that needs explaining before it can be compared links its own narrative.
 
 ## Checklist
 
-- [ ] The scenario needs exactly this choice, and comes before any comparison.
-- [ ] The decision diagram and the rules agree, and come before the table.
+- [ ] Every common candidate has its subsection: what it is, its subtle difference, and the condition under which it wins.
+- [ ] The decision diagram asks the conditions the scenarios changed, and agrees with the rules.
 - [ ] Every dimension is named as its table row and says why it matters to this choice.
-- [ ] No column is mostly cells the sources don't fill.
-- [ ] Every claim is cited to a section, or marked.

@@ -7,7 +7,7 @@ abstract_words: [80, 150]
 
 ## 3. Overview
 
-<The context: what the domain is and who meets it, and why it matters to them; then what's in scope and what isn't, how the items were chosen, and what the narrative covers, in order.>
+<The orientation; then what's in scope and what isn't, how the items were chosen, and what the narrative covers, in order.>
 
 ## 4. The map
 

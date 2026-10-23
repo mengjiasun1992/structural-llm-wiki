@@ -6,17 +6,20 @@
       (background) and their sources, each with its kind, size, date and
       abstract, for you to grade.
   reading-plan.py order --primary a,b [--supporting c] --grades GRADES.json
-      GRADES.json gives each source its relevance and authority:
-        {"<slug>": {"relevance": "high|medium|low", "authority": "A|B|C"}, ...}
+      GRADES.json gives each source its relevance and authority, and each
+      existing narrative its relevance (high when this narrative builds on it):
+        {"<source>": {"relevance": "high|medium|low", "authority": "A|B|C"},
+         "<narrative>": {"relevance": "high|medium|low"}, ...}
       (A: the code, specs and standards, original papers or creators, official
       docs; B: textbooks and references; C: practitioner write-ups and
       encyclopedias.)
-      Prints the plan: existing narratives first, as background; then the
-      medium-relevance sources; the high-relevance ones last. Within each, least
-      to most authoritative, then oldest to newest by publication date (undated
-      first), so the most relevant, authoritative and newest material is read
-      last. Low-relevance sources are
-      read by abstract only; links aren't read. Paste the plan into the PR.
+      Prints the plan: existing narratives first, as background (ungraded) or
+      medium relevance; then the medium-relevance sources; the high-relevance
+      ones; and last the narratives this one builds on (high), so their wording
+      is the freshest when it is reused. Within the sources, least to most
+      authoritative, then oldest to newest by publication date (undated
+      first). Low-relevance sources and narratives are read by abstract only;
+      links aren't read. Paste the plan into the PR.
       The plan is also kept in GRADES.json.plan.json, so finish-narrative
       records the narratives read then, not ones written since.
 

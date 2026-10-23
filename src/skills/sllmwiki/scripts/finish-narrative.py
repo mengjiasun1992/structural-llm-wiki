@@ -74,7 +74,7 @@ def main(argv):
     if not primary:
         cli.fail(f'{args.slug} is new: pass --primary (its core tags) and --read (the saved sources it read)')
 
-    plan, grades = None, None
+    plan, grades, built_on = None, None, None
     if args.grades:
         try:
             found = readingplan.candidates(root, primary, supporting)
@@ -88,6 +88,7 @@ def main(argv):
             cli.fail('grade every saved source first: ' + '; '.join(problems))
         plan = readingplan.metadata_lines(rows)
         grades = {s['slug']: {k: given[s['slug']][k] for k in ('relevance', 'authority')} for s in found['sources'] if s['kind'] != 'link'}
+        built_on = [n['slug'] for n in found['narratives'] if (given.get(n['slug']) or {}).get('relevance') == 'high']
 
     text = read_text(path)
     done = []
@@ -126,7 +127,7 @@ def main(argv):
     text = metadata.write(text, fields, history, plan)  # the template was read from the Metadata section, so there is one
     write_text(path, text)
     try:
-        manifest.put_narrative(root, args.slug, name, primary, supporting, read, grades, (version, model) if model else None)
+        manifest.put_narrative(root, args.slug, name, primary, supporting, read, grades, (version, model) if model else None, built_on)
     except manifest.ManifestError as e:
         cli.fail(f'recording {args.slug}: {e}')
     done.append(f'recorded {args.slug} (version {metadata.read(text)["version"]}, pins: {", ".join(read) or "none"})')

@@ -62,6 +62,7 @@ SCHEMAS = {
             'authority': Field('enum', required=True, choices=('A', 'B', 'C')),
         })),
         'models': Field('map', item=Field('str'), versions=True),  # the model that wrote each version
+        'built_on': Field('map', item=Field('md5')),  # the narratives it builds on, pinned (design doc §4.5)
     },
 }
 

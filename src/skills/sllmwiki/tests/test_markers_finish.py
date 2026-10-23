@@ -9,7 +9,7 @@ import helpers
 from lib import manifest, markers, metadata
 
 NARRATIVE = 'sllmwiki/narratives/what-is-alpha.md'
-R, G = '[->]', '[?]'
+R, G = '[→]', '[?]'
 CITE = '[\\[1\\]](../sources/alpha-doc.md#details)'
 DEFINED = f'| **{R}** | x |\n| **{G}** | y |\n'
 
@@ -48,7 +48,8 @@ class Markers(unittest.TestCase):
         self.assertEqual(self.codes(doc(f'Unknown. {G}'), on=False), [('MARKER_OFF', 10)])
         self.assertEqual(self.codes(doc('No markers.'), on=False), [])
         self.assertEqual(self.codes(doc('[sllmwiki_reasoning] Old.', DEFINED)), [('MARKER_OLD', 12)])
-        self.assertEqual(markers.unmark('Applying them [->]'), 'Applying them')
+        self.assertEqual([markers.unmark('Applying them [->]'), markers.unmark('Applying them [→]')], ['Applying them'] * 2)
+        self.assertEqual(self.codes(doc('Typed. [->]', DEFINED)), [('MARKER_OLD', 12)])
 
     def test_migrate(self):
         old = doc('[sllmwiki_reasoning] Mine here. Then cited. ' + CITE + '\n\n1. [sllmwiki_reasoning] What if it fails?\n'
@@ -63,6 +64,10 @@ class Markers(unittest.TestCase):
         text, _ = markers.add_rows(text)
         self.assertEqual(self.codes(text), [])
         self.assertEqual(markers.migrate(text), (text, 0))
+        typed, n = markers.migrate(doc('Typed. [->] And `[->]` in code.', '| **[->]** | old |\n'))
+        self.assertEqual(n, 2)
+        self.assertIn('Typed. [→] And `[->]` in code.', typed)
+        self.assertIn('| **[→]** |', typed)
 
     def test_add_rows(self):
         text, n = markers.add_rows(doc(f'Mine. {R} Unknown. {G}'))
@@ -72,7 +77,7 @@ class Markers(unittest.TestCase):
         bare = '# Q\n\n## 1. Terminology\n\n## 2. Body\n\n' + f'Mine. {R}\n'
         text, n = markers.add_rows(bare)
         self.assertEqual(n, 1)
-        self.assertIn('## 1. Terminology\n\n| Term | Definition |\n|---|---|\n| **[->]**', text)
+        self.assertIn('## 1. Terminology\n\n| Term | Definition |\n|---|---|\n| **[→]**', text)
         self.assertEqual(markers.add_rows('# Q\n\nNo terminology. ' + R), ('# Q\n\nNo terminology. ' + R, 0))
 
 

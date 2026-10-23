@@ -1,6 +1,7 @@
 """The checks narrative-format.py and finish-narrative.py run on a narrative
 (design doc §4.5, §4.8, §4.10): template sections, diagrams, numbers, lengths,
-citations, markers, placeholders and markdown every renderer reads alike."""
+citations, markers, placeholders, doubled punctuation and markdown every
+renderer reads alike."""
 
 import os
 import re
@@ -11,6 +12,8 @@ from .compat import mask_code_spans, mask_math_spans, scan
 PLACEHOLDER = re.compile(r'<(?!https?://|mailto:|/)[^<>\n]*\s[^<>\n]*>')
 # A formula written as text: x_t or s_{t-1}, or a Greek letter beside an operator
 FORMULA = re.compile(r'(?<![\w\\/])[A-Za-z]{1,6}_(?:\{[^}\s]+\}|[A-Za-z0-9]{1,3})(?!\w)|[\u03b1-\u03c9\u0391-\u03a9]\s*[\u00b7\u00d7]|[=\u00b7\u00d7]\s*\(?[\u03b1-\u03c9\u0391-\u03a9]')
+# Punctuation doubled by an edit: ,, ;; or .. that isn't an ellipsis or a ../ path
+DOUBLED = re.compile(r'([,;])\s*\1|(?<![./])\.\.(?![./])')
 SHARED_TOP = ('Abstract', 'Terminology')
 SHARED_BOTTOM = ('Appendix', 'SMEs', 'References', 'Metadata')
 
@@ -124,6 +127,9 @@ def check(root, rel, text, settings, offered):
         m = FORMULA.search(mask_math_spans(mask_code_spans(line))) if kinds[i] == 'text' else None
         if m:
             out.append(('warning', 'MATH_AS_TEXT', i + 1, f'"{m.group(0)}" looks like a formula written as text; write it as TeX, $...$'))
+        m = DOUBLED.search(re.sub(r'\]\([^)]*\)', ']', mask_math_spans(mask_code_spans(line)))) if kinds[i] == 'text' else None
+        if m:
+            out.append(('error', 'DOUBLED_PUNCTUATION', i + 1, f'"{m.group(0)}": punctuation doubled, likely by an edit'))
     out += compat.check(text)
     out += compat.check_links(text, os.path.dirname(os.path.join(root, rel)), root)
     return sorted(out, key=lambda f: f[2])

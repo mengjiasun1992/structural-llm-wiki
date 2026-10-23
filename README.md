@@ -110,7 +110,7 @@ Codex, Cursor, Copilot and other agents install the skill with the [`skills` CLI
 
 **Narrative templates.** The skill picks the template that fits the question: `concept_brief_overview` ("What is X?"), `technical_brief_overview` ("How does X work?"), `comparison` ("X vs Y"), `survey` ("What are the principles of X?") or `case_study` ("What happened in this incident, and what does it teach?"). Each comes with a writing guide for a reader new to the topic. Bring your own by adding a folder with a `template.md` and a `guide.md` to the wiki's `templates/`; a folder named like a bundled template replaces it.
 
-**Markers.** What no source states is marked `[->]` (our own reasoning), and something the sources don't answer `[?]`, after the statement like a citation, or once on a heading for a whole section; each narrative defines the ones it uses. Turn them off with `markers = false` (see below).
+**Markers.** What no source states is marked `[→]` (our own reasoning), and something the sources don't answer `[?]`, after the statement like a citation, or once on a heading for a whole section; each narrative defines the ones it uses. Turn them off with `markers = false` (see below).
 
 **Settings.** A wiki can keep an optional `Config.toml` (`init` writes it with the defaults):
 

@@ -38,7 +38,7 @@ DEFAULTS = {
     'source_copies': 'allow',  # "allow": private wikis keep copies, public ones only openly licensed; "links-only": none
     'max_quote_words': 50,     # the longest quotation a narrative may take from a source
     'smes_exclude': [],        # people and bots never listed as SMEs
-    'markers': True,           # the [->] and [?] markers (design doc §4.10)
+    'markers': True,           # the [→] and [?] markers (design doc §4.10)
     'images': True,            # generated figures in narratives/figures/, where mermaid can't show an idea well (design doc §4.5)
 }
 SOURCE_COPIES = ('allow', 'links-only')
