@@ -16,7 +16,7 @@ template's header.
 import os
 import re
 
-from . import config, layout, numbering, wikiyaml
+from . import config, language, layout, numbering, wikiyaml
 from .util import read_text
 
 BUNDLED = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'templates', 'narratives'))
@@ -31,16 +31,24 @@ class TemplateError(Exception):
     pass
 
 
+def _pattern(title):
+    parts = re.split(r'<[^>]*>', title)
+    return re.compile(r'\s*' + '.+?'.join(re.escape(p.strip()) if p.strip() else '' for p in parts) + r'\s*\Z', re.I)
+
+
 class Section:
-    """A required (or optional) ## section: its title as written, a pattern its title must match, and whether it needs a diagram."""
+    """A required (or optional) ## section: its title as written, the patterns its title must match
+    (the English title's, and each language pack's translation's), and whether it needs a diagram."""
 
     def __init__(self, title, optional, diagram):
         self.title, self.optional, self.diagram = title, optional, diagram
-        parts = re.split(r'<[^>]*>', title)
-        self.pattern = re.compile(r'\s*' + '.+?'.join(re.escape(p.strip()) if p.strip() else '' for p in parts) + r'\s*\Z', re.I)
+        self.patterns = [_pattern(t) for t in language.names(title)]
 
     def matches(self, title):
-        return bool(self.pattern.match(title))
+        return any(p.match(title) for p in self.patterns)
+
+    def matches_english(self, title):
+        return bool(self.patterns[0].match(title))
 
 
 class Template:
@@ -73,13 +81,15 @@ class Template:
         if missing:
             raise TemplateError(f'{name}: guide.md needs the sections {", ".join(GUIDE_SECTIONS)}; missing {", ".join(missing)}')
 
-    def skeleton(self):
-        """The narrative's skeleton: the shared top, this template's body, the shared appendices, numbered."""
+    def skeleton(self, tag=None):
+        """The narrative's skeleton: the shared top, this template's body, the shared appendices, numbered;
+        with a language tag, written for that language (its pack's headings and labels, and its Metadata field)."""
         shared = read_text(SHARED_SKELETON)
         top, bottom = shared.split(BODY_MARK)
         text = top.rstrip('\n') + '\n\n' + self.body.strip('\n') + '\n\n' + bottom.lstrip('\n')
-        text = text.replace('<template name>', self.name)
-        return numbering.renumber(text)[0]
+        text = text.replace('<template name>', self.name).replace('<language>', tag or language.DEFAULT)
+        text = numbering.renumber(text)[0]
+        return language.translate(text, language.pack(tag) or language.ENGLISH) if tag else text
 
     def sections(self):
         """The ## sections, in order, from the skeleton."""

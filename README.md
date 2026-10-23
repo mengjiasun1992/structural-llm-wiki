@@ -123,6 +123,7 @@ max_quote_words = 50        # the longest quotation a narrative may take
 smes_exclude = []           # never listed as SMEs, such as the wiki's owner or bots
 markers = true              # false: no reasoning or gap markers
 images = true               # false: diagrams in mermaid only, no generated figures
+language = "en"             # the language narratives are written in, such as "zh-Hans"
 
 [structural-llm-wiki-templates.technical_brief_overview]
 max_words = 3000            # a template's word budget, over its own
@@ -130,6 +131,8 @@ max_words = 3000            # a template's word budget, over its own
 [structural-llm-wiki-addons]
 obsidian = false            # true: set the wiki up to open as an Obsidian vault
 ```
+
+**Languages.** Narratives are written in the wiki's `language`, and one can name its own (`- **Language:** zh-Hans` in its Metadata, or ask for a language when you ask the question). Sources stay in the language they were written in, and a quotation keeps its source's words, translated after it. Headings come from a language pack, `templates/languages/<tag>.md`: the skill ships English, and you add a language by copying [its pack](src/skills/sllmwiki/templates/languages/en.md) into your wiki's `templates/languages/` and filling in the translations. Without a pack, headings stay English around prose in your language. Word budgets stay in words; Chinese and Japanese text counts its characters at 1.6 to a word.
 
 **Obsidian.** With `obsidian = true` and `/sllmwiki:init` rerun, open `sllmwiki/` as a vault: tags, narratives and sources form one graph, colored by kind.
 

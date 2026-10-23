@@ -9,7 +9,7 @@ import math
 import os
 import re
 
-from . import layout, manifest, metadata, numbering, plaintext
+from . import language, layout, manifest, metadata, numbering, plaintext
 from .util import read_bytes, read_text, split_footer
 
 STOP = set('a an and are as at be but by can do does for from how i in is it its of on or that the their this to was what when '
@@ -17,8 +17,17 @@ STOP = set('a an and are as at be but by can do does for from how i in is it its
 K1, B = 1.5, 0.75
 
 
+_CJK_RUN = re.compile(r'[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]+')
+
+
 def tokens(text):
-    return [w for w in re.findall(r'[a-z0-9]+', (text or '').lower()) if w not in STOP]
+    """The words to match on: lowercase letters and digits, and each pair of CJK characters side by side
+    (Chinese and Japanese put no spaces between words)."""
+    text = (text or '').lower()
+    out = [w for w in re.findall(r'[a-z0-9]+', text) if w not in STOP]
+    for run in _CJK_RUN.findall(text):
+        out += [run] if len(run) == 1 else [run[i:i + 2] for i in range(len(run) - 1)]
+    return out
 
 
 def bm25(query, docs):
@@ -102,7 +111,7 @@ def outline(text):
     for i, h in enumerate(heads):
         end = next((g.line for g in heads[i + 1:] if g.level <= h.level), len(lines))
         out.append({'level': h.level, 'title': h.text, 'anchor': by_line[h.line],
-                    'words': len(re.findall(r'\w+', '\n'.join(lines[h.line + 1:end])))})
+                    'words': language.words('\n'.join(lines[h.line + 1:end]))})
     return out
 
 

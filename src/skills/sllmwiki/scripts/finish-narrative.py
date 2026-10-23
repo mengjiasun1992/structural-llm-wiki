@@ -31,7 +31,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import citations, compat, config, figures, layout, manifest, markers, metadata, numbering, readingplan, runstats, templates, wikiindex, xrefs  # noqa: E402
+from lib import citations, compat, config, figures, language, layout, manifest, markers, metadata, numbering, readingplan, runstats, templates, wikiindex, xrefs  # noqa: E402
 from lib.narrativecheck import check as check_narrative  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, read_text, today, write_text  # noqa: E402
@@ -107,7 +107,7 @@ def main(argv):
     text, n = compat.escape(text)
     done += [f'wrote {n} renderer escape(s)'] if n else []
     if settings['markers']:
-        text, n = markers.add_rows(text)
+        text, n = markers.add_rows(text, language.for_narrative(text, settings['language'])[1])
         done += [f'defined {n} marker(s) in Terminology'] if n else []
     meta = metadata.read(text)
     name = meta['template']
@@ -115,7 +115,7 @@ def main(argv):
         templates.get(root, name or '')
     except templates.TemplateError as e:
         cli.fail(f'Metadata names no template this wiki offers: {e}')
-    fields = {'last_modified': today(), 'created': meta['created'] or today()}
+    fields = {'last_modified': today(), 'created': meta['created'] or today(), 'language': meta['language'] or settings['language']}
     history = None
     if not meta['version']:
         fields['version'], history = '1.0', ('1.0', today(), 'First version.')

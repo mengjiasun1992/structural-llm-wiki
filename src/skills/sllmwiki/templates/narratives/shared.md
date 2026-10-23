@@ -32,7 +32,7 @@ A number you compute from a cited formula, with its inputs shown, isn't your own
 
 ## Quoting
 
-Explain in your own words. Quote only a definition or one key sentence, in quotation marks, with its citation, never longer than the wiki's `max_quote_words` (50 unless Config.toml says otherwise). Never copy tables, figures or long passages.
+Explain in your own words and the narrative's language. Quote only a definition or key sentence, in quotation marks and its source's language (translated after it) with its citation, at most `max_quote_words` words (50 by default). Never copy tables, figures or passages.
 
 ## Formatting
 

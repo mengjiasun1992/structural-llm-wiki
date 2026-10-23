@@ -113,12 +113,16 @@ def anchors(text):
 
 def section(text, name):
     """(start, end) line span of the section whose anchor or unnumbered title is name
-    (case-insensitive), the heading included, up to the next heading of its level or
+    (case-insensitive) or a language pack's translation of it, the heading included, up to the next heading of its level or
     higher; None when there is none."""
     heads = headings(text)
     lines = text.split('\n')
     by_anchor = anchors(text)
     target = by_anchor.get(name) or next((h for h in heads if h.title.lower() == name.lower()), None)
+    if target is None:
+        from . import language  # a section named in English is also found by a language pack's translation
+        wanted = {n.lower() for n in language.names(name)[1:]}
+        target = next((h for h in heads if h.title.lower() in wanted), None)
     if target is None:
         return None
     end = next((h.line for h in heads if h.line > target.line and h.level <= target.level), len(lines))

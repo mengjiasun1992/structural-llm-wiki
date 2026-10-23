@@ -66,7 +66,7 @@ structural-llm-wiki/
 │   │   ├── steps/                         # tags, ingest, smes, narrative, lint: read when the step runs
 │   │   ├── scripts/                       # the deterministic scripts, each documented by its --help
 │   │   │   └── lib/                       # shared modules
-│   │   ├── templates/                     # narratives/ (templates and guides); wiki/ (what init installs)
+│   │   ├── templates/                     # narratives/ (templates and guides); languages/ (language packs); wiki/ (what init installs)
 │   │   └── tests/                         # unit tests for the scripts, and the instruction budgets
 │   ├── commands/                          # Claude Code commands, one per workflow and step
 │   ├── actions/                           # GitHub actions a wiki's CI calls
@@ -90,7 +90,7 @@ structural-llm-wiki/
 ├── .claude/settings.json     # offers the sllmwiki plugin to the group's members
 ├── .github/workflows/        # wiki-checks.yml; review-checklist.yml (red until a run PR's boxes are ticked)
 ├── Config.toml               # optional: the wiki's settings and add-ons (§4.9)
-├── templates/                # optional: the wiki's own narrative templates (§4.5)
+├── templates/                # optional: the wiki's own narrative templates (§4.5) and languages/ packs (§4.9)
 └── sllmwiki/                 # the knowledge: also the Obsidian vault and a book's source
     ├── .obsidian/graph.json  # with the Obsidian add-on: written once by init
     ├── tags/
@@ -297,6 +297,7 @@ max_quote_words = 50        # the longest quotation a narrative may take from a 
 smes_exclude = []           # never listed as SMEs, such as the wiki's owner or bots: ["@alice", "dependabot"]
 markers = true              # false: no [→] or [?] markers (§4.10)
 images = true               # false: diagrams in mermaid only, no generated figures (§4.5)
+language = "en"             # the language narratives are written in, a BCP 47 tag; sources keep their own
 
 [structural-llm-wiki-templates.technical_brief_overview]   # a template's budgets, over its header
 max_words = 3000
@@ -307,6 +308,7 @@ obsidian = false            # true: the Obsidian add-on (§4.8)
 ```
 
 - **What earns a setting.** A real wiki or a group's policy needs it, it has a safe default, and a script enforces it. Each setting above meets all three: the one real wiki raised a template's budget, set the Obsidian add-on on, and had its owner wrongly listed as an SME; its owner found the markers cluttering and asked what they meant; `source_copies` and `max_quote_words` are what legal review may need to tighten. Nothing configures the layout (§3).
+- **Language.** Narratives are written in `language`; one names its own in its Metadata (`- **Language:** zh-Hans`), which `finish-narrative` writes for every narrative. Sources are never translated, and a quotation keeps its source's words with a translation after it. A narrative's headings, and the few labels the scripts write (table headers, figure captions, the markers' rows), come from a language pack, `templates/languages/<tag>.md`: a table from the English text to its translation, bundled (English ships) or the wiki's own, like a template. The scripts find a section by its English title or any pack's translation, so they work the same in every language; `narrative-format` warns of a heading its pack translates left in English (`HEADING_LANGUAGE`) and of a language with no pack (`LANGUAGE_PACK`), whose headings stay English. Metadata's fields are never translated. Budgets stay in words: CJK text counts its characters at 1.6 to a word, and search indexes CJK text by character pairs. Lint checks grammar and wording in the narrative's language.
 - **Add-ons** are optional features, each a key in `[structural-llm-wiki-addons]`, off by default. An add-on is listed only once it exists, and its work (files written, builds run) happens only when it is on, so a wiki that doesn't use it never waits for it.
 - **One reader.** Every script reads the file through `lib/config.py`. An unknown table key, a mistyped value or an unknown template is an error: `wiki-check` reports it (`CONFIG_INVALID`) and the scripts that write refuse to run until it's fixed. The tables are prefixed with the project's name, so the file can also hold other tools' tables, which are left alone.
 

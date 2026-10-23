@@ -16,10 +16,10 @@ ellipsis splits a quotation into parts that must appear in order.
 import re
 import unicodedata
 
-from . import citations, search
+from . import citations, language, search
 from .compat import mask_code_spans, scan
 
-QUOTE = re.compile(r'"([^"\n]+)"|“([^”\n]+)”')
+QUOTE = re.compile(r'"([^"\n]+)"|“([^”\n]+)”|「([^」\n]+)」')
 MIN_WORDS = 3  # shorter text in quotes is a term or a name, not a quotation
 _ELLIPSIS = re.compile(r'\s*(?:…|\.\.\.|\[…\]|\[\.\.\.\])\s*')
 
@@ -72,14 +72,14 @@ def quotations(text):
         for k, m in enumerate(found):
             stop = found[k + 1].start() if k + 1 < len(found) else len(line)
             cite = next((target for pos, target in sorted(at.get(i, [])) if m.end() <= pos < stop), None)
-            out.append((i + 1, m.group(1) or m.group(2), cite))
+            out.append((i + 1, m.group(1) or m.group(2) or m.group(3), cite))
     return out
 
 
 def check(root, rel, text, max_words):
     out = []
     for line, quote, target in quotations(text):
-        words = len(re.findall(r"[\w'’-]+", quote))
+        words = language.words(quote)
         if words > max_words:
             out.append(('error', 'QUOTE_TOO_LONG', line, f'a quotation of {words} words; quote at most {max_words} (max_quote_words), '
                                                          'or say it in your own words'))

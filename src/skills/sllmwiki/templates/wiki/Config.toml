@@ -10,6 +10,7 @@ max_quote_words = 50        # the longest quotation a narrative may take from a 
 smes_exclude = []           # never listed as SMEs, such as this wiki's owner or bots: ["@alice", "dependabot"]
 markers = true              # false: no [→] or [?] markers in narratives
 images = true               # false: diagrams in mermaid only, no generated figures
+language = "en"             # narratives' language, such as "zh-Hans"; sources keep their own
 
 # A template's word budgets, over its own. For example:
 # [structural-llm-wiki-templates.technical_brief_overview]

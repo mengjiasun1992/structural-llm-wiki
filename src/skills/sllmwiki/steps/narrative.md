@@ -15,6 +15,7 @@ Read in that order, each source once, and only what the plan says: whole sources
 ## 3. Write
 
 - **Template:** pick one with `narrative-format.py --templates`, by its use_when, and start from `narrative-format.py --skeleton <template>`. When none fits the subject, take the closest.
+- **Language:** write in the wiki's language (Config.toml's `language`, English by default), or in the one the user asks for: pass it as `--skeleton <template> --language <tag>`, which writes it into Metadata and puts the headings in that language. Sources stay in theirs.
 - **Where:** save the narrative as `sllmwiki/narratives/<question-slug>.md`.
 - **What to follow:**
   - the template's `guide.md`, for its reader, structure and style;

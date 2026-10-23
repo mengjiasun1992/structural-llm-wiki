@@ -6,6 +6,7 @@
     smes_exclude = []
     markers = true
     images = true
+    language = "en"
 
     [structural-llm-wiki-templates.technical_brief_overview]
     max_words = 3000
@@ -40,6 +41,7 @@ DEFAULTS = {
     'smes_exclude': [],        # people and bots never listed as SMEs
     'markers': True,           # the [→] and [?] markers (design doc §4.10)
     'images': True,            # generated figures in narratives/figures/, where mermaid can't show an idea well (design doc §4.5)
+    'language': 'en',          # the language narratives are written in, a BCP 47 tag; sources keep their own (lib/language.py)
 }
 SOURCE_COPIES = ('allow', 'links-only')
 TEMPLATE_KEYS = ('max_words', 'abstract_words')
@@ -47,6 +49,7 @@ ADDON_DEFAULTS = {
     'obsidian': False,  # init writes sllmwiki/.obsidian/graph.json (design doc §4.8)
 }
 _TEMPLATE_NAME = re.compile(r'[a-z0-9][a-z0-9_-]*\Z')
+_LANGUAGE = re.compile(r'[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*\Z')  # as lib/language.py's TAG
 
 
 class ConfigError(Exception):
@@ -86,6 +89,8 @@ def _settings(table, problems):
             problems.append(f'{where} must be "allow" or "links-only", not {value!r}')
         elif key == 'max_quote_words' and value < 1:
             problems.append(f'{where} must be a positive whole number')
+        elif key == 'language' and not _LANGUAGE.match(value):
+            problems.append(f'{where} must be a language tag, such as "en" or "zh-Hans", not {value!r}')
         elif key == 'smes_exclude' and not all(isinstance(v, str) and v.strip() for v in value):
             problems.append(f'{where} must list names, such as ["@alice", "dependabot"]')
         else:

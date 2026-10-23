@@ -17,7 +17,7 @@ CITE = re.compile(r'(?P<space>[ \t]?)\[\\\[(?P<n>[0-9]+)\\\]\]\((?P<target>[^)\s
 _LISTED = re.compile(r'[ \t]*(?P<n>[0-9]+)\.[ \t]+.*?\]\((?P<target>[^)\s]+)\)')
 _REF = r'(?:\[\\\[[0-9]+\\\]\]\([^)\s]+\)|\[→\]|\[\?\]|\[->\])'
 # references (and markers) written after a sentence's closing punctuation: "… exponentially. [3] [6]"
-_AFTER = re.compile(r'(?<=\S)(?P<punct>[.!?])(?P<refs>(?:[ \t]+' + _REF + r')+)(?=[ \t]|\Z|[ \t]*\|)')
+_AFTER = re.compile(r'(?<=\S)(?P<punct>[.!?。！？])(?P<refs>(?:[ \t]+' + _REF + r')+)(?=[ \t]|\Z|[ \t]*\|)')
 # two references side by side with no comma between them
 _SIDE = re.compile(r'(?P<a>\[\\\[[0-9]+\\\]\]\([^)\s]+\))(?P<gap>[ \t]+)(?=\[\\\[[0-9]+\\\]\])')
 SOURCE_TARGET = re.compile(r'\.\./sources/(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)\.md(?:#(?P<anchor>[^)\s]+))?\Z')
