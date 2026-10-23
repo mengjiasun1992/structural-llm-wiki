@@ -108,9 +108,9 @@ Codex, Cursor, Copilot and other agents install the skill with the [`skills` CLI
 
 **Reviewing.** Each run's pull request starts with a checklist (tags, sources, each narrative). Tick each box as you check it; the wiki's "Review checklist" check turns green when all are ticked. Leave comments, and ask the agent to "apply the review comments on PR #12".
 
-**Narrative templates.** The skill picks the template that fits the question: `concept_brief_overview` ("What is X?"), `technical_brief_overview` ("How does X work?"), `comparison` ("X vs Y") or `survey` ("What are the principles of X?"). Each comes with a writing guide for a reader new to the topic. Bring your own by adding a folder with a `template.md` and a `guide.md` to the wiki's `templates/`; a folder named like a bundled template replaces it.
+**Narrative templates.** The skill picks the template that fits the question: `concept_brief_overview` ("What is X?"), `technical_brief_overview` ("How does X work?"), `comparison` ("X vs Y"), `survey` ("What are the principles of X?") or `case_study` ("What happened in this incident, and what does it teach?"). Each comes with a writing guide for a reader new to the topic. Bring your own by adding a folder with a `template.md` and a `guide.md` to the wiki's `templates/`; a folder named like a bundled template replaces it.
 
-**Markers.** A sentence no source states is marked `[sllmwiki_reasoning]`, and something the sources don't answer `[sllmwiki_gap]`; each narrative defines the ones it uses. Turn them off with `markers = false` (see below).
+**Markers.** What no source states is marked `[->]` (our own reasoning), and something the sources don't answer `[?]`, after the statement like a citation, or once on a heading for a whole section; each narrative defines the ones it uses. Turn them off with `markers = false` (see below).
 
 **Settings.** A wiki can keep an optional `Config.toml` (`init` writes it with the defaults):
 
@@ -120,6 +120,7 @@ source_copies = "allow"     # or "links-only": keep no copies, only links
 max_quote_words = 50        # the longest quotation a narrative may take
 smes_exclude = []           # never listed as SMEs, such as the wiki's owner or bots
 markers = true              # false: no reasoning or gap markers
+images = true               # false: diagrams in mermaid only, no generated figures
 
 [structural-llm-wiki-templates.technical_brief_overview]
 max_words = 3000            # a template's word budget, over its own

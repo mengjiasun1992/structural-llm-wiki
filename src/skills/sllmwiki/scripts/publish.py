@@ -8,7 +8,7 @@
   publish.py summary <step> --json '{"title": ..., "checklist": [...], "decisions": [...], "body": "..."}'
       Records a step's summary: its review checklist items, the decisions it
       leaves to the owner, and its report. (Or --file SUMMARY.json.) A
-      narrative's is one per question, its title; the others, one per step.
+      narrative's is one per question and a lint's one per scope, by title; the others, one per step.
   publish.py commit <action> --tags a,b --subject TEXT
       Commits everything the run changed with the message
       [sllmwiki][<action>][<tags>] <subject>, the step's report, and the
@@ -160,9 +160,10 @@ def record_summary(root, step, data):
     for key in ('checklist', 'decisions'):
         if not isinstance(data.get(key, []), list):
             cli.fail(f'"{key}" is a list of strings')
-    # One summary per step, except narrative: one per question, so each narrative
-    # keeps its own section and commit; recording a question again replaces it.
-    name = f'{step}.{re.sub(r"[^a-z0-9]+", "-", data["title"].lower()).strip("-")[:80]}' if step == 'narrative' else step
+    # One summary per step, except narrative and lint: one per title (a narrative's
+    # question, a lint's scope), so each keeps its own section and commit; recording
+    # a title again replaces it.
+    name = f'{step}.{re.sub(r"[^a-z0-9]+", "-", data["title"].lower()).strip("-")[:80]}' if step in ('narrative', 'lint') else step
     state['recorded'] = state.get('recorded', 0) + 1
     save_state(root, state)
     data = dict(data, recorded=state['recorded'])
@@ -322,8 +323,11 @@ def resume(root, slug):
     if os.path.isfile(os.path.join(run_dir(root, slug), 'run.json')):
         write_text(os.path.join(state_dir(root), 'current'), slug)
         state, how = load_state(root), ''
+        state.pop('cost', None)
     else:
         state, how = rebuild(root, slug, branch), ' (its state rebuilt from the branch and pull request)'
+    state['started'] = runstats.now().isoformat()  # a rework's Run section times the rework, not the first run
+    save_state(root, state)
     print(f'on {branch}{how}; pull request: {state.get("pr") or "not opened yet"}')
 
 

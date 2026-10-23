@@ -9,7 +9,7 @@ narrative shares (design doc §4.5, §4.8, §4.10).
         the body's budget; citations (numbered in order, listed, pointing at an
         existing section of a saved source); the markers; leftover <placeholders>;
         and markdown every renderer reads alike, links included.
-      --fix-numbering renumbers the headings; --fix-style writes the renderer
+      --fix-numbering renumbers the headings and figure captions; --fix-style writes the renderer
       escapes. finish-narrative.py does both, and more.
   narrative-format.py --templates     the templates this wiki offers, with use_when and budgets
   narrative-format.py --skeleton NAME the skeleton a new narrative starts from
@@ -25,7 +25,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import compat, config, layout, numbering, templates  # noqa: E402
+from lib import compat, config, figures, layout, numbering, templates  # noqa: E402
 from lib.narrativecheck import check  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, read_text, write_text  # noqa: E402
@@ -72,7 +72,7 @@ def main(argv):
         text = read_text(path)
         fixed = text
         if args.fix_numbering:
-            fixed = numbering.renumber(fixed)[0]
+            fixed = figures.renumber(numbering.renumber(fixed)[0])[0]
         if args.fix_style:
             fixed = compat.escape(fixed)[0]
         if fixed != text:

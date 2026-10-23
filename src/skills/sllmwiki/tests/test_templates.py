@@ -16,10 +16,10 @@ class Bundled(helpers.WikiTestCase):
     def test_the_bundled_templates_load(self):
         found, problems = templates.available(self.root)
         self.assertEqual(problems, [])
-        self.assertEqual(sorted(found), ['comparison', 'concept_brief_overview', 'survey', 'technical_brief_overview'])
-        self.assertEqual([found[n].max_words for n in sorted(found)], [1200, 900, 2200, 1800])
+        self.assertEqual(sorted(found), ['case_study', 'comparison', 'concept_brief_overview', 'survey', 'technical_brief_overview'])
+        self.assertEqual([found[n].max_words for n in sorted(found)], [1500, 1200, 900, 2200, 1800])
         t = found['technical_brief_overview']
-        self.assertEqual((t.source, t.max_words, t.abstract_words), ('bundled', 1800, [150, 250]))
+        self.assertEqual((t.source, t.max_words, t.abstract_words), ('bundled', 1800, [80, 150]))
         self.assertTrue(t.use_when.startswith('A solution, an algorithm'))
 
     def test_the_skeleton_is_the_schema(self):
@@ -30,22 +30,29 @@ class Bundled(helpers.WikiTestCase):
         self.assertNotIn(templates.BODY_MARK, skel)
         got = [(s.title, s.optional, s.diagram) for s in t.sections()]
         self.assertEqual(got, [('Abstract', False, False), ('Terminology', False, False), ('Background', False, False),
-                               ('What is <X>?', True, False), ('How does it work?', False, True),
+                               ('The core idea', False, True), ('How does it work?', False, False), ('Variants', True, False),
                                ('Design decisions and trade-offs', False, False), ('Limitations and failure modes', False, False),
-                               ('FAQ', True, False), ('SMEs', True, False), ('References', False, False), ('Metadata', False, False)])
+                               ('Misconceptions', True, False), ('Where to go next', True, False), ('Appendix', True, False),
+                               ('SMEs', True, False), ('References', False, False), ('Metadata', False, False)])
 
     def test_the_concept_template(self):
         titles = [s.title for s in templates.get(self.root, 'concept_brief_overview').sections()]
         self.assertEqual(titles[2:7], ['Definition', 'Why it matters', 'Key ideas', 'Boundaries', 'Where to go next'])
 
     def test_the_comparison_and_survey_templates(self):
-        got = [(s.title, s.optional, s.diagram) for s in templates.get(self.root, 'comparison').sections()][2:8]
-        self.assertEqual(got, [('The choice', False, False), ('At a glance', False, False), ('Dimensions to think through', False, False),
-                               ('When to choose which', False, False), ('Pitfalls', True, False), ('Where to go next', True, False)])
-        got = [(s.title, s.optional, s.diagram) for s in templates.get(self.root, 'survey').sections()][2:8]
-        self.assertEqual(got, [('Scope', False, False), ('At a glance', False, False), ('The main items', False, False),
-                               ('How they relate', False, True), ('Applying them', True, False), ('Where to go next', False, False)])
-        for name in ('comparison', 'survey'):
+        got = [(s.title, s.optional, s.diagram) for s in templates.get(self.root, 'comparison').sections()][2:9]
+        self.assertEqual(got, [('The choice', False, False), ('When to choose which', False, True), ('At a glance', False, False),
+                               ('Dimensions to think through', False, False), ('Pitfalls', True, False), ('Where to go next', True, False),
+                               ('Appendix', True, False)])
+        got = [(s.title, s.optional, s.diagram) for s in templates.get(self.root, 'survey').sections()][2:10]
+        self.assertEqual(got, [('Overview', False, False), ('The map', False, True), ('The main items', False, False),
+                               ('Tensions and trade-offs', True, False), ('Classic case studies', True, False), ('Applying them', True, False),
+                               ('Where to go next', False, False), ('Appendix', True, False)])
+        got = [(s.title, s.optional, s.diagram) for s in templates.get(self.root, 'case_study').sections()][2:10]
+        self.assertEqual(got, [('Context', False, False), ('The problem', False, False), ('What happened', False, True),
+                               ('The ideas at work', False, False), ('Outcome', True, False), ('Lessons', False, False),
+                               ('Where to go next', True, False), ('Appendix', True, False)])
+        for name in ('case_study', 'comparison', 'survey'):
             skel = templates.get(self.root, name).skeleton()
             self.assertEqual(numbering.check(skel), [])
             self.assertIn(f'- **Template:** {name}', skel)
@@ -80,7 +87,7 @@ class WikiTemplates(helpers.WikiTestCase):
                                   '[structural-llm-wiki-templates.concept_brief_overview]\nabstract_words = [100, 300]\n')
         found, problems = templates.available(self.root)
         self.assertEqual(problems, [])
-        self.assertEqual((found['technical_brief_overview'].max_words, found['technical_brief_overview'].abstract_words), (3000, [150, 250]))
+        self.assertEqual((found['technical_brief_overview'].max_words, found['technical_brief_overview'].abstract_words), (3000, [80, 150]))
         self.assertEqual(found['concept_brief_overview'].abstract_words, [100, 300])
 
     def test_problems(self):
@@ -109,7 +116,7 @@ class WikiTemplates(helpers.WikiTestCase):
     def test_get_an_unknown_template(self):
         with self.assertRaises(TemplateError) as e:
             templates.get(self.root, 'nope')
-        self.assertIn('there are comparison, concept_brief_overview, survey, technical_brief_overview', str(e.exception))
+        self.assertIn('there are case_study, comparison, concept_brief_overview, survey, technical_brief_overview', str(e.exception))
 
     def test_folders_without_a_template_are_ignored(self):
         os.makedirs(os.path.join(self.root, 'templates', 'notes'))

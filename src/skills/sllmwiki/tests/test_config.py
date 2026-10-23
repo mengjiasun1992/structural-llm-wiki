@@ -16,7 +16,7 @@ def problems(text):
 class Defaults(helpers.WikiTestCase):
     def test_no_file_means_the_defaults(self):
         c = config.load(self.root)
-        self.assertEqual(c.settings, {'source_copies': 'allow', 'max_quote_words': 50, 'smes_exclude': [], 'markers': True})
+        self.assertEqual(c.settings, {'source_copies': 'allow', 'max_quote_words': 50, 'smes_exclude': [], 'markers': True, 'images': True})
         self.assertEqual((c.templates, c.addons), ({}, {'obsidian': False}))
         self.assertEqual(config.problems(self.root), [])
 
@@ -38,7 +38,7 @@ class Settings(unittest.TestCase):
         c = parse('[structural-llm-wiki-settings]\nsource_copies = "links-only"\nmax_quote_words = 25\n'
                   'smes_exclude = ["@owner", "dependabot"]\nmarkers = false\n')
         self.assertEqual(c.settings, {'source_copies': 'links-only', 'max_quote_words': 25,
-                                      'smes_exclude': ['@owner', 'dependabot'], 'markers': False})
+                                      'smes_exclude': ['@owner', 'dependabot'], 'markers': False, 'images': True})
 
     def test_bad_values(self):
         cases = [

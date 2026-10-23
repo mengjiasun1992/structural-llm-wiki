@@ -69,7 +69,7 @@ class Command(helpers.WikiTestCase):
 
     def test_outline_and_section(self):
         out = self.s('outline', 'what-is-alpha').out
-        self.assertIn('  4. How does it work?  #4-how-does-it-work  (', out)
+        self.assertIn('  5. How does it work?  #5-how-does-it-work  (', out)
         self.assertEqual(json.loads(self.s('outline', 'alpha-doc', '--json').out)['headings'][1]['anchor'], 'details')
         r = self.s('section', '../sources/alpha-doc.md#details')
         self.assertEqual(r.out, '<!-- sllmwiki/sources/alpha-doc.md#details -->\n## Details\n\nEach retry waits twice as long as the last.\n')

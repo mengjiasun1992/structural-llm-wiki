@@ -104,13 +104,21 @@ class Publish(helpers.WikiTestCase):
         self.assertEqual((body.count('## Why A?'), body.count('Wrote A.')), (1, 0))
         self.assertIn('- [ ] A reads well, reworked\n', body)
         self.assertIn('summaries: ingest, narrative.why-b, narrative.why-a; pull request: https://github.com/o/r/pull/7', self.pub('status').out)
+        self.summary('lint', title='Lint: A and B', checklist=['Lint: A and B'], body='Fixed two.')
+        self.summary('lint', title='Lint: context first', checklist=['Lint: context first'], body='Fixed one.')
+        body = self.pub('pr') and self.read_state('pr.md')
+        self.assertTrue('## Lint: A and B' in body and '## Lint: context first' in body)  # a second lint keeps the first
+        self.assertIn('- [ ] Lint: A and B\n- [ ] Lint: context first\n', body)
         helpers.git(self.root, 'switch', '-q', 'mainline')
         self.pub('start', 'beta-cache', '--title', 'Beta?', '--prompt', 'p')  # the next run starts clean
         self.assertIn('summaries: none; pull request: not opened yet', self.pub('status').out)
         self.assertFalse(os.path.exists(self.state_path('pr.md', 'beta-cache')))
         r = self.pub('resume', 'alpha-retries')  # back to the earlier run, its summaries kept
         self.assertEqual(r.out, 'on sllmwiki/alpha-retries; pull request: https://github.com/o/r/pull/7\n')
-        self.assertIn('summaries: ingest, narrative.why-b, narrative.why-a', self.pub('status').out)
+        self.assertIn('summaries: ingest, narrative.why-b, narrative.why-a, lint.lint-a-and-b, lint.lint-context-first', self.pub('status').out)
+        state = json.loads(self.read_state('run.json'))
+        self.assertNotIn('cost', state)  # a rework's own figures, not the first run's
+        self.assertGreater(state['started'], '2026')
 
     def state_path(self, name, slug='alpha-retries'):
         return os.path.join(self.root, '.git', 'sllmwiki', 'runs', slug, name)

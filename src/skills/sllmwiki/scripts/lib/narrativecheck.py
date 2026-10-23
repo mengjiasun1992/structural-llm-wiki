@@ -5,14 +5,14 @@ citations, markers, placeholders and markdown every renderer reads alike."""
 import os
 import re
 
-from . import citations, compat, manifest, markers, mdlinks, metadata, numbering, quotes
+from . import citations, compat, figures, manifest, markers, mdlinks, metadata, numbering, quotes, xrefs
 from .compat import mask_code_spans, mask_math_spans, scan
 
 PLACEHOLDER = re.compile(r'<(?!https?://|mailto:|/)[^<>\n]*\s[^<>\n]*>')
 # A formula written as text: x_t or s_{t-1}, or a Greek letter beside an operator
 FORMULA = re.compile(r'(?<![\w\\/])[A-Za-z]{1,6}_(?:\{[^}\s]+\}|[A-Za-z0-9]{1,3})(?!\w)|[\u03b1-\u03c9\u0391-\u03a9]\s*[\u00b7\u00d7]|[=\u00b7\u00d7]\s*\(?[\u03b1-\u03c9\u0391-\u03a9]')
 SHARED_TOP = ('Abstract', 'Terminology')
-SHARED_BOTTOM = ('SMEs', 'References', 'Metadata')
+SHARED_BOTTOM = ('Appendix', 'SMEs', 'References', 'Metadata')
 
 
 def words(lines):
@@ -28,6 +28,7 @@ def check_sections(text, template):
     want = template.sections()
     pos = 0
     for h in heads:
+        h.title = markers.unmark(h.title)  # a marked heading is still its section
         at = next((j for j in range(pos, len(want)) if want[j].matches(h.title)), None)
         if at is None:
             if any(s.matches(h.title) for s in want):
@@ -39,14 +40,16 @@ def check_sections(text, template):
             if not skipped.optional:
                 out.append(('error', 'MISSING_SECTION', h.line + 1, f'the template needs "{skipped.title}" before "{h.title}"'))
         if want[at].diagram and not _has_diagram(text, h):
-            out.append(('error', 'MISSING_DIAGRAM', h.line + 1, f'"{h.title}" needs a ```mermaid diagram'))
+            out.append(('error', 'MISSING_DIAGRAM', h.line + 1, f'"{h.title}" needs a ```mermaid diagram, or a figure'))
         pos = at + 1
     return out  # every skeleton ends with Metadata, where the template is named, so a missing section is always one skipped before it
 
 
 def _has_diagram(text, head):
-    """Whether the section has a ```mermaid block with more than comments in it."""
+    """Whether the section has a ```mermaid block with more than comments in it, or a figure."""
     span = numbering.section(text, numbering.anchor(head.text))
+    if any(span[0] <= i < span[1] for i, _, _ in figures.images(text)):
+        return True
     inside = drawn = False
     for line in text.split('\n')[span[0]:span[1]]:
         if line.strip().startswith('```'):
@@ -109,6 +112,9 @@ def check(root, rel, text, settings, offered):
     out += check_citation_targets(root, rel, text)
     out += markers.check(text, settings['markers'])
     out += quotes.check(root, rel, text, settings['max_quote_words'])
+    out += figures.check(root, rel, text, settings['images'])
+    out += figures.check_captions(text)
+    out += xrefs.check(root, rel, text)
     lines = text.split('\n')
     kinds, _ = scan(lines)
     for i, line in enumerate(lines):

@@ -28,7 +28,7 @@ This document covers the architecture and the decisions behind it. The skill's f
 
 - **The wiki is a dedicated git repository.** Git provides history, review and rollback.
 - **Sources are ground truth.** Sources are saved verbatim (§4.3) and never summarized or edited. Narratives are built from them and checked against them.
-- **Every claim is traceable.** A claim in a narrative cites a section of a saved source with a numbered link (`claim. [\[3\]](../sources/<file>.md#<section>)`, brackets escaped so Obsidian doesn't read `[[3]]` as a wikilink), or is marked as the narrative's own reasoning (`[sllmwiki_reasoning]`) or as a gap the sources don't answer (`[sllmwiki_gap]`). §4.10 defines the markers, and how a wiki turns them off.
+- **Every claim is traceable.** A claim in a narrative cites a section of a saved source with a numbered link (`claim. [\[3\]](../sources/<file>.md#<section>)`, brackets escaped so Obsidian doesn't read `[[3]]` as a wikilink), or is marked as the narrative's own reasoning (`[->]`) or as a gap the sources don't answer (`[?]`). §4.10 defines the markers, and how a wiki turns them off.
 - **The question drives the run.** Tags, sources and the reading plan are chosen for the questions asked, not for a topic in general, so nothing is collected that no answer uses.
 - **Runs are unattended; review happens on one pull request.** A run takes its questions at the start and doesn't pause; what it can't decide goes to the top of its pull request. The owner reviews, ticks the review checklist and merges.
 - **Build on what exists.** One narrative per question. Before writing, look for a narrative that already covers it, and reuse or expand it (§7.4).
@@ -183,18 +183,23 @@ The question (the title), the Abstract, the version and the dates live in the na
 
 One question per file in `narratives/`; the question is the title, unchanged.
 
-**Structure.** Every narrative has the same top and appendices, defined once in `templates/narratives/shared.md`: an **Abstract** (150–250 words), a **Terminology** table defining every term and acronym the reader needs before its first use, the body, then **SMEs**, **References** (sources read, code references, related narratives, citations) and **Metadata** (version, template, model, history, reading plan). Every heading of level 2 to 4 is numbered (`## 1. Abstract`, `### 5.1 …`).
+**Structure.** Every narrative has the same top and appendices, defined once in `templates/narratives/shared.md`: an **Abstract** (one sentence on the problem, the answer in two or three, then 3–5 key takeaways; 80–150 words), a small **Terminology** table of the terms the whole narrative leans on and every abbreviation, the body, then an optional **Appendix** (the Glossary, and details and examples a reader may want but doesn't need to follow the answer), **SMEs**, **References** (sources read, code references, related narratives, citations) and **Metadata** (version, template, model, history, reading plan). Every heading of level 2 to 4 is numbered (`## 1. Abstract`, `### 5.1 …`). The shared writing guide holds the style every narrative shares, in priority order: context first, ideas before sources, the map before the details, one or two key examples carried through the sections, a shape that fits the content, and detail in its place.
 
-**Templates.** A template is a folder with `template.md` and `guide.md`. The skeleton is the schema: its headings are the required sections, in order; a heading ending in `(optional)` may be left out; a section holding a ` ```mermaid ` placeholder needs a diagram. A short YAML header gives `description`, `use_when`, `max_words` (the body's budget) and `abstract_words`. The guide (audience and purpose, voice and tone, structure, evidence, length, checklist) holds the style, and every template's guide is written for a reader new to the topic: the problem before the mechanism, prerequisites before use, a goal stated before each scenario, one notation throughout, rules of thumb for every parameter.
+**Links between narratives.** A narrative that mentions a concept another narrative covers links to it, to its section where one fits, and says it in a sentence at most instead of explaining it again, so the wiki says each thing once and its narratives connect. Section anchors carry the section's number, so `narrative-format` and `wiki-check` report a link to a section that isn't there (`NARRATIVE_ANCHOR`), and `finish-narrative` and `wiki-check --fix` repair one whose section was only renumbered.
+
+**Figures.** Diagrams are mermaid by default. Where mermaid can't show an idea well, such as a curve, measured data or geometry, a narrative may embed a figure it generates, computed from its own formulas or cited numbers, never copied from a source. It is an SVG (a PNG only for what SVG can't hold), the two formats GitHub, Obsidian, mdBook and Sphinx all show, in `narratives/figures/<slug>/`, and it is kept small for the agents that may read it: an SVG under 40 KB, a PNG under 150 KB and 1600 px wide. Every diagram and figure has a caption line under it, `*Figure 5-1: what it shows.*`, numbered by its section; with the alt text, the caption says what the picture shows, so no agent needs to open it. `finish-narrative` renumbers the captions and the references to them. `narrative-format` checks a figure's place, format, alt text and size, that an SVG is self-contained and has an opaque background for dark themes, and every caption; `wiki-check` reports a figure no narrative shows. `images = false` (§4.9) keeps a wiki to mermaid.
+
+**Templates.** A template is a folder with `template.md` and `guide.md`. The skeleton is the schema: its headings are the required sections, in order; a heading ending in `(optional)` may be left out; a section holding a ` ```mermaid ` placeholder needs a diagram. A short YAML header gives `description`, `use_when`, `max_words` (the body's budget) and `abstract_words`. The guide (audience and purpose, voice and tone, structure, evidence, length, checklist, and for the bundled templates, examples) holds the style, and every template's guide is written for a reader new to the topic: the problem before the mechanism, prerequisites before use, one notation throughout, rules of thumb for every parameter. Its Examples section says where the narrative's one or two key examples appear in each of its sections, so the reader never switches context to follow a point.
 
 A template is chosen by the subject, not the question's wording:
 
 | Template | Subject | Focus | Takeaway: a reader new to the subject … | Budget |
 |---|---|---|---|---|
 | `concept_brief_overview` | A concrete subject that has a concise, precise definition | The definition, and what it is and isn't | has learned the concept | 900 words |
-| `technical_brief_overview` | A solution, an algorithm, or the design of a component or for a problem | How it works: a flow diagram and walkthrough | has learned the solution or design | 1,800 words |
-| `comparison` | A choice among common candidates | The trade-offs: every dimension to think through when choosing, and when to pick which | can make the choice, knowing what each candidate costs | 1,200 words |
-| `survey` | Anything not concrete: a domain, or an umbrella term for subtopics or directions that each go deep their own way | Wide over deep: the main dishes on the table that one can't miss, how they relate, where to go deeper | knows the main areas of the domain and where to go deeper in each | 2,200 words |
+| `technical_brief_overview` | A solution, an algorithm, or the design of a component or for a problem | How it works: the core idea and its picture first, then a walkthrough on one running example, then variants and trade-offs | has learned the solution or design | 1,800 words |
+| `comparison` | A choice among common candidates | The trade-offs: when to pick which first, then every dimension to think through when choosing | can make the choice, knowing what each candidate costs | 1,200 words |
+| `survey` | Anything not concrete: a domain, or an umbrella term for subtopics or directions that each go deep their own way | Wide over deep: the main dishes on the table that one can't miss, an overview with context and scope, the items grouped and mapped first, their tensions, classic case studies, where to go deeper | knows the main areas of the domain and where to go deeper in each | 2,200 words |
+| `case_study` | One particular system, incident or decision that a concept or domain is known by | Deep on the one case: its context, what happened, the ideas at work (linked to their narratives), the lessons that carry over | knows what happened and why, and can apply its lessons elsewhere | 1,500 words |
 
 **A wiki's own templates.** A team can bring its own: a folder in the wiki's `templates/` with a `template.md` and a `guide.md` is offered next to the bundled ones, and is checked the same way; one with a bundled template's name replaces it. A wiki that only wants a different budget for a template sets it in `Config.toml` (§4.9) instead of copying the template.
 
@@ -235,7 +240,8 @@ A wiki can keep a `Config.toml` at its root. Every setting has a default, so the
 source_copies = "allow"     # "allow": a private wiki keeps reference copies, a public one only openly licensed sources (§4.7); "links-only": no copies, every source a link
 max_quote_words = 50        # the longest quotation a narrative may take from a source
 smes_exclude = []           # never listed as SMEs, such as the wiki's owner or bots: ["@alice", "dependabot"]
-markers = true              # false: no [sllmwiki_reasoning] or [sllmwiki_gap] markers (§4.10)
+markers = true              # false: no [->] or [?] markers (§4.10)
+images = true               # false: diagrams in mermaid only, no generated figures (§4.5)
 
 [structural-llm-wiki-templates.technical_brief_overview]   # a template's budgets, over its header
 max_words = 3000
@@ -251,18 +257,19 @@ obsidian = false            # true: the Obsidian add-on (§4.8)
 
 ### 4.10 Markers
 
-A narrative says plainly what its sources don't. Two markers do it, each written at the start of the sentence it covers:
+A narrative says plainly what its sources don't. Two markers do it, each written where a citation would go: after the statement it covers, or at the end of a heading, where it covers the whole section.
 
 | Marker | Means | Example |
 |---|---|---|
-| `[sllmwiki_reasoning]` | The narrative's own reasoning: a conclusion, recommendation, grouping, comparison or reconstruction that no cited source states | `[sllmwiki_reasoning] Both designs trade latency for consistency, in opposite directions.` |
-| `[sllmwiki_gap]` | Something the question needs that the sources don't answer. It is stated as a gap, never filled with a guess | `[sllmwiki_gap] None of the sources say how the gateway picks a backend after a timeout.` |
+| `[->]` | Our own reasoning: a conclusion, recommendation, grouping, comparison, worked example or reconstruction that no cited source states | `Both designs trade latency for consistency, in opposite directions. [->]` |
+| `[?]` | A gap: something the question needs that the sources don't answer, stated as a gap, never filled with a guess | `None of the sources say how the gateway picks a backend after a timeout. [?]` |
 
-- **What a marker covers.** The one sentence, or table cell, it starts. A paragraph of reasoning marks each sentence that is reasoning, so a cited sentence next to it stays plainly cited.
-- **A sentence is cited or marked, never both.** If a source states it, it gets a citation instead.
-- **Why these words.** They are fixed, so scripts and `grep` find every one, and they render as plain text everywhere: brackets with no link after them are text on GitHub, in Obsidian and in both book renderers (§4.8). Their names say what they are, and the `sllmwiki_` prefix keeps them from colliding with anything a source or a writer would type.
-- **Defined where they're used.** A reader can't be expected to know them, so `finish-narrative` adds a Terminology row for each marker a narrative uses, and only those.
-- **Checked.** `narrative-format` reports a marker that isn't at a sentence's start, or that shares its sentence with a citation. Lint reports a factual claim that is neither cited nor marked, and a marked sentence that a source does state, which should be cited instead.
+- **Where it goes.** After the statement, like a citation: the reader meets the idea first and the marker second, and the eye skips it as it skips `[3]`. A statement is a sentence, a list item or a table cell.
+- **At the right level.** A section that is all our own reasoning, such as "Applying them", marks its heading once (`## 8. Applying them [->]`) instead of every sentence; inside it, a sentence a source states is still cited. `narrative-format` suggests the heading when a section marks four or more statements and cites none.
+- **A statement is cited or marked, never both.** If a source states it, it gets a citation instead.
+- **Why these symbols.** They are short, so they read like a citation, not a label; fixed, so scripts and `grep` find every one; and plain text everywhere: brackets with no link after them are text on GitHub, in Obsidian and in both book renderers (§4.8). `[->]` reads as "follows from", `[?]` as "unknown".
+- **Defined where they're used.** A reader can't be expected to know them, so `finish-narrative` adds a Terminology row for each marker a narrative uses, and only those. It also converts the earlier markers (`[sllmwiki_reasoning]`, `[sllmwiki_gap]`, written at a sentence's start), which `narrative-format` reports as `MARKER_OLD`.
+- **Checked.** `narrative-format` reports a marker that doesn't follow its statement, or that shares it with a citation. Lint reports a factual claim that is neither cited nor marked, and a marked statement that a source does state, which should be cited instead.
 - **Turned off.** With `markers = false` (§4.9), narratives use no markers and Terminology gets no marker rows. An uncited sentence is then the narrative's own reasoning, a gap is said in words ("the sources don't say …"), and lint still reports a factual claim without a citation. The wiki's README says which convention the wiki uses.
 
 ## 5. Building knowledge: `build`
@@ -389,7 +396,7 @@ Each waits until a real wiki needs it; adding one later starts as a proposal in 
 | Book builds (mdBook, Sphinx) | The markdown stays book-ready (§4.8); each build arrives later as an add-on, off by default, so a wiki that doesn't want a book never pays for one | No one has asked for a book yet |
 | Draft narratives and their states | A labeled DRAFT answer in `query`'s reply, and an offer to `build` | The one real wiki never kept a draft |
 | Tag abstracts rolled up the tree | `query` starts from narrative abstracts | Rewriting every abstract up to the root on each change was the costliest bookkeeping |
-| The `decision_record` template | The other four; a wiki can add its own | Never used |
+| The `decision_record` template | The bundled templates; a wiki can add its own | Never used |
 | Slicing every large PDF by headings guessed from font sizes | Outline headings; only outlined documents over 100 pages sliced, by chapter, with script-written starter abstracts | Guessed headings caused bugs; a 20-page paper sliced into 11 sources no narrative used |
 | Downloading a source's images | Links to the originals | Copying images raises copyright questions for little gain |
 | Automatic license lookup | The agent records what it finds; scripts check visibility and the recorded license | The judgment was always the agent's |

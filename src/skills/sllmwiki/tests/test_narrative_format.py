@@ -26,11 +26,11 @@ class Checks(helpers.WikiTestCase):
 
     def test_sections(self):
         text = helpers.narrative_text()
-        missing = text.replace('## 5. Design decisions and trade-offs\n\nWaiting longer each time spares a struggling server.\n\n', '')
+        missing = text.replace('## 6. Design decisions and trade-offs\n\nWaiting longer each time spares a struggling server.\n\n', '')
         self.assertIn('MISSING_SECTION', [c for c, _ in self.codes(missing)])
         swapped = text.replace('## 3. Background', '## 3. Limitations and failure modes', 1)
         self.assertIn('SECTION_ORDER', [c for c, _ in self.codes(swapped)])
-        extra = text.replace('## 5. Design', '## 5. My own section\n\nText.\n\n## 6. Design', 1)
+        extra = text.replace('## 6. Design', '## 6. My own section\n\nText.\n\n## 7. Design', 1)
         self.assertIn('EXTRA_SECTION', [c for c, _ in self.codes(extra)])
         no_diagram = text.replace('```mermaid\ngraph LR\n    A[Request fails] --> B[Wait, then retry]\n```\n', '')
         self.assertIn('MISSING_DIAGRAM', [c for c, _ in self.codes(no_diagram)])
@@ -39,9 +39,9 @@ class Checks(helpers.WikiTestCase):
         self.assertIn('MISSING_DIAGRAM', [c for c, _ in self.codes(placeholder)])
         sequence = text.replace(diagram, '```mermaid\n%% the retry\nsequenceDiagram\n    Client->>Server: request\n```\n')
         self.assertNotIn('MISSING_DIAGRAM', [c for c, _ in self.codes(sequence)])
-        cut = text[:text.index('## 7. References')] + text[text.index('## 8. Metadata'):]
+        cut = text[:text.index('## 8. References')] + text[text.index('## 9. Metadata'):]
         self.assertEqual([c for c, _ in self.codes(cut) if c == 'MISSING_SECTION'], ['MISSING_SECTION'])
-        no_end = text[:text.index('## 7. References')] + '- **Template:** technical_brief_overview\n'
+        no_end = text[:text.index('## 8. References')] + '- **Template:** technical_brief_overview\n'
         self.assertEqual([c for c, _ in self.codes(no_end) if c == 'NO_TEMPLATE'], ['NO_TEMPLATE'])  # Metadata is where the template is named
 
     def test_lengths(self):
@@ -63,9 +63,11 @@ class Checks(helpers.WikiTestCase):
         self.assertIn('CITATION_UNLISTED', [c for c, _ in self.codes(text.replace('1. [alpha-doc: details]', '- [alpha-doc: details]'))])
 
     def test_markers(self):
-        marked = helpers.narrative_text(extra='\n[sllmwiki_reasoning] Doubling the wait suits most clients.\n')
+        marked = helpers.narrative_text(extra='\nDoubling the wait suits most clients. [->]\n')
         self.assertIn('MARKER_UNDEFINED', [c for c, _ in self.codes(marked)])
         self.assertIn('MARKER_OFF', [c for c, _ in self.codes(marked, markers=False)])
+        heading = helpers.narrative_text().replace('## 7. Limitations and failure modes\n\nRetries', '## 7. Limitations and failure modes [->]\n\nRetries')
+        self.assertEqual([c for c, _ in self.codes(heading) if c.startswith(('MISSING', 'SECTION', 'EXTRA'))], [])  # a marked heading is still its section
 
     def test_placeholders_and_markdown(self):
         text = helpers.narrative_text()
@@ -122,7 +124,7 @@ class Command(helpers.WikiTestCase):
         self.assertEqual(r.code, 0)
         self.assertIn('technical_brief_overview (bundled, body up to 1800 words)', r.out)
         rows = json.loads(self.nf('--templates', '--json').out)['templates']
-        self.assertEqual([t['name'] for t in rows], ['comparison', 'concept_brief_overview', 'survey', 'technical_brief_overview'])
+        self.assertEqual([t['name'] for t in rows], ['case_study', 'comparison', 'concept_brief_overview', 'survey', 'technical_brief_overview'])
         skel = self.nf('--skeleton', 'concept_brief_overview').out
         self.assertTrue(skel.startswith('# <The question, exactly as asked>\n'))
         self.assertIn('## 3. Definition', skel)

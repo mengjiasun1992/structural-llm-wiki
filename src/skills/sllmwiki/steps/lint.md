@@ -17,10 +17,10 @@ For consistency, read the Abstract and Terminology of each narrative sharing its
 |---|---|
 | Accuracy | a claim its section doesn't support, overstates or gets a number wrong; a quotation not word for word |
 | Code | a symbol, file or line that isn't there; design intent presented as current behavior |
-| Consistency | a contradiction or a different term across narratives sharing tags; a missing link between them |
-| Reader | the template's guide and `shared-guide.md`: a term used before Terminology defines it, notation that changes, a scenario without its goal, content that doesn't serve the question |
+| Consistency | a contradiction or a different term across narratives sharing tags; a concept another narrative covers, explained again or mentioned without a link to it |
+| Reader | the template's guide and `shared-guide.md`: a term used before it's defined, notation that changes, a section, scenario or formula without its context first, more than two key examples in the body or one whose scene isn't set, prose that tallies sources instead of stating the idea, a long list not grouped, a slot filled with filler, detail the Appendix should hold, content that doesn't serve the question |
 
-Formatting, links and numbering are `narrative-format.py`'s and `wiki-check.py`'s: run them, don't check by hand.
+Formatting, links and numbering, figure captions included, are `narrative-format.py`'s and `wiki-check.py`'s: run them, don't check by hand. A figure's caption and alt text say what it shows; open its file only to check its numbers against the source.
 
 ## 4. Fix the small, report the big
 
@@ -31,7 +31,7 @@ Formatting, links and numbering are `narrative-format.py`'s and `wiki-check.py`'
 ## 5. Summary and commit
 
 `publish.py summary lint --json '{...}'` with:
-- `title`: "Lint";
+- `title`: "Lint: " and what this lint checked, so a later lint in the same run keeps its own section;
 - `checklist`: "Lint: every H finding fixed or decided";
 - `decisions`: each big finding, with its number;
 - `body`: a table of number, narrative and line, finding, and fixed or left as a decision.
