@@ -177,7 +177,7 @@ what-is-gateway:
     '1.0': claude-opus-5-5
 ```
 
-The question (the title), the Abstract, the version and the dates live in the narrative and are read from it. The grades and models are the record behind the narrative's Model and Reading plan, which `finish-narrative` writes into its Metadata, so a reader sees what was read, in what order and why, and which model wrote it. When a source is re-ingested and its hash no longer matches a pin, `wiki-check` reports `NARRATIVE_SOURCE_CHANGED` for exactly the narratives that read it. The narratives a narrative builds on, those its reading plan graded high, are pinned the same way (`built_on`, by a hash of each one's content without its Metadata), so when one is rewritten, `wiki-check` reports `NARRATIVE_BASE_CHANGED` for the narratives that reused its wording.
+The question (the title), the Abstract, the version and the dates live in the narrative and are read from it. The grades and models are the record behind the narrative's Model and Reading plan, which `finish-narrative` writes into its Metadata, so a reader sees what was read, in what order and why, and which model wrote it. When a source is re-ingested and its hash no longer matches a pin, `wiki-check` reports `NARRATIVE_SOURCE_CHANGED` for exactly the narratives that read it. The narratives a narrative builds on, those its reading plan graded high, are pinned the same way (`built_on`, by a hash of each one's content without its Metadata), so when one is rewritten, `wiki-check` reports `NARRATIVE_BASE_CHANGED` for the narratives that rely on it.
 
 ### 4.5 Narratives
 
@@ -197,7 +197,7 @@ A template is chosen by the subject, not the question's wording:
 
 | Template | Subject | Focus | Takeaway: a reader new to the subject … | Budget |
 |---|---|---|---|---|
-| `concept_brief_overview` | A concrete subject that has a concise, precise definition | A short overview (what, where and when, who, why), then the definition, and what it is and isn't | has learned the concept | 900 words |
+| `concept_brief_overview` | A concrete subject that has a concise, precise definition | A short overview (what, where and when, who, why); the definition in short, to set the intuition, then precisely, from the source that defines it most exactly, with the nuances that adds; its consequences; and its edge cases | has learned the concept | 1,200 words |
 | `technical_brief_overview` | A solution, an algorithm, or the design of a component or for a problem | How it works: the core idea and its picture first, then a walkthrough on one running example, then variants and trade-offs | has learned the solution or design | 1,800 words |
 | `comparison` | A choice among common candidates | Each candidate in turn on one base scenario, a condition changed until it wins; then when to pick which, and every dimension to think through | knows each candidate, what sets it apart, and which one their situation calls for | 1,500 words |
 | `survey` | Anything not concrete: a domain, or an umbrella term for subtopics or directions that each go deep their own way | Wide over deep: the main dishes on the table that one can't miss, an overview with context and scope, the items grouped and mapped first, their tensions, classic case studies, where to go deeper | knows the main areas of the domain and where to go deeper in each | 2,200 words |

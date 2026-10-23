@@ -17,7 +17,7 @@ class Bundled(helpers.WikiTestCase):
         found, problems = templates.available(self.root)
         self.assertEqual(problems, [])
         self.assertEqual(sorted(found), ['case_study', 'comparison', 'concept_brief_overview', 'survey', 'technical_brief_overview'])
-        self.assertEqual([found[n].max_words for n in sorted(found)], [1500, 1500, 900, 2200, 1800])
+        self.assertEqual([found[n].max_words for n in sorted(found)], [1500, 1500, 1200, 2200, 1800])
         t = found['technical_brief_overview']
         self.assertEqual((t.source, t.max_words, t.abstract_words), ('bundled', 1800, [80, 150]))
         self.assertTrue(t.use_when.startswith('A solution, an algorithm'))
