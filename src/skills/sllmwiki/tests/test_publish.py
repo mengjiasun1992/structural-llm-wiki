@@ -71,7 +71,12 @@ class Publish(helpers.WikiTestCase):
         committed = helpers.git(self.root, 'show', '--name-only', '--format=').stdout.split()
         self.assertEqual(committed, ['sllmwiki/sources/new.md'])
         self.write('Config.toml', '[structural-llm-wiki-settings]\n')
+        self.write('sllmwiki/.obsidian/graph.json', '{}')  # the add-on's, which init writes; .gitignore shares it
+        self.write('.gitignore', 'sllmwiki/.obsidian/*\n!sllmwiki/.obsidian/graph.json\n')
         self.pub('commit', 'init', '--subject', 'Bring the wiki up to date')  # init has no tags
+        committed = helpers.git(self.root, 'show', '--name-only', '--format=').stdout.split()
+        self.assertIn('sllmwiki/.obsidian/graph.json', committed)
+        self.assertNotIn('sllmwiki/.obsidian/workspace.json', committed)  # each person's own, ignored
         self.assertEqual(helpers.git(self.root, 'log', '-1', '--format=%s').stdout.strip(), '[sllmwiki][init] Bring the wiki up to date')
         r = self.pub('pr')
         self.assertEqual(r.out, 'opened https://github.com/o/r/pull/7\n')
