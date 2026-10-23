@@ -18,7 +18,7 @@ For consistency, read the Abstract and Terminology of each narrative sharing its
 | Accuracy | a claim its section doesn't support, overstates or gets a number wrong; a quotation not word for word |
 | Code | a symbol, file or line that isn't there; design intent presented as current behavior |
 | Consistency | a contradiction or a different term across narratives sharing tags; a missing link between them |
-| Reader | the template's guide and `shared-guide.md`: a term used before Terminology defines it, notation that changes, a section, scenario or formula without its context first, an example from a system the narrative hasn't introduced, content that doesn't serve the question |
+| Reader | the template's guide and `shared-guide.md`: a term used before it's defined, notation that changes, a section, scenario or formula without its context first, more than two key examples in the body or one whose scene isn't set, prose that tallies sources instead of stating the idea, a long list not grouped, a slot filled with filler, detail the Appendix should hold, content that doesn't serve the question |
 
 Formatting, links and numbering are `narrative-format.py`'s and `wiki-check.py`'s: run them, don't check by hand.
 
