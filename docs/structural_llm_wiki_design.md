@@ -177,7 +177,7 @@ what-is-gateway:
     '1.0': claude-opus-5-5
 ```
 
-The question (the title), the Abstract, the version and the dates live in the narrative and are read from it. The grades and models are the record behind the narrative's Model and Reading plan, which `finish-narrative` writes into its Metadata, so a reader sees what was read, in what order and why, and which model wrote it. When a source is re-ingested and its hash no longer matches a pin, `wiki-check` reports `NARRATIVE_SOURCE_CHANGED` for exactly the narratives that read it.
+The question (the title), the Abstract, the version and the dates live in the narrative and are read from it. The grades and models are the record behind the narrative's Model and Reading plan, which `finish-narrative` writes into its Metadata, so a reader sees what was read, in what order and why, and which model wrote it. When a source is re-ingested and its hash no longer matches a pin, `wiki-check` reports `NARRATIVE_SOURCE_CHANGED` for exactly the narratives that read it. The narratives a narrative builds on, those its reading plan graded high, are pinned the same way (`built_on`, by a hash of each one's content without its Metadata), so when one is rewritten, `wiki-check` reports `NARRATIVE_BASE_CHANGED` for the narratives that reused its wording.
 
 ### 4.5 Narratives
 

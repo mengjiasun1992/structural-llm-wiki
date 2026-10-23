@@ -6,7 +6,7 @@ read from the files when needed.
 
 import os
 
-from . import layout, schema, wikiyaml
+from . import layout, numbering, schema, wikiyaml
 from .util import read_bytes, read_text, source_hash, write_text
 
 FILES = {'tags': layout.TAGS, 'sources': layout.SOURCES_MANIFEST, 'narratives': layout.NARRATIVES_MANIFEST}
@@ -89,9 +89,28 @@ def pins(root, slugs):
     return out
 
 
-def put_narrative(root, slug, template, primary, supporting, read, grades=None, model=None):
+def narrative_hash(text):
+    """A narrative's content hash, its Metadata section left out, so new dates or a version alone aren't a change."""
+    span = numbering.section(text, 'Metadata')
+    lines = text.split('\n')
+    body = '\n'.join(lines[:span[0]] + lines[span[1]:]) if span else text
+    return source_hash(body.encode('utf-8'))
+
+
+def narrative_pins(root, slugs):
+    """{slug: hash} of the narratives one builds on; a missing one isn't pinned."""
+    out = {}
+    for slug in slugs:
+        path = os.path.join(root, layout.NARRATIVES, f'{slug}.md')
+        if os.path.isfile(path):
+            out[slug] = narrative_hash(read_text(path))
+    return out
+
+
+def put_narrative(root, slug, template, primary, supporting, read, grades=None, model=None, built_on=None):
     """Write a narrative's entry: its template, tags and the current pins of the sources it read;
-    grades, the reading plan's, replace the recorded ones; model, (version, name), is added to models."""
+    grades, the reading plan's, replace the recorded ones; model, (version, name), is added to models;
+    built_on, the narratives it builds on, are pinned (None keeps the recorded ones, re-pinned)."""
     tags = load(root, 'tags')
     unknown = [t for t in list(primary) + list(supporting) if t not in tags]
     if unknown:
@@ -105,6 +124,9 @@ def put_narrative(root, slug, template, primary, supporting, read, grades=None, 
     models = dict(recorded.get('models') or {}, **dict([model] if model else []))
     if models:
         entry['models'] = models
+    bases = narrative_pins(root, list(recorded.get('built_on') or {}) if built_on is None else built_on)
+    if bases:
+        entry['built_on'] = bases
     return save(root, 'narratives', slug, entry)
 
 
