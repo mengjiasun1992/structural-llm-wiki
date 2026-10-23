@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+  <style>
+    .t { font-size: 22px; font-weight: 800; fill: #161a36; }
+    .c { font-size: 15px; fill: #4a4f6e; }
+    .m { font-size: 13px; fill: #161a36; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .n { font-size: 10px; font-weight: 800; fill: #161a36; text-anchor: middle; }
+    .ln { stroke: #b8ad95; stroke-width: 5; stroke-linecap: round; }
+  </style>
+  <rect width="1200" height="400" rx="18" fill="#fbf6ea"/>
+
+  <!-- 1. Ask -->
+  <g>
+    <text class="t" x="40" y="62">Ask anything</text>
+    <text class="c" x="40" y="88">an answer in seconds, each claim cited</text>
+    <rect x="40" y="116" width="290" height="48" rx="22" fill="#161a36"/>
+    <text class="m" x="60" y="145" style="fill:#fbf6ea">How does the gateway retry?</text>
+    <rect x="80" y="182" width="300" height="140" rx="18" fill="#ffffff" stroke="#e5dcc6" stroke-width="2"/>
+    <path class="ln" d="M100 212 h200 M100 232 h240 M100 252 h170 M100 272 h220"/>
+    <rect x="308" y="204" width="20" height="16" rx="4" fill="#f5b544"/><text class="n" x="318" y="216">2</text>
+    <rect x="278" y="244" width="20" height="16" rx="4" fill="#f5b544"/><text class="n" x="288" y="256">5</text>
+    <circle cx="112" cy="300" r="10" fill="#8fa2ff"/>
+    <text x="130" y="305" font-size="13" fill="#4a4f6e">and who to ask: the retry policy's owner</text>
+  </g>
+
+  <!-- 2. Grow -->
+  <g>
+    <text class="t" x="430" y="62">Grow it by asking</text>
+    <text class="c" x="430" y="88">it researches while you're away</text>
+    <g fill="none" stroke="#f5b544" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M462 130 C 448 130 446 136 446 148 L 446 166 C 446 176 442 182 434 183 C 442 184 446 190 446 200 L 446 218 C 446 230 448 236 462 236"/>
+      <path d="M566 130 C 580 130 582 136 582 148 L 582 166 C 582 176 586 182 594 183 C 586 184 582 190 582 200 L 582 218 C 582 230 580 236 566 236"/>
+    </g>
+    <path d="M514 158 C 498 150 480 149 466 152 L 466 214 C 480 211 498 212 514 220 Z" fill="#161a36"/>
+    <path d="M514 158 C 530 150 548 149 562 152 L 562 214 C 548 211 530 212 514 220 Z" fill="#2c3263"/>
+    <path d="M610 183 h40" stroke="#161a36" stroke-width="3" stroke-linecap="round"/>
+    <path d="M644 176 l9 7 l-9 7" fill="none" stroke="#161a36" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <g transform="translate(666 116)">
+      <rect width="118" height="206" rx="14" fill="#ffffff" stroke="#e5dcc6" stroke-width="2"/>
+      <circle cx="22" cy="24" r="8" fill="none" stroke="#6fd39a" stroke-width="3"/>
+      <text x="38" y="29" font-size="13" font-weight="800" fill="#161a36">PR #12</text>
+      <g font-size="12" fill="#4a4f6e">
+        <text x="14" y="62">☑ sources</text>
+        <text x="14" y="84">☑ narratives</text>
+        <text x="14" y="106">☑ lint</text>
+        <text x="14" y="128" fill="#b7791f" font-weight="700">◆ 2 decisions</text>
+      </g>
+      <rect x="14" y="156" width="90" height="32" rx="8" fill="#2f9e5f"/>
+      <text x="59" y="177" font-size="13" font-weight="800" fill="#ffffff" text-anchor="middle">Merge</text>
+    </g>
+    <text x="514" y="276" font-size="13" fill="#4a4f6e" text-anchor="middle">you review one pull request;</text>
+    <text x="514" y="294" font-size="13" fill="#4a4f6e" text-anchor="middle">nothing lands till you merge</text>
+  </g>
+
+  <!-- 3. Stays true -->
+  <g>
+    <text class="t" x="840" y="62">It stays true</text>
+    <text class="c" x="840" y="88">a source changes; what rests on it is flagged</text>
+    <g transform="translate(846 130)">
+      <rect width="104" height="130" rx="8" fill="#f3ecdc"/>
+      <path class="ln" d="M14 22h70M14 38h76M14 74h60M14 90h76M14 106h50"/>
+      <rect x="8" y="48" width="88" height="16" rx="4" fill="#f5b544" opacity="0.55"/>
+      <path d="M14 56h72" stroke="#161a36" stroke-width="5" stroke-linecap="round"/>
+      <text x="0" y="156" font-size="12" font-weight="700" fill="#8a7f68">SOURCE, v2</text>
+    </g>
+    <g fill="none" stroke="#161a36" stroke-width="2.5" stroke-linecap="round">
+      <path d="M956 180 C 990 160 1010 140 1040 138"/>
+      <path d="M956 196 C 990 196 1010 212 1040 214"/>
+    </g>
+    <g>
+      <rect x="1044" y="114" width="112" height="50" rx="10" fill="#ffffff" stroke="#f5b544" stroke-width="3"/>
+      <path class="ln" d="M1058 132 h60 M1058 148 h76"/>
+      <path d="M1140 106 v24 M1140 106 l16 6 l-16 6" fill="#f5b544" stroke="#b7791f" stroke-width="2" stroke-linejoin="round"/>
+      <rect x="1044" y="190" width="112" height="50" rx="10" fill="#ffffff" stroke="#f5b544" stroke-width="3"/>
+      <path class="ln" d="M1058 208 h70 M1058 224 h50"/>
+      <path d="M1140 182 v24 M1140 182 l16 6 l-16 6" fill="#f5b544" stroke="#b7791f" stroke-width="2" stroke-linejoin="round"/>
+      <rect x="1044" y="266" width="112" height="50" rx="10" fill="#ffffff" stroke="#e5dcc6" stroke-width="2"/>
+      <path class="ln" d="M1058 284 h66 M1058 300 h44"/>
+    </g>
+    <text x="1100" y="340" font-size="13" fill="#4a4f6e" text-anchor="middle">the rest stay untouched</text>
+  </g>
+</svg>

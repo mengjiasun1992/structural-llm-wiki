@@ -4,13 +4,13 @@
 
 ### The problem
 
-Most of what a team knows about its systems isn't written down in one place. Design docs drift from the code, decisions get buried in chat threads and code reviews, and the rest lives in the heads of a few people. New engineers rebuild the same understanding from scratch, and experienced ones answer the same questions again and again.
+Most of what a group knows about its systems isn't written down in one place. Design docs drift from the code, decisions get buried in chat threads and code reviews, and the rest lives in the heads of a few people. New engineers rebuild the same understanding from scratch, and experienced ones answer the same questions again and again.
 
-AI assistants help, but only for the moment: an answer from a chat session is gone when the session ends, nobody can easily check where it came from, and nothing tells you when it stops being true. The team's understanding doesn't accumulate.
+AI assistants help, but only for the moment: an answer from a chat session is gone when the session ends, nobody can easily check where it came from, and nothing tells you when it stops being true. The group's understanding doesn't accumulate.
 
 ### The approach
 
-The Structural LLM Wiki gives that knowledge a durable home: a git repository the coding agent maintains and the team reviews. The work happens in six moves:
+The Structural LLM Wiki gives that knowledge a durable home: a git repository the coding agent maintains and the group reviews. The work happens in six moves:
 
 1. **Ask.** A run starts from the questions someone wants answered. The questions decide which topics, sources and people matter.
 2. **Collect.** The agent finds the sources those questions need and saves them in the wiki, verbatim, so every claim can be checked later. Each source is attached to hierarchical topic tags, which connect sources, narratives and the people who know each area.
@@ -23,7 +23,7 @@ The Structural LLM Wiki gives that knowledge a durable home: a git repository th
 
 *Figure 1-1: The knowledge loop. Green is you, blue your coding agent, amber the scripts and lint, purple the wiki in git.*
 
-Each run arrives as a single pull request against the default branch, so people stay in control of what enters the wiki without having to do the research. Over time the wiki builds up instead of decaying: answers stay linked to their evidence, new findings are reconciled with old ones, and the history shows how the team's understanding evolved.
+Each run arrives as a single pull request against the default branch, so people stay in control of what enters the wiki without having to do the research. Over time the wiki builds up instead of decaying: answers stay linked to their evidence, new findings are reconciled with old ones, and the history shows how the group's understanding evolved.
 
 This document covers the architecture and the decisions behind it. The skill's files are the source of truth for step-by-step behavior: `src/skills/sllmwiki/workflows/` and `src/skills/sllmwiki/steps/`.
 
@@ -47,7 +47,7 @@ This document covers the architecture and the decisions behind it. The skill's f
   - **Keep the right attention.** The context holds what the question needs, the most relevant, authoritative and newest material last (§7.1); parent and neighboring topics are noted, not read.
 - **Say each rule once.** Every rule has one home (§9), and other files point to it.
 - **Readable where people read.** Plain markdown that renders the same on GitHub, in Obsidian and in the book renderers (§4.8), with no export step and no second copy.
-- **Only what's used.** A setting exists only when a real wiki or a team's policy needs it, it has a safe default, and a script enforces it (§4.9). An add-on is off until a wiki turns it on, and it costs nothing while off. No migrations, and no states a real wiki hasn't needed (§11 lists what waits).
+- **Only what's used.** A setting exists only when a real wiki or a group's policy needs it, it has a safe default, and a script enforces it (§4.9). An add-on is off until a wiki turns it on, and it costs nothing while off. No migrations, and no states a real wiki hasn't needed (§11 lists what waits).
 - **Tool-neutral.** The workflows name capabilities (docs search, code search, page fetch, git history) rather than specific tools.
 
 ## 3. Layout
@@ -87,7 +87,7 @@ structural-llm-wiki/
 ├── AGENTS.md                 # rules for agents working in this repo
 ├── CLAUDE.md                 # imports AGENTS.md for Claude Code
 ├── .gitignore
-├── .claude/settings.json     # offers the sllmwiki plugin to teammates
+├── .claude/settings.json     # offers the sllmwiki plugin to the group's members
 ├── .github/workflows/        # wiki-checks.yml; review-checklist.yml (red until a run PR's boxes are ticked)
 ├── Config.toml               # optional: the wiki's settings and add-ons (§4.9)
 ├── templates/                # optional: the wiki's own narrative templates (§4.5)
@@ -256,7 +256,7 @@ A template is chosen by the subject, not the question's wording:
 
 Lint grades each narrative on each axis of its template's aim, met, partly or missed, with the evidence, helped by `narrative-format.py --stats` (the body against its budget; words, citations and markers per section; citations by the authority of what they cite).
 
-**A wiki's own templates.** A team can bring its own: a folder in the wiki's `templates/` with a `template.md` and a `guide.md` is offered next to the bundled ones, and is checked the same way; one with a bundled template's name replaces it. A wiki that only wants a different budget for a template sets it in `Config.toml` (§4.9) instead of copying the template.
+**A wiki's own templates.** A group can bring its own: a folder in the wiki's `templates/` with a `template.md` and a `guide.md` is offered next to the bundled ones, and is checked the same way; one with a bundled template's name replaces it. A wiki that only wants a different budget for a template sets it in `Config.toml` (§4.9) instead of copying the template.
 
 **What scripts do for every narrative.** After any edit, the agent runs one command, `finish-narrative` (§7.5): it numbers the headings and figure captions, repairs links to a renumbered section of another narrative, escapes what the renderers would misread (§4.8), converts old markers and adds a Terminology row for each marker the narrative uses (when markers are on), bumps the version and history when asked, writes the manifest entry with the current pins of the sources it read and the narratives it builds on, and regenerates the index and tag pages. The agent writes the content; the script does the rest.
 
@@ -271,7 +271,7 @@ The wiki keeps verbatim copies, so the skill follows a source policy ("Source po
 - **Copyright** stays with each source's authors; a copy transfers no rights, and narratives are original writing with brief, attributed quotations (at most `max_quote_words`, 50 by default, checked by `narrative-format`).
 - **Attribution:** every saved source keeps its URL and license in its footer and manifest entry.
 - **Access controls are never bypassed:** no logins, paywalls, registration walls or anti-bot protection, and no unofficial copies. A rate limit (HTTP 429) is a request to wait, not a refusal: the fetch is retried up to three times with exponential backoff and jitter, honoring a `Retry-After` of up to a minute, and then the source is recorded as a link.
-- **What may be copied depends on who can see the wiki.** A private repository keeps reference copies unless a source's terms forbid sharing; a public one keeps only openly licensed sources. Anything else is a `link`. A team whose policy allows no copies at all sets `source_copies = "links-only"` (§4.9), and every source is a `link`.
+- **What may be copied depends on who can see the wiki.** A private repository keeps reference copies unless a source's terms forbid sharing; a public one keeps only openly licensed sources. Anything else is a `link`. A group whose policy allows no copies at all sets `source_copies = "links-only"` (§4.9), and every source is a `link`.
 - **No personal data or secrets,** whatever the license; sections holding them are left out with a marker, never edited.
 
 The judgment is the agent's: it reads the source's license or terms and records them (`--license`, `--license-url`). The scripts enforce what can be checked: `fetch-source` asks GitHub whether the repository is public and refuses to save a copy whose recorded license isn't open there (`--allow-restricted "<who, when>"` records the owner's permission instead, as the source's `permission`), or any copy at all under `links-only`, and `wiki-check` fails the wiki's CI (`SOURCE_POLICY`) on any saved copy a public wiki may not hold, or any saved source without its URL and license.
@@ -306,7 +306,7 @@ abstract_words = [150, 300]
 obsidian = false            # true: the Obsidian add-on (§4.8)
 ```
 
-- **What earns a setting.** A real wiki or a team's policy needs it, it has a safe default, and a script enforces it. Each setting above meets all three: the one real wiki raised a template's budget, set the Obsidian add-on on, and had its owner wrongly listed as an SME; its owner found the markers cluttering and asked what they meant; `source_copies` and `max_quote_words` are what a legal team may need to tighten. Nothing configures the layout (§3).
+- **What earns a setting.** A real wiki or a group's policy needs it, it has a safe default, and a script enforces it. Each setting above meets all three: the one real wiki raised a template's budget, set the Obsidian add-on on, and had its owner wrongly listed as an SME; its owner found the markers cluttering and asked what they meant; `source_copies` and `max_quote_words` are what legal review may need to tighten. Nothing configures the layout (§3).
 - **Add-ons** are optional features, each a key in `[structural-llm-wiki-addons]`, off by default. An add-on is listed only once it exists, and its work (files written, builds run) happens only when it is on, so a wiki that doesn't use it never waits for it.
 - **One reader.** Every script reads the file through `lib/config.py`. An unknown table key, a mistyped value or an unknown template is an error: `wiki-check` reports it (`CONFIG_INVALID`) and the scripts that write refuse to run until it's fixed. The tables are prefixed with the project's name, so the file can also hold other tools' tables, which are left alone.
 
@@ -499,7 +499,7 @@ Instructions are what every run pays for in tokens, and where most past defects 
 
 - The skill uses the [Agent Skills](https://agentskills.io) format, so any compatible agent can load it.
 - For Claude Code, this repo is both a plugin (`sllmwiki`) and a marketplace (`structural-llm-wiki`) that lists itself; each workflow and step is also a command, `/sllmwiki:<name>`.
-- The plugin is installed at **project scope** in each wiki repo, and `init` writes the same `extraKnownMarketplaces` and `enabledPlugins` entries to `.claude/settings.json`, so teammates who clone the wiki are offered it.
+- The plugin is installed at **project scope** in each wiki repo, and `init` writes the same `extraKnownMarketplaces` and `enabledPlugins` entries to `.claude/settings.json`, so the group members who clone the wiki are offered it.
 - Other agents install with `npx skills add mengjiasun1992/structural-llm-wiki`; with no commands, users ask for a workflow or step in their own words.
 - A wiki's CI calls this repository's actions at the plugin's release tag; `init` moves the tag when the plugin updates.
 

@@ -1,10 +1,12 @@
 # {📖} Structural LLM Wiki
 
+![Structural LLM Wiki. You ask your agent one question, "How does the gateway retry?", and your agent does the rest: 1, it finds and saves the sources, a paper, code, a web page, a design doc; 2, it writes the answer, an open book in braces, every claim tied by a thread to its source; 3, it opens one pull request on project-foobar-sllmwiki.git; 4, you review and merge. The repository is git, which your group and their agents clone, share and grow. Ask your agent a question; get an answer that teaches; every claim tied to its source; reviewed like code; kept in git for your group.](docs/images/hero.svg)
+
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757.svg)](#setup)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](#requirements)
 
-**Your team's knowledge, researched by your coding agent, cited to the exact source, and reviewed like code.**
+**Your group's knowledge, researched by your coding agent, cited to the exact source, and reviewed like code.**
 
 **What it is.** Structural LLM Wiki is a set of agent skills, packaged as a Claude Code plugin, that turns a git repository into a wiki your coding agent researches and keeps up to date. You give it questions. It finds the sources that answer them (design docs, code, specifications, papers, web pages), saves them in the repository, and writes one *narrative* per question: a short document that teaches the answer, with every claim linked to the section of a saved source that supports it. Topic tags tie the sources, the narratives and the people who know each area together, and every run arrives as one pull request you review.
 
@@ -12,12 +14,7 @@
 - **For tech leads,** it's onboarding that stays current, with every change reviewed and the reasons behind the design kept next to it.
 - **For researchers,** it's a structured, cited review of a field: definitions taken from the sources that state them most rigorously, and every claim one click from its evidence.
 
-![What using it is like: you ask in one line and review one pull request; your agent does the research in between, saving 29 sources, writing 4 narratives and citing 255 claims, each checked against its source; you get a wiki of answers that last, every claim one click from its source](docs/images/what-you-get.svg)
-
 Unlike an answer in a chat session, the knowledge stays: narratives build on and link to each other, and when a source changes, exactly the narratives built on it are flagged for review.
-
-> [!NOTE]
-> The skill is being rebuilt to the design below, phase by phase ([the plan](docs/skill_execution_plan.md)). Until its first release, installing it gives you an unfinished skill.
 
 ## Why it's different
 
@@ -29,37 +26,11 @@ Unlike an answer in a chat session, the knowledge stays: narratives build on and
 - **Frugal and repeatable.** Scripts do everything mechanical; the agent reads the smallest thing that answers and nothing twice, so your tokens go to judgment.
 - **Yours, in plain files.** Markdown and YAML in git: browse it on GitHub, open it as an Obsidian vault, keep it ready to build as a book, and run it from any agent that supports [Agent Skills](https://agentskills.io).
 
-Inspired by Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), where an LLM builds and maintains a persistent, interlinked markdown wiki from raw sources. Structural LLM Wiki adds what a team needs on top: topic tags that link sources, narratives and people; every claim traced to a section of a saved source; templates that teach; and every change reviewed.
+Inspired by Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), where an LLM builds and maintains a persistent, interlinked markdown wiki from raw sources. Structural LLM Wiki adds what a group needs on top: topic tags that link sources, narratives and people; every claim traced to a section of a saved source; templates that teach; and every change reviewed.
 
 ## What it's like to use
 
-Three moments, from your side:
-
-```mermaid
-sequenceDiagram
-    actor You
-    participant A as Your agent
-    participant W as {📖} Your wiki
-    rect rgb(237, 233, 254)
-    Note over You,W: Ask anything, any time
-    You->>A: /sllmwiki:query "How does the gateway retry?"
-    A->>W: reads the least that answers
-    A-->>You: an answer in seconds: each claim cited, and who to ask
-    end
-    rect rgb(219, 234, 254)
-    Note over You,W: Grow it by asking questions
-    You->>A: /sllmwiki:build "Why does the gateway retry, and when does it stop?"
-    Note over A: researches, writes and checks, while you're away
-    A-->>You: one pull request: a checklist, the open decisions first
-    You->>A: a comment where it should change
-    A-->>You: the same pull request, reworked
-    You->>W: merge
-    end
-    rect rgb(254, 243, 199)
-    Note over You,W: It stays true
-    W-->>You: a source changed: exactly the answers built on it are flagged
-    end
-```
+![Three moments, from your side. Ask anything: an answer in seconds, each claim cited, and who to ask. Grow it by asking: it researches while you're away, and you review one pull request; nothing lands till you merge. It stays true: when a source changes, exactly the answers that rest on it are flagged, and the rest stay untouched.](docs/images/three-moments.svg)
 
 **Ask anything, any time.** `/sllmwiki:query` answers from what the wiki already knows, reading as little as it can, so most answers come back in seconds. Every claim cites the narrative or source it came from, and the answer names the people who know the area. If the wiki doesn't cover the question yet, you still get an answer, clearly labeled DRAFT, and an offer to research it properly.
 
@@ -67,7 +38,7 @@ sequenceDiagram
 
 **It stays true.** Every answer records the source versions it was built from and the answers it builds on. When a source changes, or an answer is rewritten, exactly the answers that depend on it are flagged, so you recheck those and nothing else.
 
-![The five kinds of answers: "What is X?" gets a one-line definition that builds the intuition, then the rigorous one and its edge cases; "How does X work?" gets one real example walked through with its numbers and a diagram; "What are the principles of X?" gets a map of the field first; "X or Y?" gets the answer first as a decision tree, then each option and when it wins; "What happened in X?" gets the timeline, the chain of causes and lessons](docs/images/answer-shapes.svg)
+![Every kind of question gets the shape that teaches it. What is X? In short, then rigorously, and its edge cases. How does X work? One real example, walked through with its numbers. Principles of X? The field mapped first, then each idea in brief. X or Y? Every option compared, and the rule for when each wins. What happened? The timeline, the chain of causes, and the lessons.](docs/images/answer-shapes.svg)
 
 ### What's in your wiki
 
@@ -162,7 +133,20 @@ obsidian = false            # true: set the wiki up to open as an Obsidian vault
 
 **Obsidian.** With `obsidian = true` and `/sllmwiki:init` rerun, open `sllmwiki/` as a vault: tags, narratives and sources form one graph, colored by kind.
 
-**Source policy.** The wiki keeps copies of other people's work, so the skill follows a policy: copyright stays with the authors; every source keeps its URL and license; narratives quote briefly; logins and paywalls are never bypassed; a private wiki keeps reference copies unless a source's terms forbid it, and a public wiki only openly licensed ones; no personal data or secrets. The scripts enforce what they can, and the wiki's CI fails on a copy a public wiki may not hold. It's a cautious default, not legal advice.
+## Licenses, sources and your responsibility
+
+A wiki holds other people's work next to text an LLM wrote, so it's worth knowing who owns what and who answers for it.
+
+- **The skill** is open source under the [Apache License 2.0](LICENSE), copyright 2026 Mengjia Sun ([NOTICE](NOTICE)). It covers the skill's code, templates and docs, not what you put in your wiki.
+- **Your wiki is yours.** The skill picks no license for it: what your narratives may be shared under is your call, and a wiki made from your company's code and docs falls under your company's rules.
+- **Sources stay their authors'.** Copyright stays with each source's authors, and every saved source keeps its URL and license. Narratives quote only briefly, at most `max_quote_words` words, and cite the rest.
+- **Copies follow a source policy.** A private wiki keeps reference copies unless a source's terms forbid sharing; a public wiki keeps only openly licensed ones, and its CI fails on a copy it may not hold. With `source_copies = "links-only"` it keeps no copies at all. Review `sllmwiki/sources/` before you make a private wiki public.
+- **Fair access only.** The skill never gets around a login, paywall or anti-bot protection, and uses no unofficial copies; when it may not keep a copy, it records a link instead, and when in doubt it asks.
+- **No personal data or secrets** go into the wiki, even when a source contains them.
+- **Your model provider sees what your agent reads.** Questions and sources go to the model your agent runs on, under that provider's terms: ingest only what you may share with it.
+- **Narratives are written by an LLM.** Every claim cites its source, and what no source states is marked, but a narrative can still be wrong: review each pull request before you merge it, and check a claim's source before you rely on it.
+
+The scripts enforce what they can. This is a cautious default, not legal advice: for anything that matters, ask your own counsel.
 
 ## Design
 
@@ -190,4 +174,4 @@ claude --plugin-dir .
 
 ## License
 
-[Apache 2.0](LICENSE)
+Copyright 2026 Mengjia Sun. Licensed under the [Apache License, Version 2.0](LICENSE); see [NOTICE](NOTICE).

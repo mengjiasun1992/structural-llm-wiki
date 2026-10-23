@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#f5b544" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#f5b544" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.2" fill="#2c3263"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="600" rx="18" fill="#161a36"/>
+  <rect width="1200" height="600" rx="18" fill="url(#dots)"/>
+
+  <!-- 1. you ask your agent, once -->
+  <g>
+    <circle cx="62" cy="44" r="12" fill="#fbf6ea"/>
+    <path d="M42 88 C 42 66 82 66 82 88 Z" fill="#fbf6ea"/>
+    <text x="62" y="108" font-size="12" font-weight="700" fill="#c9c3b3" text-anchor="middle">you</text>
+    <rect x="100" y="34" width="250" height="38" rx="14" fill="#fbf6ea"/>
+    <path d="M112 72 l-10 12 l22 -12 z" fill="#fbf6ea"/>
+    <text x="225" y="58" font-size="13" font-weight="700" fill="#161a36" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">How does the gateway retry?</text>
+    <path d="M362 54 H 560" stroke="#f5b544" stroke-width="3" stroke-linecap="round"/>
+    <path d="M552 46 l9 8 l-9 8" fill="none" stroke="#f5b544" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- your agent does the work -->
+  <g>
+    <path d="M610 26 v-10" stroke="#8fa2ff" stroke-width="3" stroke-linecap="round"/><circle cx="610" cy="13" r="5" fill="#f5b544"/>
+    <rect x="582" y="26" width="56" height="46" rx="14" fill="#8fa2ff"/>
+    <circle cx="598" cy="49" r="6" fill="#161a36"/><circle cx="622" cy="49" r="6" fill="#161a36"/>
+    <rect x="590" y="76" width="40" height="14" rx="6" fill="#8fa2ff"/>
+    <text x="652" y="50" font-size="13" font-weight="700" fill="#c9c3b3">your agent does the rest</text>
+  </g>
+  <g fill="none" stroke="#8fa2ff" stroke-width="2.5" stroke-dasharray="3 7" stroke-linecap="round">
+    <path d="M576 84 C 520 130 430 136 352 150"/>
+    <path d="M610 96 V 212"/>
+  </g>
+  <g font-size="13" fill="#c9c3b3">
+    <text x="356" y="104"><tspan fill="#f5b544" font-weight="800">1 </tspan>finds and saves the sources</text>
+    <text x="622" y="138"><tspan fill="#f5b544" font-weight="800">2 </tspan>writes the answer,</text>
+    <text x="638" y="156">every claim cited</text>
+  </g>
+
+  <g transform="translate(0 90)">
+  <!-- the sources, loose -->
+  <g stroke-linecap="round">
+    <g transform="translate(70 70) rotate(-8)">
+      <rect width="120" height="150" rx="8" fill="#f3ecdc"/>
+      <rect x="14" y="16" width="70" height="9" rx="4" fill="#161a36"/>
+      <path d="M14 40h92M14 54h92M14 68h80M14 90h92M14 104h92M14 118h60" stroke="#b8ad95" stroke-width="5"/>
+      <text x="14" y="140" font-size="11" font-weight="700" fill="#8a7f68">PAPER</text>
+    </g>
+    <g transform="translate(212 52) rotate(6)">
+      <rect width="128" height="104" rx="8" fill="#232a55"/>
+      <circle cx="14" cy="14" r="4" fill="#f26d6d"/><circle cx="28" cy="14" r="4" fill="#f5b544"/><circle cx="42" cy="14" r="4" fill="#6fd39a"/>
+      <path d="M16 40h30M30 56h58M30 70h40M16 86h22" stroke="#8fa2ff" stroke-width="5"/>
+      <text x="80" y="96" font-size="11" font-weight="700" fill="#8fa2ff">CODE</text>
+    </g>
+    <g transform="translate(96 262) rotate(5)">
+      <rect width="132" height="112" rx="8" fill="#f3ecdc"/>
+      <rect width="132" height="22" rx="8" fill="#ddd3bd"/>
+      <path d="M14 42h104M14 56h104M14 70h70M14 84h104" stroke="#b8ad95" stroke-width="5"/>
+      <text x="14" y="104" font-size="11" font-weight="700" fill="#8a7f68">WEB PAGE</text>
+    </g>
+    <g transform="translate(250 196) rotate(-5)">
+      <rect width="112" height="140" rx="8" fill="#f3ecdc"/>
+      <path d="M14 22h60M14 40h84M14 54h84M14 68h56M14 86h84M14 100h70" stroke="#b8ad95" stroke-width="5"/>
+      <text x="14" y="128" font-size="11" font-weight="700" fill="#8a7f68">DESIGN DOC</text>
+    </g>
+  </g>
+
+  <!-- the mark: braces around an open book -->
+  <circle cx="610" cy="220" r="190" fill="url(#glow)"/>
+  <g fill="none" stroke="#f5b544" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M470 80 C 438 80 434 92 434 120 L 434 182 C 434 204 424 218 404 220 C 424 222 434 236 434 258 L 434 320 C 434 348 438 360 470 360"/>
+    <path d="M750 80 C 782 80 786 92 786 120 L 786 182 C 786 204 796 218 816 220 C 796 222 786 236 786 258 L 786 320 C 786 348 782 360 750 360"/>
+  </g>
+  <g>
+    <path d="M610 142 C 572 124 524 120 482 130 L 482 306 C 524 296 572 300 610 318 Z" fill="#fbf6ea"/>
+    <path d="M610 142 C 648 124 696 120 738 130 L 738 306 C 696 296 648 300 610 318 Z" fill="#f3ecdc"/>
+    <path d="M610 142 L 610 318" stroke="#d6cbb2" stroke-width="2"/>
+    <g stroke="#9b917b" stroke-width="4" stroke-linecap="round">
+      <path d="M500 160 h58 M500 176 h88 M500 192 h70 M500 214 h54 M500 230 h88 M500 246 h70 M500 278 h56"/>
+      <path d="M628 160 h90 M628 176 h40 M628 192 h76 M628 214 h90 M628 230 h70 M628 256 h90 M628 272 h48"/>
+    </g>
+    <g font-size="11" font-weight="800" fill="#161a36" text-anchor="middle">
+      <rect x="566" y="152" width="20" height="16" rx="4" fill="#f5b544"/><text x="576" y="164">1</text>
+      <rect x="562" y="206" width="20" height="16" rx="4" fill="#f5b544"/><text x="572" y="218">2</text>
+      <rect x="564" y="270" width="20" height="16" rx="4" fill="#f5b544"/><text x="574" y="282">3</text>
+      <rect x="676" y="168" width="20" height="16" rx="4" fill="#f5b544"/><text x="686" y="180">4</text>
+    </g>
+  </g>
+
+  <!-- the threads: each claim back to its source -->
+  <g fill="none" stroke="#f5b544" stroke-width="2" stroke-dasharray="2 6" stroke-linecap="round" opacity="0.85">
+    <path d="M196 118 C 330 100, 470 150, 566 160"/>
+    <path d="M336 96 C 470 60, 640 120, 686 168"/>
+    <path d="M364 250 C 440 240, 500 220, 562 214"/>
+    <path d="M228 330 C 380 340, 500 300, 564 280"/>
+  </g>
+  </g>
+
+  <!-- 3. the repository: a git history the group shares and grows -->
+  <g stroke-linecap="round" fill="none">
+    <path d="M300 520 H 860" stroke="#8fa2ff" stroke-width="4"/>
+    <path d="M560 520 C 584 520 590 556 614 556 H 676 C 700 556 706 520 730 520" stroke="#f5b544" stroke-width="4"/>
+    <path d="M610 416 C 610 470 730 460 730 506" stroke="#f5b544" stroke-width="2" stroke-dasharray="2 6"/>
+  </g>
+  <g fill="#161a36" stroke="#8fa2ff" stroke-width="4">
+    <circle cx="330" cy="520" r="9"/><circle cx="410" cy="520" r="9"/><circle cx="490" cy="520" r="9"/><circle cx="560" cy="520" r="9"/>
+    <circle cx="800" cy="520" r="9"/>
+  </g>
+  <g fill="#161a36" stroke="#f5b544" stroke-width="4"><circle cx="645" cy="556" r="8"/></g>
+  <circle cx="730" cy="520" r="12" fill="#f5b544"/>
+  <path d="M724 520 l4 4 l8 -8" fill="none" stroke="#161a36" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="645" y="584" font-size="13" fill="#c9c3b3" text-anchor="middle"><tspan fill="#f5b544" font-weight="800">3 </tspan>opens one pull request</text>
+  <text x="748" y="500" font-size="13" fill="#c9c3b3"><tspan fill="#f5b544" font-weight="800">4 </tspan>you review and merge</text>
+  <text x="300" y="498" font-size="13" fill="#8fa2ff" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">project-foobar-sllmwiki.git</text>
+  <text x="300" y="556" font-size="13" fill="#c9c3b3">a git repository your group</text>
+  <text x="300" y="574" font-size="13" fill="#c9c3b3">clones, shares and grows</text>
+  <g>
+    <circle cx="900" cy="520" r="15" fill="#8fa2ff"/><circle cx="932" cy="520" r="15" fill="#6fd39a" stroke="#161a36" stroke-width="3"/>
+    <circle cx="964" cy="520" r="15" fill="#f26d6d" stroke="#161a36" stroke-width="3"/><circle cx="996" cy="520" r="15" fill="#f5b544" stroke="#161a36" stroke-width="3"/>
+    <text x="1030" y="516" font-size="13" fill="#c9c3b3">your group, and</text>
+    <text x="1030" y="534" font-size="13" fill="#c9c3b3">their agents</text>
+  </g>
+  <path d="M860 520 H 878" stroke="#8fa2ff" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 8"/>
+
+  <!-- the words -->
+  <text x="868" y="226" font-size="34" font-weight="800" fill="#fbf6ea">Structural</text>
+  <text x="868" y="266" font-size="34" font-weight="800" fill="#fbf6ea">LLM Wiki</text>
+  <g font-size="17" fill="#c9c3b3">
+    <circle cx="874" cy="302" r="3.5" fill="#f5b544"/><text x="888" y="308">Ask your agent a question</text>
+    <circle cx="874" cy="330" r="3.5" fill="#f5b544"/><text x="888" y="336">Get an answer that teaches</text>
+    <circle cx="874" cy="358" r="3.5" fill="#f5b544"/><text x="888" y="364">Every claim tied to its source</text>
+    <circle cx="874" cy="386" r="3.5" fill="#f5b544"/><text x="888" y="392">Reviewed like code</text>
+    <circle cx="874" cy="414" r="3.5" fill="#f5b544"/><text x="888" y="420" fill="#f5b544" font-weight="700">Kept in git for your group</text>
+  </g>
+</svg>
