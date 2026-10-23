@@ -6,9 +6,15 @@
 
 **Your team's knowledge, researched by your coding agent, cited to the exact source, and reviewed like code.**
 
+**What it is.** Structural LLM Wiki is a set of agent skills, packaged as a Claude Code plugin, that turns a git repository into a wiki your coding agent researches and keeps up to date. You give it questions. It finds the sources that answer them (design docs, code, specifications, papers, web pages), saves them in the repository, and writes one *narrative* per question: a short document that teaches the answer, with every claim linked to the section of a saved source that supports it. Topic tags tie the sources, the narratives and the people who know each area together, and every run arrives as one pull request you review.
+
+- **For builders,** it's living documentation of your own systems, grounded in their code and design docs, with the exact lines cited and the people who know each area.
+- **For tech leads,** it's onboarding that stays current, with every change reviewed and the reasons behind the design kept next to it.
+- **For researchers,** it's a structured, cited review of a field: definitions taken from the sources that state them most rigorously, and every claim one click from its evidence.
+
 ![The knowledge loop: you ask; your coding agent collects sources and writes the answers; scripts and lint verify them; you review one pull request; people and agents use the cited answers, and what the wiki can't answer yet starts the next run](docs/images/knowledge-loop.svg)
 
-Ask a question, and get back a narrative that teaches the answer: every claim linked to the section of a saved source that supports it, every change landing as a pull request you review. Answers build on each other instead of evaporating with a chat session, and when a source changes, exactly the answers built on it are flagged.
+Unlike an answer in a chat session, the knowledge stays: narratives build on and link to each other, and when a source changes, exactly the narratives built on it are flagged for review.
 
 > [!NOTE]
 > The skill is being rebuilt to the design below, phase by phase ([the plan](docs/skill_execution_plan.md)). Until its first release, installing it gives you an unfinished skill.
@@ -22,12 +28,6 @@ Ask a question, and get back a narrative that teaches the answer: every claim li
 - **Reviewed like code.** Each run is one pull request: a review checklist on top, the decisions it couldn't make next, and what it cost. Nothing merges until you do.
 - **Frugal and repeatable.** Scripts do everything mechanical; the agent reads the smallest thing that answers and nothing twice, so your tokens go to judgment.
 - **Yours, in plain files.** Markdown and YAML in git: browse it on GitHub, open it as an Obsidian vault, keep it ready to build as a book, and run it from any agent that supports [Agent Skills](https://agentskills.io).
-
-| You are | You get |
-|---|---|
-| **A builder** | Answers about your own systems from their design docs and code, with the exact lines cited, and the people who know each area, from git history |
-| **A tech lead** | Onboarding that stays current, every change reviewed, and the reasons behind the design kept next to it |
-| **A researcher** | A field distilled with section-level citations, rigorous definitions, sources ranked by authority, and the reading behind each answer on record |
 
 Inspired by Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), where an LLM builds and maintains a persistent, interlinked markdown wiki from raw sources. Structural LLM Wiki adds what a team needs on top: topic tags that link sources, narratives and people; every claim traced to a section of a saved source; templates that teach; and every change reviewed.
 
