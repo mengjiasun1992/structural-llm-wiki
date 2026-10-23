@@ -5,23 +5,17 @@ max_words: 2200
 abstract_words: [80, 200]
 ---
 
-## 3. Scope
+## 3. Overview
 
-<What the domain or term covers and where it stops, and how the items below were chosen.>
+<The context: what the domain is and who meets it, and why it matters to them; then what's in scope and what isn't, how the items were chosen, and what the narrative covers, in order.>
 
 ## 4. The map
 
-<The groups the items fall into, and what holds each together, shown before any item.>
+<The groups the items fall into, and what holds each together, in the picture; the caption says what it shows.>
 
 ```mermaid
 %% <the diagram that shows the groups and their items best: a mindmap, a flowchart of what supports what, a quadrantChart, ...>
 ```
-
-## 5. At a glance
-
-| Group | Item | In one line | Sources |
-|---|---|---|---|
-| <group> | <item> | <what it says> | <citations> |
 
 ## 6. The main items
 

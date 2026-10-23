@@ -12,12 +12,12 @@ Plain words, short sentences, present tense. Even-handed across items and school
 
 ## Structure
 
-- **Scope first:** what the domain covers, where it stops, and how the items were chosen.
+- **Overview first:** the context (what the domain is, who meets it and why it matters), then what's in scope and what isn't, how the items were chosen, and an outline of what follows.
 - **The main items:** those the most authoritative sources agree on, plus any one of them puts first. Merge items that are one idea under two names; leave out tactics that serve an item, or name them inside it.
-- **Grouped, map first:** three to five groups, each a named area with what holds it together, shown in The map before any item; the table and the items follow the same groups, in the same order.
+- **Grouped, map first:** three to five groups, each a named area with what holds it together, shown in The map before any item, as a mindmap or a diagram of what supports what; the items follow the same groups, in the same order, each citing its own sources.
 - **Each item briefly:** what it says and why it matters, always; an example only when there's a real one; where to go deeper. No item much longer than the others.
 - **Tensions** after the items, when they pull against each other: which trade off, which overlap, and how practitioners balance them.
-- **Classic case studies,** when the domain is known by a few: a paragraph each, linked to its own case study.
+- **Classic case studies,** whenever the sources describe cases the domain is known by (an outage, a landmark system, a design decision): a paragraph each on what happened and which items it shows, linked to its own case study.
 - **Applying them,** when the domain is practical: an order to learn them in, or questions to ask of a design.
 
 ## Examples
@@ -34,7 +34,7 @@ The budget is for breadth. When an item needs more than a few short paragraphs, 
 
 ## Checklist
 
-- [ ] Scope says how the items were chosen.
-- [ ] The map shows the groups before any item, and the table and the items follow them.
+- [ ] The Overview sets the context, the scope and how the items were chosen.
+- [ ] The map shows the groups before any item, and the items follow them.
 - [ ] Every item says what and why; examples are real ones, not filler.
 - [ ] Every claim is cited to a section, or marked.
