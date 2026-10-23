@@ -1,4 +1,4 @@
-# Structural LLM Wiki
+# {📖} Structural LLM Wiki
 
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757.svg)](#setup)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
@@ -12,7 +12,7 @@
 - **For tech leads,** it's onboarding that stays current, with every change reviewed and the reasons behind the design kept next to it.
 - **For researchers,** it's a structured, cited review of a field: definitions taken from the sources that state them most rigorously, and every claim one click from its evidence.
 
-![The knowledge loop: you ask; your coding agent collects sources and writes the answers; scripts and lint verify them; you review one pull request; people and agents use the cited answers, and what the wiki can't answer yet starts the next run](docs/images/knowledge-loop.svg)
+![What using it is like: you ask in one line and review one pull request; your agent does the research in between, saving 29 sources, writing 4 narratives and citing 255 claims, each checked against its source; you get a wiki of answers that last, every claim one click from its source](docs/images/what-you-get.svg)
 
 Unlike an answer in a chat session, the knowledge stays: narratives build on and link to each other, and when a source changes, exactly the narratives built on it are flagged for review.
 
@@ -31,49 +31,56 @@ Unlike an answer in a chat session, the knowledge stays: narratives build on and
 
 Inspired by Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), where an LLM builds and maintains a persistent, interlinked markdown wiki from raw sources. Structural LLM Wiki adds what a team needs on top: topic tags that link sources, narratives and people; every claim traced to a section of a saved source; templates that teach; and every change reviewed.
 
-## How it works
+## What it's like to use
 
-A wiki is its own git repository. Its knowledge lives in `sllmwiki/`:
+Three moments, from your side:
+
+```mermaid
+sequenceDiagram
+    actor You
+    participant A as Your agent
+    participant W as {📖} Your wiki
+    rect rgb(237, 233, 254)
+    Note over You,W: Ask anything, any time
+    You->>A: /sllmwiki:query "How does the gateway retry?"
+    A->>W: reads the least that answers
+    A-->>You: an answer in seconds: each claim cited, and who to ask
+    end
+    rect rgb(219, 234, 254)
+    Note over You,W: Grow it by asking questions
+    You->>A: /sllmwiki:build "Why does the gateway retry, and when does it stop?"
+    Note over A: researches, writes and checks, while you're away
+    A-->>You: one pull request: a checklist, the open decisions first
+    You->>A: a comment where it should change
+    A-->>You: the same pull request, reworked
+    You->>W: merge
+    end
+    rect rgb(254, 243, 199)
+    Note over You,W: It stays true
+    W-->>You: a source changed: exactly the answers built on it are flagged
+    end
+```
+
+**Ask anything, any time.** `/sllmwiki:query` answers from what the wiki already knows, reading as little as it can, so most answers come back in seconds. Every claim cites the narrative or source it came from, and the answer names the people who know the area. If the wiki doesn't cover the question yet, you still get an answer, clearly labeled DRAFT, and an offer to research it properly.
+
+**Grow it by asking questions.** `/sllmwiki:build` takes the questions you want answered and does the research unattended: it reuses what the wiki already answers, finds and saves the sources the rest need, writes a narrative per question and checks every claim against its source. You come back to one pull request, opening with a checklist and the few decisions it left you. Comment on anything and the agent reworks the same pull request; nothing enters the wiki until you merge.
+
+**It stays true.** Every answer records the source versions it was built from and the answers it builds on. When a source changes, or an answer is rewritten, exactly the answers that depend on it are flagged, so you recheck those and nothing else.
+
+![The five kinds of answers: "What is X?" gets a one-line definition that builds the intuition, then the rigorous one and its edge cases; "How does X work?" gets one real example walked through with its numbers and a diagram; "What are the principles of X?" gets a map of the field first; "X or Y?" gets the answer first as a decision tree, then each option and when it wins; "What happened in X?" gets the timeline, the chain of causes and lessons](docs/images/answer-shapes.svg)
+
+### What's in your wiki
+
+Your wiki is its own git repository, plain files you can read anywhere. Its knowledge lives in `sllmwiki/`:
 
 | Content | Where | What it is |
 |---|---|---|
-| **Sources** | `sllmwiki/sources/` | Docs, web pages, papers and code pointers, saved as markdown (text verbatim; a web page's main content; a PDF's text under its own chapter headings), each with its URL, date, license and a short abstract |
-| **Tags** | `sllmwiki/tags/` | A tree of topics, each with a page listing its sources, narratives and the people who know it |
 | **Narratives** | `sllmwiki/narratives/` | One answer per question, opening with an abstract, every claim cited; the figures a narrative draws in `figures/` |
-| **Index** | `SLLMWIKI_INDICES.md` | A clickable map of the tag tree, for GitHub |
+| **Sources** | `sllmwiki/sources/` | The docs, web pages, papers and code the answers rest on, saved as markdown, each with its URL, date, license and a short abstract |
+| **Tags** | `sllmwiki/tags/` | A tree of topics, each with a page listing its narratives, sources and the people who know it |
+| **Index** | `SLLMWIKI_INDICES.md` | A clickable map of the topics, for GitHub |
 
-Two workflows use it: `build` adds knowledge and `query` answers from it.
-
-```mermaid
-graph LR
-    subgraph build["build: add knowledge"]
-        direction TB
-        Q["Your questions"] --> R{"already<br/>answered?"}
-        R -- "reuse" --> PR["one pull request<br/>you review and merge"]
-        R -- "expand · new" --> T["tags"] --> I["ingest sources"] --> N["write narratives"] --> L["lint"] --> PR
-    end
-    subgraph use["query: use it"]
-        direction TB
-        A["A question"] --> S["search abstracts"] --> C{"covered?"}
-        C -- "yes" --> ANS["cited answer<br/>abstract → section → source"]
-        C -- "no" --> D["DRAFT answer<br/>and an offer to build"]
-    end
-    build ~~~ use
-    classDef you fill:#dcfce7,stroke:#16a34a,color:#111
-    classDef agent fill:#dbeafe,stroke:#2563eb,color:#111
-    classDef check fill:#fef3c7,stroke:#d97706,color:#111
-    classDef out fill:#ede9fe,stroke:#7c3aed,color:#111
-    classDef draft fill:#f3f4f6,stroke:#9ca3af,color:#111
-    class Q,A,PR you
-    class T,I,N,S agent
-    class R,C,L check
-    class ANS out
-    class D draft
-```
-
-**`build`** starts from your questions. For each, it first looks for a narrative that already answers it, and reuses or expands it before writing anything new. Then it maps the questions to tags, finds and saves the sources they need, writes one narrative per question from a reading plan (most relevant and authoritative sources last), and lints each narrative against the source sections it cites, grading it against its template's aim. Everything lands in one pull request, whose description starts with a review checklist and lists anything the run couldn't decide. The run doesn't stop to ask; you review the pull request, comment, and the agent applies your feedback on the same branch.
-
-**`query`** answers from what the wiki already knows, reading as little as possible: narrative abstracts first, then one section, then the cited section of a source. The answer cites what it read, flags anything built on a source that has changed since, and names who to ask. It never changes the wiki: when an answer had to be stitched together, it offers to file it as a narrative; when the wiki doesn't cover the question, it answers anyway, labeled DRAFT, and offers to `build` it.
+How it's built, and why: [the design](docs/structural_llm_wiki_design.md).
 
 ## Setup
 
@@ -131,9 +138,7 @@ Codex, Cursor, Copilot and other agents install the skill with the [`skills` CLI
 
 **Reviewing.** Each run's pull request starts with a checklist (tags, sources, each narrative). Tick each box as you check it; the wiki's "Review checklist" check turns green when all are ticked. Leave comments, and ask the agent to "apply the review comments on PR #12".
 
-**Narrative templates.** The skill picks the template that fits the subject: `concept_brief_overview` ("What is X?"), `technical_brief_overview` ("How does X work?"), `comparison` ("X vs Y"), `survey` ("What are the principles of X?") or `case_study` ("What happened in this incident, and what does it teach?"). Each comes with a writing guide for a reader new to the topic, and an aim lint grades it on.
-
-![The five templates placed by breadth and depth, each with its aim](docs/images/template-map.svg)
+**Narrative templates.** Each kind of answer above comes from a template, picked by the question's subject: `concept_brief_overview` ("What is X?"), `technical_brief_overview` ("How does X work?"), `comparison` ("X vs Y"), `survey` ("What are the principles of X?") or `case_study` ("What happened in this incident, and what does it teach?"). Each comes with a writing guide for a reader new to the topic, and an aim lint grades it on.
  Bring your own by adding a folder with a `template.md` and a `guide.md` to the wiki's `templates/`; a folder named like a bundled template replaces it.
 
 **Citations and markers.** As in a paper, a claim's numbered citations sit inside its sentence, before the period, separated by commas: `… exponentially [3], [6].` What no source states is marked `[→]` (our own reasoning), and something the sources don't answer `[?]`, where a citation goes, or once on a heading for a whole section; each narrative defines the ones it uses. Turn them off with `markers = false` (see below).

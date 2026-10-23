@@ -46,7 +46,7 @@
   </g>
   <g>
     <rect x="795" y="70" width="145" height="110" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
-    <text class="t" x="867.5" y="102" text-anchor="middle">6 · Use</text>
+    <text class="t" x="867.5" y="102" text-anchor="middle">6 · {📖} Use</text>
     <text class="s" x="867.5" y="126" text-anchor="middle">people and agents</text>
     <text class="s" x="867.5" y="144" text-anchor="middle">get cited answers,</text>
     <text class="s" x="867.5" y="160" text-anchor="middle">reading the least</text>
@@ -62,6 +62,6 @@
     <rect x="250" y="22" width="14" height="14" rx="3" fill="#dcfce7" stroke="#16a34a"/><text x="270" y="34">you</text>
     <rect x="320" y="22" width="14" height="14" rx="3" fill="#dbeafe" stroke="#2563eb"/><text x="340" y="34">your coding agent</text>
     <rect x="465" y="22" width="14" height="14" rx="3" fill="#fef3c7" stroke="#d97706"/><text x="485" y="34">scripts and lint</text>
-    <rect x="600" y="22" width="14" height="14" rx="3" fill="#ede9fe" stroke="#7c3aed"/><text x="620" y="34">the wiki, in git</text>
+    <rect x="600" y="22" width="14" height="14" rx="3" fill="#ede9fe" stroke="#7c3aed"/><text x="620" y="34">{📖} the wiki, in git</text>
   </g>
 </svg>

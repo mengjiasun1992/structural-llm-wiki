@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="380" viewBox="0 0 980 380" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+  <style>
+    .h { font-size: 15px; font-weight: 700; fill: #111827; }
+    .s { font-size: 12.5px; fill: #374151; }
+    .m { font-size: 12px; fill: #1f2937; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .k { font-size: 11px; fill: #6b7280; }
+    .cite { fill: #2563eb; font-weight: 600; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker>
+  </defs>
+  <rect width="980" height="380" rx="14" fill="#ffffff"/>
+
+  <!-- You: ask -->
+  <rect x="20" y="20" width="250" height="150" rx="12" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text class="h" x="36" y="46">You ask, in one line</text>
+  <rect x="36" y="60" width="218" height="62" rx="8" fill="#111827"/>
+  <text class="m" x="46" y="82" fill="#d1fae5" style="fill:#a7f3d0">/sllmwiki:build</text>
+  <text class="m" x="46" y="100" style="fill:#f9fafb">"What is an EWMA, and</text>
+  <text class="m" x="46" y="116" style="fill:#f9fafb"> when should I use one?"</text>
+  <text class="k" x="36" y="150">then go do something else</text>
+
+  <!-- You: review -->
+  <rect x="20" y="200" width="250" height="160" rx="12" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text class="h" x="36" y="226">You review one pull request</text>
+  <text class="s" x="40" y="252">☑  sources: each one you'd trust</text>
+  <text class="s" x="40" y="274">☑  each narrative: answers it, cited</text>
+  <text class="s" x="40" y="296">☑  lint: every finding fixed or decided</text>
+  <text class="k" x="36" y="326">comment and the agent reworks it;</text>
+  <text class="k" x="36" y="342">nothing lands until you merge</text>
+
+  <!-- Agent -->
+  <rect x="300" y="20" width="330" height="340" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text class="h" x="318" y="46">Your agent does the rest, unattended</text>
+  <g class="s">
+    <text x="322" y="80">🔎  searches for what the questions need,</text>
+    <text x="344" y="98">most authoritative sources first</text>
+    <text x="322" y="128">💾  saves 29 sources verbatim, each with</text>
+    <text x="344" y="146">its URL and license, tagged by topic</text>
+    <text x="322" y="176">📚  reads each once, in a planned order</text>
+    <text x="322" y="206">✍️  writes 4 narratives that teach: a running</text>
+    <text x="344" y="224">example, worked numbers, diagrams</text>
+    <text x="322" y="254">🔗  cites 255 claims to the exact section</text>
+    <text x="344" y="272">and marks what's its own reasoning</text>
+    <text x="322" y="302">✅  lints every claim against its source,</text>
+    <text x="344" y="320">and grades each narrative</text>
+  </g>
+  <text class="k" x="318" y="346">numbers from the demo wiki's run</text>
+
+  <!-- You get -->
+  <rect x="660" y="20" width="300" height="340" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+  <text class="h" x="676" y="46">{📖} Your wiki: answers that last</text>
+  <rect x="676" y="60" width="268" height="214" rx="8" fill="#ffffff" stroke="#c4b5fd"/>
+  <text x="688" y="84" font-size="13" font-weight="700" fill="#111827">📖 What is an EWMA, and how</text>
+  <text x="688" y="101" font-size="13" font-weight="700" fill="#111827">does it work?</text>
+  <text class="k" x="688" y="122">ABSTRACT · KEY TAKEAWAYS · TERMS</text>
+  <text class="s" x="688" y="146">Each sample moves the estimate</text>
+  <text class="s" x="688" y="163">one-eighth of the way toward it<tspan class="cite"> [3]</tspan>.</text>
+  <polyline points="690,236 712,236 716,226 728,212 744,203 764,198 790,195 820,194 850,193 930,193" fill="none" stroke="#2563eb" stroke-width="2"/>
+  <polyline points="690,236 714,236 714,192 930,192" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text class="k" x="688" y="258">Figure 5-1: how fast it follows a step</text>
+  <text class="s" x="676" y="296">every claim one click from its source;</text>
+  <text class="s" x="676" y="314">later, /sllmwiki:query answers from it,</text>
+  <text class="s" x="676" y="332">and a changed source flags exactly</text>
+  <text class="s" x="676" y="350">the answers built on it</text>
+
+  <path d="M270,95 L297,95" stroke="#6b7280" stroke-width="2" marker-end="url(#a)"/>
+  <path d="M300,280 L273,280" stroke="#6b7280" stroke-width="2" marker-end="url(#a)"/>
+  <path d="M630,190 L657,190" stroke="#6b7280" stroke-width="2" marker-end="url(#a)"/>
+</svg>
