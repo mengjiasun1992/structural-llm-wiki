@@ -49,7 +49,7 @@
 
   <!-- You get -->
   <rect x="660" y="20" width="300" height="340" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
-  <text class="h" x="676" y="46">📖 Your wiki: answers that last</text>
+  <text class="h" x="676" y="46">{📖} Your wiki: answers that last</text>
   <rect x="676" y="60" width="268" height="214" rx="8" fill="#ffffff" stroke="#c4b5fd"/>
   <text x="688" y="84" font-size="13" font-weight="700" fill="#111827">📖 What is an EWMA, and how</text>
   <text x="688" y="101" font-size="13" font-weight="700" fill="#111827">does it work?</text>

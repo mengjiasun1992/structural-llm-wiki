@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="275" viewBox="0 0 980 275" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+  <style>
+    .q { font-size: 14px; font-weight: 700; fill: #111827; }
+    .g { font-size: 11px; font-weight: 700; fill: #4b5563; letter-spacing: 0.04em; }
+    .s { font-size: 12.5px; fill: #1f2937; }
+  </style>
+  <rect width="980" height="275" rx="14" fill="#ffffff"/>
+  <text x="490" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#111827">Ask any kind of question; get the answer in the shape that teaches it</text>
+
+  <rect x="20" y="48" width="178" height="186" rx="12" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text class="q" x="34" y="74">"What is X?"</text>
+  <text class="g" x="34" y="98">YOU GET</text>
+  <text class="s" x="34" y="120">a one-line definition</text>
+  <text class="s" x="34" y="138">that builds the intuition,</text>
+  <text class="s" x="34" y="156">then the rigorous one from</text>
+  <text class="s" x="34" y="174">the source that defines it,</text>
+  <text class="s" x="34" y="192">and the cases at its edge</text>
+
+  <rect x="212" y="48" width="178" height="186" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text class="q" x="226" y="74">"How does X work?"</text>
+  <text class="g" x="226" y="98">YOU GET</text>
+  <text class="s" x="226" y="120">the core idea in plain</text>
+  <text class="s" x="226" y="138">words, then one real</text>
+  <text class="s" x="226" y="156">example walked through</text>
+  <text class="s" x="226" y="174">step by step, with its</text>
+  <text class="s" x="226" y="192">numbers and a diagram</text>
+
+  <rect x="404" y="48" width="178" height="186" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+  <text class="q" x="418" y="74">"What are the</text>
+  <text class="q" x="418" y="92">principles of X?"</text>
+  <text class="g" x="418" y="116">YOU GET</text>
+  <text class="s" x="418" y="138">a map of the field first,</text>
+  <text class="s" x="418" y="156">its ideas grouped and</text>
+  <text class="s" x="418" y="174">each in brief, the classic</text>
+  <text class="s" x="418" y="192">cases, and where to go</text>
+  <text class="s" x="418" y="210">deeper in each</text>
+
+  <rect x="596" y="48" width="178" height="186" rx="12" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text class="q" x="610" y="74">"X or Y?"</text>
+  <text class="g" x="610" y="98">YOU GET</text>
+  <text class="s" x="610" y="120">the answer first, as a</text>
+  <text class="s" x="610" y="138">decision tree; then each</text>
+  <text class="s" x="610" y="156">option on one scenario,</text>
+  <text class="s" x="610" y="174">changed until it wins,</text>
+  <text class="s" x="610" y="192">and the trade-offs</text>
+
+  <rect x="788" y="48" width="172" height="186" rx="12" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+  <text class="q" x="802" y="74">"What happened</text>
+  <text class="q" x="802" y="92">in X?"</text>
+  <text class="g" x="802" y="116">YOU GET</text>
+  <text class="s" x="802" y="138">the timeline as the</text>
+  <text class="s" x="802" y="156">record tells it, the</text>
+  <text class="s" x="802" y="174">chain of causes, and</text>
+  <text class="s" x="802" y="192">lessons that say when</text>
+  <text class="s" x="802" y="210">they hold</text>
+
+  <text x="490" y="258" text-anchor="middle" font-size="11.5" fill="#6b7280" font-style="italic">each one cited claim by claim, and short enough to read in minutes</text>
+</svg>
