@@ -139,6 +139,8 @@ class Command(helpers.WikiTestCase):
         out = self.nf(path, '--stats').out
         self.assertIn('(technical_brief_overview): body', out)
         self.assertIn('  The core idea: ', out)
+        how = next(x for x in s['sections'] if x['section'] == 'How does it work?')
+        self.assertEqual((how['citations'], how['markers']), (2, 1))
         self.assertIn('no such file', self.nf('nope.md', '--stats').err)
 
     def test_templates_and_skeleton(self):

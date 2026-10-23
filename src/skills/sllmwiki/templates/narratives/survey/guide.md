@@ -19,7 +19,7 @@ Plain words, short sentences, present tense. Even-handed across items and school
 - **The map:** three to five groups, each with what holds it together, shown before any item; the items follow the same groups, in the same order.
 - **Each item briefly,** in about a hundred words: what it says and why it matters, an example in a sentence when there's a real one, and where to go deeper.
 - **Tensions,** when items pull against each other: which trade off, which overlap, and how practitioners balance them.
-- **Classic case studies,** whenever the sources describe cases the domain is known by: a paragraph each on what happened and which items it shows, linked to its own case study.
+- **Classic case studies,** whenever the sources describe cases the domain is known by: a paragraph each on what happened and which items it shows, linked to its own case study, or named as the question one would answer ("What happened in <the case>, and what does it teach?").
 - **Applying them,** when the domain is practical: an order to learn them in, or questions to ask of a design.
 
 ## Examples

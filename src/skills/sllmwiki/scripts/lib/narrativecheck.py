@@ -148,8 +148,11 @@ def stats(root, rel, text, offered):
         if title.lower() in [s.lower() for s in SHARED_TOP + SHARED_BOTTOM] and title != 'Appendix':
             continue
         end = heads[i + 1].line if i + 1 < len(heads) else len(lines)
+        part = '\n'.join(lines[h.line + 1:end])
         sections.append({'section': title, 'words': words(lines[h.line + 1:end]),
-                         'subsections': sum(1 for s in numbering.headings('\n'.join(lines[h.line + 1:end])) if s.level in (3, 4))})
+                         'subsections': sum(1 for s in numbering.headings(part) if s.level in (3, 4)),
+                         'citations': len(citations.CITE.findall(part)),
+                         'markers': sum(1 for j, _, _ in markers.uses(text) if h.line <= j < end)})
     slug = os.path.splitext(os.path.basename(rel))[0]
     grades = (manifest.load(root, 'narratives').get(slug) or {}).get('grades') or {}
     by = {'A': 0, 'B': 0, 'C': 0, 'ungraded': 0}

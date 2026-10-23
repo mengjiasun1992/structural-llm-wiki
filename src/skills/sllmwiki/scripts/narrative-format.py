@@ -13,8 +13,9 @@ narrative shares (design doc §4.5, §4.8, §4.10).
       escapes. finish-narrative.py does both, and more.
   narrative-format.py <narrative.md> ... --stats [--json]
       The numbers lint grades a narrative's aim with: the body against its budget,
-      the words and subsections in each section, citations by the authority of
-      the sources they cite (the reading plan's grades), markers and pictures.
+      the words, subsections, citations and markers in each section, citations
+      by the authority of the sources they cite (the reading plan's grades), and
+      pictures.
   narrative-format.py --templates     the templates this wiki offers, with use_when and budgets
   narrative-format.py --skeleton NAME the skeleton a new narrative starts from
 
@@ -117,7 +118,8 @@ def print_stats(root, files, offered, as_json):
               f'citations A {c["A"]}, B {c["B"]}, C {c["C"]}, ungraded {c["ungraded"]}; '
               f'markers {m["statements"]} on statements, {m["headings"]} on headings; {r["pictures"]} picture(s)')
         for s in r['sections']:
-            print(f'  {s["section"]}: {s["words"]} words' + (f', {s["subsections"]} subsections' if s['subsections'] else ''))
+            print(f'  {s["section"]}: {s["words"]} words, {s["citations"]} citations, {s["markers"]} markers'
+                  + (f', {s["subsections"]} subsections' if s['subsections'] else ''))
     return 0
 
 
