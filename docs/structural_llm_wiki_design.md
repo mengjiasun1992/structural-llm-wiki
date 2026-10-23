@@ -366,7 +366,7 @@ sequenceDiagram
     rect rgb(254, 243, 199)
     A->>S: cited-sections, narrative-format --stats
     A->>A: lint: claims, consistency, the aim's grades
-    A->>GH: commit; update the description
+    A->>GH: commit, and update the description
     end
     GH-->>You: one pull request: a checklist, decisions first
     You->>GH: tick, comment, merge
