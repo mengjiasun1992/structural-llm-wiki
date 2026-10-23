@@ -18,17 +18,17 @@ When the narrative mentions a concept another narrative covers, say it in a sent
 
 ## Citations
 
-Every claim a source makes is cited, after a space, with a numbered link to the section that makes it:
-`Retries back off exponentially. [\[3\]](../sources/<slug>.md#<section>)`. Numbers run 1, 2, 3 in order of first use; the brackets stay escaped so Obsidian doesn't read them as a wikilink. Cite the section, never just the file: a reader checks one section, not a whole source. In a code source, cite the lines: `#L10-L20`.
+Every claim a source makes is cited as in a paper, with a numbered link to the section that makes it, inside the sentence before its punctuation, several separated by commas:
+`Retries back off exponentially [\[3\]](../sources/<slug>.md#<section>), [\[6\]](…).` Numbers run 1, 2, 3 in order of first use; the brackets stay escaped so Obsidian doesn't read them as a wikilink. Cite the section, never just the file. In a code source, cite the lines: `#L10-L20`.
 
 ## What the sources don't say
 
-Write it as yours, marked, never as a source's. When markers are on (the default), put the marker where a citation would go, after the statement (a sentence, a list item or a table cell):
+Write it as yours, marked, never as a source's. When markers are on (the default), put the marker where a citation would go, at the end of the statement before its punctuation (a sentence, a list item or a table cell):
 
-- `[→]`: your own conclusion, comparison, grouping, worked example or reconstruction, which no cited source states: `Both trade latency for consistency. [→]`;
+- `[→]`: your own conclusion, comparison, grouping, worked example or reconstruction, which no cited source states: `Both trade latency for consistency [→].`;
 - `[?]`: something the question needs that the sources don't answer. Say what's missing; never fill it with a guess.
 
-A number you compute from a cited formula, with its inputs shown, isn't your own reasoning: cite the formula's section after it. Mark at the level the reasoning spans: a section that is all yours (applying the ideas, a constructed scenario) marks its heading once, `## 8. Applying them [→]`, not each sentence. A statement is cited or marked, never both. With `markers = false` in Config.toml, leave markers out: an uncited sentence is then your own, and a gap is said in words ("the sources don't say …").
+A number you compute from a cited formula, with its inputs shown, isn't your own reasoning: cite the formula's section. Mark at the level the reasoning spans: a section that is all yours (applying the ideas, a constructed scenario) marks its heading once, `## 8. Applying them [→]`, not each sentence. A statement is cited or marked, never both. With `markers = false` in Config.toml, leave markers out: an uncited sentence is then your own, and a gap is said in words ("the sources don't say …").
 
 ## Quoting
 

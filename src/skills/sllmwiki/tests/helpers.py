@@ -126,7 +126,7 @@ leaf-b:
 def narrative_text(question='What is alpha?', cites=(('alpha-doc', 'details'),), extra=''):
     """A narrative on the technical_brief_overview template that passes narrative-format,
     citing sections of saved sources."""
-    marks = ''.join(f' [\\[{i}\\]](../sources/{slug}.md#{anchor})' for i, (slug, anchor) in enumerate(cites, 1))
+    marks = (' ' + ', '.join(f'[\\[{i}\\]](../sources/{slug}.md#{anchor})' for i, (slug, anchor) in enumerate(cites, 1))) if cites else ''
     listed = '\n'.join(f'{i}. [{slug}: {anchor}](../sources/{slug}.md#{anchor})' for i, (slug, anchor) in enumerate(cites, 1))
     read = '\n'.join(f'- [{slug}](../sources/{slug}.md): how alpha retries' for slug in dict(cites))
     return f'''# {question}
@@ -158,7 +158,7 @@ graph LR
 
 ## 5. How does it work?
 
-Alpha systems retry, each time waiting twice as long.{marks}
+Alpha systems retry, each time waiting twice as long{marks}.
 
 1. A request fails, so the client waits and retries.
 {extra}

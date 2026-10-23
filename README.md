@@ -133,7 +133,7 @@ Codex, Cursor, Copilot and other agents install the skill with the [`skills` CLI
 ![The five templates placed by breadth and depth, each with its aim](docs/images/template-map.svg)
  Bring your own by adding a folder with a `template.md` and a `guide.md` to the wiki's `templates/`; a folder named like a bundled template replaces it.
 
-**Markers.** What no source states is marked `[→]` (our own reasoning), and something the sources don't answer `[?]`, after the statement like a citation, or once on a heading for a whole section; each narrative defines the ones it uses. Turn them off with `markers = false` (see below).
+**Citations and markers.** As in a paper, a claim's numbered citations sit inside its sentence, before the period, separated by commas: `… exponentially [3], [6].` What no source states is marked `[→]` (our own reasoning), and something the sources don't answer `[?]`, where a citation goes, or once on a heading for a whole section; each narrative defines the ones it uses. Turn them off with `markers = false` (see below).
 
 **Settings.** A wiki can keep an optional `Config.toml` (`init` writes it with the defaults):
 

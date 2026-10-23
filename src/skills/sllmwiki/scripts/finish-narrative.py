@@ -7,7 +7,8 @@ in one command (design doc §7.5).
                       [--bump minor|major --note TEXT] [--json] [--root <wiki>]
 
 In order: numbers the headings and figure captions; repairs links to a renumbered
-section of another narrative; writes the renderer escapes; converts old markers
+section of another narrative; moves references and markers inside their
+sentence, before its closing punctuation; writes the renderer escapes; converts old markers
 and adds a Terminology row for each marker the narrative uses (when markers are on); sets the
 Metadata's dates and, for a new narrative, version 1.0 and its first history
 entry, or with --bump, the next version and --note as its history entry;
@@ -30,7 +31,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import compat, config, figures, layout, manifest, markers, metadata, numbering, readingplan, runstats, templates, wikiindex, xrefs  # noqa: E402
+from lib import citations, compat, config, figures, layout, manifest, markers, metadata, numbering, readingplan, runstats, templates, wikiindex, xrefs  # noqa: E402
 from lib.narrativecheck import check as check_narrative  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, read_text, today, write_text  # noqa: E402
@@ -98,11 +99,14 @@ def main(argv):
     done += [f'numbered {n} figure caption(s)'] if n else []
     text, n = xrefs.repair(root, rel, text)
     done += [f'repaired {n} link(s) to a renumbered section of another narrative'] if n else []
-    text, n = compat.escape(text)
-    done += [f'wrote {n} renderer escape(s)'] if n else []
     if settings['markers']:
         text, n = markers.migrate(text)
         done += [f'converted {n} old marker(s)'] if n else []
+    text, n = citations.place(text)  # after the old markers become new ones, so they move inside too
+    done += [f'moved {n} reference(s) inside their sentence'] if n else []
+    text, n = compat.escape(text)
+    done += [f'wrote {n} renderer escape(s)'] if n else []
+    if settings['markers']:
         text, n = markers.add_rows(text)
         done += [f'defined {n} marker(s) in Terminology'] if n else []
     meta = metadata.read(text)

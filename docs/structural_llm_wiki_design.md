@@ -33,7 +33,7 @@ This document covers the architecture and the decisions behind it. The skill's f
 
 - **The wiki is a dedicated git repository.** Git provides history, review and rollback.
 - **Sources are ground truth.** Sources are saved verbatim (§4.3) and never summarized or edited. Narratives are built from them and checked against them.
-- **Every claim is traceable.** A claim in a narrative cites a section of a saved source with a numbered link (`claim. [\[3\]](../sources/<file>.md#<section>)`, brackets escaped so Obsidian doesn't read `[[3]]` as a wikilink), or is marked as the narrative's own reasoning (`[→]`) or as a gap the sources don't answer (`[?]`). §4.10 defines the markers, and how a wiki turns them off.
+- **Every claim is traceable.** A claim in a narrative cites a section of a saved source with a numbered link (`claim [\[3\]](../sources/<file>.md#<section>).`, inside the sentence as in a paper, several separated by commas, brackets escaped so Obsidian doesn't read `[[3]]` as a wikilink), or is marked as the narrative's own reasoning (`[→]`) or as a gap the sources don't answer (`[?]`). §4.10 defines the markers, and how a wiki turns them off.
 - **The question drives the run.** Tags, sources and the reading plan are chosen for the questions asked, not for a topic in general, so nothing is collected that no answer uses.
 - **Runs are unattended; review happens on one pull request.** A run takes its questions at the start and doesn't pause; what it can't decide goes to the top of its pull request. The owner reviews, ticks the review checklist and merges.
 - **Build on what exists.** One narrative per question. Before writing, look for a narrative that already covers it, and reuse or expand it (§7.4).
@@ -312,14 +312,14 @@ obsidian = false            # true: the Obsidian add-on (§4.8)
 
 ### 4.10 Markers
 
-A narrative says plainly what its sources don't. Two markers do it, each written where a citation would go: after the statement it covers, or at the end of a heading, where it covers the whole section.
+A narrative says plainly what its sources don't. Two markers do it, each written where a citation would go: at the end of the statement it covers, before its closing punctuation, or at the end of a heading, where it covers the whole section.
 
 | Marker | Means | Example |
 |---|---|---|
-| `[→]` | Our own reasoning: a conclusion, recommendation, grouping, comparison, worked example or reconstruction that no cited source states | `Both designs trade latency for consistency, in opposite directions. [→]` |
-| `[?]` | A gap: something the question needs that the sources don't answer, stated as a gap, never filled with a guess | `None of the sources say how the gateway picks a backend after a timeout. [?]` |
+| `[→]` | Our own reasoning: a conclusion, recommendation, grouping, comparison, worked example or reconstruction that no cited source states | `Both designs trade latency for consistency, in opposite directions [→].` |
+| `[?]` | A gap: something the question needs that the sources don't answer, stated as a gap, never filled with a guess | `None of the sources say how the gateway picks a backend after a timeout [?].` |
 
-- **Where it goes.** After the statement, like a citation: the reader meets the idea first and the marker second, and the eye skips it as it skips `[3]`. A statement is a sentence, a list item or a table cell.
+- **Where it goes.** Where a citation goes, as in a paper: at the end of the statement, before its closing punctuation, so the reader meets the idea first and the marker second, and the eye skips it as it skips `[3]`. Citations written after the period, the earlier format, are reported (`REFERENCE_PLACEMENT`), and references side by side without a comma (`REFERENCE_COMMA`); `finish-narrative` moves them. A statement is a sentence, a list item or a table cell.
 - **At the right level.** A section that is all our own reasoning, such as "Applying them", marks its heading once (`## 8. Applying them [→]`) instead of every sentence; inside it, a sentence a source states is still cited. `narrative-format` suggests the heading when a section marks four or more statements and cites none.
 - **A statement is cited or marked, never both.** If a source states it, it gets a citation instead. A number computed from a cited formula, with its inputs shown, cites that formula: it is the source's rule applied, not our reasoning.
 - **Why these symbols.** They are short, so they read like a citation, not a label; fixed, so scripts and `grep` find every one; and plain text everywhere: brackets with no link after them are text on GitHub, in Obsidian and in both book renderers (§4.8). `[→]` reads as "follows from" and shows as an arrow in every renderer (writers may type `[->]`; `finish-narrative` writes the arrow), `[?]` as "unknown".
