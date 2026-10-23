@@ -50,6 +50,14 @@ class Init(unittest.TestCase):
         self.assertEqual(config.load(self.root).settings, config.DEFAULTS)  # the template writes every default
         self.assertFalse(os.path.exists(os.path.join(self.root, layout.OBSIDIAN_GRAPH)))  # the add-on is off
 
+    def test_it_commits_only_what_it_wrote(self):
+        helpers.write(self.root, 'sllmwiki/Untitled.canvas', '{}')  # the owner's, made in Obsidian
+        self.assertEqual(self.init('--commit', '--prompt', 'p').code, 0)
+        tracked = helpers.git(self.root, 'ls-files').stdout.split()
+        self.assertIn('Config.toml', tracked)
+        self.assertNotIn('sllmwiki/Untitled.canvas', tracked)
+        self.assertTrue(os.path.isfile(os.path.join(self.root, 'sllmwiki', 'Untitled.canvas')))
+
     def test_a_rerun_changes_nothing_and_commits_nothing(self):
         self.init('--commit', '--prompt', 'p')
         r = self.init('--commit', '--prompt', 'again', '--json')

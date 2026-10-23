@@ -81,7 +81,7 @@ gh auth login && gh auth setup-git                           # then, everywhere
    claude plugin install sllmwiki@structural-llm-wiki --scope project
    ```
 
-3. Run `/sllmwiki:init`. It lays out the wiki, installs its CI checks and makes the first commit.
+3. Run `/sllmwiki:init`. It lays out the wiki, installs its CI checks and makes the first commit. Rerun it after a plugin update: it brings the wiki up to date in a pull request.
 
    > [!NOTE]
    > The wiki's CI calls this repository's GitHub actions. While this repository is private, until the first release, they're reachable only from its owner's repositories, so it's set to allow them (Settings → Actions → General → Access: "Accessible from repositories owned by the user"). A wiki elsewhere fails with "Unable to resolve action … repository not found" until this repository is public.
