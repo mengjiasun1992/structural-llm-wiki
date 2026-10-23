@@ -122,7 +122,7 @@ class Command(helpers.WikiTestCase):
         self.assertEqual(r.code, 0)
         self.assertIn('technical_brief_overview (bundled, body up to 1800 words)', r.out)
         rows = json.loads(self.nf('--templates', '--json').out)['templates']
-        self.assertEqual([t['name'] for t in rows], ['comparison', 'concept_brief_overview', 'survey', 'technical_brief_overview'])
+        self.assertEqual([t['name'] for t in rows], ['case_study', 'comparison', 'concept_brief_overview', 'survey', 'technical_brief_overview'])
         skel = self.nf('--skeleton', 'concept_brief_overview').out
         self.assertTrue(skel.startswith('# <The question, exactly as asked>\n'))
         self.assertIn('## 3. Definition', skel)

@@ -195,6 +195,7 @@ A template is chosen by the subject, not the question's wording:
 | `technical_brief_overview` | A solution, an algorithm, or the design of a component or for a problem | How it works: the core idea and its picture first, then a walkthrough on one running example, then variants and trade-offs | has learned the solution or design | 1,800 words |
 | `comparison` | A choice among common candidates | The trade-offs: when to pick which first, then every dimension to think through when choosing | can make the choice, knowing what each candidate costs | 1,200 words |
 | `survey` | Anything not concrete: a domain, or an umbrella term for subtopics or directions that each go deep their own way | Wide over deep: the main dishes on the table that one can't miss, grouped and mapped first, their tensions, classic case studies, where to go deeper | knows the main areas of the domain and where to go deeper in each | 2,200 words |
+| `case_study` | One particular system, incident or decision that a concept or domain is known by | Deep on the one case: its context, what happened, the ideas at work (linked to their narratives), the lessons that carry over | knows what happened and why, and can apply its lessons elsewhere | 1,500 words |
 
 **A wiki's own templates.** A team can bring its own: a folder in the wiki's `templates/` with a `template.md` and a `guide.md` is offered next to the bundled ones, and is checked the same way; one with a bundled template's name replaces it. A wiki that only wants a different budget for a template sets it in `Config.toml` (§4.9) instead of copying the template.
 
@@ -389,7 +390,7 @@ Each waits until a real wiki needs it; adding one later starts as a proposal in 
 | Book builds (mdBook, Sphinx) | The markdown stays book-ready (§4.8); each build arrives later as an add-on, off by default, so a wiki that doesn't want a book never pays for one | No one has asked for a book yet |
 | Draft narratives and their states | A labeled DRAFT answer in `query`'s reply, and an offer to `build` | The one real wiki never kept a draft |
 | Tag abstracts rolled up the tree | `query` starts from narrative abstracts | Rewriting every abstract up to the root on each change was the costliest bookkeeping |
-| The `decision_record` template | The other four; a wiki can add its own | Never used |
+| The `decision_record` template | The bundled templates; a wiki can add its own | Never used |
 | Slicing every large PDF by headings guessed from font sizes | Outline headings; only outlined documents over 100 pages sliced, by chapter, with script-written starter abstracts | Guessed headings caused bugs; a 20-page paper sliced into 11 sources no narrative used |
 | Downloading a source's images | Links to the originals | Copying images raises copyright questions for little gain |
 | Automatic license lookup | The agent records what it finds; scripts check visibility and the recorded license | The judgment was always the agent's |
