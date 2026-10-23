@@ -372,7 +372,7 @@ sequenceDiagram
 
 *Figure 5-1: One `build` run. Purple: the questions mapped to what exists; green: sources saved and the pull request opened; blue: narratives written and recorded; amber: lint.*
 
-The questions and the user's words are passed to every step. A request that names a topic but no question gets one prompt before the run starts, proposing two or three questions; after that, the run doesn't pause.
+The questions and the user's words are passed to every step. A request that names only a topic, with no question or job ("look into alpha retries"), gets one prompt before anything runs: what the wiki already holds on it (narrative questions, from `search.py context`), whether to answer from the wiki or research it, with a recommendation, and two or three questions a narrative could answer. Nothing is read beyond the abstracts, and nothing changes, until the user says. After that, a run doesn't pause.
 
 ### 5.2 Review model
 
