@@ -1,3 +1,4 @@
 evals/results/
 .coverage
 .coverage.*
+__pycache__/

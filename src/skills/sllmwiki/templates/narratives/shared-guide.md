@@ -16,7 +16,7 @@ Show the whole before its parts: what the narrative covers and how its parts fit
 
 ## Examples
 
-One or two key examples carry the whole narrative, never more. The first is the running example: introduce it once, where the template says, with its scene set for a reader who doesn't know it, in a few plain sentences: what the system does, the problem it has, what goes wrong without the answer, and what each quantity means in it. Then come back to it in each section that explains something, so the reader never switches context to follow a point. A second key example is only for what the first can't show. Any other example goes in the Appendix, or is named in a sentence with a link.
+One or two key examples carry the whole narrative, never more. The first is the running example: introduce it once, where the template says, with its scene set for a reader who doesn't know it, in a few plain sentences: what the system does, the problem it has, what goes wrong without the answer, and what each quantity means in it. Then come back to it in each section that explains something, so the reader never switches context to follow a point. A second key example is only for what the first can't show. When a related narrative's key example fits this question, reuse it and link there for its scene, so the wiki's readers meet one system across narratives; pick a new one only to show what that one can't. Any other example goes in the Appendix, or is named in a sentence with a link.
 
 For anything computed, work the running example with numbers, step by step, in a small table where it helps: a reader follows three numbers faster than one formula.
 
