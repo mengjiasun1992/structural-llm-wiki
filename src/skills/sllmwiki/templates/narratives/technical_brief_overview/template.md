@@ -7,30 +7,36 @@ abstract_words: [80, 200]
 
 ## 3. Background
 
-<The problem X solves, shown with a concrete example, and what the reader needs to know before the mechanism.>
+<The problem X solves, shown through the running example: its scene, what goes wrong without X, and what the reader needs to know before the mechanism.>
 
-## 4. What is <X>? (optional)
+## 4. The core idea
 
-<Only when the reader can't follow the mechanism without it: one paragraph.>
+<The idea in plain words, in one paragraph, then the one rule or formula it comes down to, then the picture of it.>
+
+```mermaid
+%% <the diagram that shows the idea best: a flowchart, sequenceDiagram, stateDiagram-v2, ...>
+```
 
 ## 5. How does it work?
 
-<The idea in one paragraph, then the flow.>
+<The mechanism step by step, worked on the running example: one numbered step per arrow or transition of the diagram, with the example's numbers where it computes something; pseudocode where it helps.>
 
-```mermaid
-%% <the diagram that shows how it works best: a flowchart, sequenceDiagram, stateDiagram-v2, ...>
-```
+## 6. Variants (optional)
 
-<Walk through the diagram: one numbered step per arrow, each saying what happens and why.>
+<Each common variant of the basic form: what it changes, and when to use it.>
 
-## 6. Design decisions and trade-offs
+## 7. Design decisions and trade-offs
 
-<Each decision: the choice, what it buys, what it costs, and when the other choice wins.>
+<Each decision: the choice, what it buys, what it costs, and when the other choice wins; each parameter with a typical value and a rule for choosing it.>
 
-## 7. Limitations and failure modes
+## 8. Limitations and failure modes
 
 <What breaks, how it shows, and what to do about it.>
 
-## 8. FAQ (optional)
+## 9. Misconceptions (optional)
 
-<The questions a newcomer asks next, each answered in a few sentences.>
+<What newcomers commonly get wrong, each with what's true instead.>
+
+## 10. Where to go next (optional)
+
+<The questions this opens, each a narrative of its own: linked when it exists, named when it doesn't.>

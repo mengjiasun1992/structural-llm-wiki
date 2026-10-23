@@ -8,14 +8,27 @@ A reader meeting the idea for the first time, who needs to know what it means, w
 
 ## Voice and tone
 
-Plain words, short sentences, present tense. Define before you use; no jargon the Terminology doesn't explain. Neutral where sources disagree: present each view, cited.
+Plain words, short sentences, present tense. Define before you use; no jargon the narrative doesn't explain. Neutral where sources disagree: present each view, cited.
 
 ## Structure
 
-- **Definition first.** Start from the most authoritative source's definition, quoted briefly with its citation, then restate it in plain words. When there's no single accepted definition, say so and give the one the wiki follows.
-- **One example** that makes the idea concrete, early.
+- **Definition first.** Start from the most authoritative source's definition, quoted briefly with its citation, then restate it in plain words. Add another source's definition only when it differs in substance; when there's no single accepted definition, say so and give the one the wiki follows.
+- **The key example early,** making the idea concrete.
 - **Key ideas:** only those a newcomer needs, each in its own short paragraph, in the order they build on each other.
-- **Boundaries** draw the line against the ideas it's confused with.
+- **Boundaries** draw the line against the ideas it's confused with, and correct what newcomers commonly get wrong.
+
+## Examples
+
+One key example, a case the reader can picture:
+
+| Section | The key example's part |
+|---|---|
+| Definition | the definition, in its terms, in a sentence |
+| Why it matters | its scene and what goes wrong there, in a short paragraph |
+| Key ideas | where each idea shows in it, a sentence each |
+| Boundaries | what it would look like if it were the neighbor instead |
+
+A second key example only when the first can't show an idea. Others go in the Appendix.
 
 ## Evidence
 
@@ -28,7 +41,6 @@ Short: a reader should finish it in a few minutes. Everything beyond definition 
 ## Checklist
 
 - [ ] The definition is quoted briefly, cited, and restated in plain words.
-- [ ] One concrete example appears before the key ideas.
-- [ ] Every term and acronym is in Terminology before its first use.
+- [ ] The key example appears before the key ideas and runs through them.
 - [ ] Nothing goes below definition level; deeper topics are named as next questions.
 - [ ] Every claim is cited to a section, or marked.

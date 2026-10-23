@@ -145,36 +145,40 @@ def narrative_text(question='What is alpha?', cites=(('alpha-doc', 'details'),),
 
 Requests fail, and alpha systems send them again.
 
-## 4. How does it work?
+## 4. The core idea
 
-Alpha systems retry, each time waiting twice as long.{marks}
+Wait longer after each failure.
 
 ```mermaid
 graph LR
     A[Request fails] --> B[Wait, then retry]
 ```
 
+## 5. How does it work?
+
+Alpha systems retry, each time waiting twice as long.{marks}
+
 1. A request fails, so the client waits and retries.
 {extra}
-## 5. Design decisions and trade-offs
+## 6. Design decisions and trade-offs
 
 Waiting longer each time spares a struggling server.
 
-## 6. Limitations and failure modes
+## 7. Limitations and failure modes
 
 Retries add load when many clients fail at once.
 
-## 7. References
+## 8. References
 
-### 7.1 Sources read
+### 8.1 Sources read
 
 {read}
 
-### 7.2 Citations
+### 8.2 Citations
 
 {listed}
 
-## 8. Metadata
+## 9. Metadata
 
 - **Version:** 1.0
 - **Template:** technical_brief_overview

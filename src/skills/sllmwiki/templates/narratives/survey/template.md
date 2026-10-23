@@ -9,28 +9,36 @@ abstract_words: [80, 200]
 
 <What the domain or term covers and where it stops, and how the items below were chosen.>
 
-## 4. At a glance
+## 4. The map
 
-| Item | In one line | Sources |
-|---|---|---|
-| <item> | <what it says> | <citations> |
-
-## 5. The main items
-
-<One ### subsection per item, in the order a newcomer should learn them: what it says, why it matters, one example, and where to go deeper.>
-
-## 6. How they relate
+<The groups the items fall into, and what holds each together, shown before any item.>
 
 ```mermaid
-%% <the diagram that shows how the items relate best: a flowchart, mindmap, quadrantChart, ...>
+%% <the diagram that shows the groups and their items best: a mindmap, a flowchart of what supports what, a quadrantChart, ...>
 ```
 
-<Walk through the map: which items support each other, which pull against each other, and which overlap.>
+## 5. At a glance
 
-## 7. Applying them (optional)
+| Group | Item | In one line | Sources |
+|---|---|---|---|
+| <group> | <item> | <what it says> | <citations> |
+
+## 6. The main items
+
+<One ### subsection per group, opening with what holds it together, then one #### subsection per item: what it says and why it matters, an example when there's a real one, and where to go deeper.>
+
+## 7. Tensions and trade-offs (optional)
+
+<Where items pull against each other or overlap, and how practitioners balance them.>
+
+## 8. Classic case studies (optional)
+
+<Two to four cases the domain is known by: one short paragraph each on what happened and which items it shows, linked to its case study narrative or named as a next question.>
+
+## 9. Applying them (optional)
 
 <How a newcomer puts the set to use: an order to learn them in, or the questions to ask of a design.>
 
-## 8. Where to go next
+## 10. Where to go next
 
 <The deeper question behind each item, each a narrative of its own: linked when it exists, named when it doesn't.>

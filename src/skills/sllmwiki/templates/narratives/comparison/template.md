@@ -7,21 +7,25 @@ abstract_words: [80, 200]
 
 ## 3. The choice
 
-<The decision the reader faces, shown through one concrete scenario, then the common candidates, one sentence each.>
+<The decision the reader faces, shown through one concrete scenario that needs exactly this choice, then the common candidates, one sentence each.>
 
-## 4. At a glance
+## 4. When to choose which
+
+<The answer first: a decision diagram, then each candidate's rules, the situations where it wins and the signs it's time to switch, each pointing to the dimension below that justifies it.>
+
+```mermaid
+%% <a flowchart of the questions that decide the choice, the recommended candidate colored>
+```
+
+## 5. At a glance
 
 | Dimension | <candidate> | <candidate> |
 |---|---|---|
 | <dimension> | <how it fares, cited> | <how it fares, cited> |
 
-## 5. Dimensions to think through
+## 6. Dimensions to think through
 
-<Each dimension in turn: what it is, why it matters to this choice, and how each candidate fares, and why.>
-
-## 6. When to choose which
-
-<For each candidate, the situations where it wins, as rules the reader can apply, and the signs that it's time to switch.>
+<One ### subsection per dimension, named as in the table's row: why it matters to this choice, then how each candidate fares, and why.>
 
 ## 7. Pitfalls (optional)
 

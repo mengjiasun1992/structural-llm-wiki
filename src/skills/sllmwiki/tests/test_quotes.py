@@ -28,13 +28,13 @@ class Quotes(helpers.WikiTestCase):
             self.assertEqual(self.codes(body), [], body)
 
     def test_not_found(self):
-        self.assertEqual(self.codes(f'They say "each retry waits three times as long." {CITE}'), [('QUOTE_NOT_FOUND', 28)])
-        self.assertEqual(self.codes(f'In order: "as the last … each retry waits" {CITE}'), [('QUOTE_NOT_FOUND', 28)])
-        self.assertEqual(self.codes(f'Wrong section: "alpha systems retry failed requests" {CITE}'), [('QUOTE_NOT_FOUND', 28)])
+        self.assertEqual(self.codes(f'They say "each retry waits three times as long." {CITE}'), [('QUOTE_NOT_FOUND', 32)])
+        self.assertEqual(self.codes(f'In order: "as the last … each retry waits" {CITE}'), [('QUOTE_NOT_FOUND', 32)])
+        self.assertEqual(self.codes(f'Wrong section: "alpha systems retry failed requests" {CITE}'), [('QUOTE_NOT_FOUND', 32)])
 
     def test_too_long_even_uncited(self):
         long = ' '.join(['word'] * 12)
-        self.assertEqual(self.codes(f'"{long}"', max_words=10), [('QUOTE_TOO_LONG', 28)])
+        self.assertEqual(self.codes(f'"{long}"', max_words=10), [('QUOTE_TOO_LONG', 32)])
         self.assertEqual(self.codes(f'`"{long}"` in code is not a quotation', max_words=10), [])
 
 

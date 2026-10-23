@@ -166,7 +166,7 @@ class Finish(helpers.WikiTestCase):
         self.write(NARRATIVE, helpers.narrative_text().replace('technical_brief_overview', 'runbook'))
         self.assertIn('Metadata names no template', self.finish('what-is-alpha').err)
         self.write(NARRATIVE, helpers.narrative_text().replace('- **Template:** technical_brief_overview\n', '')
-                   .replace('## 8. Metadata', '## 8. Notes').replace('## 7. References', '## 7. References'))
+                   .replace('## 9. Metadata', '## 9. Notes'))
         self.assertIn('Metadata names no template', self.finish('what-is-alpha').err)
         self.write(NARRATIVE, helpers.narrative_text())
         r = self.finish('what-is-alpha', '--primary', 'no-such-tag')

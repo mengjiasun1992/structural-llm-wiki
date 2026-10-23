@@ -14,10 +14,15 @@ Plain words, short sentences, present tense. Even-handed across items and school
 
 - **Scope first:** what the domain covers, where it stops, and how the items were chosen.
 - **The main items:** those the most authoritative sources agree on, plus any one of them puts first. Merge items that are one idea under two names; leave out tactics that serve an item, or name them inside it.
-- **At a glance:** one table, an item per row, so the reader sees the whole set before any one of them.
-- **Each item briefly:** what it says, why it matters, one example, where to go deeper. The same shape for every item, and no item much longer than the others.
-- **How they relate:** a diagram of the items (a map of what supports what, a mindmap of the areas, or a quadrant of trade-offs), colored by area, then a walk through it: which support each other, which trade off, which overlap.
+- **Grouped, map first:** three to five groups, each a named area with what holds it together, shown in The map before any item; the table and the items follow the same groups, in the same order.
+- **Each item briefly:** what it says and why it matters, always; an example only when there's a real one; where to go deeper. No item much longer than the others.
+- **Tensions** after the items, when they pull against each other: which trade off, which overlap, and how practitioners balance them.
+- **Classic case studies,** when the domain is known by a few: a paragraph each, linked to its own case study.
 - **Applying them,** when the domain is practical: an order to learn them in, or questions to ask of a design.
+
+## Examples
+
+A survey can't carry one example through every item, so its key examples are the one or two classic cases most items show: name them in The map, and in each item they show, say in a sentence how. An item's own example is one sentence; it only gets more when it's one of the key cases. Other cases go in Classic case studies or the Appendix.
 
 ## Evidence
 
@@ -30,8 +35,6 @@ The budget is for breadth. When an item needs more than a few short paragraphs, 
 ## Checklist
 
 - [ ] Scope says how the items were chosen.
-- [ ] The table lists every item the body covers, and only those.
-- [ ] Every item has the same shape: what, why, an example, where to go deeper.
-- [ ] The diagram and the walkthrough match.
-- [ ] Every term and acronym is in Terminology before its first use.
+- [ ] The map shows the groups before any item, and the table and the items follow them.
+- [ ] Every item says what and why; examples are real ones, not filler.
 - [ ] Every claim is cited to a section, or marked.
