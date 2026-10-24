@@ -1,5 +1,6 @@
 """Tests for lib/templates.py and the bundled narrative templates."""
 
+import json
 import os
 import shutil
 import unittest
@@ -8,7 +9,8 @@ import helpers
 from lib import numbering, templates
 from lib.templates import Section, TemplateError
 
-GUIDE = '# Guide\n\n' + ''.join(f'## {s}\n\nText.\n\n' for s in templates.GUIDE_SECTIONS)
+PURPOSE = '**Takeaway:** the reader can run the task.\n\n**Aim:** exact, safe. Exact: every step a command. Safe: every risk named.\n\n'
+GUIDE = '# Guide\n\n' + ''.join(f'## {s}\n\n{PURPOSE if s == "Audience and purpose" else ""}Text.\n\n' for s in templates.GUIDE_SECTIONS)
 TEMPLATE = '---\ndescription: A runbook\nuse_when: an operational task\nmax_words: 800\nabstract_words: [100, 200]\n---\n\n## Steps\n\n<steps>\n'
 
 
@@ -160,6 +162,58 @@ class NewTemplate(helpers.WikiTestCase):
         self.assertEqual(helpers.run('narrative-format.py', ['--new-template', 'postmortem', '--from', 'case_study'], cwd=self.root).code, 1)
         r = helpers.run('narrative-format.py', ['--new-template', 'other'], cwd=self.root)
         self.assertEqual((r.code, '--new-template needs --from BASE' in r.err), (2, True))
+
+
+
+class Schema(helpers.WikiTestCase):
+    """What every template must have, a wiki's own as much as a bundled one."""
+    git = False
+
+    def test_every_bundled_template_has_its_aim(self):
+        found = {n: t.aim for n, t in templates.available(self.root)[0].items()}
+        self.assertEqual(found, {'case_study': ['faithful', 'causal', 'transferable', 'deep on one case'],
+                                 'comparison': ['precise', 'breadth and depth in balance'],
+                                 'concept_brief_overview': ['concise', 'precise', 'rigorous'],
+                                 'survey': ['concise', 'thorough', 'breadth over depth'],
+                                 'technical_brief_overview': ['concise', 'authoritative', 'depth over breadth']})
+        self.assertTrue(all(t.takeaway for t in templates.available(self.root)[0].values()))
+
+    def problem(self, template=TEMPLATE, guide=GUIDE):
+        helpers.write(self.root, 'templates/runbook/template.md', template)
+        helpers.write(self.root, 'templates/runbook/guide.md', guide)
+        found = templates.available(self.root)[1]
+        return found[0] if found else None
+
+    def test_a_good_wiki_template(self):
+        self.assertIsNone(self.problem())
+        t = templates.get(self.root, 'runbook')
+        self.assertEqual((t.takeaway, t.aim), ('the reader can run the task.', ['exact', 'safe']))
+
+    def test_the_guide_needs_a_takeaway_and_an_aim(self):
+        for drop in ('**Takeaway:**', '**Aim:**'):
+            guide = '\n'.join(line for line in GUIDE.split('\n') if not line.startswith(drop))
+            self.assertIn('needs a **Takeaway:** line', self.problem(guide=guide))
+
+    def test_the_body(self):
+        head = TEMPLATE.split('## Steps')[0]
+        self.assertIn('needs at least one ## section', self.problem(head + 'Just text.\n'))
+        self.assertIn('needs at least one ## section', self.problem(head + '### Steps\n\n<steps>\n'))
+        self.assertIn('repeats "Abstract", which every narrative already has', self.problem(head + '## Abstract\n\n<a>\n\n## Steps\n\n<s>\n'))
+        self.assertIn('repeats "References"', self.problem(head + '## Steps\n\n<s>\n\n## References (optional)\n\n<r>\n'))
+        self.assertIn('repeats "参考资料"', self.problem(head + '## 参考资料\n\n<r>\n'))  # in a language pack's words too
+        self.assertIn('section "Steps" needs a <...> line', self.problem(head + '## Steps\n\nFree text.\n\n## Risks\n\n<r>\n'))
+        self.assertIsNone(self.problem(head + '## Steps\n\n```mermaid\n%% <a flowchart of the steps>\n```\n'))
+
+    def test_headings_a_language_pack_doesnt_translate(self):
+        self.problem()
+        r = helpers.run('narrative-format.py', ['--templates', '--json'], cwd=self.root)
+        self.assertEqual((r.code, json.loads(r.out)['warnings']), (0, []))  # English needs no translation
+        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-settings]\nlanguage = "zh-Hans"\n')
+        r = helpers.run('narrative-format.py', ['--templates'], cwd=self.root)
+        self.assertEqual(r.code, 0)  # a warning, not a problem
+        self.assertIn('warning: template runbook: zh-Hans keeps "Steps" in English: translate it in templates/languages/zh-Hans.md', r.out)
+        self.assertIn('aim: exact, safe', r.out)
+        self.assertEqual(templates.untranslated(templates.get(self.root, 'survey'), templates.language.pack('zh-Hans')), [])
 
 
 if __name__ == '__main__':

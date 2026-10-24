@@ -78,10 +78,13 @@ class Template:
         self.guide = os.path.join(folder, 'guide.md')
         if not os.path.isfile(self.guide):
             raise TemplateError(f'{name}: no guide.md next to its template.md')
-        heads = [h.title for h in numbering.headings(read_text(self.guide)) if h.level == 2]
+        guide = read_text(self.guide)
+        heads = [h.title for h in numbering.headings(guide) if h.level == 2]
         missing = [s for s in GUIDE_SECTIONS if s not in heads]
         if missing:
             raise TemplateError(f'{name}: guide.md needs the sections {", ".join(GUIDE_SECTIONS)}; missing {", ".join(missing)}')
+        self.takeaway, self.aim = _purpose(name, guide)
+        _check_body(name, self.body)
 
     def skeleton(self, tag=None):
         """The narrative's skeleton: the shared top, this template's body, the shared appendices, numbered;
@@ -104,6 +107,44 @@ class Template:
             diagram = any(line.strip().startswith('```mermaid') for line in lines[h.line:end])
             out.append(Section(OPTIONAL.sub('', h.title), bool(OPTIONAL.search(h.title)), diagram))
         return out
+
+
+def _purpose(name, guide):
+    """(takeaway, [aim's axes]) from the guide's Audience and purpose: the **Takeaway:** line and the
+    **Aim:** line, whose axes, before its first period, lint grades every narrative on (steps/lint.md)."""
+    span = numbering.section(guide, 'Audience and purpose')
+    text = '\n'.join(guide.split('\n')[span[0]:span[1]])
+    take = re.search(r'^\*\*Takeaway:\*\*[ \t]*(.+)$', text, re.M)
+    aim = re.search(r'^\*\*Aim:\*\*[ \t]*([^.\n]+)', text, re.M)
+    if not take or not aim:
+        raise TemplateError(f'{name}: guide.md\'s Audience and purpose needs a **Takeaway:** line (what the reader takes away) and an '
+                            '**Aim:** line (the axes lint grades each narrative on, then what each means), as the bundled guides have')
+    axes = [re.sub(r'^with\s+', '', a.strip()) for a in re.split(r'[,;]', aim.group(1)) if a.strip()]
+    return take.group(1).strip(), axes
+
+
+def _check_body(name, body):
+    """The body's sections: at least one ##, none repeating a section every narrative already has, and each
+    with a <...> line saying what goes there."""
+    lines = body.split('\n')
+    heads = [h for h in numbering.headings(body) if h.level == 2]
+    if not heads:
+        raise TemplateError(f'{name}: template.md\'s body needs at least one ## section, the parts every answer of this kind has')
+    shared = [h.title for h in numbering.headings(read_text(SHARED_SKELETON).replace(BODY_MARK, '')) if h.level == 2]
+    shared = {n.lower() for t in shared for n in language.names(OPTIONAL.sub('', t))}
+    for i, h in enumerate(heads):
+        title = OPTIONAL.sub('', h.title)
+        if title.lower() in shared:
+            raise TemplateError(f'{name}: template.md\'s body repeats "{title}", which every narrative already has; leave it out')
+        end = heads[i + 1].line if i + 1 < len(heads) else len(lines)
+        if not re.search(r'<[^<>\n]+>', '\n'.join(lines[h.line + 1:end])):
+            raise TemplateError(f'{name}: template.md\'s section "{title}" needs a <...> line saying what goes there')
+
+
+def untranslated(template, pack):
+    """The template's section titles pack doesn't translate (its narratives keep them in English)."""
+    titles = [OPTIONAL.sub('', h.title) for h in numbering.headings(template.body) if h.level == 2 and '<' not in h.title]
+    return [t for t in titles if not pack.strings.get(t)]
 
 
 def _folders(base):

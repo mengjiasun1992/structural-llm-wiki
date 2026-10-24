@@ -13,11 +13,11 @@ From what the owner describes (the questions it answers, its reader, what each a
 - **Header:** `description`, one line of what the template produces; `use_when`, the questions it fits, with two or three examples in the owner's words, and how it differs from the closest bundled template; `max_words` for the body and `abstract_words`, `[min, max]`.
 - **Body:** one `## N. Title` section per part every answer needs, in reading order, each with a `<…>` line saying what goes there. Mark a section a narrative may leave out `(optional)`. Keep a ```` ```mermaid ```` placeholder where a diagram is required.
 
-`guide.md` is how to write it, under exactly these `##` sections: Audience and purpose, Voice and tone, Structure, Evidence, Length, Checklist. Keep what still holds from the template you copied, and change what the owner's description changes. Say each rule once: what every narrative shares stays in `templates/narratives/shared.md` and `shared-guide.md`.
+`guide.md` is how to write it, under exactly these `##` sections: Audience and purpose, Voice and tone, Structure, Evidence, Length, Checklist. Audience and purpose opens with a `**Takeaway:**` line, what the reader takes away, and an `**Aim:**` line, the axes lint grades every narrative of this kind on (`**Aim:** exact, safe. Exact: … Safe: …`), then what each means. Keep what still holds from the template you copied, and change what the owner's description changes. Say each rule once: what every narrative shares stays in `templates/narratives/shared.md` and `shared-guide.md`.
 
 ## 3. Check it
 
-`narrative-format.py --templates` must list it with no problem, and `narrative-format.py --skeleton <name>` must show the skeleton you meant. In a wiki whose `language` isn't English, new headings stay English until the wiki's language pack (`templates/languages/<tag>.md`) translates them: say so in the summary.
+`narrative-format.py --templates` must list it, with its aim, and no problem; it checks the header, the guide's sections, Takeaway and Aim, and that the body has `##` sections, each with its `<…>` line, and repeats none of the shared ones. `narrative-format.py --skeleton <name>` must show the skeleton you meant. In a wiki whose `language` isn't English, `--templates` warns of each new heading the wiki's language pack (`templates/languages/<tag>.md`) doesn't translate; narratives keep it in English until it does: say so in the summary.
 
 ## 4. Summary
 

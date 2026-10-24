@@ -25,7 +25,7 @@ Formatting, links and numbering, figure captions included, are `narrative-format
 
 ## 4. Grade the aim
 
-Each template's guide names its aim, a few axes (concept: concise, precise, rigorous; technical: concise, authoritative, depth over breadth; survey: concise, thorough, breadth over depth; comparison: precise, breadth and depth in balance; case study: faithful, causal, transferable, deep on one case), and says what each axis means. Grade each narrative on each axis of its template's aim: **met**, **partly** or **missed**, with the evidence in a line. `narrative-format.py <file> --stats` gives the numbers: the body against its budget, the words, citations and markers in each section (for depth, the core sections' share; for faithful, what is cited and what is ours), and citations by the authority of what they cite. An axis partly met or missed is an M finding: fix what a sentence fixes, and report the rest as a decision.
+Each template's guide names its aim, a few axes, and says what each axis means; `narrative-format.py --templates` lists every template's axes, the wiki's own included. Grade each narrative on each axis of its template's aim: **met**, **partly** or **missed**, with the evidence in a line. `narrative-format.py <file> --stats` gives the numbers: the body against its budget, the words, citations and markers in each section (for depth, the core sections' share; for faithful, what is cited and what is ours), and citations by the authority of what they cite. An axis partly met or missed is an M finding: fix what a sentence fixes, and report the rest as a decision.
 
 ## 5. Fix the small, report the big
 
