@@ -44,6 +44,7 @@ import sys
 sys.dont_write_bytecode = True
 
 from lib import runstats  # noqa: E402
+from lib.gitrepo import default_branch, has_remote  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.policy import github_repo  # noqa: E402
 from lib.util import read_text, write_text  # noqa: E402
@@ -100,21 +101,6 @@ def save_state(root, state):
     os.makedirs(os.path.join(run_dir(root, state['slug']), 'summaries'), exist_ok=True)
     write_text(os.path.join(run_dir(root, state['slug']), 'run.json'), json.dumps(state, indent=2, ensure_ascii=False))
     write_text(os.path.join(state_dir(root), 'current'), state['slug'])
-
-
-def has_remote(root):
-    return 'origin' in git(root, 'remote').split()
-
-
-def default_branch(root):
-    if has_remote(root):
-        head = git(root, 'symbolic-ref', '--quiet', 'refs/remotes/origin/HEAD', check=False)
-        if head:
-            return head.rsplit('/', 1)[1]
-        for name in ('mainline', 'main', 'master'):
-            if git(root, 'rev-parse', '--verify', '--quiet', f'refs/remotes/origin/{name}', check=False):
-                return name
-    return git(root, 'rev-parse', '--abbrev-ref', 'HEAD')
 
 
 def dirty(root):

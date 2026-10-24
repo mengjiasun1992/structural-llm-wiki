@@ -33,6 +33,9 @@ BOOK = ['Contents', 'About this book', 'See also', 'Appendix A: Sources', 'Appen
         'Version', 'Date', 'Commit', 'License', 'Published', 'Cited by', 'Known issues', 'Original',
         'Made by {tool} and {models}, from {source}.', 'Made by {tool}, from {source}.']
 
+RELEASE = ['Released while these checks failed:', 'Since', 'First release', 'narratives', 'sources', 'New narratives', 'Updated narratives',
+           'Removed narratives', 'New sources', 'Nothing in the wiki changed since the last release.', 'Open questions', 'Book',
+           "none: turn a format on in Config.toml's [structural-llm-wiki-release]"]
 
 class Packs(helpers.WikiTestCase):
     def setUp(self):
@@ -79,7 +82,7 @@ class Packs(helpers.WikiTestCase):
                     self.assertIn(title, strings, f)
         for label in ['(optional)', 'Term', 'Definition', 'Figure'] + list(markers.MARKERS.values()):
             self.assertIn(label, strings)
-        for label in BOOK:  # the book's (docs/book_design.md §5)
+        for label in BOOK + RELEASE:  # the book's (docs/book_design.md §5) and its release notes'
             self.assertIn(label, strings)
 
     def test_the_skeleton_in_a_language(self):

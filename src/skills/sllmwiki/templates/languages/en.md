@@ -100,3 +100,23 @@ and `{source}` as they are: the book puts the links and names there.
 | A number in brackets, such as [3], is a citation: it links to the source's entry in Appendix A, which links to the original. | |
 | Made by {tool} and {models}, from {source}. | |
 | Made by {tool}, from {source}. | |
+
+## Release
+
+The words of a release's notes, which release.py drafts and the agent reviews.
+
+| English | Translation |
+|---|---|
+| Released while these checks failed: | |
+| Since | |
+| First release | |
+| narratives | |
+| sources | |
+| New narratives | |
+| Updated narratives | |
+| Removed narratives | |
+| New sources | |
+| Nothing in the wiki changed since the last release. | |
+| Open questions | |
+| Book | |
+| none: turn a format on in Config.toml's [structural-llm-wiki-release] | |

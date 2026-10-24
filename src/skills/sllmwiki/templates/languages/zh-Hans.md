@@ -88,6 +88,24 @@ it, and how to write it.
 | Made by {tool} and {models}, from {source}. | 由 {tool} 与 {models} 根据 {source} 制作。 |
 | Made by {tool}, from {source}. | 由 {tool} 根据 {source} 制作。 |
 
+## Release
+
+| English | Translation |
+|---|---|
+| Released while these checks failed: | 发布时以下检查未通过： |
+| Since | 自 |
+| First release | 首次发布 |
+| narratives | 篇叙述 |
+| sources | 个来源 |
+| New narratives | 新增叙述 |
+| Updated narratives | 更新的叙述 |
+| Removed narratives | 删除的叙述 |
+| New sources | 新增来源 |
+| Nothing in the wiki changed since the last release. | 自上次发布以来，wiki 没有变化。 |
+| Open questions | 待解问题 |
+| Book | 书 |
+| none: turn a format on in Config.toml's [structural-llm-wiki-release] | 无：在 Config.toml 的 [structural-llm-wiki-release] 中开启一种格式 |
+
 ## Writing
 
 - **Register:** plain written Chinese for an engineer (书面语), short sentences, no slang and no filler such as 值得注意的是 or 众所周知.
