@@ -190,3 +190,27 @@ def self_contained(folder):
             data = base64.b64encode(f.read()).decode()
         return f'{m.group(1)}data:{mimetypes.guess_type(path)[0] or "application/octet-stream"};base64,{data}"'
     return re.sub(r'(<img\b[^>]*\bsrc=")(?!data:|[a-z]+://)([^"]+)"', image, text)
+
+
+def print_pdf(html_path, pdf_path, chrome, title, timeout=600):
+    """Chrome prints the single-file HTML to pdf_path, with title as the running head (book.css sets the
+    page size, margins and numbers); None, or why it failed."""
+    with open(html_path, encoding='utf-8') as f:
+        text = f.read()
+    head = json.dumps(title, ensure_ascii=False)
+    style = (f'<style>@page {{ @top-center {{ content: {head}; font: 9pt "Noto Sans", sans-serif; color: #666; }} }} '
+             '@page :first { @top-center { content: none; } }</style>')
+    printable = pdf_path + '.html'
+    with open(printable, 'w', encoding='utf-8') as f:
+        f.write(text.replace('</head>', style + '</head>', 1) if '</head>' in text else style + text)
+    try:
+        run = subprocess.run([chrome, '--headless', '--disable-gpu', '--no-sandbox', '--no-pdf-header-footer', '--virtual-time-budget=10000',
+                              f'--print-to-pdf={pdf_path}', 'file://' + os.path.abspath(printable).replace(os.sep, '/')],
+                             capture_output=True, text=True, timeout=timeout, check=False)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        return f'Chrome didn\'t print: {e}'
+    finally:
+        os.remove(printable)
+    if not os.path.isfile(pdf_path) or os.path.getsize(pdf_path) == 0:
+        return f'Chrome printed nothing: {(run.stderr or run.stdout).strip()[-500:]}'
+    return None

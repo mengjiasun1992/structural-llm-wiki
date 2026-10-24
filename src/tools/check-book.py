@@ -2,7 +2,8 @@
 """check-book: check a book the release action built (docs/book_execution_plan.md §2).
 
 Usage: python3 check-book.py BOOK.html [--book STAGED/book.json] [--max-bytes N]
-                             [--max-seconds N --seconds S] [--json]
+                             [--max-seconds N --seconds S]
+                             [--pdf BOOK.pdf [--min-pages N] [--max-pages N]] [--json]
 
 What it checks, in the single-file HTML:
   LINK_UNRESOLVED  a link within the book (href="#...") whose target id isn't there
@@ -13,6 +14,12 @@ What it checks, in the single-file HTML:
   REMOTE           a stylesheet, image or other resource fetched from the
                    network (links to the original sources are fine)
   SIZE, TIME       the file over --max-bytes, the build over --max-seconds
+With --pdf, the PDF Chrome printed from that HTML (poppler's pdfinfo, pdffonts and
+pdftotext, from poppler-utils):
+  PDF_PAGES        a page count outside --min-pages..--max-pages
+  PDF_FONT         a font not embedded, so the PDF looks different elsewhere
+  PDF_TEXT         a chapter's title missing from the PDF's text: glyphs that
+                   don't extract (empty boxes for Chinese, say)
 And, with --book, against what staging recorded:
   SVG_COUNT        fewer drawn diagrams and formulas than book.json lists
   BOOK_PROBLEM     a problem or warning book.json records (BOOK_LINK,
@@ -27,6 +34,7 @@ import html.parser
 import json
 import os
 import re
+import subprocess
 import sys
 
 
@@ -34,11 +42,16 @@ class _Scan(html.parser.HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.ids, self.links, self.remote, self.scripts, self.svgs, self.code = [], [], [], 0, 0, []
+        self.titles, self._title = [], None  # chapters' titles: a chapter's section is ch-<slug>
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
         if a.get('id'):
             self.ids.append(a['id'])
+        if tag == 'section' and (a.get('id') or '').startswith('ch-') and self._title is None:
+            self._title = 'next'
+        elif self._title == 'next' and re.match(r'h[1-6]\Z', tag):
+            self._title = []
         href = a.get('href') or ''
         if href.startswith('#'):
             self.links.append(href[1:])
@@ -52,6 +65,18 @@ class _Scan(html.parser.HTMLParser):
         classes = (a.get('class') or '').split()
         if any(c in ('highlight-mermaid', 'highlight-math', 'language-mermaid', 'language-math') for c in classes) or 'data-mjx-error' in a:
             self.code.append(f'<{tag} class="{a.get("class", "")}">')
+        if tag == 'a' and isinstance(self._title, list):  # a heading's ¶ link ends its title
+            self.titles.append(''.join(self._title).strip())
+            self._title = None
+
+    def handle_data(self, data):
+        if isinstance(self._title, list):
+            self._title.append(data)
+
+    def handle_endtag(self, tag):
+        if isinstance(self._title, list) and re.match(r'h[1-6]\Z', tag):
+            self.titles.append(''.join(self._title).strip())
+            self._title = None
 
 
 def check(text, book=None, max_bytes=None, seconds=None, max_seconds=None):
@@ -82,6 +107,31 @@ def check(text, book=None, max_bytes=None, seconds=None, max_seconds=None):
     return out
 
 
+def _tool(name, *args):
+    p = subprocess.run([name, *args], capture_output=True, text=True)
+    if p.returncode:
+        raise RuntimeError(f'{name} failed: {(p.stderr or p.stdout).strip()}')
+    return p.stdout
+
+
+def check_pdf(pdf, titles, min_pages=None, max_pages=None):
+    """[(code, message)] for the PDF printed from a book whose chapters have these titles."""
+    out = []
+    pages = int(re.search(r'^Pages:\s+(\d+)', _tool('pdfinfo', pdf), re.M).group(1))
+    if (min_pages is not None and pages < min_pages) or (max_pages is not None and pages > max_pages):
+        out.append(('PDF_PAGES', f'{pages} pages, outside {min_pages or 0}..{max_pages or "any"}'))
+    for line in _tool('pdffonts', pdf).split('\n')[2:]:
+        cols = line.split()
+        # name type [encoding] emb sub uni object generation: emb is the fifth column from the end
+        if len(cols) >= 7 and cols[-5] != 'yes':
+            out.append(('PDF_FONT', f'{cols[0]} isn\'t embedded'))
+    text = re.sub(r'\s+', '', _tool('pdftotext', '-enc', 'UTF-8', pdf, '-'))
+    for t in titles:
+        if re.sub(r'\s+', '', t) not in text:
+            out.append(('PDF_TEXT', f'"{t}" isn\'t in the PDF\'s text'))
+    return out
+
+
 def main(argv):
     p = argparse.ArgumentParser(prog='check-book.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('html')
@@ -89,9 +139,12 @@ def main(argv):
     p.add_argument('--max-bytes', type=int)
     p.add_argument('--seconds', type=int)
     p.add_argument('--max-seconds', type=int)
+    p.add_argument('--pdf')
+    p.add_argument('--min-pages', type=int)
+    p.add_argument('--max-pages', type=int)
     p.add_argument('--json', action='store_true')
     args = p.parse_args(argv)
-    for path in [args.html] + ([args.book] if args.book else []):
+    for path in [args.html] + ([args.book] if args.book else []) + ([args.pdf] if args.pdf else []):
         if not os.path.isfile(path):
             print(f'check-book.py: no file {path}', file=sys.stderr)
             return 2
@@ -102,6 +155,14 @@ def main(argv):
         with open(args.book, encoding='utf-8') as f:
             book = json.load(f)
     found = check(text, book, args.max_bytes, args.seconds, args.max_seconds)
+    if args.pdf:
+        scan = _Scan()
+        scan.feed(text)
+        try:
+            found += check_pdf(args.pdf, scan.titles, args.min_pages, args.max_pages)
+        except (OSError, RuntimeError) as e:
+            print(f'check-book.py: checking the PDF needs poppler-utils (pdfinfo, pdffonts, pdftotext): {e}', file=sys.stderr)
+            return 2
     if args.json:
         print(json.dumps({'errors': len(found), 'findings': [{'code': c, 'message': m} for c, m in found]}, indent=2, ensure_ascii=False))
     else:

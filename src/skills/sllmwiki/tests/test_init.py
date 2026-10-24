@@ -45,7 +45,7 @@ class Init(unittest.TestCase):
         book = self.read('.github/workflows/release-book.yml')
         self.assertIn('src/actions/release-book@mainline', book)
         self.assertIn('types: [published]', book)
-        self.assertIn('[structural-llm-wiki-release]\nhtml_book = false', self.read('Config.toml'))
+        self.assertIn('[structural-llm-wiki-release]\npdf_book = true', self.read('Config.toml'))
         self.assertEqual(json.loads(self.read('.claude/settings.json'))['enabledPlugins'], {'sllmwiki@structural-llm-wiki': True})
         self.assertEqual(helpers.git(self.root, 'log', '--format=%B').stdout,
                          '[sllmwiki][init] Set up the wiki\n\nPrompt:\n> Set up a wiki.\n> For the team.\n\n')
@@ -184,7 +184,7 @@ class Init(unittest.TestCase):
         mod = helpers.load_script('init.py')
         template = helpers.read(mod.WIKI, 'Config.toml')
         out = mod.add_missing_settings('[structural-llm-wiki-settings]\nmarkers = true\n', template)
-        self.assertIn('\n[structural-llm-wiki-release]\nhtml_book = false', out)
+        self.assertIn('\n[structural-llm-wiki-release]\npdf_book = true', out)
         self.assertEqual(mod.add_missing_settings(out, template), out)
 
     def test_settings_for_a_missing_table(self):

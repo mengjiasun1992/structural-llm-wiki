@@ -71,11 +71,27 @@ span[id^="document-"] + section::before, span[id^="document-"] + .headnote::befo
 /* After a chapter's closing credit, the next page needs no second mark. */
 section[id^="ch-"]:has(.endmark) + span[id^="document-"] + :is(section, .headnote) { background: none; margin-top: 3.5rem; padding-top: 0; }
 section[id^="ch-"]:has(.endmark) + span[id^="document-"] + :is(section, .headnote)::before { content: none; }
+/* The PDF (Chrome prints the single-file HTML): A4, page numbers at the foot of every page but the cover;
+   book.py build adds the book's title as the running head. The cover, the front page and the contents each
+   take a page, and every part, section and chapter starts a new one. */
+@page { size: A4; margin: 22mm 20mm 24mm;
+        @bottom-center { content: counter(page); font: 9pt "Noto Sans", sans-serif; color: #666; } }
+@page :first { @top-center { content: none; } @bottom-center { content: none; } }
 @media print {
-  :root { --bg: #fff; --fg: #000; --card: #fff; }
-  body { max-width: none; padding: 0; font-size: 11pt; }
+  :root { --bg: #fff; --fg: #000; --muted: #555; --card: #fff; --link: #1f4f8a; }
+  html, body { background: #fff; }
+  body { max-width: none; padding: 0; font-size: 10.5pt; line-height: 1.5; }
+  #book-cover > h1:first-child { font-size: 30pt; margin-top: 60mm; }
+  #book-about, #book-contents { break-before: page; }
   .headnote .to-contents { display: none; }
   span[id^="document-"] + section, span[id^="document-"] + .headnote { background: none; margin-top: 0; padding-top: 0; break-before: page; }
   span[id^="document-"] + section::before, span[id^="document-"] + .headnote::before { content: none; }
-  .diagram, table, pre, .math.display { break-inside: avoid; }
+  section[id^="ch-"]:has(.endmark) + span[id^="document-"] + :is(section, .headnote) { margin-top: 0; }
+  h1, h2, h3, h4, h5, h6 { break-after: avoid; }
+  p, li { orphans: 3; widows: 3; }
+  .diagram, table, pre, .math.display, .admonition { break-inside: avoid; }
+  .diagram { padding: 0; }
+  .diagram svg { max-height: 220mm; }
+  a { text-decoration: none; }
+  table { display: table; font-size: 9pt; }
 }

@@ -39,8 +39,11 @@ inputs:
 
 outputs:
   html:
-    description: The single-file HTML book
+    description: The single-file HTML book (also built when only the PDF is asked for, which is printed from it)
     value: ${{ steps.build.outputs.html }}
+  pdf:
+    description: The PDF book
+    value: ${{ steps.build.outputs.pdf }}
   json:
     description: The staged book's book.json (order, problems, warnings)
     value: ${{ steps.build.outputs.json }}
@@ -59,6 +62,30 @@ runs:
       shell: bash
       run: python3 -m pip install --quiet --disable-pip-version-check sphinx==9.1.0 myst-parser==5.1.0
 
+    # the input's formats, else the ones the wiki's Config.toml turns on
+    - name: Which formats
+      id: formats
+      shell: bash
+      env:
+        WIKI: ${{ inputs.wiki }}
+        FORMATS: ${{ inputs.formats }}
+      run: |
+        if [ -z "$FORMATS" ]; then
+          FORMATS=$(python3 -c 'import sys; sys.path.insert(0, sys.argv[1]); from lib import config; print(",".join(config.get(sys.argv[2]).book_formats()))' \
+            "$GITHUB_ACTION_PATH/../../skills/sllmwiki/scripts" "$WIKI")
+        fi
+        echo "formats=$FORMATS" >> "$GITHUB_OUTPUT"
+
+    # the PDF is printed with these fonts, so Chinese, math and the title's 📖 print (an HTML book uses the reader's)
+    - name: Fonts for the PDF
+      if: contains(steps.formats.outputs.formats, 'pdf')
+      shell: bash
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq --no-install-recommends fonts-noto-core fonts-noto-mono fonts-noto-cjk fonts-noto-color-emoji > /dev/null
+        fc-cache -f
+        fc-list : family | grep -E '^Noto (Sans|Serif)(,| CJK SC| Math| Mono|$)|Noto Color Emoji' | sort -u | head -12
+
     # each SVG is kept by its source and the libraries' hash, so a release draws only what changed
     - name: Restore the drawn diagrams and math
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4.3.0
@@ -73,7 +100,7 @@ runs:
       env:
         WIKI: ${{ inputs.wiki }}
         VERSION: ${{ inputs.version }}
-        FORMATS: ${{ inputs.formats }}
+        FORMATS: ${{ steps.formats.outputs.formats }}
         NAME: ${{ inputs.name || github.event.repository.name }}
         SOURCE: ${{ inputs.source }}
         OUT: ${{ runner.temp }}/book
@@ -82,13 +109,14 @@ runs:
         start=$(date +%s)
         status=0
         python3 "$GITHUB_ACTION_PATH/../../skills/sllmwiki/scripts/book.py" build "$OUT" --root "$WIKI" \
-          ${FORMATS:+--formats "$FORMATS"} --vendor "$GITHUB_ACTION_PATH/vendor" --cache "$RUNNER_TEMP/book-svgs" \
+          --formats "$FORMATS" --vendor "$GITHUB_ACTION_PATH/vendor" --cache "$RUNNER_TEMP/book-svgs" \
           --sphinx "python3 -m sphinx" --version "$VERSION" --name "$NAME" --source "$source" || status=$?
         echo "seconds=$(( $(date +%s) - start ))" >> "$GITHUB_OUTPUT"
         echo "json=$OUT/staged/book.json" >> "$GITHUB_OUTPUT"
         echo "status=$status" >> "$GITHUB_OUTPUT"
-        html="$OUT/$NAME-$VERSION.html"
-        if [ -f "$html" ]; then echo "html=$html" >> "$GITHUB_OUTPUT"; fi
+        for ext in html pdf; do
+          if [ -f "$OUT/$NAME-$VERSION.$ext" ]; then echo "$ext=$OUT/$NAME-$VERSION.$ext" >> "$GITHUB_OUTPUT"; fi
+        done
 
     # each built file goes to the release, and what went wrong to its notes
     - name: Attach the book to the release
@@ -115,6 +143,7 @@ runs:
         name: book-${{ inputs.version }}
         path: |
           ${{ runner.temp }}/book/*.html
+          ${{ runner.temp }}/book/*.pdf
           ${{ runner.temp }}/book/staged/book.json
         if-no-files-found: warn
 

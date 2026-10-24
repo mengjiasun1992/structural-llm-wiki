@@ -166,9 +166,9 @@ and the evals pass 3 runs in 3.
 
 | # | Code change | What it does |
 |---|---|---|
-| B4.1 | `book.css` print rules | Cover page; a new page per part and chapter; page numbers and a running header (Chrome's header and footer templates); no table or diagram split across pages where it fits on one |
+| B4.1 | `book.css` print rules | Cover page; a new page per part and chapter; page numbers and the book's title as a running head (CSS page margin boxes, no browser driver); no table or diagram split across pages where it fits on one |
 | B4.2 | `book.py build --formats pdf` | Chrome prints the single-file HTML to `<wiki>-<version>.pdf` |
-| B4.3 | The action | Install Noto Sans, Noto Sans CJK and Noto Sans Math |
+| B4.3 | The action | Install the distribution's Noto fonts (Sans, Serif, Mono, Math, CJK, Color Emoji) when the PDF is on |
 | B4.4 | `Config.toml` | `pdf_book`, default `true` |
 
 **Test.** `check-book` on the fixture: page count, embedded fonts, the Chinese

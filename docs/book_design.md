@@ -298,12 +298,16 @@ shouldn't carry to every install, stay in the action (`render --vendor`):
   into one file, `<wiki>-<version>.html`. The same step drops the theme's
   navigation bars and scripts, and rewrites the links `singlehtml` writes
   between documents, `#document-<doc>#<id>`, to `#<id>`.
-- **PDF:** Chrome prints that file with the print stylesheet: the cover on its
-  own page, each part and chapter on a new page, page numbers and a running
-  header. Fonts: the action installs Noto Sans, Noto Sans CJK and Noto Sans
-  Math, so Chinese text and Unicode such as `ₜ₊₁` print correctly. Chrome
-  embeds the CJK font as Type 3 glyphs (it does so for CFF and variable fonts);
-  the text still extracts as Chinese, which is what the check tests.
+- **PDF:** Chrome prints that file with the print stylesheet: A4; the cover,
+  the front page and the contents each on a page; each part and chapter on a
+  new page; page numbers, and the book's title as a running head, from CSS
+  page margin boxes (`@page { @bottom-center { … } }`, in Chrome since 131),
+  so no browser driver is needed; no table or diagram split where it fits on
+  a page. Fonts: the action installs the distribution's Noto fonts (Sans,
+  Serif, Mono, Math, CJK, and Color Emoji for the title's 📖) when a release
+  builds the PDF, so Chinese text and Unicode such as `ₜ₊₁` print correctly.
+  Chrome embeds a CJK or color font as Type 3 glyphs; the text still extracts,
+  which is what the check tests.
 - **EPUB:** Sphinx's EPUB 3 with the cover, a navigation document from the
   contents, inline SVG, and a small-screen stylesheet (wide tables scroll,
   diagrams fit the width). Sphinx doesn't declare the pages that hold inline
