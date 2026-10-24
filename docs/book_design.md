@@ -207,30 +207,55 @@ the cover and front page, one file per part, the chapters rewritten as in
 anchor, every diagram and formula to render, and any problem found. The pull
 request check (§7) runs this stage and nothing else.
 
+Staging owns every anchor in the book. It gives each heading a label unique
+across the book, made of its chapter and its GitHub anchor (from
+`numbering.anchors`, which also numbers repeated headings as GitHub does),
+written as a MyST target before the heading, and it rewrites every link (to a
+section, a chapter, a source or a part) to its label. Sphinx's own section ids
+can't do this job (§6.4). Diagrams are ```` ```mermaid ```` blocks; math is
+`$…$`, `$$…$$` and ```` ```math ```` blocks, GitHub's three forms, never inside
+code.
+
 ### 6.3 Pre-render (`scripts/book.py render`)
 
 Headless Chrome, already on GitHub's runners, loads pinned copies of
 mermaid.js and MathJax 3 (bundled in the action, not fetched) and turns each
-diagram and formula listed in `book.json` into SVG. Inline math keeps
+diagram and formula listed in `book.json` into SVG. The script stays standard
+library: it writes one page that renders every item, runs Chrome with
+`--dump-dom` and a virtual time budget, and reads the SVGs back from the
+page. A hundred items take about 3 seconds. Inline math keeps
 MathJax's vertical alignment, so it sits on the text line; every SVG keeps its
 source as alt text, for screen readers and copying. Results are cached by a
 hash of the source and the library versions (the Actions cache), so a
 release renders only what changed.
 
+Each SVG is made to stand alone and to be valid XML, so the same markup works
+in HTML, in print and in an EPUB's XHTML: mermaid draws its labels as SVG text,
+not HTML (`htmlLabels: false`); MathJax writes its glyphs into each formula
+(`fontCache: 'none'`), not into shared definitions; every id is prefixed by
+the item, and an id mermaid repeats inside one diagram is renamed; a `rect`
+gets the `width` and `height` SVG 1.1 requires; and the alt text replaces any
+`role` or `aria-label` the library set. Diagrams use the book's font.
+
 Why everything becomes SVG, for every format: EPUB readers don't run
 JavaScript, and an HTML book that fetches MathJax from a CDN shows raw TeX
 offline. One static rendering makes the three formats identical. mermaid.js
 and MathJax are pinned close to the versions GitHub uses, so what GitHub draws
-in review is what the book draws.
+in review is what the book draws. GitHub's mermaid version can be read from its
+viewer's script (`renderer.draw(…, "12.2.0", …)` in October 2026).
 
 ### 6.4 Sphinx (the release action)
 
 Sphinx with MyST-Parser reads the staged folder, using a `conf.py` that ships
 with the action, so no Sphinx file lives in the wiki:
 
-- **Anchors match GitHub's by construction:** `myst_heading_slug_func` is the
-  skill's own `numbering.anchor`, which keeps non-ASCII characters, so links
-  into a Chinese narrative work too.
+- **Ids are staging's labels:** Sphinx gives a section its own id from its
+  title (`abstract` in every chapter, `id4` for a Chinese heading) and keeps a
+  label as a second id. A `doctree-read` hook in `conf.py` makes the label the
+  section's only id, so every id in the single-file book is unique and the
+  contents and heading links use the labels too. Setting
+  `myst_heading_slug_func` doesn't help: it only resolves links, and a
+  function in `conf.py` can't be cached.
 - **MyST extensions:** `dollarmath` is off (math is already SVG); GitHub alerts
   become admonitions.
 - **Theme:** Sphinx's `basic` theme with the action's own stylesheet: one
@@ -238,19 +263,26 @@ with the action, so no Sphinx file lives in the wiki:
 - **Language:** Sphinx's `language` is the wiki's `language` (Config.toml);
   generated labels (Appendix, Glossary, Sources) come from the language pack.
 - **Builders:** `singlehtml` for the HTML and PDF, `epub` for the EPUB, reusing
-  one doctree cache.
+  one doctree cache. The EPUB builder needs `version` and `copyright` set: the
+  release version, and the wiki's name.
 
 ### 6.5 The three outputs
 
 - **HTML:** the `singlehtml` output with its stylesheet and images inlined
-  into one file, `<wiki>-<version>.html`.
+  into one file, `<wiki>-<version>.html`. The same step drops the theme's
+  navigation bars and scripts, and rewrites the links `singlehtml` writes
+  between documents, `#document-<doc>#<id>`, to `#<id>`.
 - **PDF:** Chrome prints that file with the print stylesheet: the cover on its
   own page, each part and chapter on a new page, page numbers and a running
   header. Fonts: the action installs Noto Sans, Noto Sans CJK and Noto Sans
-  Math, so Chinese text and Unicode such as `ₜ₊₁` print correctly.
+  Math, so Chinese text and Unicode such as `ₜ₊₁` print correctly. Chrome
+  embeds the CJK font as Type 3 glyphs (it does so for CFF and variable fonts);
+  the text still extracts as Chinese, which is what the check tests.
 - **EPUB:** Sphinx's EPUB 3 with the cover, a navigation document from the
   contents, inline SVG, and a small-screen stylesheet (wide tables scroll,
-  diagrams fit the width). Validated with `epubcheck`.
+  diagrams fit the width). Sphinx doesn't declare the pages that hold inline
+  SVG (`properties="svg"` in the package file), so the build adds it.
+  Validated with `epubcheck`.
 
 ### 6.6 The release workflow and action
 

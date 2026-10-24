@@ -94,7 +94,7 @@ every pull request. No Sphinx yet, and no setting.
 | # | Code change | What it does |
 |---|---|---|
 | B1.1 | `lib/book.py`: the model | Parts from `tags.yaml`; each narrative under its primary tag; chapter order (`built_on` topologically, then template, then question); the sources each chapter cites |
-| B1.2 | `lib/book.py`: rewriting | Citations to Appendix A entries; links to narratives to chapter anchors; links to tag pages and the index to parts; figures copied; Metadata reduced to a version line |
+| B1.2 | `lib/book.py`: rewriting | A label unique across the book before every heading (design §6.2); citations to Appendix A entries; links to sections and chapters to their labels; links to tag pages and the index to parts; figures copied; Metadata reduced to a version line |
 | B1.3 | `lib/book.py`: generated pages | Cover and front page (§9 of the design, in the wiki's language through its language pack); parts' opening pages; Appendix A (sources), B (glossary, grouped by term) and C (open questions) |
 | B1.4 | `scripts/book.py stage <out>` | Writes the folder and `book.json` (order, anchors, diagrams and formulas to render, problems) |
 | B1.5 | `wiki-checks` action and `wiki-check.py` | Run staging into a temporary folder on every pull request; report `BOOK_LINK` (a link or anchor that won't resolve), `BOOK_CYCLE` (a `built_on` cycle) and `BOOK_FIGURE` (a missing figure) |
@@ -123,8 +123,8 @@ computer.
 | # | Code change | What it does |
 |---|---|---|
 | B2.1 | `scripts/book.py render` | Headless Chrome with the pinned mermaid.js and MathJax (vendored in the action) turns everything in `book.json` into SVG, with its source as alt text; cached by content hash |
-| B2.2 | `src/actions/release-book/conf.py`, `book.css` | Sphinx and MyST settings (anchors through `numbering.anchor`, alerts as admonitions, the wiki's language); the `basic` theme with one stylesheet |
-| B2.3 | `scripts/book.py build --formats html` | Stage, render, `sphinx-build -b singlehtml`, then inline the stylesheet and images into `<wiki>-<version>.html` |
+| B2.2 | `src/actions/release-book/conf.py`, `book.css` | Sphinx and MyST settings (the hook that makes staging's labels the section ids, alerts as admonitions, the wiki's language, `version` and `copyright`); the `basic` theme with one stylesheet |
+| B2.3 | `scripts/book.py build --formats html` | Stage, render, `sphinx-build -b singlehtml`, then inline the stylesheet and images into `<wiki>-<version>.html`, drop the theme's navigation and scripts, and rewrite `#document-<doc>#<id>` links to `#<id>` |
 | B2.4 | `src/actions/release-book/action.yml` | Install the pinned tools and fonts (cached), run `book.py build`, upload the result as an artifact (previews only, for now) |
 | B2.5 | `.github/workflows/check-book.yml`, `src/tools/check-book.py` | Build the fixture wiki on pull requests that touch the book, and check the output (§2) |
 
@@ -214,9 +214,11 @@ would it have failed, and were those real errors?
 
 | What | Value | Revisit |
 |---|---|---|
-| Sphinx, MyST-Parser | the versions B0 confirms, pinned in the action | each quarter, with a `check-book` run |
-| mermaid.js, MathJax | close to the versions GitHub renders with, vendored | when GitHub's change |
-| Fonts | Noto Sans, Noto Sans CJK, Noto Sans Math | when a language pack needs another script |
+| Sphinx, MyST-Parser | 9.1.0 and 5.1.0, pinned in the action | each quarter, with a `check-book` run |
+| mermaid.js | 12.2.0, GitHub's in October 2026, vendored | when GitHub's changes |
+| MathJax | 3.2.2 (`tex-svg-full.js`), vendored; GitHub's version not yet confirmed | when B6 or GitHub shows a difference |
+| epubcheck | 5.3.0, on the runner's Java 17 | each quarter |
+| Fonts | Noto Sans, Noto Sans Math (notofonts), Noto Sans CJK SC (noto-cjk, OTF) | when a language pack needs another script |
 | Build time, a few dozen narratives | under 4 minutes cold, 3 cached | if a real wiki exceeds it |
 | PR check time | staging under 10 seconds; diagram and math parse under 30 | the same |
 | File size, the demo wiki | PDF under 10 MB; EPUB and HTML under 5 MB | the same |
@@ -246,7 +248,8 @@ Read by the owner for each phase's evaluation:
 
 | Risk | Mitigation |
 |---|---|
-| Inline SVG behaves differently across e-readers | B0 checks it first; fall back to SVG images (`<img>`) for diagrams, keeping inline SVG for math |
+| Inline SVG behaves differently across e-readers | `epubcheck` passes (B0); B5's reading in Apple Books, Calibre and Kindle decides; fall back to SVG images (`<img>`) for diagrams, keeping inline SVG for math |
+| A wide left-to-right diagram, scaled to the page, has text too small to read in the PDF | B4: a minimum scale, and a wide diagram on a landscape page or across the full page width |
 | GitHub's mermaid or MathJax version moves, and a diagram GitHub draws doesn't parse in the book | pin close to GitHub's; B6's check uses the same versions as the book, so a mismatch shows on a pull request |
 | Sphinx warns on something the wiki considers valid | the warning goes to the release notes; recurring ones become a staging rewrite or a compat rule |
 | Releases cost more Actions minutes than expected | the cache; only the formats that are on are built |
