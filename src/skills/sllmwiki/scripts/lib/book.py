@@ -340,29 +340,53 @@ def title(tag, text):
 
 
 def _link(book, slug):
-    return f'[{book.chapters[slug].question}](#{chapter_label(slug)})'
+    text = book.chapters[slug].question.replace('[', '\\[').replace(']', '\\]')
+    return f'[{text}](#{chapter_label(slug)})'
 
 
-def _toctree(entries, depth):
-    return f'```{{toctree}}\n:maxdepth: {depth}\n\n' + ''.join(f'{e}\n' for e in entries) + '```\n'
+def _toctree(entries):
+    """Sphinx's structure, hidden: a single-file book would put the pages it lists in its place,
+    so the contents and the parts' maps are lists of links instead."""
+    return '```{toctree}\n:hidden:\n\n' + ''.join(f'{e}\n' for e in entries) + '```\n'
 
 
-def cover(name, version, date, commit, pack, entries):
-    """index.md: the cover, the front page (design §9) and the contents."""
+def part_title(book, part):
+    words = ' '.join([part.description] + [book.chapters[c].question for c in part.chapters + part.see_also])
+    return _escape(title(part.tag, words))
+
+
+def _map(book, part, depth=0):
+    """A part's chapters and sections as a list of links, each section with its own."""
+    pad = '  ' * depth
+    out = ''.join(f'{pad}- {_link(book, c)}\n' for c in part.chapters)
+    for s in part.sections:
+        out += f'{pad}- [{part_title(book, s)}](#{part_label(s.tag)})\n' + _map(book, s, depth + 1)
+    return out
+
+
+def contents(book, pack, appendices):
+    """The contents: each part with its sections and chapters, then the appendices (labels and titles)."""
+    out = ''
+    for p in book.parts:
+        out += f'- [{part_title(book, p)}](#{part_label(p.tag)})\n' + _map(book, p, 1)
+    return out + ''.join(f'- [{pack.t(t)}](#{label})\n' for label, t in appendices)
+
+
+def cover(name, version, date, commit, pack, entries, listing):
+    """index.md: the cover, the front page (design §9) and the contents (listing)."""
     meta = ' · '.join(f'**{pack.t(k)}:** {v}' for k, v in (('Version', version), ('Date', date), ('Commit', f'`{commit}`' if commit else '')) if v)
     marks = ''.join(f'- **{m}**: {pack.t(d)}\n' for m, d in markers.MARKERS.items())
     return (f'({COVER})=\n# {_escape(name)}\n\n{meta}\n\n({ABOUT})=\n## {pack.t("About this book")}\n\n'
             f'{" ".join(pack.t(t) for t in FRONT)}\n\n{pack.t(CITING)}\n\n{marks}\n'
-            f'({CONTENTS})=\n## {pack.t("Contents")}\n\n' + _toctree(entries, 2))
+            f'({CONTENTS})=\n## {pack.t("Contents")}\n\n{listing}\n' + _toctree(entries))
 
 
 def part_page(book, part, pack):
-    """parts/<tag>.md: the tag's title and description, its chapters and sections, and its see-also."""
-    words = ' '.join([part.description] + [book.chapters[c].question for c in part.chapters + part.see_also])
-    text = f'({part_label(part.tag)})=\n# {_escape(title(part.tag, words))}\n\n{_escape(part.description)}\n\n'
+    """parts/<tag>.md: the tag's title and description, a map of its chapters and sections, and its see-also."""
+    text = f'({part_label(part.tag)})=\n# {part_title(book, part)}\n\n{_escape(part.description)}\n\n'
     entries = [f'../chapters/{c}' for c in part.chapters] + [s.tag for s in part.sections]
     if entries:
-        text += _toctree(entries, 1) + '\n'
+        text += _map(book, part) + '\n' + _toctree(entries) + '\n'
     if part.see_also:
         text += f'**{pack.t("See also")}:** ' + ', '.join(_link(book, c) for c in part.see_also) + '\n'
     return text.rstrip('\n') + '\n'
@@ -480,8 +504,9 @@ def stage(root, name, version, date, commit):
     for file, text in pages:
         if text:
             files[f'{file}.md'] = text
-    files['index.md'] = cover(name, version, date, commit, pack,
-                              [f'parts/{p.tag}' for p in b.parts] + [f for f, t in pages if t])
+    made = [(label, t, file) for (label, t, file), (_, text) in zip(APPENDICES, pages) if text]
+    files['index.md'] = cover(name, version, date, commit, pack, [f'parts/{p.tag}' for p in b.parts] + [f for _, _, f in made],
+                              contents(b, pack, [(label, t) for label, t, _ in made]))
     renders = {}
     for path, text in sorted(files.items()):
         for r in compat.renderables(text):

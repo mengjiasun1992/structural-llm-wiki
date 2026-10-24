@@ -210,6 +210,10 @@ class Pages(unittest.TestCase):
         self.assertEqual(book.title('data-partitioning', 'Data partitioning. Partitioning by key'), 'Data partitioning')  # a sentence's start says nothing
         self.assertEqual(book.title('ewma', ''), 'Ewma')
 
+    def test_a_question_with_brackets_keeps_its_link(self):
+        b = book.Book([], {'q': book.Chapter('q', 'What is [x]?', 'survey', 't')}, [])
+        self.assertEqual(book._link(b, 'q'), '[What is \\[x\\]?](#ch--q)')
+
     def test_terms(self):
         text = ('# Q\n\n## 2. Terminology\n\n| Term | Definition |\n|---|---|\n| **A** | One `a|b` thing \\| or another. |\n'
                 '| **[?]** | A gap. |\n| **B** | Two | cells |\n\n## 3. Next\n\n| X | Y |\n|---|---|\n| **C** | no |\n')
@@ -235,10 +239,15 @@ class Stage(unittest.TestCase):
         self.assertTrue(index.startswith('(book--cover)=\n# my-wiki\n\n**Version:** v2026.10.24 · **Date:** 2026-10-24 · **Commit:** `abc1234`\n'))
         self.assertIn("## About this book\n\nThe narratives in this book are the wiki owner's work.", index)
         self.assertIn('- **[?]**: A gap', index)
-        self.assertIn('```{toctree}\n:maxdepth: 2\n\nparts/root-topic\nappendix-sources\nappendix-glossary\nappendix-questions\n```\n', index)
+        self.assertIn('## Contents\n\n- [Root topic](#part--root-topic)\n  - [Leaf a](#part--leaf-a)\n    - [什么是重试？](#ch--zh-what-is-retry)\n'
+                      '    - [What is alpha?](#ch--what-is-alpha)\n  - [Leaf b](#part--leaf-b)\n    - [How does beta work?](#ch--how-does-beta-work)\n'
+                      '- [Appendix A: Sources](#book--sources)\n- [Appendix B: Glossary](#book--glossary)\n- [Appendix C: Open questions](#book--questions)\n\n'
+                      '```{toctree}\n:hidden:\n\nparts/root-topic\nappendix-sources\nappendix-glossary\nappendix-questions\n```\n', index)
         self.assertEqual(st.files['parts/root-topic.md'],
-                         '(part--root-topic)=\n# Root topic\n\nThe root topic\n\n```{toctree}\n:maxdepth: 1\n\nleaf-a\nleaf-b\n```\n')
-        self.assertIn('```{toctree}\n:maxdepth: 1\n\n../chapters/zh-what-is-retry\n../chapters/what-is-alpha\n```\n\n'
+                         '(part--root-topic)=\n# Root topic\n\nThe root topic\n\n- [Leaf a](#part--leaf-a)\n  - [什么是重试？](#ch--zh-what-is-retry)\n'
+                         '  - [What is alpha?](#ch--what-is-alpha)\n- [Leaf b](#part--leaf-b)\n  - [How does beta work?](#ch--how-does-beta-work)\n\n'
+                         '```{toctree}\n:hidden:\n\nleaf-a\nleaf-b\n```\n')
+        self.assertIn('```{toctree}\n:hidden:\n\n../chapters/zh-what-is-retry\n../chapters/what-is-alpha\n```\n\n'
                       '**See also:** [How does beta work?](#ch--how-does-beta-work)\n', st.files['parts/leaf-a.md'])
         sources = st.files['appendix-sources.md']
         self.assertIn('(src--alpha-doc)=\n## alpha-doc\n\nAlpha systems and how they retry failed requests.\n\n- **License:** CC-BY-4.0\n'
@@ -280,7 +289,7 @@ class Stage(unittest.TestCase):
         helpers.write(root, 'sllmwiki/narratives/what-is-alpha.md', '# What is alpha?\n\nNothing cited.\n')
         st = book.stage(root, 'w', 'v', 'd', 'c')
         self.assertEqual(sorted(st.files), ['chapters/what-is-alpha.md', 'index.md', 'parts/leaf-a.md', 'parts/root-topic.md'])
-        self.assertIn(':maxdepth: 2\n\nparts/root-topic\n```', st.files['index.md'])
+        self.assertIn(':hidden:\n\nparts/root-topic\n```', st.files['index.md'])
 
     def test_the_command(self):
         out = os.path.join(self.tmp, 'out')
