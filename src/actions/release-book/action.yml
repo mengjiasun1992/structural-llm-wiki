@@ -3,14 +3,13 @@
 # libraries in vendor/, and runs Sphinx. Chrome is already on GitHub's
 # runners; Sphinx and MyST-Parser are installed at their pinned versions.
 #
-# In a wiki's workflow (the release workflow, B3, will install one):
-#   steps:
-#     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
-#     - uses: mengjiasun1992/structural-llm-wiki/src/actions/release-book@mainline
-#       with:
-#         version: v2026.10.24
-#
-# The book's name is the repository's, and its cover links to the repository.
+# A wiki's release workflow (templates/release-book.yml, which init installs)
+# calls it on a published release, with the release's tag: each format
+# Config.toml turns on is attached to the release, and anything that went
+# wrong is appended to its notes under "Known issues"; a format that fails
+# doesn't stop the others. Without a release, the files are kept as a
+# workflow artifact (a preview). The book's name is the repository's, and its
+# cover links to the repository.
 
 name: Structural LLM Wiki Book
 description: Build a Structural LLM Wiki as a book, and keep it as a workflow artifact.
@@ -23,8 +22,11 @@ inputs:
     description: The book's version, on its cover and in its file name
     default: preview
   formats:
-    description: The formats to build, comma-separated (html for now)
-    default: html
+    description: The formats to build, comma-separated (default, the ones Config.toml turns on)
+    default: ''
+  release:
+    description: The release to attach the files to, by its tag (default, none, a preview)
+    default: ''
   name:
     description: The book's name (default, the repository's)
     default: ''
@@ -80,16 +82,34 @@ runs:
         start=$(date +%s)
         status=0
         python3 "$GITHUB_ACTION_PATH/../../skills/sllmwiki/scripts/book.py" build "$OUT" --root "$WIKI" \
-          --formats "$FORMATS" --vendor "$GITHUB_ACTION_PATH/vendor" --cache "$RUNNER_TEMP/book-svgs" \
+          ${FORMATS:+--formats "$FORMATS"} --vendor "$GITHUB_ACTION_PATH/vendor" --cache "$RUNNER_TEMP/book-svgs" \
           --sphinx "python3 -m sphinx" --version "$VERSION" --name "$NAME" --source "$source" || status=$?
         echo "seconds=$(( $(date +%s) - start ))" >> "$GITHUB_OUTPUT"
         echo "json=$OUT/staged/book.json" >> "$GITHUB_OUTPUT"
+        echo "status=$status" >> "$GITHUB_OUTPUT"
         html="$OUT/$NAME-$VERSION.html"
-        [ -f "$html" ] && echo "html=$html" >> "$GITHUB_OUTPUT"
-        exit "$status"
+        if [ -f "$html" ]; then echo "html=$html" >> "$GITHUB_OUTPUT"; fi
+
+    # each built file goes to the release, and what went wrong to its notes
+    - name: Attach the book to the release
+      if: inputs.release != '' && steps.build.outputs.json != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        TAG: ${{ inputs.release }}
+        WIKI: ${{ inputs.wiki }}
+        BOOK_JSON: ${{ steps.build.outputs.json }}
+      run: |
+        python3 -c "import json, sys; print('\n'.join(json.load(open(sys.argv[1])).get('files', {}).values()))" "$BOOK_JSON" |
+          while read -r file; do [ -n "$file" ] && gh release upload "$TAG" "$file" --clobber; done
+        issues=$(python3 "$GITHUB_ACTION_PATH/../../skills/sllmwiki/scripts/book.py" issues "$(dirname "$BOOK_JSON")" --root "$WIKI")
+        if [ -n "$issues" ]; then
+          { gh release view "$TAG" --json body -q .body; printf '\n\n%s\n' "$issues"; } > "$RUNNER_TEMP/notes.md"
+          gh release edit "$TAG" --notes-file "$RUNNER_TEMP/notes.md"
+        fi
 
     - name: Keep the book as a workflow artifact
-      if: inputs.upload == 'true' && (success() || failure()) && steps.build.outputs.json != ''
+      if: inputs.upload == 'true' && inputs.release == '' && steps.build.outputs.json != ''
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
       with:
         name: book-${{ inputs.version }}
@@ -97,3 +117,10 @@ runs:
           ${{ runner.temp }}/book/*.html
           ${{ runner.temp }}/book/staged/book.json
         if-no-files-found: warn
+
+    - name: Fail when a format failed
+      if: steps.build.outputs.status != '0'
+      shell: bash
+      run: |
+        echo "The book's build failed for at least one format: see the build step and the release notes."
+        exit 1

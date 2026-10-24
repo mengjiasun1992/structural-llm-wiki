@@ -30,7 +30,7 @@ def chinese(text):
 
 
 BOOK = ['Contents', 'About this book', 'See also', 'Appendix A: Sources', 'Appendix B: Glossary', 'Appendix C: Open questions',
-        'Version', 'Date', 'Commit', 'License', 'Published', 'Cited by', 'Original',
+        'Version', 'Date', 'Commit', 'License', 'Published', 'Cited by', 'Known issues', 'Original',
         'Made by {tool} and {models}, from {source}.', 'Made by {tool}, from {source}.']
 
 

@@ -606,3 +606,12 @@ def check(root):
                 continue
             out.append(('error', code, where, f'{message}, in the book'))
     return out
+
+
+def issues(data, pack=None):
+    """The release notes' Known issues section for a built book's book.json: its problems,
+    warnings and failed formats; '' when there are none."""
+    pack = pack or language.ENGLISH
+    lines = [f'- {f["code"]} {f["where"]}: {f["message"]}' for f in data.get('problems', []) + data.get('warnings', [])]
+    lines += [f'- {fmt}: {why}' for fmt, why in (data.get('failed') or {}).items()]
+    return f'### {pack.t("Known issues")}\n\n' + '\n'.join(lines) + '\n' if lines else ''

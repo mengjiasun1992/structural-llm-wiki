@@ -19,3 +19,7 @@ language = "en"             # narratives' language, such as "zh-Hans"; sources k
 
 [structural-llm-wiki-addons]
 obsidian = false            # true: set the wiki up to open sllmwiki/ as an Obsidian vault (rerun /sllmwiki:init)
+
+# The book a release attaches, each format turned on on its own (/sllmwiki:release builds it).
+[structural-llm-wiki-release]
+html_book = false           # one self-contained HTML file, for a browser

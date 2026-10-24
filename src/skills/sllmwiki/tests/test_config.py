@@ -95,6 +95,18 @@ class Addons(unittest.TestCase):
         self.assertIn('obsidian must be true or false', problems('[structural-llm-wiki-addons]\nobsidian = "yes"\n')[0])
 
 
+class Release(unittest.TestCase):
+    def test_the_book_formats(self):
+        self.assertEqual(parse('').book_formats(), [])  # every format off by default, for now
+        c = parse('[structural-llm-wiki-release]\nhtml_book = true\n')
+        self.assertEqual((c.release, c.book_formats()), ({'html_book': True}, ['html']))
+
+    def test_bad_release_settings(self):
+        self.assertIn('unknown setting structural-llm-wiki-release.pdf_book (known: html_book)',
+                      problems('[structural-llm-wiki-release]\npdf_book = true\n')[0])
+        self.assertIn('html_book must be true or false', problems('[structural-llm-wiki-release]\nhtml_book = "yes"\n')[0])
+
+
 class Tables(unittest.TestCase):
     def test_other_tools_tables_are_left_alone(self):
         c = parse('[tool.ruff]\nline-length = 200\n\n[structural-llm-wiki-addons]\nobsidian = true\n')

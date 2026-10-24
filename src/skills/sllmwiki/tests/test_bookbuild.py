@@ -216,15 +216,15 @@ class Commands(unittest.TestCase):
         staged = os.path.join(self.tmp, 'staged')
         for argv, says in [(['render', staged], 'needs --vendor'), (['render', staged, '--vendor', self.tmp], 'needs --vendor'),
                            (['render', staged, '--vendor', self.vendor], "isn't a staged book"),
-                           (['build', staged, '--vendor', self.vendor, '--formats', 'pdf'], 'only be html'),
-                           (['build', staged, '--vendor', self.vendor, '--formats', ','], 'only be html')]:
+                           (['build', staged, '--vendor', self.vendor, '--formats', 'pdf'], '--formats can be html, not pdf'),
+                           (['build', staged, '--vendor', self.vendor, '--formats', ','], 'not nothing')]:
             r = self.book(*argv)
             self.assertEqual(r.code, 2, argv)
             self.assertIn(says, r.err, argv)
 
     def test_build(self):
         out = os.path.join(self.tmp, 'out')
-        r = self.book('build', out, '--vendor', self.vendor, '--chrome', self.chrome, '--sphinx', self.sphinx, '--version', 'v1')
+        r = self.book('build', out, '--vendor', self.vendor, '--formats', 'html', '--chrome', self.chrome, '--sphinx', self.sphinx, '--version', 'v1')
         self.assertEqual(r.code, 0, r.err)
         name = os.path.basename(self.root)
         html = os.path.join(out, f'{name}-v1.html')
@@ -241,8 +241,38 @@ class Commands(unittest.TestCase):
         r = self.book('build', out, '--vendor', self.vendor)
         self.assertEqual(r.code, 2)  # not empty
 
-    def test_build_in_chinese_and_as_json(self):
+    def test_formats_from_config(self):
+        out = os.path.join(self.tmp, 'out')
+        r = self.book('build', out, '--vendor', self.vendor, '--chrome', self.chrome, '--sphinx', self.sphinx)
+        self.assertEqual(r.code, 0, r.err)  # every format off: the book is staged, and no file is written
+        self.assertEqual([f for f in os.listdir(out) if f.endswith('.html')], [])
+        self.assertEqual(json.loads(helpers.read(out, 'staged/book.json'))['files'], {})
+        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-release]\nhtml_book = true\n')
+        out2 = os.path.join(self.tmp, 'out2')
+        r = self.book('build', out2, '--vendor', self.vendor, '--chrome', self.chrome, '--sphinx', self.sphinx)
+        self.assertEqual(r.code, 0, r.err)
+        self.assertEqual(list(json.loads(helpers.read(out2, 'staged/book.json'))['files']), ['html'])
+
+    def test_known_issues(self):
+        self.assertEqual(book.issues({'problems': [], 'warnings': []}), '')
+        data = {'problems': [{'code': 'BOOK_LINK', 'where': 'chapters/a.md:3', 'message': '#x: no section'}],
+                'warnings': [{'code': 'BOOK_SPHINX', 'where': 'sphinx', 'message': 'WARNING: odd'}], 'failed': {'html': 'Sphinx failed'}}
+        self.assertEqual(book.issues(data), '### Known issues\n\n- BOOK_LINK chapters/a.md:3: #x: no section\n'
+                                            '- BOOK_SPHINX sphinx: WARNING: odd\n- html: Sphinx failed\n')
+        staged = os.path.join(self.tmp, 'staged')
+        self.book('stage', staged)
+        r = self.book('issues', staged)
+        self.assertEqual((r.code, r.out), (0, ''))
+        helpers.write(staged, 'book.json', json.dumps(data))
         helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-settings]\nlanguage = "zh-Hans"\n')
+        r = self.book('issues', staged, '--root', self.root)
+        self.assertTrue(r.out.startswith('### 已知问题\n\n- BOOK_LINK'), r.out)
+        self.assertTrue(self.book('issues', staged).out.startswith('### Known issues'))  # without a wiki, English
+        r = self.book('issues', os.path.join(self.tmp, 'nothing'))
+        self.assertEqual((r.code, "isn't a staged book" in r.err), (2, True))
+
+    def test_build_in_chinese_and_as_json(self):
+        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-settings]\nlanguage = "zh-Hans"\n\n[structural-llm-wiki-release]\nhtml_book = true\n')
         out = os.path.join(self.tmp, 'out')
         r = self.book('build', out, '--vendor', self.vendor, '--chrome', self.chrome, '--sphinx', self.sphinx, '--json')
         self.assertEqual(r.code, 0, r.err)
@@ -252,11 +282,11 @@ class Commands(unittest.TestCase):
     def test_a_format_that_fails(self):
         os.environ['STUB_SPHINX_FAIL'] = '1'
         out = os.path.join(self.tmp, 'out')
-        r = self.book('build', out, '--vendor', self.vendor, '--chrome', self.chrome, '--sphinx', self.sphinx)
+        r = self.book('build', out, '--vendor', self.vendor, '--formats', 'html', '--chrome', self.chrome, '--sphinx', self.sphinx)
         self.assertEqual(r.code, 1)
         self.assertIn('html failed: Sphinx failed: Extension error: no myst_parser', r.out)
         self.assertIn('Sphinx failed', json.loads(helpers.read(out, 'staged/book.json'))['failed']['html'])
-        r = self.book('build', os.path.join(self.tmp, 'out2'), '--vendor', self.vendor, '--chrome', self.chrome,
+        r = self.book('build', os.path.join(self.tmp, 'out2'), '--vendor', self.vendor, '--formats', 'html', '--chrome', self.chrome,
                       '--sphinx', os.path.join(self.tmp, 'no-sphinx'))
         self.assertEqual(r.code, 1)
         self.assertIn("didn't run", r.out)
