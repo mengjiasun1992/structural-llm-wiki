@@ -245,6 +245,18 @@ what-is-alpha:
     return root
 
 
+def add_narrative(root, slug, question, template='technical_brief_overview', primary=('leaf-a',), supporting=(),
+                  built_on=(), cites=(('alpha-doc', 'details'),)):
+    """Add a narrative and its manifest entry to a fixture wiki; built_on names other narratives."""
+    write(root, f'sllmwiki/narratives/{slug}.md', narrative_text(question, cites).replace(
+        '**Template:** technical_brief_overview', f'**Template:** {template}'))
+    entry = (f'\n{slug}:\n  template: {template}\n  tags:\n    primary: [{", ".join(primary)}]\n'
+             f'    supporting: [{", ".join(supporting)}]\n  read:\n    alpha-doc: {md5(ALPHA.encode())}\n')
+    if built_on:
+        entry += '  built_on:\n' + ''.join(f'    {b}: {md5(b.encode())}\n' for b in built_on)
+    write(root, 'sllmwiki/narratives/manifest.yaml', read(root, 'sllmwiki/narratives/manifest.yaml') + entry)
+
+
 class WikiTestCase(unittest.TestCase):
     """A fresh fixture wiki per test, in a temporary directory."""
 
