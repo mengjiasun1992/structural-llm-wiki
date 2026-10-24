@@ -268,5 +268,22 @@ class InlineMath(unittest.TestCase):
         self.assertEqual(compat.mask_math_spans('a $x_t$ b'), 'a $   $ b')
 
 
+
+class Renderables(unittest.TestCase):
+    """What a book draws: diagrams and math, never code (docs/book_design.md §6.2)."""
+
+    def test_every_kind(self):
+        text = ('Inline $a$ and $b_t$, not `$code$` or $5.\n\n$$\nx = 1\n$$\n\n$$y$$\n\n'
+                '```mermaid\ngraph LR\n  A --> B\n```\n\n```math\nz\n```\n\n```text\n$not$\n```\n\n    $indented$\n')
+        found = [(r.kind, r.source, r.first, r.last, r.start, r.end) for r in compat.renderables(text)]
+        self.assertEqual(found, [('inline', 'a', 0, 0, 7, 10), ('inline', 'b_t', 0, 0, 15, 20), ('display', 'x = 1', 2, 4, None, None),
+                                 ('display', 'y', 6, 6, None, None), ('mermaid', 'graph LR\n  A --> B', 8, 11, None, None),
+                                 ('display', 'z', 13, 15, None, None)])
+
+    def test_an_unclosed_fence_runs_to_the_end(self):
+        self.assertEqual([(r.kind, r.source, r.last) for r in compat.renderables('```mermaid\ngraph LR\n  A --> B')],
+                         [('mermaid', 'graph LR\n  A --> B', 2)])
+
+
 if __name__ == '__main__':
     unittest.main()

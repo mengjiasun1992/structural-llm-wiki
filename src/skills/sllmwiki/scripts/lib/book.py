@@ -9,12 +9,13 @@ teaching order (§5.2): after the narratives they're built on, then by
 template, then by question.
 """
 
+import hashlib
 import heapq
 import os
 import posixpath
 import re
 
-from . import citations, config, language, layout, manifest, mdlinks, metadata, numbering, tagtree
+from . import citations, compat, config, language, layout, manifest, markers, mdlinks, metadata, numbering, tagtree
 from .compat import mask_code_spans, scan
 from .util import read_text
 
@@ -300,3 +301,192 @@ def _without_metadata(text):
 
 def _anchors(root, slug):
     return numbering.anchors(_without_metadata(read_text(os.path.join(root, layout.NARRATIVES, f'{slug}.md'))))
+
+
+# The generated pages (design §5.1), their labels and files in the staged folder
+COVER, ABOUT = 'book--cover', 'book--about'
+APPENDICES = (('book--sources', 'Appendix A: Sources', 'appendix-sources'),
+              ('book--glossary', 'Appendix B: Glossary', 'appendix-glossary'),
+              ('book--questions', 'Appendix C: Open questions', 'appendix-questions'))
+FRONT = ("The narratives in this book are the wiki owner's work. Every source belongs to its authors: "
+         'the book links to it and quotes it briefly, but never copies it.',
+         'The narratives were written by an LLM and reviewed by the owner.',
+         'This book is a snapshot of the wiki at the commit on its cover.')
+CITING = ("A number in brackets, such as [3], is a citation: it links to the source's entry in Appendix A, "
+          'which links to the original.')
+_CELL = re.compile(r'(?<!\\)\|')
+
+
+def _escape(text):
+    return compat.escape(text or '')[0].strip()
+
+
+def title(tag, text):
+    """A part's title: its tag in words, each word cased as text (its description
+    and its chapters' questions) writes it other than at the start of a sentence
+    ("llm-knowledge-bases" -> "LLM knowledge bases", "amazon-dynamo" -> "Amazon Dynamo")."""
+    words = []
+    for w in tag.split('-'):
+        cased = [m.group(1) for m in re.finditer(rf'(?<![\w-])({re.escape(w)})s?(?![\w-])', text or '', re.I)
+                 if m.group(1) != w and not re.search(r'(?:\A|[.!?:]\s+)\Z', (text or '')[:m.start()])]
+        words.append(cased[0] if cased else w)
+    words[0] = words[0][0].upper() + words[0][1:]
+    return ' '.join(words)
+
+
+def _link(book, slug):
+    return f'[{book.chapters[slug].question}](#{chapter_label(slug)})'
+
+
+def _toctree(entries, depth):
+    return f'```{{toctree}}\n:maxdepth: {depth}\n\n' + ''.join(f'{e}\n' for e in entries) + '```\n'
+
+
+def cover(name, version, date, commit, pack, entries):
+    """index.md: the cover, the front page (design §9) and the contents."""
+    meta = ' · '.join(f'**{pack.t(k)}:** {v}' for k, v in (('Version', version), ('Date', date), ('Commit', f'`{commit}`' if commit else '')) if v)
+    marks = ''.join(f'- **{m}**: {pack.t(d)}\n' for m, d in markers.MARKERS.items())
+    return (f'({COVER})=\n# {_escape(name)}\n\n{meta}\n\n({ABOUT})=\n## {pack.t("About this book")}\n\n'
+            f'{" ".join(pack.t(t) for t in FRONT)}\n\n{pack.t(CITING)}\n\n{marks}\n'
+            f'({CONTENTS})=\n## {pack.t("Contents")}\n\n' + _toctree(entries, 2))
+
+
+def part_page(book, part, pack):
+    """parts/<tag>.md: the tag's title and description, its chapters and sections, and its see-also."""
+    words = ' '.join([part.description] + [book.chapters[c].question for c in part.chapters + part.see_also])
+    text = f'({part_label(part.tag)})=\n# {_escape(title(part.tag, words))}\n\n{_escape(part.description)}\n\n'
+    entries = [f'../chapters/{c}' for c in part.chapters] + [s.tag for s in part.sections]
+    if entries:
+        text += _toctree(entries, 1) + '\n'
+    if part.see_also:
+        text += f'**{pack.t("See also")}:** ' + ', '.join(_link(book, c) for c in part.see_also) + '\n'
+    return text.rstrip('\n') + '\n'
+
+
+def sources_page(book, sources, linked_by, pack):
+    """Appendix A: each source a chapter links to, its abstract, license, date, link and the chapters citing it."""
+    out = [f'({APPENDICES[0][0]})=\n# {pack.t(APPENDICES[0][1])}\n']
+    for slug in sorted(linked_by):
+        e = sources[slug]
+        rows = [(pack.t('License'), e.get('license')), (pack.t('Published'), e.get('published')),
+                (pack.t('Original'), f'<{e["url"]}>' if e.get('url') else None),
+                (pack.t('Cited by'), ', '.join(_link(book, c) for c in linked_by[slug]))]
+        out.append(f'({source_label(slug)})=\n## {slug}\n\n{_escape(e.get("abstract"))}\n\n'
+                   + ''.join(f'- **{k}:** {v}\n' for k, v in rows if v))
+    return '\n'.join(out)
+
+
+def terms(text):
+    """[(term, definition)] from a chapter's Terminology table, the markers' rows aside."""
+    span = numbering.section(text, 'Terminology')
+    rows = [line for line in text.split('\n')[span[0]:span[1]] if line.lstrip().startswith('|')] if span else []
+    out = []
+    for line in rows[2:]:  # the header and its rule
+        cells = _cells(line.strip() if line.strip().endswith('|') else line.strip() + '|')
+        if len(cells) >= 2 and cells[0].strip('*') not in markers.MARKERS:
+            out.append((cells[0], ' | '.join(cells[1:])))
+    return out
+
+
+def glossary_page(book, texts, pack):
+    """Appendix B: every term, A to Z; a definition several chapters share is listed once with all of them."""
+    found = {}
+    for slug in book.order():
+        for term, definition in terms(texts[slug]):
+            key = term.strip('*').strip().casefold()
+            found.setdefault(key, {'term': term, 'defs': {}})['defs'].setdefault(definition, []).append(slug)
+    if not found:
+        return None
+    rows = ''.join(f'| {v["term"]} | {d} ({", ".join(_link(book, c) for c in chapters)}) |\n'
+                   for _, v in sorted(found.items()) for d, chapters in v['defs'].items())
+    return (f'({APPENDICES[1][0]})=\n# {pack.t(APPENDICES[1][1])}\n\n'
+            f'| {pack.t("Term")} | {pack.t("Definition")} |\n|---|---|\n{rows}')
+
+
+def questions_page(book, texts, pack):
+    """Appendix C: every statement or section marked [?], linked to its section."""
+    items = []
+    for slug in book.order():
+        lines = texts[slug].split('\n')
+        heads = numbering.headings(texts[slug])
+        for i, col, marker in markers.uses(texts[slug]):
+            if marker != '[?]':
+                continue
+            head = next((h for h in reversed(heads) if h.line <= i), None)
+            label = lines[head.line - 1][1:-2] if head and head.line > 0 and lines[head.line - 1].endswith(')=') else chapter_label(slug)
+            said = markers.unmark(head.title) if head and head.line == i else _cell(lines, i, col) or markers.statement(lines[i], col)
+            items.append(f'- {said} ([{book.chapters[slug].question}](#{label}))\n')
+    if not items:
+        return None
+    return f'({APPENDICES[2][0]})=\n# {pack.t(APPENDICES[2][1])}\n\n' + ''.join(items)
+
+
+def _cells(line):
+    """A table row's cells, split at the pipes outside code spans and not escaped."""
+    cuts = [m.start() for m in _CELL.finditer(mask_code_spans(line))]
+    return [line[a + 1:b].strip() for a, b in zip(cuts, cuts[1:])]
+
+
+def _cell(lines, i, col):
+    """For a marker in a table cell: "<row> (<column>): <cell>", else None."""
+    if not lines[i].lstrip().startswith('|'):
+        return None
+    top = i
+    while top > 0 and lines[top - 1].lstrip().startswith('|'):
+        top -= 1
+    at = len(_CELL.findall(mask_code_spans(lines[i])[:col])) - 1  # the pipes before it, less the leading one
+    row, header = _cells(lines[i]), _cells(lines[top])
+    if not 0 < at < min(len(row), len(header)):
+        return None
+    cell = re.sub(r'\s*\[\?\]\s*\Z', '', row[at])
+    return f'{row[0].strip("*").strip()} ({header[at].strip("*").strip()}): {cell}'
+
+
+def render_id(kind, source):
+    """A diagram's or formula's id: the same source draws the same SVG."""
+    return hashlib.md5(f'{kind}\n{source}'.encode()).hexdigest()[:16]
+
+
+class Staged:
+    """The staged book: {path: text} of its pages, the figures to copy (paths
+    under the narratives folder), and book.json's content."""
+
+    def __init__(self, files, figures, manifest):
+        self.files, self.figures, self.manifest = files, figures, manifest
+
+
+def stage(root, name, version, date, commit):
+    """The book of the wiki at root as plain Markdown for Sphinx (design §6.2)."""
+    b = model(root)
+    pack = language.pack(config.get(root).settings['language']) or language.ENGLISH
+    files, figures, problems, linked_by, texts = {}, [], list(b.problems), {}, {}
+    for slug in b.order():
+        r = rewrite(root, b, slug)
+        texts[slug] = files[f'chapters/{slug}.md'] = r.text
+        problems += r.problems
+        figures += r.figures
+        for s in r.sources:
+            linked_by.setdefault(s, []).append(slug)
+    for p in b.parts:
+        for part in p.walk():
+            files[f'parts/{part.tag}.md'] = part_page(b, part, pack)
+    pages = [(APPENDICES[0][2], sources_page(b, manifest.load(root, 'sources'), linked_by, pack) if linked_by else None),
+             (APPENDICES[1][2], glossary_page(b, texts, pack)), (APPENDICES[2][2], questions_page(b, texts, pack))]
+    for file, text in pages:
+        if text:
+            files[f'{file}.md'] = text
+    files['index.md'] = cover(name, version, date, commit, pack,
+                              [f'parts/{p.tag}' for p in b.parts] + [f for f, t in pages if t])
+    renders = {}
+    for path, text in sorted(files.items()):
+        for r in compat.renderables(text):
+            entry = renders.setdefault(render_id(r.kind, r.source), {'kind': r.kind, 'source': r.source, 'files': []})
+            if path not in entry['files']:
+                entry['files'].append(path)
+    anchors = sorted({line[1:-2] for t in files.values() for line in t.split('\n') if re.match(r'\([^()\s]+\)=\Z', line)})
+    book_json = {'name': name, 'version': version, 'date': date, 'commit': commit,
+                 'parts': [{'tag': s.tag, 'depth': s.depth, 'chapters': s.chapters} for p in b.parts for s in p.walk()],
+                 'order': b.order(), 'anchors': anchors,
+                 'renders': [dict(id=k, **v) for k, v in renders.items()],
+                 'problems': [{'code': c, 'where': w, 'message': m} for c, w, m in problems]}
+    return Staged(files, list(dict.fromkeys(figures)), book_json)

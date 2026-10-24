@@ -220,5 +220,19 @@ class Finish(helpers.WikiTestCase):
 
 
 
+
+class Statement(unittest.TestCase):
+    def test_the_statement_a_marker_covers(self):
+        def said(line):
+            return markers.statement(line, line.index('[?]'))
+        self.assertEqual(said('It works. Nobody says why [?].'), 'Nobody says why')
+        self.assertEqual(said('Why? Waldo et al. argue it, but it was not read [?].'), 'Waldo et al. argue it, but it was not read')
+        self.assertEqual(said('- **Open:** how it scales [?].'), '**Open:** how it scales')
+        self.assertEqual(said('**It is. Unclear how [?]**.'), 'Unclear how')
+        self.assertEqual(said('| Weights | not covered [?] |'), 'not covered')
+        self.assertEqual(said('它很快。原因未知 [?]。'), '原因未知')
+        self.assertEqual(said('1. Unknown [?]'), 'Unknown')
+
+
 if __name__ == '__main__':
     unittest.main()

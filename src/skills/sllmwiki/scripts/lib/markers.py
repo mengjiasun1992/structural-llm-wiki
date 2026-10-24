@@ -47,6 +47,18 @@ def unmark(title):
     return re.sub(r'\s*(?:\[→\]|\[->\]|\[\?\])\s*\Z', '', title)
 
 
+def statement(line, column):
+    """The statement a marker at column of line covers, without the marker: from
+    the end of the sentence (or table cell) before it, list bullets trimmed."""
+    ends = [m.end() for m in _SENTENCE_END.finditer(line[:column])
+            if not re.match(r'\s+[a-z0-9]', line[m.end():column])]  # "et al. argue" doesn't end a sentence
+    start = max(ends + [line.rfind('|', 0, column) + 1])
+    text = line[start:column]
+    text = re.sub(r'\A\s*(?:>\s*)*(?:[-*+]|[0-9]+[.)])?\s+', '', ' ' + text)
+    text = text.strip()
+    return text.replace('**', '') if text.count('**') % 2 else text  # emphasis cut in half by the sentence's start
+
+
 def defined(text):
     """The markers the Terminology table defines."""
     body = '\n'.join(_section_lines(text, 'Terminology'))
