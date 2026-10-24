@@ -50,8 +50,8 @@ from lib.policy import github_repo  # noqa: E402
 from lib.util import read_text, write_text  # noqa: E402
 
 cli = Cli('publish.py', 'usage: publish.py start|summary|commit|pr|resume|status ...; see --help')
-ACTIONS = ('init', 'tags', 'ingest', 'smes', 'narrative', 'lint')
-STEP_ORDER = ('tags', 'ingest', 'smes', 'narrative', 'lint')
+ACTIONS = ('init', 'template', 'tags', 'ingest', 'smes', 'narrative', 'lint')
+STEP_ORDER = ('template', 'tags', 'ingest', 'smes', 'narrative', 'lint')
 IGNORED = ('sllmwiki/.obsidian/',)  # Obsidian rewrites its settings whenever the graph moves; only an init commit takes graph.json
 
 

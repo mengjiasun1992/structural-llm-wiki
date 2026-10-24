@@ -490,6 +490,7 @@ Before writing, `search.py narratives` finds narratives that answer the same or 
 | `smes` | `<tags>` | Locates the code and docs behind the tags, ranks people by `contributors.py` (git log and blame, `CODEOWNERS`, doc authorship, reviews); never lists anyone in `smes_exclude` (§4.9), nor the wiki's own committers for their wiki commits | `smes` in `tags.yaml` |
 | `narrative` | `<question>` | Reuse or expand first (§7.4); reading plan (§7.1); writes by template and guide; `finish-narrative`; lint | a narrative |
 | `lint` | `<narrative \| tag \| description>` | §7.3 | fixes, and decisions on the PR |
+| `template` | `<what the template is for>` | Starts the wiki's own template from the closest one (`narrative-format.py --new-template`), shapes its header, sections and guide from the owner's description, and checks it (§4.5); a length alone goes to `Config.toml` instead | `templates/<name>/` |
 
 ## 9. Instruction design
 

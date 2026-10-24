@@ -123,5 +123,44 @@ class WikiTemplates(helpers.WikiTestCase):
         self.assertEqual(templates.available(self.root)[1], [])
 
 
+
+class NewTemplate(helpers.WikiTestCase):
+    git = False
+
+    def test_start_one_from_a_bundled_template(self):
+        folder = templates.create(self.root, 'postmortem', 'case_study')
+        self.assertEqual(folder, os.path.join(self.root, 'templates', 'postmortem'))
+        for f in ('template.md', 'guide.md'):
+            self.assertEqual(helpers.read(folder, f), helpers.read(os.path.join(templates.BUNDLED, 'case_study'), f))
+        offered, problems = templates.available(self.root)
+        self.assertEqual((offered['postmortem'].source, problems), ('wiki', []))
+        self.assertEqual(offered['case_study'].source, 'bundled')  # the one it came from is still there
+
+    def test_replace_a_bundled_template_and_start_from_the_wikis_own(self):
+        templates.create(self.root, 'survey', 'survey')  # a copy that replaces the bundled survey here
+        self.assertEqual(templates.get(self.root, 'survey').source, 'wiki')
+        templates.create(self.root, 'field-survey', 'survey')  # from the wiki's own
+        self.assertEqual(helpers.read(self.root, 'templates/field-survey/template.md'), helpers.read(self.root, 'templates/survey/template.md'))
+
+    def test_refusals(self):
+        for name, base, says in [('Bad Name', 'survey', 'lowercase letters'), ('x', 'nope', 'no template nope')]:
+            with self.assertRaises(TemplateError) as e:
+                templates.create(self.root, name, base)
+            self.assertIn(says, str(e.exception))
+        templates.create(self.root, 'x', 'survey')
+        with self.assertRaises(TemplateError) as e:
+            templates.create(self.root, 'x', 'survey')
+        self.assertIn('templates/x already exists', str(e.exception))
+
+    def test_the_command(self):
+        r = helpers.run('narrative-format.py', ['--new-template', 'postmortem', '--from', 'case_study'], cwd=self.root)
+        self.assertEqual(r.code, 0, r.err)
+        self.assertIn('started templates/postmortem/ from case_study', r.out)
+        self.assertIn('postmortem (wiki,', helpers.run('narrative-format.py', ['--templates'], cwd=self.root).out)
+        self.assertEqual(helpers.run('narrative-format.py', ['--new-template', 'postmortem', '--from', 'case_study'], cwd=self.root).code, 1)
+        r = helpers.run('narrative-format.py', ['--new-template', 'other'], cwd=self.root)
+        self.assertEqual((r.code, '--new-template needs --from BASE' in r.err), (2, True))
+
+
 if __name__ == '__main__':
     unittest.main()

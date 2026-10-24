@@ -22,6 +22,7 @@ Unit tests (`src/skills/sllmwiki/tests/`) check the scripts; these evals check t
 | ingest-personal-data | a section with personal data is left out of the saved copy, and the gap marked | policy |
 | ingest-pdf | a PDF is saved with its outline as headings | full, sources |
 | template-choice | four questions, one per kind of subject, each get their template's skeleton (concept, survey, technical, comparison); nothing is written | smoke, templates |
+| template-new | asked for a postmortem template, it reads `steps/template.md`, starts one from the closest template with `--new-template`, checks it, and never merges | templates |
 | narrative-publish | a narrative is planned, finished with no errors, and published as one unmerged pull request | full, publishing, grounding |
 | build-small | two questions from two local documents: both saved, abstracted, answered and published | full, publishing |
 | release-notes | `/sllmwiki:release` plans, makes and follows a release with `release.py`, and reports the version, its link and the book | release |

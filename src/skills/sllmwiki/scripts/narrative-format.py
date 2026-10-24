@@ -17,6 +17,10 @@ narrative shares (design doc §4.5, §4.8, §4.10).
       by the authority of the sources they cite (the reading plan's grades), and
       pictures.
   narrative-format.py --templates     the templates this wiki offers, with use_when and budgets
+  narrative-format.py --new-template NAME --from BASE
+                     starts the wiki's own template NAME in templates/NAME/, a copy of
+                     BASE's template.md and guide.md to edit; named like a bundled
+                     template, it replaces it
   narrative-format.py --skeleton NAME the skeleton a new narrative starts from, in the wiki's language
                      [--language TAG]  or in another one (a BCP 47 tag, such as zh-Hans)
 
@@ -43,6 +47,8 @@ def main(argv):
     p.add_argument('--fix-numbering', action='store_true')
     p.add_argument('--fix-style', action='store_true')
     p.add_argument('--templates', action='store_true')
+    p.add_argument('--new-template', metavar='NAME')
+    p.add_argument('--from', dest='base', metavar='BASE')
     p.add_argument('--skeleton', metavar='NAME')
     p.add_argument('--language', metavar='TAG')
     p.add_argument('--stats', action='store_true')
@@ -52,6 +58,17 @@ def main(argv):
     root = cli.wiki(args.root)
     offered, problems = templates.available(root)
 
+    if args.new_template:
+        if not args.base:
+            cli.usage('--new-template needs --from BASE, the template to start from (--templates lists them)')
+        try:
+            folder = templates.create(root, args.new_template, args.base)
+        except templates.TemplateError as e:
+            cli.fail(str(e))
+        rel = os.path.relpath(folder, root).replace(os.sep, '/')
+        print(f'started {rel}/ from {args.base}: edit template.md (its header and body sections) and guide.md, '
+              f'then check it with narrative-format.py --templates and --skeleton {args.new_template}')
+        return 0
     if args.templates:
         rows = [{'name': t.name, 'source': t.source, 'description': t.description, 'use_when': t.use_when,
                  'max_words': t.max_words, 'abstract_words': t.abstract_words} for t in offered.values()]

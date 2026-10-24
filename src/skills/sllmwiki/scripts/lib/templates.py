@@ -15,6 +15,7 @@ template's header.
 
 import os
 import re
+import shutil
 
 from . import config, language, layout, numbering, wikiyaml
 from .util import read_text
@@ -25,6 +26,7 @@ BODY_MARK = '<!-- sllmwiki:body -->'
 GUIDE_SECTIONS = ('Audience and purpose', 'Voice and tone', 'Structure', 'Evidence', 'Length', 'Checklist')
 HEADER_KEYS = ('description', 'use_when', 'max_words', 'abstract_words')
 OPTIONAL = re.compile(r'\s*\(optional\)\s*\Z', re.I)
+NAME = re.compile(r'[a-z0-9][a-z0-9_-]*\Z')  # as Config.toml's [structural-llm-wiki-templates.<name>]
 
 
 class TemplateError(Exception):
@@ -136,3 +138,19 @@ def get(root, name):
     if name not in found:
         raise TemplateError(f'no template {name}; there are {", ".join(sorted(found))}')
     return found[name]
+
+
+def create(root, name, base):
+    """Start the wiki's own template name from base (a template it offers, bundled or its own), as a copy of
+    its template.md and guide.md in templates/<name>/; the folder. Named like a bundled template, it replaces
+    it. Raises TemplateError when the name is taken or not a template's, or base isn't offered."""
+    if not NAME.match(name):
+        raise TemplateError(f'{name}: a template\'s name is lowercase letters, digits, _ and -')
+    folder = os.path.join(root, layout.TEMPLATES, name)
+    if os.path.exists(folder):
+        raise TemplateError(f'{layout.TEMPLATES}/{name} already exists: edit it there')
+    source = get(root, base).folder
+    os.makedirs(folder)
+    for f in ('template.md', 'guide.md'):
+        shutil.copyfile(os.path.join(source, f), os.path.join(folder, f))
+    return folder
