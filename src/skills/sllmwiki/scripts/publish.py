@@ -104,7 +104,8 @@ def save_state(root, state):
 
 
 def dirty(root):
-    lines = git(root, 'status', '--porcelain').split('\n')
+    # not git(), which strips the output: the first line's leading space is part of its status ("XY path")
+    lines = subprocess.run(['git', 'status', '--porcelain'], cwd=root, capture_output=True, text=True).stdout.split('\n')
     return [line for line in lines if line.strip() and not any(line[3:].startswith(p) for p in IGNORED)]
 
 
