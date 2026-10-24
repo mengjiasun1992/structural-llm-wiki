@@ -110,6 +110,7 @@ Codex, Cursor, Copilot and other agents install the skill with the [`skills` CLI
 | Check a narrative, or a whole topic | `/sllmwiki:lint gateway` |
 | Find who to ask | `/sllmwiki:smes gateway` |
 | See which topics a question belongs to | `/sllmwiki:tags "gateway vs load balancer"` |
+| Release the wiki, with its book | `/sllmwiki:release` (`--preview` builds the book without releasing) |
 
 **Reviewing.** Each run's pull request starts with a checklist (tags, sources, each narrative). Tick each box as you check it; the wiki's "Review checklist" check turns green when all are ticked. Leave comments, and ask the agent to "apply the review comments on PR #12". [The demo's PR #6](https://github.com/mengjiasun1992/sllmwiki-demo/pull/6) is one run's pull request, checklist and all.
 
@@ -134,7 +135,12 @@ max_words = 3000            # a template's word budget, over its own
 
 [structural-llm-wiki-addons]
 obsidian = false            # true: set the wiki up to open as an Obsidian vault
+
+[structural-llm-wiki-release]
+html_book = false           # true: a release attaches the wiki as one HTML file
 ```
+
+**Books.** `/sllmwiki:release` publishes a dated release of the wiki on GitHub (`v2026.10.24`), with notes on what changed since the last one, and the wiki's release workflow attaches the wiki as a book in each format the `[structural-llm-wiki-release]` table turns on: a cover, a contents page, a part per topic with each chapter's summary, the narratives in teaching order, and appendices of sources, a glossary and open questions. Its diagrams and math are drawn as they are on GitHub, and the file works offline. GitHub's *Releases → Draft a new release* does the same without the agent; `--preview` builds the book from a branch as a workflow artifact. The book carries each source's abstract, license and link, never its saved copy. How it works: [docs/book_design.md](docs/book_design.md).
 
 **Languages.** Narratives are written in the wiki's `language`, and one can name its own (`- **Language:** zh-Hans` in its Metadata, or ask for a language when you ask the question). Sources stay in the language they were written in, and a quotation keeps its source's words, translated after it. Headings come from a language pack, `templates/languages/<tag>.md`: the skill ships English and Simplified Chinese (`zh-Hans`), each one it has evaluated, and a pack can carry its language's writing rules. For another language, copy [the English pack](src/skills/sllmwiki/templates/languages/en.md) into your wiki's `templates/languages/` and fill in the translations; the skill writes in it, and says it hasn't evaluated it. Without a pack, headings stay English around prose in your language. Word budgets stay in words; Chinese and Japanese text counts its characters at 1.6 to a word.
 
