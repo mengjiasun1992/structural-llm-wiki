@@ -51,7 +51,7 @@ from lib.util import read_text, write_text  # noqa: E402
 cli = Cli('publish.py', 'usage: publish.py start|summary|commit|pr|resume|status ...; see --help')
 ACTIONS = ('init', 'tags', 'ingest', 'smes', 'narrative', 'lint')
 STEP_ORDER = ('tags', 'ingest', 'smes', 'narrative', 'lint')
-IGNORED = ('sllmwiki/.obsidian/',)  # Obsidian rewrites its settings whenever the graph moves
+IGNORED = ('sllmwiki/.obsidian/',)  # Obsidian rewrites its settings whenever the graph moves; only an init commit takes graph.json
 
 
 def git(root, *args, check=True):
@@ -204,7 +204,7 @@ def commit(root, action, tags, subject):
     state = load_state(root)
     if git(root, 'rev-parse', '--abbrev-ref', 'HEAD') != state['branch']:
         cli.fail(f'not on the run\'s branch {state["branch"]}; publish.py resume {state["slug"]}')
-    git(root, 'add', '-A', '--', '.', *[f':(exclude){p}' for p in IGNORED])
+    git(root, 'add', '-A', '--', '.', *([] if action == 'init' else [f':(exclude){p}' for p in IGNORED]))  # init writes the add-on's graph.json
     if not git(root, 'diff', '--cached', '--name-only'):
         cli.fail('nothing to commit')
     report = latest(summaries(root), action).get('body', '')

@@ -23,7 +23,7 @@ def chinese(text):
     """helpers.narrative_text() with its headings, labels and caption in Chinese, and its language named."""
     for english in ('Abstract', 'Terminology', 'Background', 'The core idea', 'How does it work?', 'Design decisions and trade-offs',
                     'Limitations and failure modes', 'References', 'Sources read', 'Citations', 'Metadata'):
-        text = re.sub(r'^(#{2,3} [0-9.]+ )' + re.escape(english) + r'$', lambda m: m.group(1) + ZH[english], text, flags=re.M)
+        text = re.sub(r'^(#{2,3} [0-9.]+ )' + re.escape(english) + r'$', lambda m, english=english: m.group(1) + ZH[english], text, flags=re.M)
     text = text.replace('| Term | Definition |', '| 术语 | 定义 |')
     text = text.replace('*Figure 4-1: A failed request waits, then retries.*', '*图 4-1：失败的请求先等待，再重试。*')
     return text.replace('- **Template:** technical_brief_overview\n', '- **Template:** technical_brief_overview\n- **Language:** zh-Hans\n')

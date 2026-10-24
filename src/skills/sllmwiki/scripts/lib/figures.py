@@ -186,7 +186,7 @@ def renumber(text):
         old = f'{m.group(1)}-{m.group(2)}'
         if old != label:
             moves.setdefault(old, label)
-            lines[line] = re.sub(r'(' + _word() + r' ?)' + re.escape(old) + r'(?=[:：])', lambda x: x.group(1) + label, lines[line], count=1)
+            lines[line] = re.sub(r'(' + _word() + r' ?)' + re.escape(old) + r'(?=[:：])', lambda x, label=label: x.group(1) + label, lines[line], count=1)
             changed += 1
     if moves:
         captions = {line for line, _ in _labels(text)}
