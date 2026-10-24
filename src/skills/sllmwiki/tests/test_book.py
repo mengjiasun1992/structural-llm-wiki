@@ -1,6 +1,9 @@
 """Tests for lib/book.py: the book's parts, chapter order and cited sources (docs/book_design.md §5)."""
 
+import json
 import os
+import shutil
+import tempfile
 import unittest
 
 import helpers
@@ -196,6 +199,118 @@ class Rewrite(helpers.WikiTestCase):
         self.assertEqual((book.chapter_label('a'), book.section_label('a', '1-x'), book.source_label('s'), book.part_label('t')),
                          ('ch--a', 'a--1-x', 'src--s', 'part--t'))
         self.assertEqual(book.section_label('a', '1-é'), 'a--1-ue9')
+
+
+
+class Pages(unittest.TestCase):
+    def test_a_part_title(self):
+        self.assertEqual(book.title('llm-knowledge-bases', 'Patterns that give LLMs access to knowledge'), 'LLM knowledge bases')
+        self.assertEqual(book.title('amazon-dynamo', "Amazon's Dynamo key-value store"), 'Amazon Dynamo')
+        self.assertEqual(book.title('rag', 'Retrieval. How does a wiki differ from retrieval (RAG)?'), 'RAG')
+        self.assertEqual(book.title('data-partitioning', 'Data partitioning. Partitioning by key'), 'Data partitioning')  # a sentence's start says nothing
+        self.assertEqual(book.title('ewma', ''), 'Ewma')
+
+    def test_terms(self):
+        text = ('# Q\n\n## 2. Terminology\n\n| Term | Definition |\n|---|---|\n| **A** | One `a|b` thing \\| or another. |\n'
+                '| **[?]** | A gap. |\n| **B** | Two | cells |\n\n## 3. Next\n\n| X | Y |\n|---|---|\n| **C** | no |\n')
+        self.assertEqual(book.terms(text), [('**A**', 'One `a|b` thing \\| or another.'), ('**B**', 'Two | cells')])
+        self.assertEqual(book.terms('# Q\n'), [])
+
+
+class Stage(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp(prefix='sllmwiki-test-')
+        self.root = helpers.make_book_wiki(self.tmp)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_the_staged_book(self):
+        st = book.stage(self.root, 'my-wiki', 'v2026.10.24', '2026-10-24', 'abc1234')
+        self.assertEqual(sorted(st.files), ['appendix-glossary.md', 'appendix-questions.md', 'appendix-sources.md',
+                                            'chapters/how-does-beta-work.md', 'chapters/what-is-alpha.md', 'chapters/zh-what-is-retry.md',
+                                            'index.md', 'parts/leaf-a.md', 'parts/leaf-b.md', 'parts/root-topic.md'])
+        self.assertEqual(st.figures, ['figures/how-does-beta-work/cache.svg'])
+        index = st.files['index.md']
+        self.assertTrue(index.startswith('(book--cover)=\n# my-wiki\n\n**Version:** v2026.10.24 · **Date:** 2026-10-24 · **Commit:** `abc1234`\n'))
+        self.assertIn("## About this book\n\nThe narratives in this book are the wiki owner's work.", index)
+        self.assertIn('- **[?]**: A gap', index)
+        self.assertIn('```{toctree}\n:maxdepth: 2\n\nparts/root-topic\nappendix-sources\nappendix-glossary\nappendix-questions\n```\n', index)
+        self.assertEqual(st.files['parts/root-topic.md'],
+                         '(part--root-topic)=\n# Root topic\n\nThe root topic\n\n```{toctree}\n:maxdepth: 1\n\nleaf-a\nleaf-b\n```\n')
+        self.assertIn('```{toctree}\n:maxdepth: 1\n\n../chapters/zh-what-is-retry\n../chapters/what-is-alpha\n```\n\n'
+                      '**See also:** [How does beta work?](#ch--how-does-beta-work)\n', st.files['parts/leaf-a.md'])
+        sources = st.files['appendix-sources.md']
+        self.assertIn('(src--alpha-doc)=\n## alpha-doc\n\nAlpha systems and how they retry failed requests.\n\n- **License:** CC-BY-4.0\n'
+                      '- **Published:** 2026-09-01\n- **Original:** <https://example.com/alpha>\n'
+                      '- **Cited by:** [什么是重试？](#ch--zh-what-is-retry), [What is alpha?](#ch--what-is-alpha)\n', sources)
+        self.assertIn('(src--beta-doc)=\n## beta-doc\n\nBeta caching keeps hot data close to readers.\n\n- **License:** CC0-1.0\n- **Original:**', sources)
+        self.assertNotIn('gamma-link', sources)  # no chapter links to it
+        self.assertIn('| **Retry** | Sending a failed request again. ([What is alpha?](#ch--what-is-alpha), '
+                      '[How does beta work?](#ch--how-does-beta-work)) |\n', st.files['appendix-glossary.md'])
+        self.assertLess(st.files['appendix-glossary.md'].index('**Retry**'), st.files['appendix-glossary.md'].index('**重试**'))
+        self.assertEqual(st.files['appendix-questions.md'].split('\n')[3:5], [
+            '- Whether beta keeps a shadow copy is unknown ([How does beta work?](#how-does-beta-work--5-how-does-it-work))',
+            '- Weights (Beta): not covered ([How does beta work?](#how-does-beta-work--5-how-does-it-work))'])
+        m = st.manifest
+        self.assertEqual((m['name'], m['version'], m['date'], m['commit'], m['problems']), ('my-wiki', 'v2026.10.24', '2026-10-24', 'abc1234', []))
+        self.assertEqual(m['order'], ['zh-what-is-retry', 'what-is-alpha', 'how-does-beta-work'])  # a concept first
+        self.assertEqual(m['parts'], [{'tag': 'root-topic', 'depth': 0, 'chapters': []}, {'tag': 'leaf-a', 'depth': 1, 'chapters': ['zh-what-is-retry', 'what-is-alpha']},
+                                      {'tag': 'leaf-b', 'depth': 1, 'chapters': ['how-does-beta-work']}])
+        self.assertIn('book--contents', m['anchors'])
+        self.assertIn('zh-what-is-retry--3-u5b83u662fu5982u4f55u5de5u4f5cu7684', m['anchors'])
+        renders = {(r['kind'], r['source']): r['files'] for r in m['renders']}
+        self.assertEqual(renders[('mermaid', 'graph LR\n    A[Request fails] --> B[Wait, then retry]')],
+                         ['chapters/how-does-beta-work.md', 'chapters/what-is-alpha.md'])  # one id for the same diagram
+        self.assertEqual(renders[('display', 'w_j = \\alpha (1 - \\alpha)^j')], ['chapters/how-does-beta-work.md'])
+        self.assertIn(('inline', 't'), renders)
+        self.assertEqual(len({r['id'] for r in m['renders']}), len(m['renders']))
+
+    def test_a_question_marked_on_a_heading_and_empty_appendices(self):
+        text = helpers.read(self.root, 'sllmwiki/narratives/what-is-alpha.md').replace('## 3. Background', '## 3. Background [?]')
+        text = text.replace('## 6. Design', 'Ours [→].\n\n| Odd [?] | x |\n|---|---|\n| y | z |\n\n## 6. Design')
+        helpers.write(self.root, 'sllmwiki/narratives/what-is-alpha.md', text)
+        st = book.stage(self.root, 'w', 'v', 'd', '')
+        # GitHub's anchor keeps the hyphen left by the marker
+        self.assertIn('- Background ([What is alpha?](#what-is-alpha--3-background-))', st.files['appendix-questions.md'])
+        self.assertIn('- Odd ([What is alpha?](#what-is-alpha--5-how-does-it-work))', st.files['appendix-questions.md'])  # a header cell
+        self.assertNotIn('Ours', st.files['appendix-questions.md'])  # reasoning isn't a question
+        self.assertIn('**Version:** v · **Date:** d\n', st.files['index.md'])  # no commit, no field
+        root = helpers.make_wiki(tempfile.mkdtemp(dir=self.tmp), git=False)
+        helpers.write(root, 'sllmwiki/narratives/what-is-alpha.md', '# What is alpha?\n\nNothing cited.\n')
+        st = book.stage(root, 'w', 'v', 'd', 'c')
+        self.assertEqual(sorted(st.files), ['chapters/what-is-alpha.md', 'index.md', 'parts/leaf-a.md', 'parts/root-topic.md'])
+        self.assertIn(':maxdepth: 2\n\nparts/root-topic\n```', st.files['index.md'])
+
+    def test_the_command(self):
+        out = os.path.join(self.tmp, 'out')
+        r = helpers.run('book.py', ['stage', out, '--version', 'v1', '--date', '2026-10-24'], cwd=self.root)
+        self.assertEqual(r.code, 0, r.err)
+        self.assertIn('3 chapters, 4 diagrams and formulas, 0 problems', r.out)
+        self.assertTrue(os.path.isfile(os.path.join(out, 'chapters/figures/how-does-beta-work/cache.svg')))
+        data = json.loads(helpers.read(out, 'book.json'))
+        commit = helpers.git(self.root, 'rev-parse', '--short', 'HEAD').stdout.strip()
+        self.assertEqual((data['name'], data['version'], data['commit']), (os.path.basename(self.root), 'v1', commit))
+        self.assertTrue(helpers.read(out, 'index.md').startswith('(book--cover)='))
+        r = helpers.run('book.py', ['stage', out], cwd=self.root)
+        self.assertEqual(r.code, 2)
+        self.assertIn('must be an empty folder', r.err)
+
+    def test_problems_fail_the_command_and_the_book_is_still_written(self):
+        helpers.add_narrative(self.root, 'x', 'X?', built_on=('y',))
+        helpers.add_narrative(self.root, 'y', 'Y?', built_on=('x',))
+        helpers.write(self.root, 'sllmwiki/narratives/y.md', helpers.read(self.root, 'sllmwiki/narratives/y.md').replace('## 6.', 'See [nothing](#nope).\n\n## 6.'))
+        out = os.path.join(self.tmp, 'out')
+        os.makedirs(out)  # an empty folder is fine
+        r = helpers.run('book.py', ['stage', out, '--commit', '', '--json', '--root', self.root])
+        self.assertEqual(r.code, 1)
+        data = json.loads(r.out)
+        self.assertEqual([p['code'] for p in data['problems']], ['BOOK_CYCLE', 'BOOK_LINK'])
+        self.assertEqual(data['chapters'], 5)
+        self.assertTrue(os.path.isfile(os.path.join(out, 'chapters/y.md')))
+        r = helpers.run('book.py', ['stage', os.path.join(self.tmp, 'out2'), '--root', self.root])
+        self.assertIn('BOOK_LINK sllmwiki/narratives/y.md:', r.out)
+        self.assertIn('2 problems', r.out)
 
 
 if __name__ == '__main__':

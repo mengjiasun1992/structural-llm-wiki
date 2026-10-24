@@ -194,6 +194,41 @@ def _math_fences(lines, kinds):
                 yield i, j
 
 
+class Renderable:
+    """A diagram or formula a book draws: kind ('mermaid', 'display' or
+    'inline'), its source, and where it is: lines first..last (0-based,
+    fences or $$ lines included), and for inline math its columns."""
+
+    def __init__(self, kind, source, first, last, start=None, end=None):
+        self.kind, self.source, self.first, self.last, self.start, self.end = kind, source, first, last, start, end
+
+
+def renderables(text):
+    """Every diagram and formula, in order: ```mermaid blocks; ```math, $$ and
+    one-line $$...$$ blocks; and inline $...$ outside code, as GitHub reads them."""
+    lines = text.split('\n')
+    kinds, _ = scan(lines)
+    out, one_line = [], set()
+    for first, body in _math_blocks(lines, kinds):
+        last = first if kinds[first] == 'text' else first + len(body) + 1
+        if kinds[first] == 'text':
+            one_line.add(first)
+        out.append(Renderable('display', '\n'.join(body).strip(), first, last))
+    for i, kind in enumerate(kinds):
+        m = _FENCE.match(lines[i]) if kind == 'open' else None
+        if m and m.group(3).lower() in ('mermaid', 'math'):
+            j = i + 1
+            while j + 1 < len(lines) and kinds[j + 1] == 'fence':
+                j += 1
+            closed = j > i and _FENCE.match(lines[j]) and not _FENCE.match(lines[j]).group(3)
+            body = lines[i + 1:j if closed else j + 1]
+            out.append(Renderable('mermaid' if m.group(3).lower() == 'mermaid' else 'display', '\n'.join(body).strip('\n'), i, j))
+        elif kind == 'text' and i not in one_line:
+            for m in _INLINE_MATH.finditer(mask_code_spans(lines[i])):
+                out.append(Renderable('inline', lines[i][m.start() + 1:m.end() - 1], i, i, m.start(), m.end()))
+    return sorted(out, key=lambda r: (r.first, r.start or 0))
+
+
 def check(text):
     """Findings (severity, code, line, message) for markdown the renderers read differently."""
     lines = text.split('\n')

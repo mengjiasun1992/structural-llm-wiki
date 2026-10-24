@@ -257,6 +257,72 @@ def add_narrative(root, slug, question, template='technical_brief_overview', pri
     write(root, 'sllmwiki/narratives/manifest.yaml', read(root, 'sllmwiki/narratives/manifest.yaml') + entry)
 
 
+BOOK_EXTRA = """
+The state after step $t$ is $s_t = s_{t-1} + \\alpha e_t$, so old samples fade.
+
+$$
+w_j = \\alpha (1 - \\alpha)^j
+$$
+
+Whether beta keeps a shadow copy is unknown [?].
+
+| Choice | Alpha | Beta |
+|---|---|---|
+| Weights | yes | not covered [?] |
+
+![The beta cache](figures/how-does-beta-work/cache.svg)
+
+*Figure 5-1: Beta keeps hot data close.*
+"""
+
+ZH_NARRATIVE = """# 什么是重试？
+
+## 1. 摘要
+
+重试就是再次发送失败的请求 [\\[1\\]](../sources/alpha-doc.md#details)，见[第三节](#3-它是如何工作的)。
+
+## 2. 术语
+
+| 术语 | 定义 |
+|---|---|
+| **重试** | 再次发送失败的请求。 |
+
+## 3. 它是如何工作的？
+
+等待时间每次加倍 [\\[1\\]](../sources/alpha-doc.md#details)。
+
+## 4. 参考资料
+
+### 4.1 引用
+
+1. [alpha-doc: details](../sources/alpha-doc.md#details)
+
+## 5. 元数据
+
+- **Version:** 1.0
+- **Language:** zh-Hans
+- **Last modified:** 2026-10-03
+"""
+
+
+def make_book_wiki(root, git=True):
+    """The fixture wiki with what a book needs (docs/book_execution_plan.md §2): a
+    chapter under each leaf, one built on another, a figure, a diagram, inline
+    and display math, gaps in prose and in a table, and a Chinese narrative."""
+    make_wiki(root, git=False)
+    write(root, 'sllmwiki/narratives/figures/how-does-beta-work/cache.svg',
+          '<svg xmlns="http://www.w3.org/2000/svg"><rect width="1" height="1" fill="#fff"/></svg>')
+    add_narrative(root, 'how-does-beta-work', 'How does beta work?', primary=('leaf-b',), supporting=('leaf-a',),
+                  built_on=('what-is-alpha',), cites=(('beta-doc', 'beta'),))
+    text = read(root, 'sllmwiki/narratives/how-does-beta-work.md').replace('## 6. Design', BOOK_EXTRA + '\n## 6. Design')
+    write(root, 'sllmwiki/narratives/how-does-beta-work.md', text)
+    add_narrative(root, 'zh-what-is-retry', 'x', 'concept_brief_overview')
+    write(root, 'sllmwiki/narratives/zh-what-is-retry.md', ZH_NARRATIVE)
+    if git:
+        git_init(root)
+    return root
+
+
 class WikiTestCase(unittest.TestCase):
     """A fresh fixture wiki per test, in a temporary directory."""
 

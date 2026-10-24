@@ -106,7 +106,7 @@ class References(unittest.TestCase):
         with open(os.path.join(SKILL, 'SKILL.md'), encoding='utf-8') as f:
             text = f.read()
         listed = set(re.findall(r'^- `([a-z-]+\.py)`', text, re.M))
-        commands = {os.path.basename(p) for p in glob.glob(os.path.join(helpers.SCRIPTS, '*.py'))} - {'review-checklist.py'}  # CI's, not the agent's
+        commands = {os.path.basename(p) for p in glob.glob(os.path.join(helpers.SCRIPTS, '*.py'))} - {'review-checklist.py', 'book.py'}  # CI's, not the agent's
         self.assertEqual(listed, commands)
 
     def test_the_parser(self):
