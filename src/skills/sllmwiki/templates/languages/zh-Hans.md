@@ -63,6 +63,29 @@ it, and how to write it.
 | Our own reasoning, after a statement or on a section's heading: a conclusion, comparison or example no cited source states. | 我们自己的推理，标在陈述之后或章节标题上：引用的来源中没有的结论、比较或例子。 |
 | A gap, after a statement or on a heading: something the question needs that the sources don't answer. | 缺口，标在陈述之后或标题上：问题需要、而来源没有回答的内容。 |
 
+## Book
+
+| English | Translation |
+|---|---|
+| Contents | 目录 |
+| About this book | 关于本书 |
+| See also | 另见 |
+| Appendix A: Sources | 附录 A：来源 |
+| Appendix B: Glossary | 附录 B：词汇表 |
+| Appendix C: Open questions | 附录 C：待解问题 |
+| Version | 版本 |
+| Date | 日期 |
+| Commit | 提交 |
+| Last modified | 最后修改 |
+| License | 许可证 |
+| Published | 发布日期 |
+| Cited by | 引用于 |
+| Original | 原文 |
+| The narratives in this book are the wiki owner's work. Every source belongs to its authors: the book links to it and quotes it briefly, but never copies it. | 本书中的叙述是 wiki 所有者的作品。每个来源都归其作者所有：本书链接到来源并简短引用，但从不复制。 |
+| The narratives were written by an LLM and reviewed by the owner. | 这些叙述由大语言模型撰写，并经所有者审阅。 |
+| This book is a snapshot of the wiki at the commit on its cover. | 本书是 wiki 在封面所示提交时的快照。 |
+| A number in brackets, such as [3], is a citation: it links to the source's entry in Appendix A, which links to the original. | 方括号中的数字（如 [3]）是引用：它链接到附录 A 中该来源的条目，条目再链接到原文。 |
+
 ## Writing
 
 - **Register:** plain written Chinese for an engineer (书面语), short sentences, no slang and no filler such as 值得注意的是 or 众所周知.

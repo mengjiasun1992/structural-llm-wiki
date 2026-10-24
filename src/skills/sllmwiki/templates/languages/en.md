@@ -71,3 +71,29 @@ and the markers' Terminology rows.
 | Figure | |
 | Our own reasoning, after a statement or on a section's heading: a conclusion, comparison or example no cited source states. | |
 | A gap, after a statement or on a heading: something the question needs that the sources don't answer. | |
+
+## Book
+
+The words a release's book adds around the narratives (docs/book_design.md
+§5): its contents, front page, appendices and cover.
+
+| English | Translation |
+|---|---|
+| Contents | |
+| About this book | |
+| See also | |
+| Appendix A: Sources | |
+| Appendix B: Glossary | |
+| Appendix C: Open questions | |
+| Version | |
+| Date | |
+| Commit | |
+| Last modified | |
+| License | |
+| Published | |
+| Cited by | |
+| Original | |
+| The narratives in this book are the wiki owner's work. Every source belongs to its authors: the book links to it and quotes it briefly, but never copies it. | |
+| The narratives were written by an LLM and reviewed by the owner. | |
+| This book is a snapshot of the wiki at the commit on its cover. | |
+| A number in brackets, such as [3], is a citation: it links to the source's entry in Appendix A, which links to the original. | |
