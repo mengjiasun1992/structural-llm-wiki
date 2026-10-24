@@ -37,6 +37,7 @@ Run them with `python3 <skill>/scripts/<name>` from the wiki's root; each explai
 - `reading-plan.py`: what a narrative reads, in order
 - `cited-sections.py`: each section a narrative cites, with its claims
 - `contributors.py`: the people behind some code or docs, with evidence
+- `release.py`: a release of the wiki, its book attached: plan, create, wait
 - `narrative-format.py`: a narrative's skeleton, and its checks
 - `finish-narrative.py`: everything after a narrative is written or edited
 - `wiki-check.py`: is the wiki consistent
