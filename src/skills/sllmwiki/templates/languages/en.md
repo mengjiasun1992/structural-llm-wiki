@@ -89,7 +89,6 @@ and `{source}` as they are: the book puts the links and names there.
 | Version | |
 | Date | |
 | Commit | |
-| Last modified | |
 | License | |
 | Published | |
 | Cited by | |

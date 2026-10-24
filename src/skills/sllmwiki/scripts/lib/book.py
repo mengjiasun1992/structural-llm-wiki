@@ -208,7 +208,7 @@ class Rewritten:
 
 def _version_line(text, pack):
     m = metadata.read(text)
-    parts = [f'{pack.t(label)} {value}' for label, value in (('Version', m['version']), ('Last modified', m['last_modified'])) if value]
+    parts = ([f'{pack.t("Version")} {m["version"]}'] if m['version'] else []) + ([m['last_modified']] if m['last_modified'] else [])
     return f'*{" · ".join(parts)}*' if parts else None
 
 
@@ -380,32 +380,20 @@ def _map(book, part, depth=0, summaries=None):
     return out
 
 
-def nav(pack, up=None, lead=None):
-    """The line at the top of a page: lead (a chapter's version, in italics), then links up to
-    its part (label, title) and to the contents."""
-    links = ([lead] if lead else []) + ([f'[↑ {up[1]}](#{up[0]})'] if up else []) + [f'[{pack.t("Contents")}](#{CONTENTS})']
-    return '<div class="book-nav">\n\n' + ' · '.join(links) + '\n\n</div>\n'
-
-
 def book_title(name):
     """The book's title, with sllmwiki's braces: {mengjia-sllmwiki 📖}."""
     return f'{{{_escape(name)} {TITLE_MARK}}}'
 
 
-def headnote(name):
-    """The quiet line above each chapter's title: the book (to its cover) and sllmwiki."""
-    return f'<div class="headnote">\n\n[{book_title(name)}](#{COVER}) · [sllmwiki]({layout.SKILL_URL})\n\n</div>\n\n'
+def head(book, name, trail, pack):
+    """The line above a page's title: where it is, the book (to its cover) › each part above
+    it (trail, outermost first, as Parts), and the contents at the right."""
+    crumbs = ' › '.join([f'[{book_title(name)}](#{COVER})'] + [f'[{part_title(book, p)}](#{part_label(p.tag)})' for p in trail])
+    return (f'<div class="headnote">\n\n<span class="crumbs">{crumbs}</span> '
+            f'<span class="to-contents">[{pack.t("Contents")}](#{CONTENTS})</span>\n\n</div>\n\n')
 
 
-def with_nav(text, pack, up=None):
-    """text with nav() after its # title; a version line under the title joins it, on one line."""
-    lines = text.split('\n')
-    at = next(i for i, line in enumerate(lines) if line.startswith('# ')) + 1
-    lead = None
-    if at + 1 < len(lines) and not lines[at].strip() and re.match(r'\*.+\*\Z', lines[at + 1]):
-        lead = lines[at + 1]
-        del lines[at:at + 2]
-    return '\n'.join(lines[:at] + ['', nav(pack, up, lead).rstrip('\n')] + lines[at:])
+ENDMARK = f'\n<div class="endmark">\n\n[sllmwiki]({layout.SKILL_URL})\n\n</div>\n'  # the quiet credit closing a chapter
 
 
 def web_url(remote):
@@ -450,10 +438,10 @@ def cover(name, version, date, commit, pack, entries, listing, source=None, mode
             f'({CONTENTS})=\n## {pack.t("Contents")}\n\n{listing}\n' + _toctree(entries))
 
 
-def part_page(book, part, pack, summaries=None, up=None):
-    """parts/<tag>.md: the tag's title, links up, its description, a map of its chapters (with
-    their summaries) and sections, and its see-also."""
-    text = f'({part_label(part.tag)})=\n# {part_title(book, part)}\n\n{nav(pack, up)}\n{_escape(part.description)}\n\n'
+def part_page(book, part, pack, summaries=None):
+    """parts/<tag>.md: the tag's title and description, a map of its chapters (with their
+    summaries) and sections, and its see-also."""
+    text = f'({part_label(part.tag)})=\n# {part_title(book, part)}\n\n{_escape(part.description)}\n\n'
     entries = [f'../chapters/{c}' for c in part.chapters] + [s.tag for s in part.sections]
     if entries:
         text += _map(book, part, 0, summaries or {}) + '\n' + _toctree(entries) + '\n'
@@ -561,24 +549,29 @@ def stage(root, name, version, date, commit, source=None):
     files, figures, problems, linked_by, texts = {}, [], list(b.problems), {}, {}
     parts = {s.tag: s for p in b.parts for s in p.walk()}
     parent = {c.tag: s for s in parts.values() for c in s.sections}
+
+    def trail(tag):
+        out = []
+        while tag:
+            out.insert(0, parts[tag])
+            tag = parent[tag].tag if tag in parent else None
+        return out
     for slug in b.order():
         r = rewrite(root, b, slug)
         texts[slug] = r.text
-        part = parts[b.chapters[slug].tag]
-        files[f'chapters/{slug}.md'] = headnote(name) + with_nav(r.text, pack, (part_label(part.tag), part_title(b, part)))
+        files[f'chapters/{slug}.md'] = head(b, name, trail(b.chapters[slug].tag), pack) + r.text.rstrip('\n') + '\n' + ENDMARK
         problems += r.problems
         figures += r.figures
         for s in r.sources:
             linked_by.setdefault(s, []).append(slug)
     summaries = {slug: summary(text) for slug, text in texts.items()}
     for tag, part in parts.items():
-        up = parent.get(tag)
-        files[f'parts/{tag}.md'] = part_page(b, part, pack, summaries, (part_label(up.tag), part_title(b, up)) if up else None)
+        files[f'parts/{tag}.md'] = head(b, name, trail(tag)[:-1], pack) + part_page(b, part, pack, summaries)
     pages = [(APPENDICES[0][2], sources_page(b, manifest.load(root, 'sources'), linked_by, pack) if linked_by else None),
              (APPENDICES[1][2], glossary_page(b, texts, pack)), (APPENDICES[2][2], questions_page(b, texts, pack))]
     for file, text in pages:
         if text:
-            files[f'{file}.md'] = with_nav(text, pack)
+            files[f'{file}.md'] = head(b, name, [], pack) + text
     made = [(label, t, file) for (label, t, file), (_, text) in zip(APPENDICES, pages) if text]
     recorded = manifest.load(root, 'narratives')
     models = model_names([m for slug in b.order() for m in (recorded[slug].get('models') or {}).values()])

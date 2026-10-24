@@ -148,7 +148,7 @@ class Rewrite(helpers.WikiTestCase):
         b = book.model(self.root)
         r = book.rewrite(self.root, b, 'what-is-alpha')
         lines = r.text.split('\n')
-        self.assertEqual(lines[:4], ['(ch--what-is-alpha)=', '# What is alpha?', '', '*Version 1.0 · Last modified 2026-10-02*'])
+        self.assertEqual(lines[:4], ['(ch--what-is-alpha)=', '# What is alpha?', '', '*Version 1.0 · 2026-10-02*'])
         self.assertIn('(what-is-alpha--5-how-does-it-work)=\n## 5. How does it work?', r.text)
         self.assertIn('twice as long [\\[1\\]](#src--alpha-doc).', r.text)  # a citation goes to Appendix A
         self.assertIn('1. [alpha-doc: details](#src--alpha-doc)', r.text)
@@ -186,13 +186,13 @@ class Rewrite(helpers.WikiTestCase):
         self.assertIn(f'({label})=\n## 3. 环如何工作', r.text)
         self.assertIn(f'[第三节](#{label})和[同一节](#{label})', r.text)
         pack = language.pack('zh-Hans')
-        self.assertIn(f'*{pack.t("Version")} 2.0 · {pack.t("Last modified")} 2026-10-20*', r.text)
+        self.assertIn(f'*{pack.t("Version")} 2.0 · 2026-10-20*', r.text)
         self.assertEqual(r.problems, [])
 
     def test_front_matter_is_left_out(self):
         text = helpers.read(self.root, 'sllmwiki/narratives/what-is-alpha.md')
         helpers.write(self.root, 'sllmwiki/narratives/what-is-alpha.md',
-                      '---\nsllmwiki: generated\ntags:\n  - root-topic/leaf-a\n---\n' + text.replace('## 6. Design', 'See [x](#nope).\n\n## 6. Design'))
+                      '---\nsllmwiki: generated\ntags:\n  - root-topic/leaf-a\n---\n\n' + text.replace('## 6. Design', 'See [x](#nope).\n\n## 6. Design'))
         r = book.rewrite(self.root, book.model(self.root), 'what-is-alpha')
         self.assertTrue(r.text.startswith('(ch--what-is-alpha)=\n# What is alpha?\n'), r.text[:80])
         self.assertNotIn('sllmwiki: generated', r.text)
@@ -228,13 +228,13 @@ class Pages(unittest.TestCase):
         self.assertEqual(book.model_names(['claude-opus-5-5', 'claude-haiku-5', 'claude-opus-5-5', 'gpt-x']),
                          ['Claude Opus 5.5', 'Claude Haiku 5', 'gpt-x'])
 
-    def test_nav(self):
-        pack = language.ENGLISH
-        contents = '[Contents](#book--contents)'
-        self.assertEqual(book.with_nav('(x)=\n# T\n\nBody\n', pack), f'(x)=\n# T\n\n<div class="book-nav">\n\n{contents}\n\n</div>\n\nBody\n')
-        self.assertEqual(book.with_nav('# T\n\n*Version 1*\n\nBody\n', pack, ('part--u', 'Up')),
-                         f'# T\n\n<div class="book-nav">\n\n*Version 1* · [↑ Up](#part--u) · {contents}\n\n</div>\n\nBody\n')
-        self.assertIn('[↑ Up](#part--u) · [Contents](#book--contents)', book.nav(pack, ('part--u', 'Up')))
+    def test_head(self):
+        b = book.Book([], {}, [])
+        outer, inner = book.Part('outer-tag', 'Outer', 0, [], [], []), book.Part('inner', 'Inner', 1, [], [], [])
+        self.assertEqual(book.head(b, 'w', [outer, inner], language.ENGLISH),
+                         '<div class="headnote">\n\n<span class="crumbs">[{w 📖}](#book--cover) › [Outer tag](#part--outer-tag) › '
+                         '[Inner](#part--inner)</span> <span class="to-contents">[Contents](#book--contents)</span>\n\n</div>\n\n')
+        self.assertIn('<span class="crumbs">[{w 📖}](#book--cover)</span>', book.head(b, 'w', [], language.ENGLISH))
 
     def test_a_summary(self):
         self.assertEqual(book.summary('# Q\n\n## 1. Abstract\n\nFirst one.\nSame.\n\nSecond.\n\n(q--2-x)=\n## 2. X\n'), 'First one. Same.')
@@ -278,27 +278,28 @@ class Stage(unittest.TestCase):
                       '    - [What is alpha?](#ch--what-is-alpha)\n  - [Leaf b](#part--leaf-b)\n    - [How does beta work?](#ch--how-does-beta-work)\n'
                       '- [Appendix A: Sources](#book--sources)\n- [Appendix B: Glossary](#book--glossary)\n- [Appendix C: Open questions](#book--questions)\n\n'
                       '```{toctree}\n:hidden:\n\nparts/root-topic\nappendix-sources\nappendix-glossary\nappendix-questions\n```\n', index)
-        nav = '<div class="book-nav">\n\n[Contents](#book--contents)\n\n</div>\n'
+        def head(*crumbs):
+            trail = ''.join(f' › [{t}](#part--{tag})' for tag, t in crumbs)
+            return (f'<div class="headnote">\n\n<span class="crumbs">[{{my-wiki 📖}}](#book--cover){trail}</span> '
+                    '<span class="to-contents">[Contents](#book--contents)</span>\n\n</div>\n\n')
         summary = helpers.ABSTRACT
         def summ(text):
             return f' <span class="summary">— {text}</span>'
         zh = summ('重试就是再次发送失败的请求 [\\[1\\]](#src--alpha-doc)，见[第三节](#zh-what-is-retry--3-u5b83u662fu5982u4f55u5de5u4f5cu7684)。')
         self.assertEqual(st.files['parts/root-topic.md'],
-                         f'(part--root-topic)=\n# Root topic\n\n{nav}\nThe root topic\n\n'
+                         f'{head()}(part--root-topic)=\n# Root topic\n\nThe root topic\n\n'
                          f'- [Leaf a](#part--leaf-a){summ("First leaf, about alpha systems")}\n'
                          f'  - [什么是重试？](#ch--zh-what-is-retry){zh}\n'
                          f'  - [What is alpha?](#ch--what-is-alpha){summ(summary)}\n'
                          f'- [Leaf b](#part--leaf-b){summ("Second leaf, about beta caching")}\n'
                          f'  - [How does beta work?](#ch--how-does-beta-work){summ(summary)}\n\n'
                          '```{toctree}\n:hidden:\n\nleaf-a\nleaf-b\n```\n')
-        self.assertIn('# Leaf a\n\n<div class="book-nav">\n\n[↑ Root topic](#part--root-topic) · [Contents](#book--contents)\n\n</div>\n',
-                      st.files['parts/leaf-a.md'])
-        self.assertTrue(st.files['chapters/what-is-alpha.md'].startswith(
-            '<div class="headnote">\n\n[{my-wiki 📖}](#book--cover) · [sllmwiki](https://github.com/mengjiasun1992/structural-llm-wiki)\n\n</div>\n\n'
-            '(ch--what-is-alpha)=\n# What is alpha?\n'))
-        self.assertIn('# What is alpha?\n\n<div class="book-nav">\n\n*Version 1.0 · Last modified 2026-10-02* · '
-                      '[↑ Leaf a](#part--leaf-a) · [Contents](#book--contents)\n\n</div>\n\n', st.files['chapters/what-is-alpha.md'])
-        self.assertIn('# Appendix B: Glossary\n\n' + nav, st.files['appendix-glossary.md'])
+        self.assertTrue(st.files['parts/leaf-a.md'].startswith(head(('root-topic', 'Root topic')) + '(part--leaf-a)=\n# Leaf a\n'))
+        alpha = st.files['chapters/what-is-alpha.md']
+        self.assertTrue(alpha.startswith(head(('root-topic', 'Root topic'), ('leaf-a', 'Leaf a'))
+                                         + '(ch--what-is-alpha)=\n# What is alpha?\n\n*Version 1.0 · 2026-10-02*\n\n'), alpha[:500])
+        self.assertTrue(alpha.endswith('\n\n<div class="endmark">\n\n[sllmwiki](https://github.com/mengjiasun1992/structural-llm-wiki)\n\n</div>\n'))
+        self.assertTrue(st.files['appendix-glossary.md'].startswith(head() + '(book--glossary)=\n# Appendix B: Glossary\n'))
         self.assertEqual((st.manifest['source'], st.manifest['models']), ('https://github.com/o/my-wiki', ['Claude Opus 5.5', 'some-model']))
         self.assertIn('```{toctree}\n:hidden:\n\n../chapters/zh-what-is-retry\n../chapters/what-is-alpha\n```\n\n'
                       '**See also:** [How does beta work?](#ch--how-does-beta-work)\n', st.files['parts/leaf-a.md'])

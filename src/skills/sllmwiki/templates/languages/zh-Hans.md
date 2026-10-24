@@ -76,7 +76,6 @@ it, and how to write it.
 | Version | 版本 |
 | Date | 日期 |
 | Commit | 提交 |
-| Last modified | 最后修改 |
 | License | 许可证 |
 | Published | 发布日期 |
 | Cited by | 引用于 |

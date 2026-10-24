@@ -95,13 +95,15 @@ Every format has the same content (§5):
   chapter followed on its line by the first paragraph of its Abstract (a
   section by its description), so a part can be skimmed;
 - **chapters**, the narratives, in teaching order within each part;
-- at the top of every part, chapter and appendix, links **up** to its part and
-  to the **contents**, on one line with a chapter's version and date;
-- above each chapter's title, a quiet **headnote**, `{mengjia-sllmwiki 📖} ·
-  sllmwiki`, linking to the cover and to this skill;
+- above the title of every part, chapter and appendix, one quiet line saying
+  **where it is**: the book's `{mengjia-sllmwiki 📖}` (to the cover) › each
+  part above it, all links, with **Contents** at the right; under a chapter's
+  title, only its version and date;
+- at the end of each chapter, a quiet credit, `── {📖} sllmwiki ──`, linking
+  to this skill;
 - each part, section and chapter on a **page of its own**: a new page in print;
-  on screen, sllmwiki's mark (braces around a small tag tree) between two
-  rules.
+  on screen, sllmwiki's mark (braces around an open book, `{📖}`) between two
+  rules, which a chapter's closing credit stands in for between chapters.
 - **appendices**: the sources with their abstracts, licenses and links; a
   glossary of every term the narratives define; and the open questions.
 
