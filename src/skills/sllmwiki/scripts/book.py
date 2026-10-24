@@ -22,12 +22,14 @@
       each SVG by its source and the libraries, so a rerun draws only what
       changed. One that fails to draw stays as written and is a warning,
       BOOK_RENDER, kept in book.json's warnings.
-  book.py build OUT --vendor DIR [--formats html] [--chrome PATH] [--cache DIR]
+  book.py build OUT --vendor DIR [--formats pdf,html] [--chrome PATH] [--cache DIR]
                 [--sphinx CMD] [--name N] [--version V] [--date D] [--commit C] [--source URL]
       stage into OUT/staged, render, then Sphinx (--sphinx, default
       sphinx-build, with MyST-Parser) with the skill's templates/book/
       settings, and writes OUT/<name>-<version>.html: one file with every
-      stylesheet, image and diagram in it. --formats defaults to the ones
+      stylesheet, image and diagram in it; for pdf, Chrome prints that file
+      to OUT/<name>-<version>.pdf (A4, page numbers, the title as the running
+      head). --formats (pdf, html) defaults to the ones
       Config.toml's [structural-llm-wiki-release] turns on; with none, the
       book is staged and no file is written. Problems and warnings are listed
       (Sphinx's are BOOK_SPHINX) and don't stop the book; exit code 1 when a
@@ -57,7 +59,7 @@ from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, write_text  # noqa: E402
 
 cli = Cli('book.py', 'usage: book.py stage|render|build ... (book.py --help)')
-FORMATS = ('html',)  # what build makes, as Config.toml's <format>_book names it
+FORMATS = ('pdf', 'html')  # what build makes, as Config.toml's <format>_book names it
 TEMPLATE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'templates', 'book')
 
 
@@ -214,12 +216,22 @@ def main(argv):
     if formats:
         data = render(staged, args.vendor, args.chrome, args.cache)
         data['files'], data['failed'] = {}, {}
-        path, extra = html_book(root, out, staged, data, args.sphinx)
+        path, extra = html_book(root, out, staged, data, args.sphinx)  # the PDF is printed from it
         if path:
             data['warnings'] += [{'code': 'BOOK_SPHINX', 'where': 'sphinx', 'message': w} for w in extra]
-            data['files']['html'] = path
-        else:
-            data['failed']['html'] = extra
+            if 'html' in formats:
+                data['files']['html'] = path
+        for fmt in formats:
+            if not path:
+                data['failed'][fmt] = extra
+            elif fmt == 'pdf':
+                pdf = os.path.splitext(path)[0] + '.pdf'
+                chrome = bookbuild.find_chrome(args.chrome)
+                why = bookbuild.print_pdf(path, pdf, chrome, f'{{{data["name"]} 📖}}') if chrome else 'no Chrome found to print it'
+                if why:
+                    data['failed']['pdf'] = why
+                else:
+                    data['files']['pdf'] = pdf
     _save(staged, data)
     _report(args, data, out)
     return 1 if data['failed'] else 0

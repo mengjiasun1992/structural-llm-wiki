@@ -127,9 +127,9 @@ class Release(helpers.WikiTestCase):
         self.assertIn(f'Releasing {TODAY} from mainline ({commit[:7]}); checks: passing', r.out)
         notes = self.plan_file('notes.md')
         self.assertTrue(notes.startswith('## First release\n\n1 narratives, 3 sources.\n'), notes)
-        self.assertIn("**Book:** none", notes)
+        self.assertIn("**Book:** PDF", notes)  # the PDF is on by default
         plan = json.loads(self.plan_file('plan.json'))
-        self.assertEqual((plan['version'], plan['commit'], plan['previous'], plan['formats']), (TODAY, commit, None, []))
+        self.assertEqual((plan['version'], plan['commit'], plan['previous'], plan['formats']), (TODAY, commit, None, ['pdf']))
         self.assertIn(f'api repos/o/wiki/commits/{commit}/check-runs?per_page=100', self.calls())
         r = self.rel('create')
         self.assertEqual((r.code, r.out), (0, 'Release: https://github.com/o/wiki/releases/tag/x\n'))
@@ -158,10 +158,10 @@ class Release(helpers.WikiTestCase):
         r = self.rel('plan', '--json')
         self.assertEqual(r.code, 0, r.err)
         out = json.loads(r.out)
-        self.assertEqual((out['previous'], out['formats'], out['changes']['sources']), ('v2026.10.01', ['html'], ['delta-link']))
+        self.assertEqual((out['previous'], out['formats'], out['changes']['sources']), ('v2026.10.01', ['pdf', 'html'], ['delta-link']))
         notes = self.plan_file('notes.md')
         for says in ('## Since v2026.10.01', '- What is beta? (1.0)', '- What is alpha? (1.0 → 1.1)', '**New sources:** 1 (delta-link)',
-                     '**Open questions:** 1 [?]', '**Book:** HTML'):
+                     '**Open questions:** 1 [?]', '**Book:** PDF, HTML'):
             self.assertIn(says, notes)
 
     def test_checks_that_fail_or_are_pending(self):

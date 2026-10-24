@@ -3,8 +3,10 @@
 import json
 import os
 import shutil
+import sys
 import tempfile
 import unittest
+from unittest import mock
 
 import helpers
 
@@ -63,6 +65,45 @@ class CheckBook(unittest.TestCase):
         self.assertIn('error  LINK_UNRESOLVED  #gone: no element has this id', r.out)
         r = helpers.run(TOOL, [os.path.join(self.tmp, 'missing.html')])
         self.assertEqual((r.code, 'no file' in r.err), (2, True))
+
+
+    def poppler(self, pages=12, fonts=(('ABCDEF+NotoSans', 'yes'),), text='What is alpha?\n什么是\n重试？'):
+        """Stand-ins for pdfinfo, pdffonts and pdftotext, first on PATH."""
+        bin_ = os.path.join(self.tmp, 'bin')
+        rows = ''.join(f'{name:<36} CID TrueType       Identity-H       {emb}  yes yes     12  0\n' for name, emb in fonts)
+        for name, out in (('pdfinfo', f'Title: x\nPages:          {pages}\n'),
+                          ('pdffonts', 'name type encoding emb sub uni object ID\n' + '-' * 60 + '\n' + rows),
+                          ('pdftotext', text)):
+            helpers.write(bin_, name, f'#!{sys.executable}\nimport sys\nsys.stdout.write({out!r})\n')
+            os.chmod(os.path.join(bin_, name), 0o755)
+        return mock.patch.dict(os.environ, {'PATH': bin_ + os.pathsep + os.environ['PATH']})
+
+    def test_a_pdf(self):
+        page = ('<section id="ch-a"><h2>What is alpha?<a class="headerlink" href="#ch-a">¶</a></h2><p>x</p></section>'
+                '<section id="ch-zh"><h2>什么是重试？</h2></section><section id="part-x"><h1>Not a chapter</h1></section>')
+        helpers.write(self.tmp, 'book.pdf', '%PDF')
+        pdf = ['--pdf', os.path.join(self.tmp, 'book.pdf')]
+        with self.poppler():
+            r = self.run_tool(page, *pdf, '--min-pages', '5', '--max-pages', '50')
+        self.assertEqual(r.code, 0, r.out)
+        with self.poppler(pages=80, fonts=(('ABCDEF+NotoSans', 'yes'), ('Helvetica', 'no')), text='What is alpha?\n□□□'):
+            r = self.run_tool(page, *pdf, '--max-pages', '50', '--json')
+        self.assertEqual(r.code, 1)
+        found = [(f['code'], f['message']) for f in json.loads(r.out)['findings']]
+        self.assertEqual(found, [('PDF_PAGES', '80 pages, outside 0..50'), ('PDF_FONT', "Helvetica isn't embedded"),
+                                 ('PDF_TEXT', '"什么是重试？" isn\'t in the PDF\'s text')])
+
+    def test_a_pdf_without_poppler(self):
+        helpers.write(self.tmp, 'book.pdf', '%PDF')
+        with mock.patch.dict(os.environ, {'PATH': os.path.join(self.tmp, 'nothing')}):
+            r = self.run_tool(GOOD, '--pdf', os.path.join(self.tmp, 'book.pdf'))
+        self.assertEqual(r.code, 2)
+        self.assertIn('needs poppler-utils', r.err)
+        bin_ = os.path.join(self.tmp, 'failing')
+        helpers.write(bin_, 'pdfinfo', '#!/bin/sh\necho broken >&2\nexit 1\n')
+        os.chmod(os.path.join(bin_, 'pdfinfo'), 0o755)
+        with mock.patch.dict(os.environ, {'PATH': bin_ + os.pathsep + os.environ['PATH']}):
+            self.assertIn('pdfinfo failed: broken', self.run_tool(GOOD, '--pdf', os.path.join(self.tmp, 'book.pdf')).err)
 
 
 if __name__ == '__main__':

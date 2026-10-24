@@ -16,6 +16,7 @@
     obsidian = false
 
     [structural-llm-wiki-release]
+    pdf_book = true
     html_book = false
 
 Every setting has a default, so the file is optional. Tables whose names don't
@@ -52,8 +53,9 @@ TEMPLATE_KEYS = ('max_words', 'abstract_words')
 ADDON_DEFAULTS = {
     'obsidian': False,  # init writes sllmwiki/.obsidian/graph.json (design doc §4.8)
 }
-RELEASE_DEFAULTS = {
-    'html_book': False,  # a release attaches one self-contained HTML file (docs/book_design.md §3)
+RELEASE_DEFAULTS = {  # what a release attaches (docs/book_design.md §3)
+    'pdf_book': True,    # a PDF: share, print, read anywhere
+    'html_book': False,  # one self-contained HTML file, for a browser
 }
 _TEMPLATE_NAME = re.compile(r'[a-z0-9][a-z0-9_-]*\Z')
 _LANGUAGE = re.compile(r'[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*\Z')  # as lib/language.py's TAG

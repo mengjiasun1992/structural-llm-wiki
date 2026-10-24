@@ -55,9 +55,11 @@ jobs:
           wiki: ${{ runner.temp }}/fixture-wiki
           name: fixture-wiki
           version: check
-          formats: html
+          formats: pdf,html
 
       - name: Check the book
         run: |
+          sudo apt-get install -y -qq --no-install-recommends poppler-utils > /dev/null
           python3 src/tools/check-book.py "${{ steps.book.outputs.html }}" --book "${{ steps.book.outputs.json }}" \
-            --max-bytes 1000000 --seconds "${{ steps.book.outputs.seconds }}" --max-seconds 240
+            --max-bytes 1000000 --seconds "${{ steps.book.outputs.seconds }}" --max-seconds 240 \
+            --pdf "${{ steps.book.outputs.pdf }}" --min-pages 5 --max-pages 60

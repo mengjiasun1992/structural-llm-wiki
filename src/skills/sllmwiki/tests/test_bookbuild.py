@@ -16,6 +16,12 @@ from lib import book, bookbuild
 
 # A stand-in for Chrome: reads the render page and dumps a DOM with an SVG (or an error) for each item.
 CHROME = '''import html, json, os, re, sys
+pdf = next((a.split('=', 1)[1] for a in sys.argv if a.startswith('--print-to-pdf=')), None)
+if pdf:  # printing: a stand-in PDF of the page, unless told to fail
+    if not os.environ.get('STUB_PDF_FAIL'):
+        page = open(sys.argv[-1][len('file://'):], encoding='utf-8').read()
+        open(pdf, 'w').write('%PDF-1.4 ' + re.search(r'@top-center [{] content: ("[^"]*")', page).group(1))
+    sys.exit(0)
 page = open(sys.argv[-1][len('file://'):], encoding='utf-8').read()
 log = os.environ.get('STUB_LOG')
 if log:
@@ -154,7 +160,7 @@ class Commands(unittest.TestCase):
         os.environ['STUB_LOG'] = self.log
 
     def tearDown(self):
-        for k in ('STUB_LOG', 'STUB_EMPTY', 'STUB_SETUP', 'STUB_SPHINX_FAIL'):
+        for k in ('STUB_LOG', 'STUB_EMPTY', 'STUB_SETUP', 'STUB_SPHINX_FAIL', 'STUB_PDF_FAIL'):
             os.environ.pop(k, None)
         shutil.rmtree(self.tmp, ignore_errors=True)
 
@@ -216,7 +222,7 @@ class Commands(unittest.TestCase):
         staged = os.path.join(self.tmp, 'staged')
         for argv, says in [(['render', staged], 'needs --vendor'), (['render', staged, '--vendor', self.tmp], 'needs --vendor'),
                            (['render', staged, '--vendor', self.vendor], "isn't a staged book"),
-                           (['build', staged, '--vendor', self.vendor, '--formats', 'pdf'], '--formats can be html, not pdf'),
+                           (['build', staged, '--vendor', self.vendor, '--formats', 'epub'], '--formats can be pdf, html, not epub'),
                            (['build', staged, '--vendor', self.vendor, '--formats', ','], 'not nothing')]:
             r = self.book(*argv)
             self.assertEqual(r.code, 2, argv)
@@ -244,14 +250,46 @@ class Commands(unittest.TestCase):
     def test_formats_from_config(self):
         out = os.path.join(self.tmp, 'out')
         r = self.book('build', out, '--vendor', self.vendor, '--chrome', self.chrome, '--sphinx', self.sphinx)
-        self.assertEqual(r.code, 0, r.err)  # every format off: the book is staged, and no file is written
-        self.assertEqual([f for f in os.listdir(out) if f.endswith('.html')], [])
-        self.assertEqual(json.loads(helpers.read(out, 'staged/book.json'))['files'], {})
-        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-release]\nhtml_book = true\n')
+        self.assertEqual(r.code, 0, r.err)  # by default the PDF, printed from the HTML, which isn't attached
+        files = json.loads(helpers.read(out, 'staged/book.json'))['files']
+        self.assertEqual(list(files), ['pdf'])
+        self.assertTrue(files['pdf'].endswith('-preview.pdf'))
+        self.assertEqual(helpers.read(out, os.path.basename(files['pdf'])), f'%PDF-1.4 "{{{os.path.basename(self.root)} 📖}}"')  # the running head
+        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-release]\npdf_book = false\nhtml_book = false\n')
         out2 = os.path.join(self.tmp, 'out2')
         r = self.book('build', out2, '--vendor', self.vendor, '--chrome', self.chrome, '--sphinx', self.sphinx)
-        self.assertEqual(r.code, 0, r.err)
-        self.assertEqual(list(json.loads(helpers.read(out2, 'staged/book.json'))['files']), ['html'])
+        self.assertEqual(r.code, 0, r.err)  # every format off: the book is staged, and no file is written
+        self.assertEqual(json.loads(helpers.read(out2, 'staged/book.json'))['files'], {})
+        self.assertEqual([f for f in os.listdir(out2) if f.endswith(('.html', '.pdf'))], [])
+        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-release]\npdf_book = true\nhtml_book = true\n')
+        out3 = os.path.join(self.tmp, 'out3')
+        self.book('build', out3, '--vendor', self.vendor, '--chrome', self.chrome, '--sphinx', self.sphinx)
+        self.assertEqual(list(json.loads(helpers.read(out3, 'staged/book.json'))['files']), ['html', 'pdf'])
+
+    def test_a_pdf_that_fails_to_print(self):
+        os.environ['STUB_PDF_FAIL'] = '1'
+        out = os.path.join(self.tmp, 'out')
+        r = self.book('build', out, '--vendor', self.vendor, '--formats', 'pdf,html', '--chrome', self.chrome, '--sphinx', self.sphinx)
+        self.assertEqual(r.code, 1)
+        data = json.loads(helpers.read(out, 'staged/book.json'))
+        self.assertEqual(list(data['files']), ['html'])  # the HTML is still attached
+        self.assertIn('Chrome printed nothing', data['failed']['pdf'])
+
+    def test_printing_without_chrome(self):
+        page = helpers.write(self.tmp, 'p.html', '<html><head></head><body>x</body></html>') or os.path.join(self.tmp, 'p.html')
+        with mock.patch.object(bookbuild.subprocess, 'run', side_effect=OSError('no such file')):
+            self.assertEqual(bookbuild.print_pdf(page, os.path.join(self.tmp, 'p.pdf'), 'chrome', 't'), "Chrome didn't print: no such file")
+        self.assertFalse(os.path.exists(page + '.pdf.html'))  # the printable copy is removed
+        helpers.write(self.tmp, 'bare.html', 'no head')
+        self.assertIsNone(bookbuild.print_pdf(os.path.join(self.tmp, 'bare.html'), os.path.join(self.tmp, 'b.pdf'), self.chrome, 't'))
+        staged = os.path.join(self.tmp, 'out')  # drawn once, so a second build needs Chrome only to print
+        cache = os.path.join(self.tmp, 'cache')
+        self.book('build', staged, '--vendor', self.vendor, '--formats', 'html', '--chrome', self.chrome, '--sphinx', self.sphinx, '--cache', cache)
+        with mock.patch.dict(os.environ, {'CHROME': ''}):
+            r = self.book('build', os.path.join(self.tmp, 'out2'), '--vendor', self.vendor, '--formats', 'pdf', '--cache', cache,
+                          '--chrome', os.path.join(self.tmp, 'no-chrome'), '--sphinx', self.sphinx)
+        self.assertEqual(r.code, 1)
+        self.assertIn('pdf failed: no Chrome found to print it', r.out)
 
     def test_known_issues(self):
         self.assertEqual(book.issues({'problems': [], 'warnings': []}), '')
@@ -276,7 +314,7 @@ class Commands(unittest.TestCase):
         out = os.path.join(self.tmp, 'out')
         r = self.book('build', out, '--vendor', self.vendor, '--chrome', self.chrome, '--sphinx', self.sphinx, '--json')
         self.assertEqual(r.code, 0, r.err)
-        self.assertEqual(list(json.loads(r.out)['files']), ['html'])
+        self.assertEqual(list(json.loads(r.out)['files']), ['html', 'pdf'])
         self.assertIn('language=zh_CN', helpers.read(out, os.path.basename(json.loads(r.out)['files']['html'])))
 
     def test_a_format_that_fails(self):
