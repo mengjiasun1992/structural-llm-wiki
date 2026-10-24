@@ -146,7 +146,7 @@ class Command(helpers.WikiTestCase):
     def test_templates_and_skeleton(self):
         r = self.nf('--templates')
         self.assertEqual(r.code, 0)
-        self.assertIn('technical_brief_overview (bundled, body up to 1800 words)', r.out)
+        self.assertIn('technical_brief_overview (bundled, body up to 1800 words; aim: concise, authoritative, depth over breadth)', r.out)
         rows = json.loads(self.nf('--templates', '--json').out)['templates']
         self.assertEqual([t['name'] for t in rows], ['case_study', 'comparison', 'concept_brief_overview', 'survey', 'technical_brief_overview'])
         skel = self.nf('--skeleton', 'concept_brief_overview').out

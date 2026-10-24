@@ -17,6 +17,7 @@ A wiki is a git repository whose knowledge lives in `sllmwiki/`: sources saved v
 | Map a topic to tags | `steps/tags.md` |
 | Save or refresh sources | `steps/ingest.md` |
 | Write or update one narrative from saved sources | `steps/narrative.md` |
+| Make or change one of the wiki's narrative templates | `steps/template.md` |
 | Check narratives against their sources, the code and each other | `steps/lint.md` |
 | Find the people who know a topic | `steps/smes.md` |
 

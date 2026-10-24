@@ -16,7 +16,13 @@ narrative shares (design doc §4.5, §4.8, §4.10).
       the words, subsections, citations and markers in each section, citations
       by the authority of the sources they cite (the reading plan's grades), and
       pictures.
-  narrative-format.py --templates     the templates this wiki offers, with use_when and budgets
+  narrative-format.py --templates     the templates this wiki offers, with use_when, budgets and the aim lint
+                                      grades on; a problem with one of the wiki's own (exit 1), and a heading
+                                      its language pack doesn't translate (a warning)
+  narrative-format.py --new-template NAME --from BASE
+                     starts the wiki's own template NAME in templates/NAME/, a copy of
+                     BASE's template.md and guide.md to edit; named like a bundled
+                     template, it replaces it
   narrative-format.py --skeleton NAME the skeleton a new narrative starts from, in the wiki's language
                      [--language TAG]  or in another one (a BCP 47 tag, such as zh-Hans)
 
@@ -43,6 +49,8 @@ def main(argv):
     p.add_argument('--fix-numbering', action='store_true')
     p.add_argument('--fix-style', action='store_true')
     p.add_argument('--templates', action='store_true')
+    p.add_argument('--new-template', metavar='NAME')
+    p.add_argument('--from', dest='base', metavar='BASE')
     p.add_argument('--skeleton', metavar='NAME')
     p.add_argument('--language', metavar='TAG')
     p.add_argument('--stats', action='store_true')
@@ -52,16 +60,35 @@ def main(argv):
     root = cli.wiki(args.root)
     offered, problems = templates.available(root)
 
+    if args.new_template:
+        if not args.base:
+            cli.usage('--new-template needs --from BASE, the template to start from (--templates lists them)')
+        try:
+            folder = templates.create(root, args.new_template, args.base)
+        except templates.TemplateError as e:
+            cli.fail(str(e))
+        rel = os.path.relpath(folder, root).replace(os.sep, '/')
+        print(f'started {rel}/ from {args.base}: edit template.md (its header and body sections) and guide.md, '
+              f'then check it with narrative-format.py --templates and --skeleton {args.new_template}')
+        return 0
     if args.templates:
         rows = [{'name': t.name, 'source': t.source, 'description': t.description, 'use_when': t.use_when,
-                 'max_words': t.max_words, 'abstract_words': t.abstract_words} for t in offered.values()]
+                 'max_words': t.max_words, 'abstract_words': t.abstract_words, 'aim': t.aim} for t in offered.values()]
+        tag = config.get(root).settings['language']
+        pack = language.pack(tag)
+        warnings = [f'template {t.name}: {tag} keeps "{title}" in English: translate it in templates/{language.FOLDER}/{tag}.md'
+                    for t in offered.values() if t.source == 'wiki' and pack and pack.tag != language.DEFAULT
+                    for title in templates.untranslated(t, pack)]
         if args.json:
-            print(dumps({'templates': rows, 'problems': problems}))
+            print(dumps({'templates': rows, 'problems': problems, 'warnings': warnings}))
         else:
             for r in rows:
-                print(f'{r["name"]} ({r["source"]}, body up to {r["max_words"]} words): {r["description"]}. Use for {r["use_when"]}')
+                print(f'{r["name"]} ({r["source"]}, body up to {r["max_words"]} words; aim: {", ".join(r["aim"])}): {r["description"]}. '
+                      f'Use for {r["use_when"]}')
             for prob in problems:
                 print(f'problem: {prob}')
+            for w in warnings:
+                print(f'warning: {w}')
         return 1 if problems else 0
     if args.skeleton:
         if args.skeleton not in offered:

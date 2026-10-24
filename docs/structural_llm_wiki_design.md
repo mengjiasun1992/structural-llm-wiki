@@ -258,7 +258,7 @@ Four are shown in the [demo wiki](https://github.com/mengjiasun1992/sllmwiki-dem
 
 Lint grades each narrative on each axis of its template's aim, met, partly or missed, with the evidence, helped by `narrative-format.py --stats` (the body against its budget; words, citations and markers per section; citations by the authority of what they cite).
 
-**A wiki's own templates.** A group can bring its own: a folder in the wiki's `templates/` with a `template.md` and a `guide.md` is offered next to the bundled ones, and is checked the same way; one with a bundled template's name replaces it. A wiki that only wants a different budget for a template sets it in `Config.toml` (§4.9) instead of copying the template.
+**A wiki's own templates.** A group can bring its own: a folder in the wiki's `templates/` with a `template.md` and a `guide.md` is offered next to the bundled ones, and is checked the same way (`lib/templates.py`): the header's four keys; the guide's six sections, with the **Takeaway** and the **Aim** whose axes lint grades every narrative on; and a body of `##` sections, each with its `<…>` line, repeating none of the shared ones. One with a bundled template's name replaces it. `/sllmwiki:template` makes one with the agent, from the closest template. A wiki that only wants a different budget for a template sets it in `Config.toml` (§4.9) instead of copying the template.
 
 **What scripts do for every narrative.** After any edit, the agent runs one command, `finish-narrative` (§7.5): it numbers the headings and figure captions, repairs links to a renumbered section of another narrative, escapes what the renderers would misread (§4.8), converts old markers and adds a Terminology row for each marker the narrative uses (when markers are on), bumps the version and history when asked, writes the manifest entry with the current pins of the sources it read and the narratives it builds on, and regenerates the index and tag pages. The agent writes the content; the script does the rest.
 
@@ -490,6 +490,7 @@ Before writing, `search.py narratives` finds narratives that answer the same or 
 | `smes` | `<tags>` | Locates the code and docs behind the tags, ranks people by `contributors.py` (git log and blame, `CODEOWNERS`, doc authorship, reviews); never lists anyone in `smes_exclude` (§4.9), nor the wiki's own committers for their wiki commits | `smes` in `tags.yaml` |
 | `narrative` | `<question>` | Reuse or expand first (§7.4); reading plan (§7.1); writes by template and guide; `finish-narrative`; lint | a narrative |
 | `lint` | `<narrative \| tag \| description>` | §7.3 | fixes, and decisions on the PR |
+| `template` | `<what the template is for>` | Starts the wiki's own template from the closest one (`narrative-format.py --new-template`), shapes its header, sections and guide from the owner's description, and checks it (§4.5); a length alone goes to `Config.toml` instead | `templates/<name>/` |
 
 ## 9. Instruction design
 
