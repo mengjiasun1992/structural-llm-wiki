@@ -150,7 +150,7 @@ html_book = false    # one self-contained HTML file, for a browser
 |---|---|
 | Cover | the wiki's name (the repository's), the version, the date, the commit |
 | Front page | §9's text, the markers' meaning, how citations work |
-| Contents | generated |
+| Contents | generated: a list of links to the parts, sections and chapters (a visible toctree would pull the whole book into a single-file HTML) |
 | One part per top-level tag, sections per child tag | `tags.yaml`: each part opens with the tag's description and its chapters |
 | Chapters | the narratives, each under its **primary** tag only; its supporting tags' parts link to it |
 | Appendix A: Sources | every source a chapter cites: title, URL, license, published date, abstract, and the chapters that cite it |
@@ -248,8 +248,11 @@ viewer's script (`renderer.draw(…, "12.2.0", …)` in October 2026).
 
 ### 6.4 Sphinx (the release action)
 
-Sphinx with MyST-Parser reads the staged folder, using a `conf.py` that ships
-with the action, so no Sphinx file lives in the wiki:
+Sphinx with MyST-Parser reads the staged folder, using the `conf.py` and
+stylesheet in the skill's `templates/book/` (passed with `-c`, so no Sphinx
+file lives in the wiki; `book.py build` sets the wiki's name, version and
+language with `-D`). The vendored mermaid.js and MathJax, megabytes the skill
+shouldn't carry to every install, stay in the action (`render --vendor`):
 
 - **Ids are staging's labels:** Sphinx gives a section its own id from its
   title (`abstract` in every chapter, `id4` for a Chinese heading) and keeps a
@@ -259,7 +262,10 @@ with the action, so no Sphinx file lives in the wiki:
   `myst_heading_slug_func` doesn't help: it only resolves links, and a
   function in `conf.py` can't be cached.
 - **MyST extensions:** `dollarmath` is off (math is already SVG); GitHub alerts
-  become admonitions.
+  become admonitions (`alert`).
+- **Structure:** every toctree is hidden. A single-file HTML puts a visible
+  toctree's pages in its place, so the contents and each part's map of its
+  chapters are lists of links staging writes.
 - **Theme:** Sphinx's `basic` theme with the action's own stylesheet: one
   stylesheet for screen, print and EPUB, and no theme package to install.
 - **Language:** Sphinx's `language` is the wiki's `language` (Config.toml);

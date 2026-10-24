@@ -123,7 +123,7 @@ computer.
 | # | Code change | What it does |
 |---|---|---|
 | B2.1 | `scripts/book.py render` | Headless Chrome with the pinned mermaid.js and MathJax (vendored in the action) turns everything in `book.json` into SVG, with its source as alt text; cached by content hash |
-| B2.2 | `src/actions/release-book/conf.py`, `book.css` | Sphinx and MyST settings (the hook that makes staging's labels the section ids, alerts as admonitions, the wiki's language, `version` and `copyright`); the `basic` theme with one stylesheet |
+| B2.2 | `templates/book/conf.py`, `templates/book/_static/book.css` (the skill's, so `book.py build` works anywhere) | Sphinx and MyST settings (the hook that makes staging's labels the section ids, alerts as admonitions, the wiki's language, `version` and `copyright`); the `basic` theme with one stylesheet |
 | B2.3 | `scripts/book.py build --formats html` | Stage, render, `sphinx-build -b singlehtml`, then inline the stylesheet and images into `<wiki>-<version>.html`, drop the theme's navigation and scripts, and rewrite `#document-<doc>#<id>` links to `#<id>` |
 | B2.4 | `src/actions/release-book/action.yml` | Install the pinned tools and fonts (cached), run `book.py build`, upload the result as an artifact (previews only, for now) |
 | B2.5 | `.github/workflows/check-book.yml`, `src/tools/check-book.py` | Build the fixture wiki on pull requests that touch the book, and check the output (§2) |
