@@ -292,6 +292,9 @@ def rewrite(root, book, slug):
         lines.insert(h.line, f'({chapter_label(slug) if h.level == 1 else section_label(slug, anchor)})=')
         if h.level == 1 and version:
             lines.insert(h.line + 2, '\n' + version)
+    del lines[:scan(lines)[0].count('front')]  # YAML front matter (the Obsidian add-on's) means nothing in a book
+    while lines and not lines[0].strip():
+        del lines[0]
     return Rewritten('\n'.join(lines), problems, list(dict.fromkeys(sources)), list(dict.fromkeys(figures)), targets)
 
 

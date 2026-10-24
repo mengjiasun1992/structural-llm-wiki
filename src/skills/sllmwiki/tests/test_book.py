@@ -189,6 +189,16 @@ class Rewrite(helpers.WikiTestCase):
         self.assertIn(f'*{pack.t("Version")} 2.0 · {pack.t("Last modified")} 2026-10-20*', r.text)
         self.assertEqual(r.problems, [])
 
+    def test_front_matter_is_left_out(self):
+        text = helpers.read(self.root, 'sllmwiki/narratives/what-is-alpha.md')
+        helpers.write(self.root, 'sllmwiki/narratives/what-is-alpha.md',
+                      '---\nsllmwiki: generated\ntags:\n  - root-topic/leaf-a\n---\n' + text.replace('## 6. Design', 'See [x](#nope).\n\n## 6. Design'))
+        r = book.rewrite(self.root, book.model(self.root), 'what-is-alpha')
+        self.assertTrue(r.text.startswith('(ch--what-is-alpha)=\n# What is alpha?\n'), r.text[:80])
+        self.assertNotIn('sllmwiki: generated', r.text)
+        line = [i for i, l in enumerate(helpers.read(self.root, 'sllmwiki/narratives/what-is-alpha.md').split('\n'), 1) if '#nope' in l][0]
+        self.assertEqual(r.problems[0][1], f'sllmwiki/narratives/what-is-alpha.md:{line}')  # lines still count the front matter
+
     def test_no_metadata_no_version_line(self):
         helpers.add_narrative(self.root, 'bare', 'Bare?')
         helpers.write(self.root, 'sllmwiki/narratives/bare.md', '# Bare?\n\n## 1. Abstract\n\nText.\n')
