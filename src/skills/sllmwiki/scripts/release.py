@@ -20,6 +20,10 @@
       Follows the release workflow's run for the planned release, then
       reports the attached files with their sizes and links, and the release
       notes' Known issues, if any. --timeout defaults to 900.
+  release.py preview [--timeout SECONDS]
+      Builds the book from the current branch, as pushed, without a release:
+      runs the release workflow on it (Run workflow), follows the run, and
+      reports it and its artifact, which GitHub keeps for 90 days.
 
 Needs gh, signed in. Options: --json, --root <wiki>.
 Exit code: 0, 1 refused or failed (the reason is printed), 2 usage error.
@@ -40,13 +44,15 @@ from lib.layout import Cli, entry  # noqa: E402
 from lib.policy import github_repo  # noqa: E402
 from lib.util import dumps, write_text  # noqa: E402
 
-cli = Cli('release.py', 'usage: release.py plan|create|wait ...; see --help')
+cli = Cli('release.py', 'usage: release.py plan|create|wait|preview ...; see --help')
 
 
 def gh(root, *args):
-    """gh's output; fails with its message."""
+    """gh's output; fails with its message. $EVAL_SLLMWIKI_GH names a stand-in, from the wiki's
+    root: the behavior evals' (evals/_fixture/release.sh), since an eval can set only EVAL_* variables."""
+    stand_in = os.environ.get('EVAL_SLLMWIKI_GH')
     try:
-        p = subprocess.run(['gh', *args], cwd=root, capture_output=True, text=True)
+        p = subprocess.run([os.path.join(root, stand_in) if stand_in else 'gh', *args], cwd=root, capture_output=True, text=True)
     except OSError:
         cli.fail('gh isn\'t installed: install the GitHub CLI and sign in (gh auth login)')
     if p.returncode:
@@ -113,8 +119,7 @@ def wait(root, timeout, interval):
     p = load_plan(root)
     deadline, run = time.time() + timeout, None
     while True:
-        runs = json.loads(gh(root, 'run', 'list', '-R', p['repo'], '--workflow', os.path.basename(release.WORKFLOW), '--event', 'release',
-                             '--limit', '20', '--json', 'databaseId,status,conclusion,headBranch,url'))
+        runs = _runs(root, p['repo'], 'release')
         run = next((r for r in runs if r.get('headBranch') == p['version']), None)
         if run and run.get('status') == 'completed':
             break
@@ -131,9 +136,36 @@ def wait(root, timeout, interval):
             'issues': issues}
 
 
+def _runs(root, repo, event, branch=None):
+    return json.loads(gh(root, 'run', 'list', '-R', repo, '--workflow', os.path.basename(release.WORKFLOW), '--event', event,
+                         *(['--branch', branch] if branch else []), '--limit', '20', '--json', 'databaseId,status,conclusion,headBranch,url'))
+
+
+def preview(root, repo, timeout, interval):
+    ref = git(root, 'rev-parse', '--abbrev-ref', 'HEAD')
+    git(root, 'fetch', '--quiet', 'origin')
+    if not git(root, 'rev-parse', '--verify', '--quiet', f'refs/remotes/origin/{ref}'):
+        cli.fail(f'{ref} isn\'t on GitHub: push it first, and the preview builds it as pushed')
+    if subprocess.run(['git', 'cat-file', '-e', f'origin/{ref}:{release.WORKFLOW}'], cwd=root, capture_output=True).returncode:
+        cli.fail(f'{release.WORKFLOW} isn\'t on {ref}: rerun /sllmwiki:init and merge its pull request')
+    before = {r['databaseId'] for r in _runs(root, repo, 'workflow_dispatch', ref)}
+    gh(root, 'workflow', 'run', os.path.basename(release.WORKFLOW), '-R', repo, '--ref', ref)
+    deadline, run = time.time() + timeout, None
+    while True:
+        run = next((r for r in _runs(root, repo, 'workflow_dispatch', ref) if r['databaseId'] not in before), None)
+        if run and run.get('status') == 'completed':
+            break
+        if time.time() >= deadline:
+            cli.fail(f'the preview of {ref} isn\'t built after {timeout} s' + (f': follow it at {run["url"]}' if run else ''))
+        time.sleep(interval)
+    found = json.loads(gh(root, 'api', f'repos/{repo}/actions/runs/{run["databaseId"]}/artifacts')).get('artifacts', [])
+    return {'branch': ref, 'run': run['url'], 'conclusion': run.get('conclusion'),
+            'artifacts': [{'name': a['name'], 'bytes': a.get('size_in_bytes')} for a in found]}
+
+
 def main(argv):
     p = argparse.ArgumentParser(prog='release.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument('command', choices=['plan', 'create', 'wait'])
+    p.add_argument('command', choices=['plan', 'create', 'wait', 'preview'])
     p.add_argument('--anyway', action='store_true')
     p.add_argument('--notes')
     p.add_argument('--timeout', type=int, default=900)
@@ -159,6 +191,15 @@ def main(argv):
         out = create(root, args.notes)
         print(dumps(out) if args.json else f'Release: {out["url"]}')
         return 0
+    if args.command == 'preview':
+        out = preview(root, repo, args.timeout, args.interval)
+        if args.json:
+            print(dumps(out))
+        else:
+            print(f'Preview of {out["branch"]}: {out["conclusion"]} ({out["run"]})')
+            for a in out['artifacts']:
+                print(f'{a["name"]}: {a["bytes"]:,} bytes, on the run\'s page' if a['bytes'] is not None else f'{a["name"]}: on the run\'s page')
+        return 0 if out['conclusion'] == 'success' else 1
     out = wait(root, args.timeout, args.interval)
     if args.json:
         print(dumps(out))

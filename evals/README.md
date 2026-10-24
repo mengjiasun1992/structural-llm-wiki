@@ -24,10 +24,14 @@ Unit tests (`src/skills/sllmwiki/tests/`) check the scripts; these evals check t
 | template-choice | four questions, one per kind of subject, each get their template's skeleton (concept, survey, technical, comparison); nothing is written | smoke, templates |
 | narrative-publish | a narrative is planned, finished with no errors, and published as one unmerged pull request | full, publishing, grounding |
 | build-small | two questions from two local documents: both saved, abstracted, answered and published | full, publishing |
+| release-notes | `/sllmwiki:release` plans, makes and follows a release with `release.py`, and reports the version, its link and the book | release |
+| release-red | with the default branch's checks failing, nothing is released, nothing is released anyway unasked, and the failing check is named | release |
+| release-anyway | told to release anyway, it plans with `--anyway`, and the notes say what was failing | release |
+| release-failed | a book that fails to build is reported, with its Known issue and the run's link; the release is never deleted or edited | release |
 
 Add a row with every case. Runs use the CLI's `--threshold` (1.0): a case passes only when every grader passes, so a suite summary can't count a failing case as passed. `--case` takes one name; run several with `--tag`.
 
-Fixture variants in `_fixture/`: `plain-repo.sh` (no wiki: `new` or `project`), `injected-source.sh` (a source with orders in it), `incoming.sh` (two documents in `../incoming/` to build from, so no network).
+Fixture variants in `_fixture/`: `plain-repo.sh` (no wiki: `new` or `project`), `injected-source.sh` (a source with orders in it), `incoming.sh` (two documents in `../incoming/` to build from, so no network), `release.sh` (ready for a release, with a stand-in `gh` in `.eval/` that `release.py` uses through the case's `EVAL_SLLMWIKI_GH`, since an eval can set only `EVAL_*` variables).
 
 ## The fixture
 

@@ -1,6 +1,6 @@
 ---
 name: sllmwiki
-description: Build and use a Structural LLM Wiki, a git repository of topic tags, verbatim sources and narratives where every claim traces to a source section and every change lands as one pull request. Use to answer a question from the wiki in this repository (even "just answer" ones), to research questions and add the answers, to save sources, to write or update a narrative, or to set up a wiki repository. Also use for a bare topic named in a wiki repository ("look into X", "dig into X", "X?"), to ask what to do with it. Triggers include "according to the wiki", "what does the wiki say about", "ask the wiki", "look into", "build up", "add to the wiki", "ingest", "write a narrative", "set up a wiki".
+description: Build and use a Structural LLM Wiki, a git repository of topic tags, verbatim sources and narratives where every claim traces to a source section and every change lands as one pull request. Use to answer a question from the wiki in this repository (even "just answer" ones), to research questions and add the answers, to save sources, to write or update a narrative, or to set up a wiki repository. Also use for a bare topic named in a wiki repository ("look into X", "dig into X", "X?"), to ask what to do with it. Also use to release the wiki and its book on GitHub. Triggers include "according to the wiki", "what does the wiki say about", "ask the wiki", "look into", "build up", "add to the wiki", "ingest", "write a narrative", "set up a wiki", "release the wiki", "make a book".
 ---
 
 # sllmwiki
@@ -13,6 +13,7 @@ A wiki is a git repository whose knowledge lives in `sllmwiki/`: sources saved v
 | A question to answer from the wiki | `workflows/query.md` |
 | Questions to research and add to the wiki | `workflows/build.md` |
 | Set up a wiki repository | `workflows/init.md` |
+| Release the wiki, with its book, or preview the book | `workflows/release.md` |
 | Map a topic to tags | `steps/tags.md` |
 | Save or refresh sources | `steps/ingest.md` |
 | Write or update one narrative from saved sources | `steps/narrative.md` |

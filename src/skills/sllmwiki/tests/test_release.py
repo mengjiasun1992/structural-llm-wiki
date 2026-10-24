@@ -107,6 +107,9 @@ class Release(helpers.WikiTestCase):
                                       'assets': [{'name': f'wiki-{TODAY}.html', 'size': 84546, 'url': 'https://dl/wiki.html'}]}}
         responses.update(changes)
         helpers.write(self.bin, 'responses.json', json.dumps(responses))
+        for name in os.listdir(self.bin):  # each sequence starts again
+            if name.startswith('count-'):
+                os.remove(os.path.join(self.bin, name))
 
     def rel(self, *argv):
         return helpers.run('release.py', list(argv), cwd=self.root)
@@ -212,6 +215,36 @@ class Release(helpers.WikiTestCase):
         self.respond(**{'run list': [{'databaseId': 1, 'status': 'queued', 'headBranch': TODAY, 'url': 'https://run/1'}]})
         self.assertIn('follow it at https://run/1', self.rel('wait', '--timeout', '0', '--interval', '0').err)
 
+    def test_a_preview(self):
+        helpers.git(self.root, 'checkout', '-q', '-b', 'draft')
+        self.assertIn("draft isn't on GitHub: push it first", self.rel('preview').err)
+        helpers.git(self.root, 'push', '-q', 'origin', 'draft')
+        run = {'databaseId': 7, 'headBranch': 'draft', 'url': 'https://run/7'}
+        self.respond(**{'run list': {'seq': [[{'databaseId': 3, 'status': 'completed', 'headBranch': 'draft', 'url': 'old'}],
+                                             [dict(run, status='in_progress')], [dict(run, status='completed', conclusion='success')]]},
+                        'workflow run': '', 'api repos/o/wiki/actions/runs/7/artifacts': {'artifacts': [{'name': 'book-preview', 'size_in_bytes': 90000}]}})
+        r = self.rel('preview', '--interval', '0', '--timeout', '5')
+        self.assertEqual(r.code, 0, r.err)
+        self.assertEqual(r.out, 'Preview of draft: success (https://run/7)\nbook-preview: 90,000 bytes, on the run\'s page\n')
+        self.assertIn('workflow run release-book.yml -R o/wiki --ref draft', self.calls())
+        self.respond(**{'run list': [], 'workflow run': ''})
+        r = self.rel('preview', '--timeout', '0', '--interval', '0', '--json')
+        self.assertEqual((r.code, "the preview of draft isn't built after 0 s" in r.err), (1, True))
+        self.respond(**{'run list': {'seq': [[], [dict(run, status='completed', conclusion='failure')]]}, 'workflow run': '',
+                        'api repos/o/wiki/actions/runs/7/artifacts': {'artifacts': [{'name': 'book-preview'}]}})
+        r = self.rel('preview', '--interval', '0', '--timeout', '5', '--json')
+        self.assertEqual((r.code, json.loads(r.out)['artifacts']), (1, [{'name': 'book-preview', 'bytes': None}]))
+        self.respond(**{'run list': {'seq': [[], [dict(run, status='completed', conclusion='failure')]]}, 'workflow run': '',
+                        'api repos/o/wiki/actions/runs/7/artifacts': {'artifacts': [{'name': 'book-preview'}]}})
+        self.assertIn("book-preview: on the run's page", self.rel('preview', '--interval', '0', '--timeout', '5').out)
+        helpers.git(self.root, 'rm', '-q', '.github/workflows/release-book.yml')
+        self.commit_on('draft', 'no workflow')
+        self.assertIn('rerun /sllmwiki:init', self.rel('preview').err)
+
+    def commit_on(self, branch, message):
+        helpers.git(self.root, 'commit', '-q', '-am', message)
+        helpers.git(self.root, 'push', '-q', 'origin', branch)
+
     def test_a_broken_manifest_and_nothing_pushed(self):
         with mock.patch.object(release.wikiyaml, 'parse', side_effect=release.wikiyaml.YamlError(1, 'bad')):
             self.assertEqual(release.changes(self.root, None, 'HEAD')['source_count'], 0)  # an old release's broken manifest counts nothing
@@ -222,6 +255,12 @@ class Release(helpers.WikiTestCase):
         helpers.git(self.root, 'update-ref', '-d', 'refs/remotes/origin/mainline')
         helpers.git(self.root, 'remote', 'set-head', 'origin', '-d')
         self.assertIn("origin/mainline isn't there to release", self.rel('plan').err)
+
+    def test_a_stand_in_gh_for_the_evals(self):
+        helpers.write(self.root, '.eval/gh', f'#!{sys.executable}\nimport sys\nprint("stand-in", file=sys.stderr)\nsys.exit(1)\n')
+        os.chmod(os.path.join(self.root, '.eval/gh'), 0o755)
+        with mock.patch.dict(os.environ, {'EVAL_SLLMWIKI_GH': '.eval/gh'}):
+            self.assertIn('stand-in', self.rel('plan').err)
 
     def test_without_github_or_gh(self):
         helpers.git(self.root, 'remote', 'set-url', 'origin', self.origin)
