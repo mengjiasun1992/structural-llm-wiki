@@ -85,17 +85,29 @@ change before it's published.
 
 Every format has the same content (§5):
 
-- a **cover** with the wiki's name, version, date and commit;
+- a **cover** with the wiki's name and a 📖, what made it ("Made by sllmwiki
+  and Claude Opus 5.5, from mengjia-sllmwiki", linking to this skill and to
+  the wiki's repository), the version, date and commit;
 - a **front page** saying whose work is whose (§9), and how to read the
   citations and the `[→]` and `[?]` markers;
 - **contents** by topic, then **parts** following the tag tree, each opening
-  with the topic's description and a map of its chapters;
+  with the topic's description and a map of its chapters and sections, each
+  chapter with the first paragraph of its Abstract, so a part can be skimmed;
 - **chapters**, the narratives, in teaching order within each part;
+- at the top of every part, chapter and appendix, links **up** to its part and
+  to the **contents**;
+- each part, section and chapter on a **page of its own**: a new page in print,
+  a divider on screen.
 - **appendices**: the sources with their abstracts, licenses and links; a
   glossary of every term the narratives define; and the open questions.
 
 A citation in a chapter goes to its source's entry in the appendix, which
 links to the original. Links between chapters work in every format.
+
+It's set for long reading: a serif text at about 70 characters a line on a
+warm off-white page, sans-serif headings sized by kind of page rather than by
+depth, and a dark theme that follows the reader's system, with diagrams kept
+on a light card so they stay readable.
 
 ### 2.5 When something goes wrong
 
@@ -148,10 +160,10 @@ html_book = false    # one self-contained HTML file, for a browser
 
 | Part | From |
 |---|---|
-| Cover | the wiki's name (the repository's), the version, the date, the commit |
+| Cover | the wiki's name (the repository's) and 📖; "Made by sllmwiki and \<models\>, from \<wiki\>", the models from the narratives manifest, the wiki linked to its repository (`--source`, by default its `origin` remote); the version, the date, the commit |
 | Front page | §9's text, the markers' meaning, how citations work |
 | Contents | generated: a list of links to the parts, sections and chapters (a visible toctree would pull the whole book into a single-file HTML) |
-| One part per top-level tag, sections per child tag | `tags.yaml`: each part opens with the tag's description and its chapters |
+| One part per top-level tag, sections per child tag | `tags.yaml`: each part opens with links up, the tag's description, and a map of its chapters (each with its Abstract's first paragraph) and sections (each with its description) |
 | Chapters | the narratives, each under its **primary** tag only; its supporting tags' parts link to it |
 | Appendix A: Sources | every source a chapter cites: title, URL, license, published date, abstract, and the chapters that cite it |
 | Appendix B: Glossary | every Terminology row, A to Z, grouped by term: one definition, or each narrative's, side by side when they differ |

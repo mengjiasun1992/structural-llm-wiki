@@ -75,7 +75,8 @@ and the markers' Terminology rows.
 ## Book
 
 The words a release's book adds around the narratives (docs/book_design.md
-§5): its contents, front page, appendices and cover.
+§5): its contents, front page, appendices and cover. Keep `{tool}`, `{models}`
+and `{source}` as they are: the book puts the links and names there.
 
 | English | Translation |
 |---|---|
@@ -97,3 +98,5 @@ The words a release's book adds around the narratives (docs/book_design.md
 | The narratives were written by an LLM and reviewed by the owner. | |
 | This book is a snapshot of the wiki at the commit on its cover. | |
 | A number in brackets, such as [3], is a citation: it links to the source's entry in Appendix A, which links to the original. | |
+| Made by {tool} and {models}, from {source}. | |
+| Made by {tool}, from {source}. | |
