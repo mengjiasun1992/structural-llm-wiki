@@ -515,7 +515,7 @@ Each waits until a real wiki needs it; adding one later starts as a proposal in 
 | Not in v1 | Instead | Why it waits |
 |---|---|---|
 | Configurable paths, custom marker text, a default template, hiding bundled templates | One layout; fixed markers, on or off; the narrative step picks a template by its `use_when` | Never changed in the one real wiki, and the source of most of the churn |
-| Book builds (mdBook, Sphinx) | The markdown stays book-ready (§4.8); each build arrives later as an add-on, off by default, so a wiki that doesn't want a book never pays for one | No one has asked for a book yet |
+| Book builds | The markdown stays book-ready (§4.8); a release builds a PDF, EPUB or single-file HTML book, each its own setting, as [the book design](book_design.md) proposes | Proposed; not built yet |
 | Draft narratives and their states | A labeled DRAFT answer in `query`'s reply, and an offer to `build` | The one real wiki never kept a draft |
 | Tag abstracts rolled up the tree | `query` starts from narrative abstracts | Rewriting every abstract up to the root on each change was the costliest bookkeeping |
 | The `decision_record` template | The bundled templates; a wiki can add its own | Never used |
