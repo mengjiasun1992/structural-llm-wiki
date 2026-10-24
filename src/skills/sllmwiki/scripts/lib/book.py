@@ -1,5 +1,6 @@
 """The wiki as a book (docs/book_design.md §5): its parts, its chapters in
-teaching order, and the sources each chapter cites.
+teaching order, the sources each chapter cites, and each chapter rewritten for
+the book (§5.3).
 
 Parts follow the tag tree: a part per top-level tag, a section per child tag
 under it, at any depth. A narrative is a chapter under its first primary tag
@@ -10,8 +11,11 @@ template, then by question.
 
 import heapq
 import os
+import posixpath
+import re
 
-from . import citations, layout, metadata, tagtree
+from . import citations, config, language, layout, manifest, mdlinks, metadata, numbering, tagtree
+from .compat import mask_code_spans, scan
 from .util import read_text
 
 # §5.2: "what is X" before "how does X work" and "X or Y"; a wiki's own template goes last
@@ -56,6 +60,10 @@ class Book:
     def order(self):
         """The chapters' slugs in reading order."""
         return [c for p in self.parts for s in p.walk() for c in s.chapters]
+
+    def part_tags(self):
+        """The tags with a part or section in the book."""
+        return {s.tag for p in self.parts for s in p.walk()}
 
     def cited_by(self):
         """{source slug: [chapter slugs, in reading order]} for every cited source."""
@@ -161,3 +169,134 @@ def model(root):
     problems = [('BOOK_CYCLE', c[0], f'narratives built on each other in a cycle: {", ".join(c)}')
                 for c in cycles(chapters)]
     return Book(parts, chapters, problems)
+
+
+# Labels: the book's anchors, unique across it (design §6.2), as MyST targets
+CONTENTS = 'book--contents'
+_DEST = re.compile(r'(?P<image>!?)\[(?P<text>(?:[^\]\\\n]|\\.)*)\]\((?P<dest>[^)\s]*)\)')
+_SCHEME = re.compile(r'[A-Za-z][A-Za-z0-9+.-]*:')
+
+
+def chapter_label(slug):
+    return f'ch--{slug}'
+
+
+def section_label(slug, anchor):
+    """A section's label: its chapter and its GitHub anchor, with any non-ASCII
+    character spelled out, since docutils drops them from ids."""
+    return f'{slug}--' + ''.join(c if c.isascii() else f'u{ord(c):x}' for c in anchor)
+
+
+def source_label(slug):
+    return f'src--{slug}'
+
+
+def part_label(tag):
+    return f'part--{tag}'
+
+
+class Rewritten:
+    """A chapter as the book has it: its text, the problems found (code, where,
+    message), the sources it links to, and the figures it shows (paths under
+    the narratives folder)."""
+
+    def __init__(self, text, problems, sources, figures):
+        self.text, self.problems, self.sources, self.figures = text, problems, sources, figures
+
+
+def _version_line(text, pack):
+    m = metadata.read(text)
+    parts = [f'{pack.t(label)} {value}' for label, value in (('Version', m['version']), ('Last modified', m['last_modified'])) if value]
+    return f'*{" · ".join(parts)}*' if parts else None
+
+
+def rewrite(root, book, slug):
+    """Chapter slug of book rewritten for the book (design §5.3): a label
+    before every heading; citations and links to sources to their Appendix A
+    entries; links to narratives, sections and tag pages to their labels; the
+    Metadata section replaced by a version line under the title. A link the
+    book can't resolve is BOOK_LINK, a figure that isn't there BOOK_FIGURE; a
+    link to any other file in the repository keeps only its text."""
+    rel = f'{layout.NARRATIVES}/{slug}.md'
+    text = read_text(os.path.join(root, rel))
+    _, pack = language.for_narrative(text, config.get(root).settings['language'])
+    version = _version_line(text, pack)
+    text = _without_metadata(text)
+    problems, sources, figures = [], [], []
+    own = numbering.anchors(text)
+    known = set(manifest.load(root, 'sources'))
+
+    def target(dest, n):
+        """The book's link for dest, or None to keep only the text."""
+        path, frag = mdlinks.split(dest)
+        where = f'{rel}:{n}'
+        if not path:
+            if frag in own:
+                return '#' + section_label(slug, frag)
+            problems.append(('BOOK_LINK', where, f'{dest}: this narrative has no section #{frag}'))
+            return None
+        to = mdlinks.resolve(rel, path)
+        folder, name = posixpath.split(to or '')
+        base = name[:-3] if name.endswith('.md') else None
+        if folder == layout.SOURCES and base:
+            if base not in known:
+                problems.append(('BOOK_LINK', where, f'{dest}: no source {base}'))
+                return None
+            sources.append(base)
+            return '#' + source_label(base)
+        if folder == layout.NARRATIVES and base:
+            if base not in book.chapters:
+                problems.append(('BOOK_LINK', where, f'{dest}: {base} isn\'t a chapter of the book'))
+                return None
+            if not frag:
+                return '#' + chapter_label(base)
+            if frag not in _anchors(root, base):
+                problems.append(('BOOK_LINK', where, f'{dest}: {base} has no section #{frag}'))
+                return None
+            return '#' + section_label(base, frag)
+        if folder == layout.TAGS_DIR and base:
+            return '#' + part_label(base) if base in book.part_tags() else None
+        if to == layout.INDEX:
+            return '#' + CONTENTS
+        return None
+
+    lines = text.split('\n')
+    kinds, _ = scan(lines)
+    for i, line in enumerate(lines):
+        if kinds[i] != 'text':
+            continue
+        masked, out, at = mask_code_spans(line), [], 0
+        for m in _DEST.finditer(masked):
+            dest = line[m.start('dest'):m.end('dest')]
+            if not dest or _SCHEME.match(dest):
+                continue
+            if m.group('image'):
+                fig = mdlinks.resolve(rel, mdlinks.split(dest)[0])
+                if fig is None or not os.path.isfile(os.path.join(root, fig)):
+                    problems.append(('BOOK_FIGURE', f'{rel}:{i + 1}', f'{dest}: no such figure'))
+                else:
+                    figures.append(posixpath.relpath(fig, layout.NARRATIVES))
+                continue
+            new = target(dest, i + 1)
+            out.append(line[at:m.start()])
+            out.append(f'[{line[m.start("text"):m.end("text")]}]({new})' if new else line[m.start('text'):m.end('text')])
+            at = m.end()
+        lines[i] = ''.join(out) + line[at:]
+    for anchor, h in sorted(own.items(), key=lambda x: -x[1].line):
+        lines.insert(h.line, f'({chapter_label(slug) if h.level == 1 else section_label(slug, anchor)})=')
+        if h.level == 1 and version:
+            lines.insert(h.line + 2, '\n' + version)
+    return Rewritten('\n'.join(lines), problems, list(dict.fromkeys(sources)), list(dict.fromkeys(figures)))
+
+
+def _without_metadata(text):
+    """text without its Metadata section, which the book replaces by a version line."""
+    span = numbering.section(text, 'Metadata')
+    lines = text.split('\n')
+    if span:
+        del lines[span[0]:span[1]]
+    return '\n'.join(lines).rstrip('\n') + '\n'
+
+
+def _anchors(root, slug):
+    return numbering.anchors(_without_metadata(read_text(os.path.join(root, layout.NARRATIVES, f'{slug}.md'))))
