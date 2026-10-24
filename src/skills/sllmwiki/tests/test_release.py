@@ -227,7 +227,10 @@ class Release(helpers.WikiTestCase):
         helpers.git(self.root, 'remote', 'set-url', 'origin', self.origin)
         self.assertIn('no GitHub remote', self.rel('plan').err)
         helpers.git(self.root, 'remote', 'set-url', 'origin', REMOTE)
-        with mock.patch.dict(os.environ, {'PATH': os.path.dirname(shutil.which('git'))}):
+        only_git = os.path.join(self.outside, 'only-git')  # a PATH with git and no gh (on CI they share /usr/bin)
+        os.makedirs(only_git)
+        os.symlink(shutil.which('git'), os.path.join(only_git, 'git'))
+        with mock.patch.dict(os.environ, {'PATH': only_git}):
             r = self.rel('plan')
         self.assertIn("gh isn't installed", r.err)
 
