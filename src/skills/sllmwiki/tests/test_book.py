@@ -4,7 +4,7 @@ import os
 import unittest
 
 import helpers
-from lib import book
+from lib import book, language
 from lib.book import Chapter
 
 
@@ -101,6 +101,101 @@ loop-y:
         helpers.add_narrative(self.root, 'untitled', 'Untitled?')
         helpers.write(self.root, 'sllmwiki/narratives/untitled.md', 'No title here.\n')
         self.assertEqual(book.model(self.root).chapters['untitled'].question, 'untitled')
+
+
+
+LINKS = """
+See [the background](#3-background), [nothing](#nope), [alpha](what-is-alpha.md),
+[how alpha works](what-is-alpha.md#5-how-does-it-work), [alpha's metadata](what-is-alpha.md#9-metadata),
+[a ghost](ghost.md), [beta's doc](../sources/beta-doc.md), [no such source](../sources/nope.md#x),
+[leaf a](../tags/leaf-a.md), [a tag with nothing](../tags/leaf-b.md), [the index](../../SLLMWIKI_INDICES.md),
+[the README](../../README.md), [the web](https://example.com/x.md), `[code](what-is-alpha.md)`.
+
+![A flow](figures/how-is-beta-built/flow.svg) ![Gone](figures/how-is-beta-built/gone.png)
+
+```text
+[fenced](what-is-alpha.md)
+```
+"""
+
+ZH = """# 什么是环？
+
+## 1. 摘要
+
+见[第三节](#3-环如何工作)和[同一节](#3-%E7%8E%AF%E5%A6%82%E4%BD%95%E5%B7%A5%E4%BD%9C)。
+
+## 2. 重复
+
+## 3. 环如何工作
+
+键落在顺时针方向的第一个节点上。
+
+## 4. 元数据
+
+- **Version:** 2.0
+- **Language:** zh-Hans
+- **Last modified:** 2026-10-20
+"""
+
+
+class Rewrite(helpers.WikiTestCase):
+    git = False
+
+    def test_the_fixture_chapter(self):
+        b = book.model(self.root)
+        r = book.rewrite(self.root, b, 'what-is-alpha')
+        lines = r.text.split('\n')
+        self.assertEqual(lines[:4], ['(ch--what-is-alpha)=', '# What is alpha?', '', '*Version 1.0 · Last modified 2026-10-02*'])
+        self.assertIn('(what-is-alpha--5-how-does-it-work)=\n## 5. How does it work?', r.text)
+        self.assertIn('twice as long [\\[1\\]](#src--alpha-doc).', r.text)  # a citation goes to Appendix A
+        self.assertIn('1. [alpha-doc: details](#src--alpha-doc)', r.text)
+        self.assertNotIn('Metadata', r.text)
+        self.assertNotIn('../', r.text)
+        self.assertEqual((r.problems, r.sources, r.figures), ([], ['alpha-doc'], []))
+
+    def test_every_kind_of_link(self):
+        helpers.write(self.root, 'sllmwiki/narratives/figures/how-is-beta-built/flow.svg', '<svg/>')
+        helpers.add_narrative(self.root, 'how-is-beta-built', 'How is beta built?', primary=('leaf-a',))
+        text = helpers.read(self.root, 'sllmwiki/narratives/how-is-beta-built.md').replace('## 6. Design', LINKS + '\n## 6. Design')
+        helpers.write(self.root, 'sllmwiki/narratives/how-is-beta-built.md', text)
+        b = book.model(self.root)
+        r = book.rewrite(self.root, b, 'how-is-beta-built')
+        for kept in ['[the background](#how-is-beta-built--3-background)', ' nothing,', '[alpha](#ch--what-is-alpha)',
+                     '[how alpha works](#what-is-alpha--5-how-does-it-work)', " alpha's metadata,", '\na ghost,',
+                     "[beta's doc](#src--beta-doc)", ' no such source,', '[leaf a](#part--leaf-a)', ' a tag with nothing,',
+                     '[the index](#book--contents)', '\nthe README,', '[the web](https://example.com/x.md)',
+                     '`[code](what-is-alpha.md)`', '[fenced](what-is-alpha.md)', '![A flow](figures/how-is-beta-built/flow.svg)']:
+            self.assertIn(kept, r.text)
+        where = [p[1].split(':')[0] for p in r.problems]
+        self.assertEqual(set(where), {'sllmwiki/narratives/how-is-beta-built.md'})
+        self.assertEqual([(p[0], p[2].split(':')[0]) for p in r.problems], [
+            ('BOOK_LINK', '#nope'), ('BOOK_LINK', 'what-is-alpha.md#9-metadata'), ('BOOK_LINK', 'ghost.md'),
+            ('BOOK_LINK', '../sources/nope.md#x'), ('BOOK_FIGURE', 'figures/how-is-beta-built/gone.png')])
+        self.assertEqual(r.sources, ['alpha-doc', 'beta-doc'])
+        self.assertEqual(r.figures, ['figures/how-is-beta-built/flow.svg'])
+
+    def test_a_chinese_chapter(self):
+        helpers.add_narrative(self.root, 'zh-ring', 'x')
+        helpers.write(self.root, 'sllmwiki/narratives/zh-ring.md', ZH)
+        b = book.model(self.root)
+        r = book.rewrite(self.root, b, 'zh-ring')
+        label = 'zh-ring--3-u73afu5982u4f55u5de5u4f5c'  # docutils drops non-ASCII from ids
+        self.assertIn(f'({label})=\n## 3. 环如何工作', r.text)
+        self.assertIn(f'[第三节](#{label})和[同一节](#{label})', r.text)
+        pack = language.pack('zh-Hans')
+        self.assertIn(f'*{pack.t("Version")} 2.0 · {pack.t("Last modified")} 2026-10-20*', r.text)
+        self.assertEqual(r.problems, [])
+
+    def test_no_metadata_no_version_line(self):
+        helpers.add_narrative(self.root, 'bare', 'Bare?')
+        helpers.write(self.root, 'sllmwiki/narratives/bare.md', '# Bare?\n\n## 1. Abstract\n\nText.\n')
+        r = book.rewrite(self.root, book.model(self.root), 'bare')
+        self.assertEqual(r.text, '(ch--bare)=\n# Bare?\n\n(bare--1-abstract)=\n## 1. Abstract\n\nText.\n')
+
+    def test_labels(self):
+        self.assertEqual((book.chapter_label('a'), book.section_label('a', '1-x'), book.source_label('s'), book.part_label('t')),
+                         ('ch--a', 'a--1-x', 'src--s', 'part--t'))
+        self.assertEqual(book.section_label('a', '1-é'), 'a--1-ue9')
 
 
 if __name__ == '__main__':
