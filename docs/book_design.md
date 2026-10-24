@@ -85,19 +85,23 @@ change before it's published.
 
 Every format has the same content (§5):
 
-- a **cover** with the wiki's name and a 📖, what made it ("Made by sllmwiki
+- a **cover** titled with sllmwiki's braces, `{mengjia-sllmwiki 📖}`, what made it ("Made by sllmwiki
   and Claude Opus 5.5, from mengjia-sllmwiki", linking to this skill and to
   the wiki's repository), the version, date and commit;
 - a **front page** saying whose work is whose (§9), and how to read the
   citations and the `[→]` and `[?]` markers;
 - **contents** by topic, then **parts** following the tag tree, each opening
   with the topic's description and a map of its chapters and sections, each
-  chapter with the first paragraph of its Abstract, so a part can be skimmed;
+  chapter followed on its line by the first paragraph of its Abstract (a
+  section by its description), so a part can be skimmed;
 - **chapters**, the narratives, in teaching order within each part;
 - at the top of every part, chapter and appendix, links **up** to its part and
-  to the **contents**;
-- each part, section and chapter on a **page of its own**: a new page in print,
-  a divider on screen.
+  to the **contents**, on one line with a chapter's version and date;
+- above each chapter's title, a quiet **headnote**, `{mengjia-sllmwiki 📖} ·
+  sllmwiki`, linking to the cover and to this skill;
+- each part, section and chapter on a **page of its own**: a new page in print;
+  on screen, sllmwiki's mark (braces around a small tag tree) between two
+  rules.
 - **appendices**: the sources with their abstracts, licenses and links; a
   glossary of every term the narratives define; and the open questions.
 

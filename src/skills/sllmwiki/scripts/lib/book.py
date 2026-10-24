@@ -365,33 +365,44 @@ def summary(text):
 
 def _map(book, part, depth=0, summaries=None):
     """A part's chapters and sections as a list of links, each section with its own; with
-    summaries ({slug: text}), each chapter's under its link and each section's description,
+    summaries ({slug: text}), each chapter's after its link and each section's description,
     so a part page can be skimmed."""
     pad = '  ' * depth
-    out = ''
-    for c in part.chapters:
-        out += f'{pad}- {_link(book, c)}\n' + (f'\n{pad}  {summaries[c]}\n\n' if summaries and summaries.get(c) else '')
+
+    def after(text):
+        return f' <span class="summary">— {text}</span>' if summaries is not None and text else ''
+    out = ''.join(f'{pad}- {_link(book, c)}{after((summaries or {}).get(c))}\n' for c in part.chapters)
     for s in part.sections:
-        out += f'{pad}- [{part_title(book, s)}](#{part_label(s.tag)})\n'
-        if summaries is not None and s.description:
-            out += f'\n{pad}  {_escape(s.description)}\n\n'
-        out += _map(book, s, depth + 1, summaries)
+        out += f'{pad}- [{part_title(book, s)}](#{part_label(s.tag)}){after(_escape(s.description))}\n' + _map(book, s, depth + 1, summaries)
     return out
 
 
-def nav(pack, up=None):
-    """The links at the top of a page: up to its part (label, title), and to the contents."""
-    links = ([f'[↑ {up[1]}](#{up[0]})'] if up else []) + [f'[{pack.t("Contents")}](#{CONTENTS})']
+def nav(pack, up=None, lead=None):
+    """The line at the top of a page: lead (a chapter's version, in italics), then links up to
+    its part (label, title) and to the contents."""
+    links = ([lead] if lead else []) + ([f'[↑ {up[1]}](#{up[0]})'] if up else []) + [f'[{pack.t("Contents")}](#{CONTENTS})']
     return '<div class="book-nav">\n\n' + ' · '.join(links) + '\n\n</div>\n'
 
 
-def with_nav(text, block):
-    """text with block after its # title (and the version line under it, if any)."""
+def book_title(name):
+    """The book's title, with sllmwiki's braces: {mengjia-sllmwiki 📖}."""
+    return f'{{{_escape(name)} {TITLE_MARK}}}'
+
+
+def headnote(name):
+    """The quiet line above each chapter's title: the book (to its cover) and sllmwiki."""
+    return f'<div class="headnote">\n\n[{book_title(name)}](#{COVER}) · [sllmwiki]({layout.SKILL_URL})\n\n</div>\n\n'
+
+
+def with_nav(text, pack, up=None):
+    """text with nav() after its # title; a version line under the title joins it, on one line."""
     lines = text.split('\n')
     at = next(i for i, line in enumerate(lines) if line.startswith('# ')) + 1
+    lead = None
     if at + 1 < len(lines) and not lines[at].strip() and re.match(r'\*.+\*\Z', lines[at + 1]):
-        at += 2
-    return '\n'.join(lines[:at] + ['', block.rstrip('\n')] + lines[at:])
+        lead = lines[at + 1]
+        del lines[at:at + 2]
+    return '\n'.join(lines[:at] + ['', nav(pack, up, lead).rstrip('\n')] + lines[at:])
 
 
 def web_url(remote):
@@ -431,7 +442,7 @@ def cover(name, version, date, commit, pack, entries, listing, source=None, mode
     marks = ''.join(f'- **{m}**: {pack.t(d)}\n' for m, d in markers.MARKERS.items())
     made = pack.t(MADE[0] if models else MADE[1]).replace('{tool}', f'[sllmwiki]({layout.SKILL_URL})').replace(
         '{models}', ', '.join(models)).replace('{source}', f'[{_escape(name)}]({source})' if source else _escape(name))
-    return (f'({COVER})=\n# {_escape(name)} {TITLE_MARK}\n\n*{made}*\n\n{meta}\n\n({ABOUT})=\n## {pack.t("About this book")}\n\n'
+    return (f'({COVER})=\n# {book_title(name)}\n\n*{made}*\n\n{meta}\n\n({ABOUT})=\n## {pack.t("About this book")}\n\n'
             f'{" ".join(pack.t(t) for t in FRONT)}\n\n{pack.t(CITING)}\n\n{marks}\n'
             f'({CONTENTS})=\n## {pack.t("Contents")}\n\n{listing}\n' + _toctree(entries))
 
@@ -551,7 +562,7 @@ def stage(root, name, version, date, commit, source=None):
         r = rewrite(root, b, slug)
         texts[slug] = r.text
         part = parts[b.chapters[slug].tag]
-        files[f'chapters/{slug}.md'] = with_nav(r.text, nav(pack, (part_label(part.tag), part_title(b, part))))
+        files[f'chapters/{slug}.md'] = headnote(name) + with_nav(r.text, pack, (part_label(part.tag), part_title(b, part)))
         problems += r.problems
         figures += r.figures
         for s in r.sources:
@@ -564,7 +575,7 @@ def stage(root, name, version, date, commit, source=None):
              (APPENDICES[1][2], glossary_page(b, texts, pack)), (APPENDICES[2][2], questions_page(b, texts, pack))]
     for file, text in pages:
         if text:
-            files[f'{file}.md'] = with_nav(text, nav(pack))
+            files[f'{file}.md'] = with_nav(text, pack)
     made = [(label, t, file) for (label, t, file), (_, text) in zip(APPENDICES, pages) if text]
     recorded = manifest.load(root, 'narratives')
     models = model_names([m for slug in b.order() for m in (recorded[slug].get('models') or {}).values()])
