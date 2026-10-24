@@ -55,6 +55,7 @@ jobs:
           wiki: ${{ runner.temp }}/fixture-wiki
           name: fixture-wiki
           version: check
+          formats: html
 
       - name: Check the book
         run: |

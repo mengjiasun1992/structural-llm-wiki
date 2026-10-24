@@ -36,12 +36,16 @@ class Init(unittest.TestCase):
         done = {d['file']: d['what'] for d in json.loads(r.out)['done']}
         for rel in ('sllmwiki/tags/tags.yaml', 'sllmwiki/sources/manifest.yaml', 'sllmwiki/narratives/manifest.yaml', 'Config.toml',
                     'README.md', 'AGENTS.md', 'CLAUDE.md', '.gitignore', '.claude/settings.json',
-                    '.github/workflows/wiki-checks.yml', '.github/workflows/review-checklist.yml'):
+                    '.github/workflows/wiki-checks.yml', '.github/workflows/review-checklist.yml', '.github/workflows/release-book.yml'):
             self.assertEqual(done[rel], 'created', rel)
         self.assertEqual(done['SLLMWIKI_INDICES.md'], 'generated')
         self.assertTrue(self.read('README.md').startswith('# demo-wiki\n'))
         self.assertEqual(self.read('CLAUDE.md'), '@AGENTS.md\n')
         self.assertIn('src/actions/wiki-checks@mainline', self.read('.github/workflows/wiki-checks.yml'))
+        book = self.read('.github/workflows/release-book.yml')
+        self.assertIn('src/actions/release-book@mainline', book)
+        self.assertIn('types: [published]', book)
+        self.assertIn('[structural-llm-wiki-release]\nhtml_book = false', self.read('Config.toml'))
         self.assertEqual(json.loads(self.read('.claude/settings.json'))['enabledPlugins'], {'sllmwiki@structural-llm-wiki': True})
         self.assertEqual(helpers.git(self.root, 'log', '--format=%B').stdout,
                          '[sllmwiki][init] Set up the wiki\n\nPrompt:\n> Set up a wiki.\n> For the team.\n\n')
@@ -175,6 +179,13 @@ class Init(unittest.TestCase):
         r = self.init('--commit', '--prompt', 'p')
         self.assertEqual(r.code, 1)
         self.assertIn('git commit: no', r.err)
+
+    def test_a_rerun_adds_the_release_table(self):
+        mod = helpers.load_script('init.py')
+        template = helpers.read(mod.WIKI, 'Config.toml')
+        out = mod.add_missing_settings('[structural-llm-wiki-settings]\nmarkers = true\n', template)
+        self.assertIn('\n[structural-llm-wiki-release]\nhtml_book = false', out)
+        self.assertEqual(mod.add_missing_settings(out, template), out)
 
     def test_settings_for_a_missing_table(self):
         mod = helpers.load_script('init.py')

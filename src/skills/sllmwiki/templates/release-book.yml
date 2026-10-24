@@ -1,0 +1,25 @@
+# Builds this wiki's book (docs/book_design.md in the sllmwiki repository) and
+# attaches it to a release when one is published; "Run workflow" builds a
+# preview from any branch, kept as a workflow artifact for 90 days. Which
+# formats are built is Config.toml's [structural-llm-wiki-release]. Run from
+# the sllmwiki repository at {{ref}}; /sllmwiki:init moves the ref when the
+# plugin updates.
+name: Book
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write  # to attach the files to the release
+
+jobs:
+  book:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: mengjiasun1992/structural-llm-wiki/src/actions/release-book@{{ref}}
+        with:
+          version: ${{ github.event.release.tag_name || 'preview' }}
+          release: ${{ github.event.release.tag_name }}

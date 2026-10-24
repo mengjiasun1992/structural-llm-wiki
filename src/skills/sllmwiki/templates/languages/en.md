@@ -92,6 +92,7 @@ and `{source}` as they are: the book puts the links and names there.
 | License | |
 | Published | |
 | Cited by | |
+| Known issues | |
 | Original | |
 | The narratives in this book are the wiki owner's work. Every source belongs to its authors: the book links to it and quotes it briefly, but never copies it. | |
 | The narratives were written by an LLM and reviewed by the owner. | |

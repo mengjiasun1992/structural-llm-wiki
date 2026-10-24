@@ -22,14 +22,20 @@
       each SVG by its source and the libraries, so a rerun draws only what
       changed. One that fails to draw stays as written and is a warning,
       BOOK_RENDER, kept in book.json's warnings.
-  book.py build OUT --formats html --vendor DIR [--chrome PATH] [--cache DIR]
+  book.py build OUT --vendor DIR [--formats html] [--chrome PATH] [--cache DIR]
                 [--sphinx CMD] [--name N] [--version V] [--date D] [--commit C] [--source URL]
       stage into OUT/staged, render, then Sphinx (--sphinx, default
       sphinx-build, with MyST-Parser) with the skill's templates/book/
       settings, and writes OUT/<name>-<version>.html: one file with every
-      stylesheet, image and diagram in it. Problems and warnings are listed
+      stylesheet, image and diagram in it. --formats defaults to the ones
+      Config.toml's [structural-llm-wiki-release] turns on; with none, the
+      book is staged and no file is written. Problems and warnings are listed
       (Sphinx's are BOOK_SPHINX) and don't stop the book; exit code 1 when a
       format fails.
+  book.py issues STAGED
+      The release notes' "Known issues" section for a built book: its
+      problems, warnings and failed formats from book.json, in the wiki's
+      language; nothing when there are none.
 
 Options: --json, --root <wiki>.
 Exit code: as above; 2 on a usage error.
@@ -46,11 +52,12 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import book, bookbuild, config, layout  # noqa: E402
+from lib import book, bookbuild, config, language, layout  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, write_text  # noqa: E402
 
 cli = Cli('book.py', 'usage: book.py stage|render|build ... (book.py --help)')
+FORMATS = ('html',)  # what build makes, as Config.toml's <format>_book names it
 TEMPLATE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'templates', 'book')
 
 
@@ -156,14 +163,14 @@ def html_book(root, out, staged, data, sphinx):
 
 def main(argv):
     p = argparse.ArgumentParser(prog='book.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument('command', choices=['stage', 'render', 'build'])
+    p.add_argument('command', choices=['stage', 'render', 'build', 'issues'])
     p.add_argument('out')
     p.add_argument('--name')
     p.add_argument('--version', default='preview')
     p.add_argument('--date', default=datetime.date.today().isoformat())
     p.add_argument('--commit')
     p.add_argument('--source')
-    p.add_argument('--formats', default='html', type=lambda v: [f.strip() for f in v.split(',') if f.strip()])
+    p.add_argument('--formats', type=lambda v: [f.strip() for f in v.split(',') if f.strip()])
     p.add_argument('--vendor')
     p.add_argument('--chrome')
     p.add_argument('--cache')
@@ -174,9 +181,20 @@ def main(argv):
     if args.command in ('render', 'build'):
         if not args.vendor or not all(os.path.isfile(os.path.join(args.vendor, n)) for n in (bookbuild.MERMAID, bookbuild.MATHJAX)):
             cli.usage(f'{args.command} needs --vendor DIR holding {bookbuild.MERMAID} and {bookbuild.MATHJAX}')
-        unknown = [f for f in args.formats if f != 'html']
-        if unknown or not args.formats:
-            cli.usage(f'--formats can only be html for now, not {", ".join(unknown) or "nothing"}')
+        unknown = [f for f in args.formats or [] if f not in FORMATS]
+        if unknown or args.formats == []:
+            cli.usage(f'--formats can be {", ".join(FORMATS)}, not {", ".join(unknown) or "nothing"}')
+    if args.command == 'issues':
+        path = os.path.join(args.out, 'book.json')
+        if not os.path.isfile(path):
+            cli.usage(f'{args.out} isn\'t a staged book (no book.json)')
+        with open(path, encoding='utf-8') as f:
+            data = json.load(f)
+        root = cli.wiki(args.root) if args.root else None
+        text = book.issues(data, language.pack(config.get(root).settings['language']) if root else None)
+        if text:
+            print(text, end='')
+        return 0
     if args.command == 'render':
         staged = os.path.abspath(args.out)
         if not os.path.isfile(os.path.join(staged, 'book.json')):
@@ -190,17 +208,21 @@ def main(argv):
         _report(args, data, out)
         return 1 if data['problems'] else 0
     staged = os.path.join(out, 'staged')
+    formats = args.formats if args.formats is not None else config.get(root).book_formats()
     data = stage(root, staged, args)
-    data = render(staged, args.vendor, args.chrome, args.cache)
-    path, extra = html_book(root, out, staged, data, args.sphinx)
-    if path:
-        data['warnings'] += [{'code': 'BOOK_SPHINX', 'where': 'sphinx', 'message': w} for w in extra]
-        data['files'] = {'html': path}
-    else:
-        data['failed'] = {'html': extra}
+    data['files'], data['failed'] = {}, {}
+    if formats:
+        data = render(staged, args.vendor, args.chrome, args.cache)
+        data['files'], data['failed'] = {}, {}
+        path, extra = html_book(root, out, staged, data, args.sphinx)
+        if path:
+            data['warnings'] += [{'code': 'BOOK_SPHINX', 'where': 'sphinx', 'message': w} for w in extra]
+            data['files']['html'] = path
+        else:
+            data['failed']['html'] = extra
     _save(staged, data)
     _report(args, data, out)
-    return 0 if path else 1
+    return 1 if data['failed'] else 0
 
 
 def _report(args, data, out):

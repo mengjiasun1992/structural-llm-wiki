@@ -15,6 +15,9 @@
     [structural-llm-wiki-addons]
     obsidian = false
 
+    [structural-llm-wiki-release]
+    html_book = false
+
 Every setting has a default, so the file is optional. Tables whose names don't
 start with structural-llm-wiki- belong to other tools and are left alone; a
 problem in ours makes load() raise ConfigError, which wiki-check reports as
@@ -34,6 +37,7 @@ PREFIX = 'structural-llm-wiki-'
 SETTINGS = PREFIX + 'settings'
 TEMPLATES = PREFIX + 'templates'
 ADDONS = PREFIX + 'addons'
+RELEASE = PREFIX + 'release'
 
 DEFAULTS = {
     'source_copies': 'allow',  # "allow": private wikis keep copies, public ones only openly licensed; "links-only": none
@@ -48,6 +52,9 @@ TEMPLATE_KEYS = ('max_words', 'abstract_words')
 ADDON_DEFAULTS = {
     'obsidian': False,  # init writes sllmwiki/.obsidian/graph.json (design doc §4.8)
 }
+RELEASE_DEFAULTS = {
+    'html_book': False,  # a release attaches one self-contained HTML file (docs/book_design.md §3)
+}
 _TEMPLATE_NAME = re.compile(r'[a-z0-9][a-z0-9_-]*\Z')
 _LANGUAGE = re.compile(r'[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*\Z')  # as lib/language.py's TAG
 
@@ -60,12 +67,18 @@ class ConfigError(Exception):
 
 class Config:
     """settings: DEFAULTS merged with the file; templates: {name: {max_words, abstract_words}}
-    for the keys the file sets; addons: ADDON_DEFAULTS merged with the file."""
+    for the keys the file sets; addons: ADDON_DEFAULTS merged with the file; release:
+    RELEASE_DEFAULTS merged with the file."""
 
-    def __init__(self, settings=None, templates=None, addons=None):
+    def __init__(self, settings=None, templates=None, addons=None, release=None):
         self.settings = {**DEFAULTS, **(settings or {})}
         self.templates = templates or {}
         self.addons = {**ADDON_DEFAULTS, **(addons or {})}
+        self.release = {**RELEASE_DEFAULTS, **(release or {})}
+
+    def book_formats(self):
+        """The formats a release builds: 'html' for html_book, and so on."""
+        return [key[:-len('_book')] for key, on in self.release.items() if on]
 
 
 def _hint(key, known):
@@ -135,6 +148,18 @@ def _addons(table, problems):
     return out
 
 
+def _release(table, problems):
+    out = {}
+    for key, value in table.items():
+        if key not in RELEASE_DEFAULTS:
+            problems.append(f'unknown setting {RELEASE}.{key}{_hint(key, list(RELEASE_DEFAULTS))}')
+        elif type(value) is not bool:
+            problems.append(f'{RELEASE}.{key} must be true or false')
+        else:
+            out[key] = value
+    return out
+
+
 def parse(text):
     """The Config for a Config.toml's text; raises ConfigError listing every problem."""
     try:
@@ -143,7 +168,7 @@ def parse(text):
         raise ConfigError([f'{CONFIG}: {e}']) from None
     problems = []
     parts = {}
-    readers = {SETTINGS: _settings, TEMPLATES: _templates, ADDONS: _addons}
+    readers = {SETTINGS: _settings, TEMPLATES: _templates, ADDONS: _addons, RELEASE: _release}
     for name, table in data.items():
         if not name.startswith(PREFIX):
             continue  # another tool's table
@@ -155,7 +180,7 @@ def parse(text):
             parts[name] = readers[name](table, problems)
     if problems:
         raise ConfigError([f'{CONFIG}: {p}' for p in problems])
-    return Config(parts.get(SETTINGS), parts.get(TEMPLATES), parts.get(ADDONS))
+    return Config(parts.get(SETTINGS), parts.get(TEMPLATES), parts.get(ADDONS), parts.get(RELEASE))
 
 
 def load(root):
