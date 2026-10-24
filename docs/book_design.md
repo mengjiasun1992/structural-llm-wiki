@@ -284,8 +284,12 @@ shouldn't carry to every install, stay in the action (`render --vendor`):
 - **Structure:** every toctree is hidden. A single-file HTML puts a visible
   toctree's pages in its place, so the contents and each part's map of its
   chapters are lists of links staging writes.
-- **Theme:** Sphinx's `basic` theme with the action's own stylesheet: one
-  stylesheet for screen, print and EPUB, and no theme package to install.
+- **Theme:** Sphinx's `basic` theme with the skill's own stylesheets, and no
+  theme package to install: `book.css`, for every format, in CSS 2.1
+  selectors that e-readers and `epubcheck` read; and `book-html.css`, which
+  the single-file HTML and the PDF add, for what relies on their one-page
+  structure (section ids, `:is()`, `:has()`) and on Chrome's printing (page
+  margin boxes). The EPUB neither links nor packs it.
 - **Language:** Sphinx's `language` is the wiki's `language` (Config.toml);
   generated labels (Appendix, Glossary, Sources) come from the language pack.
 - **Builders:** `singlehtml` for the HTML and PDF, `epub` for the EPUB, reusing
@@ -308,11 +312,13 @@ shouldn't carry to every install, stay in the action (`render --vendor`):
   builds the PDF, so Chinese text and Unicode such as `ₜ₊₁` print correctly.
   Chrome embeds a CJK or color font as Type 3 glyphs; the text still extracts,
   which is what the check tests.
-- **EPUB:** Sphinx's EPUB 3 with the cover, a navigation document from the
-  contents, inline SVG, and a small-screen stylesheet (wide tables scroll,
-  diagrams fit the width). Sphinx doesn't declare the pages that hold inline
-  SVG (`properties="svg"` in the package file), so the build adds it.
-  Validated with `epubcheck`.
+- **EPUB:** Sphinx's EPUB 3, from the same staged, rendered pages: the cover
+  page first (text, as in the other formats; no cover image), the reader's
+  contents from every part, section and chapter (`epub_tocscope =
+  'includehidden'`, since the toctrees are hidden), inline SVG, and the small
+  screen rules (narrower margins, tables that scroll, diagrams that fit).
+  Sphinx doesn't declare the pages that hold inline SVG (`properties="svg"`
+  in the package file), so the build adds it. Validated with `epubcheck`.
 
 ### 6.6 The release workflow and action
 

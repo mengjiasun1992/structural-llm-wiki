@@ -17,6 +17,7 @@
 
     [structural-llm-wiki-release]
     pdf_book = true
+    epub_book = false
     html_book = false
 
 Every setting has a default, so the file is optional. Tables whose names don't
@@ -55,6 +56,7 @@ ADDON_DEFAULTS = {
 }
 RELEASE_DEFAULTS = {  # what a release attaches (docs/book_design.md §3)
     'pdf_book': True,    # a PDF: share, print, read anywhere
+    'epub_book': False,  # an EPUB: e-readers and phones
     'html_book': False,  # one self-contained HTML file, for a browser
 }
 _TEMPLATE_NAME = re.compile(r'[a-z0-9][a-z0-9_-]*\Z')

@@ -3,7 +3,8 @@
 
 Usage: python3 check-book.py BOOK.html [--book STAGED/book.json] [--max-bytes N]
                              [--max-seconds N --seconds S]
-                             [--pdf BOOK.pdf [--min-pages N] [--max-pages N]] [--json]
+                             [--pdf BOOK.pdf [--min-pages N] [--max-pages N]]
+                             [--epub BOOK.epub --epubcheck EPUBCHECK.jar] [--json]
 
 What it checks, in the single-file HTML:
   LINK_UNRESOLVED  a link within the book (href="#...") whose target id isn't there
@@ -20,6 +21,8 @@ pdftotext, from poppler-utils):
   PDF_FONT         a font not embedded, so the PDF looks different elsewhere
   PDF_TEXT         a chapter's title missing from the PDF's text: glyphs that
                    don't extract (empty boxes for Chinese, say)
+With --epub, the EPUB, by the W3C's epubcheck (java -jar EPUBCHECK.jar):
+  EPUB_ERROR       an error or fatal error epubcheck reports
 And, with --book, against what staging recorded:
   SVG_COUNT        fewer drawn diagrams and formulas than book.json lists
   BOOK_PROBLEM     a problem or warning book.json records (BOOK_LINK,
@@ -132,6 +135,22 @@ def check_pdf(pdf, titles, min_pages=None, max_pages=None):
     return out
 
 
+def check_epub(epub, jar):
+    """[(code, message)] for each error or fatal error epubcheck reports on the EPUB."""
+    p = subprocess.run(['java', '-jar', jar, epub, '--json', '-'], capture_output=True, text=True)
+    start = re.search(r'^\{', p.stdout, re.M)  # epubcheck writes a line or two of text before its JSON
+    try:
+        report = json.loads(p.stdout[start.start():] if start else p.stdout)
+    except ValueError:
+        raise RuntimeError(f'epubcheck gave no report: {(p.stderr or p.stdout).strip()[-300:]}') from None
+    out = []
+    for m in report.get('messages', []):
+        if m.get('severity') in ('ERROR', 'FATAL'):
+            where = (m.get('locations') or [{}])[0]
+            out.append(('EPUB_ERROR', f'{m.get("ID")} {where.get("path", "")}:{where.get("line", "")}: {m.get("message")}'))
+    return out
+
+
 def main(argv):
     p = argparse.ArgumentParser(prog='check-book.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('html')
@@ -142,9 +161,14 @@ def main(argv):
     p.add_argument('--pdf')
     p.add_argument('--min-pages', type=int)
     p.add_argument('--max-pages', type=int)
+    p.add_argument('--epub')
+    p.add_argument('--epubcheck')
     p.add_argument('--json', action='store_true')
     args = p.parse_args(argv)
-    for path in [args.html] + ([args.book] if args.book else []) + ([args.pdf] if args.pdf else []):
+    if args.epub and not args.epubcheck:
+        print('check-book.py: --epub needs --epubcheck EPUBCHECK.jar', file=sys.stderr)
+        return 2
+    for path in [args.html] + [f for f in (args.book, args.pdf, args.epub, args.epubcheck) if f]:
         if not os.path.isfile(path):
             print(f'check-book.py: no file {path}', file=sys.stderr)
             return 2
@@ -162,6 +186,12 @@ def main(argv):
             found += check_pdf(args.pdf, scan.titles, args.min_pages, args.max_pages)
         except (OSError, RuntimeError) as e:
             print(f'check-book.py: checking the PDF needs poppler-utils (pdfinfo, pdffonts, pdftotext): {e}', file=sys.stderr)
+            return 2
+    if args.epub:
+        try:
+            found += check_epub(args.epub, args.epubcheck)
+        except (OSError, RuntimeError) as e:
+            print(f'check-book.py: checking the EPUB needs Java and epubcheck: {e}', file=sys.stderr)
             return 2
     if args.json:
         print(json.dumps({'errors': len(found), 'findings': [{'code': c, 'message': m} for c, m in found]}, indent=2, ensure_ascii=False))

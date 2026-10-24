@@ -13,9 +13,11 @@ import html
 import json
 import mimetypes
 import os
+import posixpath
 import re
 import shutil
 import subprocess
+import zipfile
 
 from . import compat
 
@@ -214,3 +216,26 @@ def print_pdf(html_path, pdf_path, chrome, title, timeout=600):
     if not os.path.isfile(pdf_path) or os.path.getsize(pdf_path) == 0:
         return f'Chrome printed nothing: {(run.stderr or run.stdout).strip()[-500:]}'
     return None
+
+
+def declare_svg(src, dst):
+    """Copy the EPUB src to dst with each page that holds inline SVG declared so in its package file
+    (properties="svg"), which EPUB 3 requires and Sphinx's builder leaves out."""
+    with zipfile.ZipFile(src) as zin:
+        names = zin.namelist()
+        opf = next(n for n in names if n.endswith('.opf'))
+        base = posixpath.dirname(opf)
+        svg = {n for n in names if n.endswith(('.xhtml', '.html')) and b'<svg' in zin.read(n)}
+
+        def item(m):
+            tag = m.group(0)
+            href = re.search(r'href="([^"]+)"', tag)
+            if href and posixpath.normpath(posixpath.join(base, href.group(1))) in svg and 'properties=' not in tag:
+                tag = tag.replace('<item ', '<item properties="svg" ', 1)
+            return tag
+        package = re.sub(r'<item\b[^>]*>', item, zin.read(opf).decode('utf-8'))
+        with zipfile.ZipFile(dst, 'w') as zout:  # mimetype first and stored, as EPUB requires
+            zout.writestr(zipfile.ZipInfo('mimetype'), zin.read('mimetype'), compress_type=zipfile.ZIP_STORED)
+            for n in names:
+                if n != 'mimetype':
+                    zout.writestr(n, package if n == opf else zin.read(n), compress_type=zipfile.ZIP_DEFLATED)

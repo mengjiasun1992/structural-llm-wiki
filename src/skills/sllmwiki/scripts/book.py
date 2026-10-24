@@ -22,14 +22,15 @@
       each SVG by its source and the libraries, so a rerun draws only what
       changed. One that fails to draw stays as written and is a warning,
       BOOK_RENDER, kept in book.json's warnings.
-  book.py build OUT --vendor DIR [--formats pdf,html] [--chrome PATH] [--cache DIR]
+  book.py build OUT --vendor DIR [--formats pdf,epub,html] [--chrome PATH] [--cache DIR]
                 [--sphinx CMD] [--name N] [--version V] [--date D] [--commit C] [--source URL]
       stage into OUT/staged, render, then Sphinx (--sphinx, default
       sphinx-build, with MyST-Parser) with the skill's templates/book/
       settings, and writes OUT/<name>-<version>.html: one file with every
       stylesheet, image and diagram in it; for pdf, Chrome prints that file
       to OUT/<name>-<version>.pdf (A4, page numbers, the title as the running
-      head). --formats (pdf, html) defaults to the ones
+      head); for epub, Sphinx's EPUB 3 to OUT/<name>-<version>.epub, from the
+      same rendered pages. --formats (pdf, epub, html) defaults to the ones
       Config.toml's [structural-llm-wiki-release] turns on; with none, the
       book is staged and no file is written. Problems and warnings are listed
       (Sphinx's are BOOK_SPHINX) and don't stop the book; exit code 1 when a
@@ -59,7 +60,7 @@ from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, write_text  # noqa: E402
 
 cli = Cli('book.py', 'usage: book.py stage|render|build ... (book.py --help)')
-FORMATS = ('pdf', 'html')  # what build makes, as Config.toml's <format>_book names it
+FORMATS = ('pdf', 'epub', 'html')  # what build makes, as Config.toml's <format>_book names it
 TEMPLATE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'templates', 'book')
 
 
@@ -145,22 +146,46 @@ def render(staged, vendor, chrome, cache):
     return data
 
 
-def html_book(root, out, staged, data, sphinx):
-    """Sphinx's single-file HTML of the rendered staged book: (path, Sphinx's warnings), or (None, why it failed)."""
+def _sphinx(root, out, staged, data, sphinx, builder):
+    """Run Sphinx's builder on the rendered staged book into out/_build/<builder>: (its warnings, None) or (None, why it failed)."""
     lang = bookbuild.sphinx_language(config.get(root).settings['language'])
     build = os.path.join(out, '_build')
-    cmd = [*shlex.split(sphinx), '-q', '-b', 'singlehtml', '-c', TEMPLATE, '-d', os.path.join(build, 'doctrees'),
+    name = f'{data["name"]}-{data["version"]}'
+    cmd = [*shlex.split(sphinx), '-q', '-b', builder, '-c', TEMPLATE, '-d', os.path.join(build, 'doctrees'),
            '-D', f'project={data["name"]}', '-D', f'version={data["version"]}', '-D', f'release={data["version"]}',
-           '-D', f'copyright={data["name"]}', '-D', f'language={lang}', staged, os.path.join(build, 'singlehtml')]
+           '-D', f'copyright={data["name"]}', '-D', f'language={lang}', '-D', f'epub_basename={name}',
+           staged, os.path.join(build, builder)]
     try:
         run = subprocess.run(cmd, capture_output=True, text=True, check=False)
     except OSError as e:
         return None, f'{sphinx} didn\'t run: {e}'
-    if run.returncode != 0 or not os.path.isfile(os.path.join(build, 'singlehtml', 'index.html')):
+    if run.returncode != 0:
         return None, f'Sphinx failed: {(run.stderr or run.stdout).strip()[-2000:]}'
+    return [line for line in run.stderr.splitlines() if 'WARNING' in line or 'ERROR' in line], None
+
+
+def html_book(root, out, staged, data, sphinx):
+    """Sphinx's single-file HTML of the rendered staged book: (path, Sphinx's warnings), or (None, why it failed)."""
+    warnings, why = _sphinx(root, out, staged, data, sphinx, 'singlehtml')
+    folder = os.path.join(out, '_build', 'singlehtml')
+    if why or not os.path.isfile(os.path.join(folder, 'index.html')):
+        return None, why or 'Sphinx wrote no index.html'
     path = os.path.join(out, f'{data["name"]}-{data["version"]}.html')
-    write_text(path, bookbuild.self_contained(os.path.join(build, 'singlehtml')))
-    return path, [line for line in run.stderr.splitlines() if 'WARNING' in line or 'ERROR' in line]
+    write_text(path, bookbuild.self_contained(folder))
+    return path, warnings
+
+
+def epub_book(root, out, staged, data, sphinx):
+    """Sphinx's EPUB 3 of the rendered staged book, its package file declaring the pages with inline SVG:
+    (path, Sphinx's warnings), or (None, why it failed)."""
+    warnings, why = _sphinx(root, out, staged, data, sphinx, 'epub')
+    name = f'{data["name"]}-{data["version"]}'
+    built = os.path.join(out, '_build', 'epub', f'{name}.epub')
+    if why or not os.path.isfile(built):
+        return None, why or 'Sphinx wrote no EPUB'
+    path = os.path.join(out, f'{name}.epub')
+    bookbuild.declare_svg(built, path)
+    return path, warnings
 
 
 def main(argv):
@@ -222,7 +247,15 @@ def main(argv):
             if 'html' in formats:
                 data['files']['html'] = path
         for fmt in formats:
-            if not path:
+            if fmt == 'epub':
+                epub, more = epub_book(root, out, staged, data, args.sphinx)
+                if epub:
+                    data['files']['epub'] = epub
+                    data['warnings'] += [{'code': 'BOOK_SPHINX', 'where': 'sphinx (epub)', 'message': w} for w in more
+                                         if w not in extra]
+                else:
+                    data['failed']['epub'] = more
+            elif not path:
                 data['failed'][fmt] = extra
             elif fmt == 'pdf':
                 pdf = os.path.splitext(path)[0] + '.pdf'

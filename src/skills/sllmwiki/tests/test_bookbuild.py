@@ -7,6 +7,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import zipfile
 import tempfile
 import unittest
 from unittest import mock
@@ -40,10 +41,23 @@ print('<html><body><textarea id="result">' + html.escape(json.dumps(out)) + '</t
 '''
 
 # A stand-in for sphinx-build: writes a singlehtml folder like Sphinx's.
-SPHINX = '''import os, sys
+SPHINX = '''import os, sys, zipfile
 if os.environ.get('STUB_SPHINX_FAIL'):
     print('Extension error: no myst_parser', file=sys.stderr); sys.exit(2)
 out, src = sys.argv[-1], sys.argv[-2]
+if '-b' in sys.argv and sys.argv[sys.argv.index('-b') + 1] == 'epub':  # a minimal EPUB: a page with an SVG and one without
+    if os.environ.get('STUB_EPUB_FAIL'):
+        print('epub: broken', file=sys.stderr); sys.exit(2)
+    name = next(a.split('=', 1)[1] for a in sys.argv if a.startswith('epub_basename='))
+    os.makedirs(out, exist_ok=True)
+    with zipfile.ZipFile(os.path.join(out, name + '.epub'), 'w') as z:
+        z.writestr('mimetype', 'application/epub+zip')
+        z.writestr('content.opf', '<package><manifest><item id="a" href="a.xhtml" media-type="application/xhtml+xml" />'
+                                  '<item id="b" href="b.xhtml" media-type="application/xhtml+xml" /></manifest></package>')
+        z.writestr('a.xhtml', '<html><body><svg role="img"/></body></html>')
+        z.writestr('b.xhtml', '<html><body>text</body></html>')
+    print('a.md:3: WARNING: something odd', file=sys.stderr)
+    sys.exit(0)
 os.makedirs(os.path.join(out, '_static'), exist_ok=True)
 open(os.path.join(out, '_static', 'book.css'), 'w').write('body { color: #111; }')
 open(os.path.join(out, 'fig.svg'), 'w').write('<svg/>')
@@ -160,7 +174,7 @@ class Commands(unittest.TestCase):
         os.environ['STUB_LOG'] = self.log
 
     def tearDown(self):
-        for k in ('STUB_LOG', 'STUB_EMPTY', 'STUB_SETUP', 'STUB_SPHINX_FAIL', 'STUB_PDF_FAIL'):
+        for k in ('STUB_LOG', 'STUB_EMPTY', 'STUB_SETUP', 'STUB_SPHINX_FAIL', 'STUB_PDF_FAIL', 'STUB_EPUB_FAIL'):
             os.environ.pop(k, None)
         shutil.rmtree(self.tmp, ignore_errors=True)
 
@@ -222,7 +236,7 @@ class Commands(unittest.TestCase):
         staged = os.path.join(self.tmp, 'staged')
         for argv, says in [(['render', staged], 'needs --vendor'), (['render', staged, '--vendor', self.tmp], 'needs --vendor'),
                            (['render', staged, '--vendor', self.vendor], "isn't a staged book"),
-                           (['build', staged, '--vendor', self.vendor, '--formats', 'epub'], '--formats can be pdf, html, not epub'),
+                           (['build', staged, '--vendor', self.vendor, '--formats', 'mobi'], '--formats can be pdf, epub, html, not mobi'),
                            (['build', staged, '--vendor', self.vendor, '--formats', ','], 'not nothing')]:
             r = self.book(*argv)
             self.assertEqual(r.code, 2, argv)
@@ -290,6 +304,39 @@ class Commands(unittest.TestCase):
                           '--chrome', os.path.join(self.tmp, 'no-chrome'), '--sphinx', self.sphinx)
         self.assertEqual(r.code, 1)
         self.assertIn('pdf failed: no Chrome found to print it', r.out)
+
+    def test_an_epub(self):
+        out = os.path.join(self.tmp, 'out')
+        r = self.book('build', out, '--vendor', self.vendor, '--formats', 'epub', '--chrome', self.chrome, '--sphinx', self.sphinx, '--version', 'v1')
+        self.assertEqual(r.code, 0, r.err)
+        data = json.loads(helpers.read(out, 'staged/book.json'))
+        epub = data['files']['epub']
+        self.assertEqual((list(data['files']), os.path.basename(epub)), (['epub'], f'{os.path.basename(self.root)}-v1.epub'))
+        with zipfile.ZipFile(epub) as z:
+            self.assertEqual(z.namelist()[0], 'mimetype')
+            self.assertEqual(z.getinfo('mimetype').compress_type, zipfile.ZIP_STORED)
+            package = z.read('content.opf').decode()
+        self.assertIn('<item properties="svg" id="a" href="a.xhtml"', package)  # the page with an SVG
+        self.assertIn('<item id="b" href="b.xhtml"', package)
+        self.assertEqual([w['where'] for w in data['warnings']], ['sphinx'])  # the same warning isn't listed twice
+        os.environ['STUB_EPUB_FAIL'] = '1'
+        out2 = os.path.join(self.tmp, 'out2')
+        r = self.book('build', out2, '--vendor', self.vendor, '--formats', 'epub,html', '--chrome', self.chrome, '--sphinx', self.sphinx)
+        self.assertEqual(r.code, 1)
+        data = json.loads(helpers.read(out2, 'staged/book.json'))
+        self.assertEqual(list(data['files']), ['html'])  # one format failing doesn't stop the others
+        self.assertIn('epub: broken', data['failed']['epub'])
+        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-release]\npdf_book = false\nepub_book = true\n')
+        out3 = os.path.join(self.tmp, 'out3')
+        os.environ.pop('STUB_EPUB_FAIL')
+        self.book('build', out3, '--vendor', self.vendor, '--chrome', self.chrome, '--sphinx', self.sphinx)
+        self.assertEqual(list(json.loads(helpers.read(out3, 'staged/book.json'))['files']), ['epub'])
+
+    def test_an_epub_sphinx_writes_nothing_for(self):
+        with mock.patch.object(subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, '', '')):
+            mod = helpers.load_script('book.py')
+            self.assertEqual(mod.epub_book(self.root, self.tmp, self.tmp, {'name': 'w', 'version': 'v'}, 'sphinx-build'),
+                             (None, 'Sphinx wrote no EPUB'))
 
     def test_known_issues(self):
         self.assertEqual(book.issues({'problems': [], 'warnings': []}), '')

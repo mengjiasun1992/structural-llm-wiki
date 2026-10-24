@@ -183,9 +183,9 @@ chapter extracts as Chinese.
 
 | # | Code change | What it does |
 |---|---|---|
-| B5.1 | `book.py build --formats epub` | Sphinx's EPUB 3 builder from the same staged, pre-rendered folder; the cover image; the navigation document from the contents |
-| B5.2 | `book.css` small-screen rules | Wide tables scroll; diagrams and display math fit the width |
-| B5.3 | `check-book` | `epubcheck` on the fixture's EPUB |
+| B5.1 | `book.py build --formats epub` | Sphinx's EPUB 3 builder from the same staged, pre-rendered folder; the text cover page first (no image); the navigation document from every part and chapter (hidden toctrees included); the SVG pages declared |
+| B5.2 | `book.css` small-screen rules, and the stylesheet split | Wide tables scroll; diagrams and display math fit the width; what only the one-page HTML and the PDF use moves to `book-html.css`, which the EPUB leaves out |
+| B5.3 | `check-book --epub` | `epubcheck` 5.3.0 on the fixture's EPUB, its errors reported as `EPUB_ERROR` |
 | B5.4 | `Config.toml` | `epub_book`, default `false` |
 
 **Test.** `epubcheck` with 0 errors on the fixture.

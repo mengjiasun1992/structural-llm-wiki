@@ -44,6 +44,9 @@ outputs:
   pdf:
     description: The PDF book
     value: ${{ steps.build.outputs.pdf }}
+  epub:
+    description: The EPUB book
+    value: ${{ steps.build.outputs.epub }}
   json:
     description: The staged book's book.json (order, problems, warnings)
     value: ${{ steps.build.outputs.json }}
@@ -114,7 +117,7 @@ runs:
         echo "seconds=$(( $(date +%s) - start ))" >> "$GITHUB_OUTPUT"
         echo "json=$OUT/staged/book.json" >> "$GITHUB_OUTPUT"
         echo "status=$status" >> "$GITHUB_OUTPUT"
-        for ext in html pdf; do
+        for ext in html pdf epub; do
           if [ -f "$OUT/$NAME-$VERSION.$ext" ]; then echo "$ext=$OUT/$NAME-$VERSION.$ext" >> "$GITHUB_OUTPUT"; fi
         done
 
@@ -144,6 +147,7 @@ runs:
         path: |
           ${{ runner.temp }}/book/*.html
           ${{ runner.temp }}/book/*.pdf
+          ${{ runner.temp }}/book/*.epub
           ${{ runner.temp }}/book/staged/book.json
         if-no-files-found: warn
 
