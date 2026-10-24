@@ -146,6 +146,16 @@ class Publish(helpers.WikiTestCase):
         helpers.git(self.root, 'switch', '-q', 'mainline')
         self.assertIn('publish.py resume run', self.pub('start', 'run', '--title', 't', '--prompt', 'p').err)
 
+    def test_a_changed_obsidian_graph_alone_doesnt_stop_a_run(self):
+        # a tracked graph.json that Obsidian rewrote is the first (and only) line of git status, " M sllmwiki/..."
+        self.write('sllmwiki/.obsidian/graph.json', '{}')
+        helpers.git(self.root, 'add', '-f', 'sllmwiki/.obsidian/graph.json')
+        helpers.git(self.root, 'commit', '-q', '-m', 'the graph')
+        helpers.git(self.root, 'push', '-q', 'origin', 'mainline')
+        self.write('sllmwiki/.obsidian/graph.json', '{"moved": true}')
+        r = self.pub('start', 'run', '--title', 't', '--prompt', 'p')
+        self.assertEqual(r.code, 0, r.err)
+
     def test_a_diverged_default_branch_stops_the_run(self):
         helpers.git(self.root, 'commit', '-q', '--allow-empty', '-m', 'local only')
         r = self.pub('start', 'run', '--title', 't', '--prompt', 'p')
