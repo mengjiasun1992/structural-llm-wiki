@@ -155,6 +155,12 @@ class Publish(helpers.WikiTestCase):
         self.write('sllmwiki/.obsidian/graph.json', '{"moved": true}')
         r = self.pub('start', 'run', '--title', 't', '--prompt', 'p')
         self.assertEqual(r.code, 0, r.err)
+        # nor does an init rerun commit it: a tracked graph.json that changed is Obsidian's layout, not init's
+        self.write('Config.toml', '[structural-llm-wiki-settings]\n')
+        self.summary('init', title='Init', checklist=['Config'], body='Refreshed.')
+        self.assertEqual(self.pub('commit', 'init', '--subject', 'Bring the wiki up to date').code, 0)
+        self.assertEqual(helpers.git(self.root, 'show', '--name-only', '--format=').stdout.split(), ['Config.toml'])
+        self.assertIn('sllmwiki/.obsidian/graph.json', helpers.git(self.root, 'status', '--porcelain').stdout)  # left as it is
 
     def test_a_diverged_default_branch_stops_the_run(self):
         helpers.git(self.root, 'commit', '-q', '--allow-empty', '-m', 'local only')
