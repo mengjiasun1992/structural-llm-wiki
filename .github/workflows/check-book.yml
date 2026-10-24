@@ -1,0 +1,62 @@
+# Builds the fixture wiki as a book with the release action, on every pull request
+# that touches the book, and checks the result (docs/book_execution_plan.md §2):
+# links and ids, nothing left unrendered, self-contained, size and time.
+name: Check book
+
+on:
+  pull_request:
+    paths:
+      - src/skills/sllmwiki/scripts/book.py
+      - src/skills/sllmwiki/scripts/lib/book.py
+      - src/skills/sllmwiki/scripts/lib/bookbuild.py
+      - src/skills/sllmwiki/scripts/lib/compat.py
+      - src/skills/sllmwiki/templates/book/**
+      - src/skills/sllmwiki/templates/languages/**
+      - src/skills/sllmwiki/tests/helpers.py
+      - src/actions/release-book/**
+      - src/tools/check-book.py
+      - .github/workflows/check-book.yml
+  push:
+    branches: [mainline]
+    paths:
+      - src/skills/sllmwiki/scripts/book.py
+      - src/skills/sllmwiki/scripts/lib/book.py
+      - src/skills/sllmwiki/scripts/lib/bookbuild.py
+      - src/skills/sllmwiki/templates/book/**
+      - src/actions/release-book/**
+      - src/tools/check-book.py
+      - .github/workflows/check-book.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-book:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
+        with:
+          python-version: '3.x'
+
+      # the unit tests' book fixture (tests/helpers.py): two tags, a built_on chain, a figure,
+      # a diagram, inline and display math, gaps, and a Chinese chapter
+      - name: The fixture wiki
+        run: |
+          python3 -c "import sys; sys.path.insert(0, 'src/skills/sllmwiki/tests'); import helpers; helpers.make_book_wiki(sys.argv[1])" \
+            "$RUNNER_TEMP/fixture-wiki"
+
+      - name: Build it with the release action
+        id: book
+        uses: ./src/actions/release-book
+        with:
+          wiki: ${{ runner.temp }}/fixture-wiki
+          name: fixture-wiki
+          version: check
+
+      - name: Check the book
+        run: |
+          python3 src/tools/check-book.py "${{ steps.book.outputs.html }}" --book "${{ steps.book.outputs.json }}" \
+            --max-bytes 1000000 --seconds "${{ steps.book.outputs.seconds }}" --max-seconds 240

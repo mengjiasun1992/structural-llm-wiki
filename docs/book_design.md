@@ -316,9 +316,11 @@ shouldn't carry to every install, stay in the action (`render --vendor`):
   other workflows. It runs on `release: published` and on
   `workflow_dispatch` (the preview), with `contents: write`.
 - It calls `src/actions/release-book` in this repository, which installs the
-  pinned Sphinx and MyST-Parser and the fonts, runs stage, render and the
-  builders for each format that's on, and attaches the files (`gh release
-  upload`), or uploads an artifact for a preview.
+  pinned Sphinx and MyST-Parser (and, for the PDF, the fonts), runs
+  `book.py build` for each format that's on with the libraries in its
+  `vendor/` folder, and attaches the files (`gh release upload`), or uploads
+  an artifact for a preview. This repository's `check-book` workflow builds
+  the fixture wiki with it on every pull request that touches the book.
 - Each format is its own step, and a failure in one is recorded and doesn't
   stop the others. Warnings and failures are appended to the release notes.
 

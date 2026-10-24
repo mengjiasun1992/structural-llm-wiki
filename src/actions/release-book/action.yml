@@ -1,0 +1,99 @@
+# Builds a Structural LLM Wiki as a book (docs/book_design.md §6.6): the skill's
+# book.py stages it, draws its diagrams and math in headless Chrome with the
+# libraries in vendor/, and runs Sphinx. Chrome is already on GitHub's
+# runners; Sphinx and MyST-Parser are installed at their pinned versions.
+#
+# In a wiki's workflow (the release workflow, B3, will install one):
+#   steps:
+#     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+#     - uses: mengjiasun1992/structural-llm-wiki/src/actions/release-book@mainline
+#       with:
+#         version: v2026.10.24
+#
+# The book's name is the repository's, and its cover links to the repository.
+
+name: Structural LLM Wiki Book
+description: Build a Structural LLM Wiki as a book, and keep it as a workflow artifact.
+
+inputs:
+  wiki:
+    description: The wiki's folder (default, the workspace)
+    default: '.'
+  version:
+    description: The book's version, on its cover and in its file name
+    default: preview
+  formats:
+    description: The formats to build, comma-separated (html for now)
+    default: html
+  name:
+    description: The book's name (default, the repository's)
+    default: ''
+  source:
+    description: The web page the cover links to as the book's source (default, the repository's)
+    default: ''
+  upload:
+    description: Keep the files as a workflow artifact
+    default: 'true'
+
+outputs:
+  html:
+    description: The single-file HTML book
+    value: ${{ steps.build.outputs.html }}
+  json:
+    description: The staged book's book.json (order, problems, warnings)
+    value: ${{ steps.build.outputs.json }}
+  seconds:
+    description: How long the build took
+    value: ${{ steps.build.outputs.seconds }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
+      with:
+        python-version: '3.x'
+
+    - name: Install Sphinx and MyST-Parser
+      shell: bash
+      run: python3 -m pip install --quiet --disable-pip-version-check sphinx==9.1.0 myst-parser==5.1.0
+
+    # each SVG is kept by its source and the libraries' hash, so a release draws only what changed
+    - name: Restore the drawn diagrams and math
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4.3.0
+      with:
+        path: ${{ runner.temp }}/book-svgs
+        key: book-svgs-${{ github.run_id }}
+        restore-keys: book-svgs-
+
+    - name: Build the book
+      id: build
+      shell: bash
+      env:
+        WIKI: ${{ inputs.wiki }}
+        VERSION: ${{ inputs.version }}
+        FORMATS: ${{ inputs.formats }}
+        NAME: ${{ inputs.name || github.event.repository.name }}
+        SOURCE: ${{ inputs.source }}
+        OUT: ${{ runner.temp }}/book
+      run: |
+        source="${SOURCE:-$GITHUB_SERVER_URL/$GITHUB_REPOSITORY}"
+        start=$(date +%s)
+        status=0
+        python3 "$GITHUB_ACTION_PATH/../../skills/sllmwiki/scripts/book.py" build "$OUT" --root "$WIKI" \
+          --formats "$FORMATS" --vendor "$GITHUB_ACTION_PATH/vendor" --cache "$RUNNER_TEMP/book-svgs" \
+          --sphinx "python3 -m sphinx" --version "$VERSION" --name "$NAME" --source "$source" || status=$?
+        echo "seconds=$(( $(date +%s) - start ))" >> "$GITHUB_OUTPUT"
+        echo "json=$OUT/staged/book.json" >> "$GITHUB_OUTPUT"
+        html="$OUT/$NAME-$VERSION.html"
+        [ -f "$html" ] && echo "html=$html" >> "$GITHUB_OUTPUT"
+        exit "$status"
+
+    - name: Keep the book as a workflow artifact
+      if: inputs.upload == 'true' && (success() || failure()) && steps.build.outputs.json != ''
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+      with:
+        name: book-${{ inputs.version }}
+        path: |
+          ${{ runner.temp }}/book/*.html
+          ${{ runner.temp }}/book/staged/book.json
+        if-no-files-found: warn
