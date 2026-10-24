@@ -191,7 +191,11 @@ def commit(root, action, tags, subject):
     state = load_state(root)
     if git(root, 'rev-parse', '--abbrev-ref', 'HEAD') != state['branch']:
         cli.fail(f'not on the run\'s branch {state["branch"]}; publish.py resume {state["slug"]}')
-    git(root, 'add', '-A', '--', '.', *([] if action == 'init' else [f':(exclude){p}' for p in IGNORED]))  # init writes the add-on's graph.json
+    git(root, 'add', '-A', '--', '.', *[f':(exclude){p}' for p in IGNORED])
+    if action == 'init':  # the add-on's graph.json when init writes it, never Obsidian's later changes to a tracked one
+        new = git(root, 'ls-files', '--others', '--exclude-standard', '--', *IGNORED).split('\n')
+        if any(new):
+            git(root, 'add', '--', *[n for n in new if n])
     if not git(root, 'diff', '--cached', '--name-only'):
         cli.fail('nothing to commit')
     report = latest(summaries(root), action).get('body', '')
