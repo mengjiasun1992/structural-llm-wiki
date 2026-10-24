@@ -208,7 +208,7 @@ class Rewritten:
 
 def _version_line(text, pack):
     m = metadata.read(text)
-    parts = [f'{pack.t(label)} {value}' for label, value in (('Version', m['version']), ('Last modified', m['last_modified'])) if value]
+    parts = ([f'{pack.t("Version")} {m["version"]}'] if m['version'] else []) + ([m['last_modified']] if m['last_modified'] else [])
     return f'*{" · ".join(parts)}*' if parts else None
 
 
@@ -292,6 +292,9 @@ def rewrite(root, book, slug):
         lines.insert(h.line, f'({chapter_label(slug) if h.level == 1 else section_label(slug, anchor)})=')
         if h.level == 1 and version:
             lines.insert(h.line + 2, '\n' + version)
+    del lines[:scan(lines)[0].count('front')]  # YAML front matter (the Obsidian add-on's) means nothing in a book
+    while lines and not lines[0].strip():
+        del lines[0]
     return Rewritten('\n'.join(lines), problems, list(dict.fromkeys(sources)), list(dict.fromkeys(figures)), targets)
 
 
@@ -317,6 +320,8 @@ FRONT = ("The narratives in this book are the wiki owner's work. Every source be
          'the book links to it and quotes it briefly, but never copies it.',
          'The narratives were written by an LLM and reviewed by the owner.',
          'This book is a snapshot of the wiki at the commit on its cover.')
+MADE = ('Made by {tool} and {models}, from {source}.', 'Made by {tool}, from {source}.')  # with models, without
+TITLE_MARK = '📖'
 CITING = ("A number in brackets, such as [3], is a citation: it links to the source's entry in Appendix A, "
           'which links to the original.')
 _CELL = re.compile(r'(?<!\\)\|')
@@ -355,13 +360,62 @@ def part_title(book, part):
     return _escape(title(part.tag, words))
 
 
-def _map(book, part, depth=0):
-    """A part's chapters and sections as a list of links, each section with its own."""
+def summary(text):
+    """A chapter's first paragraph of its Abstract, for skimming; '' without one."""
+    paras = [p for p in metadata.abstract(text).split('\n\n') if p and not re.match(r'\([^()\s]+\)=\Z', p)]
+    return paras[0] if paras else ''
+
+
+def _map(book, part, depth=0, summaries=None):
+    """A part's chapters and sections as a list of links, each section with its own; with
+    summaries ({slug: text}), each chapter's after its link and each section's description,
+    so a part page can be skimmed."""
     pad = '  ' * depth
-    out = ''.join(f'{pad}- {_link(book, c)}\n' for c in part.chapters)
+
+    def after(text):
+        return f' <span class="summary">— {text}</span>' if summaries is not None and text else ''
+    out = ''.join(f'{pad}- {_link(book, c)}{after((summaries or {}).get(c))}\n' for c in part.chapters)
     for s in part.sections:
-        out += f'{pad}- [{part_title(book, s)}](#{part_label(s.tag)})\n' + _map(book, s, depth + 1)
+        out += f'{pad}- [{part_title(book, s)}](#{part_label(s.tag)}){after(_escape(s.description))}\n' + _map(book, s, depth + 1, summaries)
     return out
+
+
+def book_title(name):
+    """The book's title, with sllmwiki's braces: {mengjia-sllmwiki 📖}."""
+    return f'{{{_escape(name)} {TITLE_MARK}}}'
+
+
+def head(book, name, trail, pack):
+    """The line above a page's title: where it is, the book (to its cover) › each part above
+    it (trail, outermost first, as Parts), and the contents at the right."""
+    crumbs = ' › '.join([f'[{book_title(name)}](#{COVER})'] + [f'[{part_title(book, p)}](#{part_label(p.tag)})' for p in trail])
+    return (f'<div class="headnote">\n\n<span class="crumbs">{crumbs}</span> '
+            f'<span class="to-contents">[{pack.t("Contents")}](#{CONTENTS})</span>\n\n</div>\n\n')
+
+
+ENDMARK = f'\n<div class="endmark">\n\n[sllmwiki]({layout.SKILL_URL})\n\n</div>\n'  # the quiet credit closing a chapter
+
+
+def web_url(remote):
+    """A git remote as the web page of its repository, or None: 'git@github.com:o/r.git',
+    an SSH alias such as 'git@github-me:o/r', 'ssh://git@host/o/r' and 'https://user:token@host/o/r.git'
+    all become 'https://<host>/o/r' (an alias naming GitHub is github.com); credentials never stay."""
+    remote = (remote or '').strip()
+    m = (re.match(r'(?:ssh://)?[^@/\s]+@([^:/\s]+)[:/](.+?)(?:\.git)?/?\Z', remote)
+         or re.match(r'https?://(?:[^@/\s]+@)?([^/\s]+)/(.+?)(?:\.git)?/?\Z', remote))
+    if not m or '/' not in m.group(2):
+        return None
+    host = 'github.com' if 'github' in m.group(1) and not m.group(1).endswith('.com') else m.group(1)
+    return f'https://{host}/{m.group(2)}'
+
+
+def model_names(ids):
+    """Models as people read them: 'claude-opus-5-5' -> 'Claude Opus 5.5'; others as recorded."""
+    out = []
+    for i in ids:
+        m = re.match(r'claude-([a-z]+)-([0-9]+)(?:-([0-9]+))?\Z', i)
+        out.append(f'Claude {m.group(1).capitalize()} {m.group(2)}{"." + m.group(3) if m.group(3) else ""}' if m else i)
+    return list(dict.fromkeys(out))
 
 
 def contents(book, pack, appendices):
@@ -372,21 +426,25 @@ def contents(book, pack, appendices):
     return out + ''.join(f'- [{pack.t(t)}](#{label})\n' for label, t in appendices)
 
 
-def cover(name, version, date, commit, pack, entries, listing):
-    """index.md: the cover, the front page (design §9) and the contents (listing)."""
+def cover(name, version, date, commit, pack, entries, listing, source=None, models=()):
+    """index.md: the cover (with what made the book, from which wiki), the front page (design §9)
+    and the contents (listing)."""
     meta = ' · '.join(f'**{pack.t(k)}:** {v}' for k, v in (('Version', version), ('Date', date), ('Commit', f'`{commit}`' if commit else '')) if v)
     marks = ''.join(f'- **{m}**: {pack.t(d)}\n' for m, d in markers.MARKERS.items())
-    return (f'({COVER})=\n# {_escape(name)}\n\n{meta}\n\n({ABOUT})=\n## {pack.t("About this book")}\n\n'
+    made = pack.t(MADE[0] if models else MADE[1]).replace('{tool}', f'[sllmwiki]({layout.SKILL_URL})').replace(
+        '{models}', ', '.join(models)).replace('{source}', f'[{_escape(name)}]({source})' if source else _escape(name))
+    return (f'({COVER})=\n# {book_title(name)}\n\n*{made}*\n\n{meta}\n\n({ABOUT})=\n## {pack.t("About this book")}\n\n'
             f'{" ".join(pack.t(t) for t in FRONT)}\n\n{pack.t(CITING)}\n\n{marks}\n'
             f'({CONTENTS})=\n## {pack.t("Contents")}\n\n{listing}\n' + _toctree(entries))
 
 
-def part_page(book, part, pack):
-    """parts/<tag>.md: the tag's title and description, a map of its chapters and sections, and its see-also."""
+def part_page(book, part, pack, summaries=None):
+    """parts/<tag>.md: the tag's title and description, a map of its chapters (with their
+    summaries) and sections, and its see-also."""
     text = f'({part_label(part.tag)})=\n# {part_title(book, part)}\n\n{_escape(part.description)}\n\n'
     entries = [f'../chapters/{c}' for c in part.chapters] + [s.tag for s in part.sections]
     if entries:
-        text += _map(book, part) + '\n' + _toctree(entries) + '\n'
+        text += _map(book, part, 0, summaries or {}) + '\n' + _toctree(entries) + '\n'
     if part.see_also:
         text += f'**{pack.t("See also")}:** ' + ', '.join(_link(book, c) for c in part.see_also) + '\n'
     return text.rstrip('\n') + '\n'
@@ -484,29 +542,41 @@ class Staged:
         self.files, self.figures, self.manifest = files, figures, manifest
 
 
-def stage(root, name, version, date, commit):
-    """The book of the wiki at root as plain Markdown for Sphinx (design §6.2)."""
+def stage(root, name, version, date, commit, source=None):
+    """The book of the wiki at root as plain Markdown for Sphinx (design §6.2); source is the wiki's URL."""
     b = model(root)
     pack = language.pack(config.get(root).settings['language']) or language.ENGLISH
     files, figures, problems, linked_by, texts = {}, [], list(b.problems), {}, {}
+    parts = {s.tag: s for p in b.parts for s in p.walk()}
+    parent = {c.tag: s for s in parts.values() for c in s.sections}
+
+    def trail(tag):
+        out = []
+        while tag:
+            out.insert(0, parts[tag])
+            tag = parent[tag].tag if tag in parent else None
+        return out
     for slug in b.order():
         r = rewrite(root, b, slug)
-        texts[slug] = files[f'chapters/{slug}.md'] = r.text
+        texts[slug] = r.text
+        files[f'chapters/{slug}.md'] = head(b, name, trail(b.chapters[slug].tag), pack) + r.text.rstrip('\n') + '\n' + ENDMARK
         problems += r.problems
         figures += r.figures
         for s in r.sources:
             linked_by.setdefault(s, []).append(slug)
-    for p in b.parts:
-        for part in p.walk():
-            files[f'parts/{part.tag}.md'] = part_page(b, part, pack)
+    summaries = {slug: summary(text) for slug, text in texts.items()}
+    for tag, part in parts.items():
+        files[f'parts/{tag}.md'] = head(b, name, trail(tag)[:-1], pack) + part_page(b, part, pack, summaries)
     pages = [(APPENDICES[0][2], sources_page(b, manifest.load(root, 'sources'), linked_by, pack) if linked_by else None),
              (APPENDICES[1][2], glossary_page(b, texts, pack)), (APPENDICES[2][2], questions_page(b, texts, pack))]
     for file, text in pages:
         if text:
-            files[f'{file}.md'] = text
+            files[f'{file}.md'] = head(b, name, [], pack) + text
     made = [(label, t, file) for (label, t, file), (_, text) in zip(APPENDICES, pages) if text]
+    recorded = manifest.load(root, 'narratives')
+    models = model_names([m for slug in b.order() for m in (recorded[slug].get('models') or {}).values()])
     files['index.md'] = cover(name, version, date, commit, pack, [f'parts/{p.tag}' for p in b.parts] + [f for _, _, f in made],
-                              contents(b, pack, [(label, t) for label, t, _ in made]))
+                              contents(b, pack, [(label, t) for label, t, _ in made]), source, models)
     renders = {}
     for path, text in sorted(files.items()):
         for r in compat.renderables(text):
@@ -514,7 +584,7 @@ def stage(root, name, version, date, commit):
             if path not in entry['files']:
                 entry['files'].append(path)
     anchors = sorted({line[1:-2] for t in files.values() for line in t.split('\n') if re.match(r'\([^()\s]+\)=\Z', line)})
-    book_json = {'name': name, 'version': version, 'date': date, 'commit': commit,
+    book_json = {'name': name, 'version': version, 'date': date, 'commit': commit, 'source': source, 'models': models,
                  'parts': [{'tag': s.tag, 'depth': s.depth, 'chapters': s.chapters} for p in b.parts for s in p.walk()],
                  'order': b.order(), 'anchors': anchors,
                  'renders': [dict(id=k, **v) for k, v in renders.items()],

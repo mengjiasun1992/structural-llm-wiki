@@ -76,7 +76,6 @@ it, and how to write it.
 | Version | 版本 |
 | Date | 日期 |
 | Commit | 提交 |
-| Last modified | 最后修改 |
 | License | 许可证 |
 | Published | 发布日期 |
 | Cited by | 引用于 |
@@ -85,6 +84,8 @@ it, and how to write it.
 | The narratives were written by an LLM and reviewed by the owner. | 这些叙述由大语言模型撰写，并经所有者审阅。 |
 | This book is a snapshot of the wiki at the commit on its cover. | 本书是 wiki 在封面所示提交时的快照。 |
 | A number in brackets, such as [3], is a citation: it links to the source's entry in Appendix A, which links to the original. | 方括号中的数字（如 [3]）是引用：它链接到附录 A 中该来源的条目，条目再链接到原文。 |
+| Made by {tool} and {models}, from {source}. | 由 {tool} 与 {models} 根据 {source} 制作。 |
+| Made by {tool}, from {source}. | 由 {tool} 根据 {source} 制作。 |
 
 ## Writing
 

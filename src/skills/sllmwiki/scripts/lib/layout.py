@@ -11,6 +11,7 @@ import sys
 
 from .util import git_root, setup_stdio
 
+SKILL_URL = 'https://github.com/mengjiasun1992/structural-llm-wiki'  # the skill's home, where a wiki or its book points to it
 CONTENT = 'sllmwiki'
 TAGS_DIR = f'{CONTENT}/tags'
 TAGS = f'{TAGS_DIR}/tags.yaml'

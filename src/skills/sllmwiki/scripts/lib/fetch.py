@@ -12,9 +12,9 @@ import time
 import urllib.error
 import urllib.request
 
-from . import plaintext
+from . import layout, plaintext
 
-USER_AGENT = 'sllmwiki (+https://github.com/mengjiasun1992/structural-llm-wiki)'
+USER_AGENT = f'sllmwiki (+{layout.SKILL_URL})'
 MAX_BYTES = 20 * 1024 * 1024
 BLOCKED = (401, 402, 403, 407, 429, 451)
 # A rate-limited fetch (429) is the server asking to wait, not a refusal: retried

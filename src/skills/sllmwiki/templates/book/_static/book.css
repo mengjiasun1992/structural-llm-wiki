@@ -1,15 +1,81 @@
-/* The book's one stylesheet, for screen, print and EPUB (docs/book_design.md §6.4). */
-body { font-family: "Noto Sans", "Noto Sans CJK SC", "Noto Sans Math", system-ui, sans-serif;
-       max-width: 46rem; margin: 0 auto; padding: 1rem; line-height: 1.55; color: #111; background: #fff; }
-code, pre { font-family: "Noto Sans Mono", ui-monospace, Menlo, monospace; font-size: .9em; }
-pre { overflow-x: auto; padding: .5rem; background: #f6f8fa; }
-table { border-collapse: collapse; margin: 1rem 0; } td, th { border: 1px solid #ccc; padding: .25rem .5rem; vertical-align: top; }
-h1 { font-size: 2em; } h2 { font-size: 1.6em; } h3 { font-size: 1.35em; }
-h4 { font-size: 1.2em; } h5 { font-size: 1.08em; } h6 { font-size: 1em; }
-h1, h2, h3, h4, h5, h6 { line-height: 1.25; margin: 1.4em 0 .5em; }
-a { color: #0550ae; } a.headerlink { display: none; }
-.diagram, .math.display { text-align: center; margin: 1rem 0; overflow-x: auto; }
+/* The book's one stylesheet, for screen, print and EPUB (docs/book_design.md §6.4): set for long
+   reading, a warm page, a serif text at a comfortable measure, sans-serif headings, and a dark
+   theme that follows the reader's system. */
+:root { --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 3.5C6 3.5 5 4.5 5 6.5v3C5 11 4.2 11.6 3 12c1.2.4 2 1 2 2.5v3c0 2 1 3 3 3'/%3E%3Cpath d='M28 3.5c2 0 3 1 3 3v3c0 1.5.8 2.1 2 2.5-1.2.4-2 1-2 2.5v3c0 2-1 3-3 3'/%3E%3Cpath d='M18 8.2c-2.1-1.5-4.6-1.9-7.2-1.4v10.1c2.6-.5 5.1-.1 7.2 1.4'/%3E%3Cpath d='M18 8.2c2.1-1.5 4.6-1.9 7.2-1.4v10.1c-2.6-.5-5.1-.1-7.2 1.4'/%3E%3Cpath d='M18 8.2v10.1'/%3E%3C/svg%3E"); }
+:root { --bg: #fbf8f1; --fg: #26231f; --muted: #6b655c; --link: #1f5fa8; --rule: #e4dccd;
+        --code: #f2ede3; --card: #ffffff; --note: #3d7bc4; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #1c1b19; --fg: #e3ddd2; --muted: #a39d92; --link: #8dbdf2; --rule: #3a3731;
+          --code: #2a2825; --card: #f7f3ea; --note: #6aa3e0; }
+}
+html { background: var(--bg); }
+body { margin: 0 auto; max-width: 42rem; padding: 2.5rem 1.4rem 5rem; background: var(--bg); color: var(--fg);
+       font-family: "Noto Serif", "Source Serif 4", Charter, "Iowan Old Style", Georgia, "Noto Serif CJK SC", "Songti SC", serif;
+       font-size: 1.075rem; line-height: 1.72; text-rendering: optimizeLegibility; font-kerning: normal;
+       -webkit-font-smoothing: antialiased; overflow-wrap: break-word; }
+p, li { hyphens: auto; }
+h1, h2, h3, h4, h5, h6, .headnote, .endmark, table, figcaption {
+  font-family: "Noto Sans", "Inter", system-ui, -apple-system, "Segoe UI", "Noto Sans CJK SC", "PingFang SC", sans-serif; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.28; margin: 1.8em 0 .55em; font-weight: 650; letter-spacing: -.005em; }
+h2 { font-size: 1.6rem; } h3 { font-size: 1.4rem; } h4 { font-size: 1.25rem; } h5 { font-size: 1.12rem; } h6 { font-size: 1.05rem; }
+/* Sizes by kind of page, not by depth: a chapter is as big wherever its part sits. */
+h1, :is(section[id^="part-"], section[id^="ch-"], section[id^="book-"]) > :is(h1, h2, h3, h4, h5, h6):first-child { font-size: 2rem; margin-top: 0; }
+section[id^="part-"] > :is(h1, h2, h3, h4, h5, h6):first-child { font-size: 2.2rem; }
+section[id^="ch-"] section > :is(h2, h3, h4, h5, h6):first-child { font-size: 1.35rem; }
+section[id^="ch-"] section section > :is(h3, h4, h5, h6):first-child { font-size: 1.15rem; }
+#book-cover > h1:first-child { font-size: 2.8rem; margin-bottom: .2em; }
+#book-cover > p:first-of-type { color: var(--muted); font-size: 1.05rem; }
+a { color: var(--link); text-decoration-thickness: .06em; text-underline-offset: .15em; }
+a.headerlink { display: none; }
+code, pre { font-family: "Noto Sans Mono", "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace; font-size: .86em; }
+code { background: var(--code); padding: .08em .3em; border-radius: 4px; }
+pre { background: var(--code); padding: .8rem 1rem; border-radius: 6px; overflow-x: auto; line-height: 1.5; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; margin: 1.2rem 0; font-size: .9rem; line-height: 1.5; display: block; overflow-x: auto; }
+td, th { border-bottom: 1px solid var(--rule); padding: .4rem .7rem; vertical-align: top; text-align: left; }
+th { border-bottom-width: 2px; }
+blockquote { margin: 1rem 0; padding: .2rem 1rem; border-left: 3px solid var(--rule); color: var(--muted); }
+hr { border: 0; border-top: 1px solid var(--rule); margin: 2.5rem 0; }
+/* Diagrams keep a light card, so their dark text stays readable on a dark page. */
+.diagram { background: var(--card); border-radius: 8px; padding: .8rem; margin: 1.4rem 0; text-align: center; overflow-x: auto; }
 .diagram svg { max-width: 100%; height: auto; }
+.math.display { text-align: center; margin: 1.2rem 0; overflow-x: auto; }
 .math svg { overflow: visible; }
-.admonition { border-left: 4px solid #0969da; padding: .25rem 1rem; margin: 1rem 0; background: #f6f8fa; }
-.admonition-title { font-weight: bold; }
+.admonition { border-left: 4px solid var(--note); padding: .3rem 1rem; margin: 1.2rem 0; background: var(--code); border-radius: 0 6px 6px 0; }
+.admonition-title { font-weight: bold; margin-bottom: .2rem; }
+/* The line above each page's title: where it is (the book › its parts), and the contents at the right. */
+.headnote { font-size: .8rem; letter-spacing: .02em; color: var(--muted); margin: 0 0 .7rem; }
+.headnote p { margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.headnote .to-contents { white-space: nowrap; }
+.headnote a { color: inherit; text-decoration: none; }
+.headnote a:hover { color: var(--link); text-decoration: underline; }
+/* Under a chapter's title, its version and date. */
+section[id^="ch-"] > :is(h1, h2, h3, h4, h5, h6):first-child + p > em:only-child { color: var(--muted); font-size: .95rem; }
+/* The quiet credit closing a chapter: sllmwiki's mark between two rules. */
+.endmark { display: flex; align-items: center; gap: .6rem; margin: 3.5rem 0 0; font-size: .78rem; letter-spacing: .04em; color: var(--muted); }
+.endmark::before, .endmark::after { content: ""; flex: 1; border-top: 1px solid var(--rule); }
+.endmark p { margin: 0; display: flex; align-items: center; gap: .4rem; }
+.endmark p::before { content: ""; width: 27px; height: 18px; background-color: var(--muted);
+  -webkit-mask: var(--mark) center / contain no-repeat; mask: var(--mark) center / contain no-repeat; }
+.endmark a { color: inherit; text-decoration: none; }
+.endmark a:hover { color: var(--link); }
+/* A part's map: each chapter's summary after its link. */
+.summary { color: var(--muted); }
+/* Each part, section and chapter starts a page: a break in print; on screen, sllmwiki's mark
+   (braces around an open book, {📖}) between two rules. */
+span[id^="document-"] + section, span[id^="document-"] + .headnote { position: relative; margin-top: 4.5rem; padding-top: 3.4rem;
+  background: linear-gradient(var(--rule), var(--rule)) left 0 top 12px / calc(50% - 34px) 1px no-repeat,
+              linear-gradient(var(--rule), var(--rule)) right 0 top 12px / calc(50% - 34px) 1px no-repeat; }
+span[id^="document-"] + section::before, span[id^="document-"] + .headnote::before { content: ""; position: absolute; top: 0; left: calc(50% - 18px); width: 36px; height: 24px;
+  background-color: var(--muted); -webkit-mask: var(--mark) center / contain no-repeat; mask: var(--mark) center / contain no-repeat; }
+/* After a chapter's closing credit, the next page needs no second mark. */
+section[id^="ch-"]:has(.endmark) + span[id^="document-"] + :is(section, .headnote) { background: none; margin-top: 3.5rem; padding-top: 0; }
+section[id^="ch-"]:has(.endmark) + span[id^="document-"] + :is(section, .headnote)::before { content: none; }
+@media print {
+  :root { --bg: #fff; --fg: #000; --card: #fff; }
+  body { max-width: none; padding: 0; font-size: 11pt; }
+  .headnote .to-contents { display: none; }
+  span[id^="document-"] + section, span[id^="document-"] + .headnote { background: none; margin-top: 0; padding-top: 0; break-before: page; }
+  span[id^="document-"] + section::before, span[id^="document-"] + .headnote::before { content: none; }
+  .diagram, table, pre, .math.display { break-inside: avoid; }
+}

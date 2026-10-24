@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """book: the wiki as a book (docs/book_design.md).
 
-  book.py stage OUT [--name N] [--version V] [--date YYYY-MM-DD] [--commit C]
+  book.py stage OUT [--name N] [--version V] [--date YYYY-MM-DD] [--commit C] [--source URL]
       Writes the book as plain Markdown for Sphinx into the folder OUT, which
       must be empty or not exist yet: index.md (the cover, the front page and
       the contents), parts/<tag>.md, chapters/<slug>.md with their figures,
@@ -9,7 +9,8 @@
       OUT/book.json: the parts, the chapter order, every anchor, every diagram
       and formula to render, and the problems found. The wiki is only read.
       --name defaults to the wiki's folder name, --version to "preview",
-      --date to today and --commit to the current commit, if any.
+      --date to today, --commit to the current commit and --source (the
+      wiki's web page, which the cover links to) to its origin remote's.
       Problems: BOOK_LINK (a link or anchor the book can't resolve),
       BOOK_CYCLE (narratives built on each other in a cycle), BOOK_FIGURE (a
       figure that isn't there). Exit code 1 when there are any.
@@ -22,7 +23,7 @@
       changed. One that fails to draw stays as written and is a warning,
       BOOK_RENDER, kept in book.json's warnings.
   book.py build OUT --formats html --vendor DIR [--chrome PATH] [--cache DIR]
-                [--sphinx CMD] [--name N] [--version V] [--date D] [--commit C]
+                [--sphinx CMD] [--name N] [--version V] [--date D] [--commit C] [--source URL]
       stage into OUT/staged, render, then Sphinx (--sphinx, default
       sphinx-build, with MyST-Parser) with the skill's templates/book/
       settings, and writes OUT/<name>-<version>.html: one file with every
@@ -53,9 +54,10 @@ cli = Cli('book.py', 'usage: book.py stage|render|build ... (book.py --help)')
 TEMPLATE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'templates', 'book')
 
 
-def _commit(root):
+def _git(root, *args):
+    """git's output in root, or '' when it fails."""
     try:
-        r = subprocess.run(['git', '-C', root, 'rev-parse', '--short', 'HEAD'], capture_output=True, text=True, check=False)
+        r = subprocess.run(['git', '-C', root, *args], capture_output=True, text=True, check=False)
     except OSError:  # pragma: no cover (no git)
         return ''
     return r.stdout.strip() if r.returncode == 0 else ''
@@ -71,7 +73,8 @@ def _empty(cli_out):
 def stage(root, out, args):
     """Write the staged book into out; its book.json."""
     staged = book.stage(root, args.name or os.path.basename(root), args.version, args.date,
-                        _commit(root) if args.commit is None else args.commit)
+                        _git(root, 'rev-parse', '--short', 'HEAD') if args.commit is None else args.commit,
+                        book.web_url(_git(root, 'remote', 'get-url', 'origin')) if args.source is None else args.source or None)
     for rel, text in staged.files.items():
         write_text(os.path.join(out, rel), text)
     for fig in staged.figures:
@@ -159,6 +162,7 @@ def main(argv):
     p.add_argument('--version', default='preview')
     p.add_argument('--date', default=datetime.date.today().isoformat())
     p.add_argument('--commit')
+    p.add_argument('--source')
     p.add_argument('--formats', default='html', type=lambda v: [f.strip() for f in v.split(',') if f.strip()])
     p.add_argument('--vendor')
     p.add_argument('--chrome')
