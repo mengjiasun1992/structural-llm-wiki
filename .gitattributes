@@ -1,0 +1,2 @@
+# Vendored libraries (src/actions/release-book/vendor/README.md): not ours to review line by line
+src/actions/release-book/vendor/*.js linguist-vendored -diff
