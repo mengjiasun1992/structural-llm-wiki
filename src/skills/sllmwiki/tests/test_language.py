@@ -29,6 +29,10 @@ def chinese(text):
     return text.replace('- **Template:** technical_brief_overview\n', '- **Template:** technical_brief_overview\n- **Language:** zh-Hans\n')
 
 
+BOOK = ['Contents', 'About this book', 'See also', 'Appendix A: Sources', 'Appendix B: Glossary', 'Appendix C: Open questions',
+        'Version', 'Date', 'Commit', 'Last modified', 'License', 'Published', 'Cited by', 'Original']
+
+
 class Packs(helpers.WikiTestCase):
     def setUp(self):
         super().setUp()
@@ -73,6 +77,8 @@ class Packs(helpers.WikiTestCase):
                 if h.level >= 2 and '<' not in title:
                     self.assertIn(title, strings, f)
         for label in ['(optional)', 'Term', 'Definition', 'Figure'] + list(markers.MARKERS.values()):
+            self.assertIn(label, strings)
+        for label in BOOK:  # the book's (docs/book_design.md §5)
             self.assertIn(label, strings)
 
     def test_the_skeleton_in_a_language(self):
