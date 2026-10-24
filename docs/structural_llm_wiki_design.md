@@ -240,6 +240,8 @@ A template is chosen by the subject, not the question's wording:
 | `survey` | Anything not concrete: a domain, or an umbrella term for subtopics or directions that each go deep their own way | Wide over deep: the main dishes on the table that one can't miss, an overview with context and scope, the items grouped and mapped first, their tensions, classic case studies, where to go deeper | knows the main areas of the domain and where to go deeper in each | 2,200 words |
 | `case_study` | One real, documented instance a concept or domain is known by: an incident, a production system, a design decision | Deep on the one case, in one of two shapes (an incident's timeline, a decision's options): its context, what happened, why (the causal chain), the ideas at work (linked to their narratives), the lessons that carry over | knows what happened and why, and can apply its lessons elsewhere | 1,500 words |
 
+Four are shown in the [demo wiki](https://github.com/mengjiasun1992/sllmwiki-demo): [concept](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-is-a-distributed-system.md), [technical](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-is-an-ewma-exponentially-weighted-moving-average-and-how-does-it-work.md), [comparison](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/when-should-software-use-an-ewma-instead-of-other-moving-averages.md) and [survey](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-are-the-common-design-tenets-and-principles-for-distributed-systems.md).
+
 **Aims.** Each template names its aim, the few qualities its narratives are graded on, and its guide says what each means in practice:
 
 ![The five templates placed by breadth and depth: technical and case study narrow and deep; concept narrow, at definition depth; comparison in between; survey wide and shallow; each with its aim](images/template-map.svg)
@@ -383,6 +385,7 @@ The questions and the user's words are passed to every step. A request that name
 - A step run on its own opens its own pull request; lint started by `ingest` or `narrative` shares its caller's.
 - **The owner merges.** Runs never merge. Feedback is applied by rerunning on the same branch; the pull request is updated, never replaced.
 - If the user asks for a different flow ("merge it for me", "use branch X"), that request wins.
+- An example: [the demo wiki's PR #6](https://github.com/mengjiasun1992/sllmwiki-demo/pull/6), one run's pull request, and [its commits](https://github.com/mengjiasun1992/sllmwiki-demo/commits/main) for the messages below.
 
 ### 5.3 Commit messages
 
