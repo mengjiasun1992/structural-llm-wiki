@@ -205,7 +205,9 @@ existing libraries (`manifest`, `tagtree`, `metadata`, `citations`,
 the cover and front page, one file per part, the chapters rewritten as in
 §5.3, and the three appendices. It also writes `book.json`: the order, every
 anchor, every diagram and formula to render, and any problem found. The pull
-request check (§7) runs this stage and nothing else.
+request check (§7) runs the same model and rewriting inside `wiki-check.py`,
+writing nothing, and reports only what the wiki shows but the book can't: a
+link already broken in the wiki is the wiki's own checks' to report.
 
 Staging owns every anchor in the book. It gives each heading a label unique
 across the book, made of its chapter and its GitHub anchor (from
@@ -312,7 +314,7 @@ A workflow in the skill (`workflows/release.md`, `scripts/release.py`):
 
 | When | What runs | Cost | Catches |
 |---|---|---|---|
-| Every pull request | `book.py stage` in the `wiki-checks` action | seconds, Python only | a link or anchor that won't resolve in the book, a `built_on` cycle, a figure missing |
+| Every pull request | staging's model and rewriting, in `wiki-check.py` (the `wiki-checks` action) | seconds, Python only | a link that works in the wiki but not in the book (a section the narrative lacks, its Metadata, a narrative with no chapter), a `built_on` cycle |
 | A pull request that changes a diagram or a formula | a parse of just those, in headless Chrome | about 20 seconds | a diagram or formula GitHub would show as an error |
 | A release | the full build, for each format that's on | 2 to 3 minutes | warnings go to the release notes |
 | A preview | the full build, as an artifact | the same | the same |

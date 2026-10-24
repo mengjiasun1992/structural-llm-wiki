@@ -97,7 +97,7 @@ every pull request. No Sphinx yet, and no setting.
 | B1.2 | `lib/book.py`: rewriting | A label unique across the book before every heading (design §6.2); citations to Appendix A entries; links to sections and chapters to their labels; links to tag pages and the index to parts; figures copied; Metadata reduced to a version line |
 | B1.3 | `lib/book.py`: generated pages | Cover and front page (§9 of the design, in the wiki's language through its language pack); parts' opening pages; Appendix A (sources), B (glossary, grouped by term) and C (open questions) |
 | B1.4 | `scripts/book.py stage <out>` | Writes the folder and `book.json` (order, anchors, diagrams and formulas to render, problems) |
-| B1.5 | `wiki-checks` action and `wiki-check.py` | Run staging into a temporary folder on every pull request; report `BOOK_LINK` (a link or anchor that won't resolve), `BOOK_CYCLE` (a `built_on` cycle) and `BOOK_FIGURE` (a missing figure) |
+| B1.5 | `wiki-check.py`, which the `wiki-checks` action runs | Run staging's model and rewriting on every pull request, writing nothing; report `BOOK_LINK` (a link or anchor the book can't resolve), `BOOK_CYCLE` (a `built_on` cycle) and `BOOK_FIGURE` (a missing figure), unless the wiki's own checks already report that link |
 | B1.6 | Language packs | The book's labels (Contents, Part, Appendix, Sources, Glossary, Open questions, the front page) in `en.md` and `zh-Hans.md` |
 
 **Test.** Order: a chain, a cycle, ties broken by template then question.

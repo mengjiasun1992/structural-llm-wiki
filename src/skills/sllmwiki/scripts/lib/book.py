@@ -198,11 +198,12 @@ def part_label(tag):
 
 class Rewritten:
     """A chapter as the book has it: its text, the problems found (code, where,
-    message), the sources it links to, and the figures it shows (paths under
-    the narratives folder)."""
+    message) and the link each is about (targets), the sources it links to, and
+    the figures it shows (paths under the narratives folder)."""
 
-    def __init__(self, text, problems, sources, figures):
+    def __init__(self, text, problems, sources, figures, targets=()):
         self.text, self.problems, self.sources, self.figures = text, problems, sources, figures
+        self.targets = list(targets)
 
 
 def _version_line(text, pack):
@@ -223,8 +224,12 @@ def rewrite(root, book, slug):
     _, pack = language.for_narrative(text, config.get(root).settings['language'])
     version = _version_line(text, pack)
     text = _without_metadata(text)
-    problems, sources, figures = [], [], []
+    problems, targets, sources, figures = [], [], [], []
     own = numbering.anchors(text)
+
+    def fail(dest, code, where, message):
+        problems.append((code, where, message))
+        targets.append(dest)
     known = set(manifest.load(root, 'sources'))
 
     def target(dest, n):
@@ -234,25 +239,25 @@ def rewrite(root, book, slug):
         if not path:
             if frag in own:
                 return '#' + section_label(slug, frag)
-            problems.append(('BOOK_LINK', where, f'{dest}: this narrative has no section #{frag}'))
+            fail(dest, 'BOOK_LINK', where, f'{dest}: this narrative has no section #{frag}')
             return None
         to = mdlinks.resolve(rel, path)
         folder, name = posixpath.split(to or '')
         base = name[:-3] if name.endswith('.md') else None
         if folder == layout.SOURCES and base:
             if base not in known:
-                problems.append(('BOOK_LINK', where, f'{dest}: no source {base}'))
+                fail(dest, 'BOOK_LINK', where, f'{dest}: no source {base}')
                 return None
             sources.append(base)
             return '#' + source_label(base)
         if folder == layout.NARRATIVES and base:
             if base not in book.chapters:
-                problems.append(('BOOK_LINK', where, f'{dest}: {base} isn\'t a chapter of the book'))
+                fail(dest, 'BOOK_LINK', where, f'{dest}: {base} isn\'t a chapter of the book')
                 return None
             if not frag:
                 return '#' + chapter_label(base)
             if frag not in _anchors(root, base):
-                problems.append(('BOOK_LINK', where, f'{dest}: {base} has no section #{frag}'))
+                fail(dest, 'BOOK_LINK', where, f'{dest}: {base} has no section #{frag}')
                 return None
             return '#' + section_label(base, frag)
         if folder == layout.TAGS_DIR and base:
@@ -274,7 +279,7 @@ def rewrite(root, book, slug):
             if m.group('image'):
                 fig = mdlinks.resolve(rel, mdlinks.split(dest)[0])
                 if fig is None or not os.path.isfile(os.path.join(root, fig)):
-                    problems.append(('BOOK_FIGURE', f'{rel}:{i + 1}', f'{dest}: no such figure'))
+                    fail(dest, 'BOOK_FIGURE', f'{rel}:{i + 1}', f'{dest}: no such figure')
                 else:
                     figures.append(posixpath.relpath(fig, layout.NARRATIVES))
                 continue
@@ -287,7 +292,7 @@ def rewrite(root, book, slug):
         lines.insert(h.line, f'({chapter_label(slug) if h.level == 1 else section_label(slug, anchor)})=')
         if h.level == 1 and version:
             lines.insert(h.line + 2, '\n' + version)
-    return Rewritten('\n'.join(lines), problems, list(dict.fromkeys(sources)), list(dict.fromkeys(figures)))
+    return Rewritten('\n'.join(lines), problems, list(dict.fromkeys(sources)), list(dict.fromkeys(figures)), targets)
 
 
 def _without_metadata(text):
@@ -490,3 +495,19 @@ def stage(root, name, version, date, commit):
                  'renders': [dict(id=k, **v) for k, v in renders.items()],
                  'problems': [{'code': c, 'where': w, 'message': m} for c, w, m in problems]}
     return Staged(files, list(dict.fromkeys(figures)), book_json)
+
+
+def check(root):
+    """[(severity, code, file, message)] for wiki-check: what would break in the
+    book although the wiki shows it. A link already broken in the wiki is left
+    to the wiki's own checks (LINK_PATH, NARRATIVE_ANCHOR, CITATION_BROKEN)."""
+    b = model(root)
+    out = [('error', code, layout.NARRATIVES_MANIFEST, message) for code, _, message in b.problems]
+    for slug in b.order():
+        r = rewrite(root, b, slug)
+        rel = f'{layout.NARRATIVES}/{slug}.md'
+        for (code, where, message), dest in zip(r.problems, r.targets):
+            if mdlinks.split(dest)[0] and mdlinks.problem(root, rel, dest):
+                continue
+            out.append(('error', code, where, f'{message}, in the book'))
+    return out

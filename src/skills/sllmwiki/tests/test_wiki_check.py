@@ -149,6 +149,22 @@ class Check(helpers.WikiTestCase):
         self.assertEqual(self.read('sllmwiki/tags/leaf-a.md'), '# leaf-a\n\nMy own page.\n')
 
 
+    def test_what_the_book_cannot_show(self):
+        helpers.add_narrative(self.root, 'x', 'X?', built_on=('y',))
+        helpers.add_narrative(self.root, 'y', 'Y?', built_on=('x',))
+        links = ('See [nothing](#nope), [the metadata](what-is-alpha.md#9-metadata), [a ghost](ghost.md), '
+                 '[no source](../sources/nope.md) and ![gone](figures/y/gone.png).\n\n## 6.')
+        self.write('sllmwiki/narratives/y.md', self.read('sllmwiki/narratives/y.md').replace('## 6.', links))
+        found = json.loads(self.wc('--json').out)['findings']
+        book = [(f['code'], f['message']) for f in found if f['code'].startswith('BOOK_')]
+        self.assertEqual(book, [('BOOK_CYCLE', 'narratives built on each other in a cycle: x, y'),
+                                ('BOOK_LINK', '#nope: this narrative has no section #nope, in the book'),
+                                ('BOOK_LINK', 'what-is-alpha.md#9-metadata: what-is-alpha has no section #9-metadata, in the book')])
+        self.assertEqual([f['file'] for f in found if f['code'] == 'BOOK_LINK'], ['sllmwiki/narratives/y.md:34'] * 2)
+        # the ghost, the missing source and the missing figure are the wiki's own checks' to report
+        self.assertEqual(sum(f['code'] == 'LINK_PATH' for f in found), 3)
+
+
 class FinishRegenerates(helpers.WikiTestCase):
     def test_finish_narrative_rewrites_the_pages(self):
         manifest.add_tag(self.root, 'leaf-c', 'Third leaf', 'root-topic')
