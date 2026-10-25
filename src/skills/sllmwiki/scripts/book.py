@@ -203,10 +203,12 @@ def epub_book(root, out, staged, data, sphinx):
 
 def to_parse(root, base=None):
     """[(file, line, kind, source)] of the diagrams and formulas to check: with base, those in narratives
-    changed since base (the working tree against it) whose kind and source aren't in base's version."""
+    changed since base (the working tree against it, new files git doesn't track yet included) whose kind
+    and source aren't in base's version."""
     folder = layout.NARRATIVES
     if base:
-        names = _git(root, 'diff', '--name-only', base, '--', folder).split('\n')
+        names = (_git(root, 'diff', '--name-only', base, '--', folder).split('\n')
+                 + _git(root, 'ls-files', '--others', '--exclude-standard', '--', folder).split('\n'))
     else:
         names = [f'{folder}/{n}' for n in sorted(os.listdir(os.path.join(root, folder)))]
     out = []
