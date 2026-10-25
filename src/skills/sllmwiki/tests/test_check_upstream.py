@@ -4,9 +4,10 @@ import json
 import unittest
 from unittest import mock
 
+import epubmaker
 import helpers
 import pdfmaker
-from lib import manifest, pdf, policy
+from lib import epub, manifest, pdf, policy
 
 ROUTES = {
     '/budget.md': (200, {'Content-Type': 'text/markdown'}, b'# Budgets\n\nTen percent.\n'),
@@ -14,6 +15,9 @@ ROUTES = {
     '/book.pdf': (200, {'Content-Type': 'application/pdf'}, pdfmaker.make(
         [pdfmaker.text((72, 700, b'Text of page %d.' % i)) for i in range(pdf.SLICE_PAGES + 1)],
         [(0, b'Part One', 0, None), (0, b'Part Two', 50, None)])),
+    '/book.epub': (200, {'Content-Type': 'application/epub+zip'}, epubmaker.make(
+        [('p1.xhtml', '<h1>Part One</h1><p>%s</p>' % ' '.join(['one'] * epub.SLICE_WORDS)), ('p2.xhtml', '<h1>Part Two</h1><p>%s</p>' % ' '.join(['two'] * epub.SLICE_MIN_WORDS))],
+        [(0, 'Part One', 'p1.xhtml'), (0, 'Part Two', 'p2.xhtml')])),
 }
 
 
@@ -27,7 +31,8 @@ class CheckUpstream(helpers.WikiTestCase):
         for slug in ('alpha-doc', 'beta-doc'):  # the fixture's own sources: never the real network
             e = manifest.load(self.root, 'sources')[slug]
             manifest.save(self.root, 'sources', slug, dict(e, url=self.server.url('/gone-' + slug)))
-        for slug, path, tag in (('alpha-budget', '/budget.md', 'leaf-a'), ('beta-backoff', '/backoff.md', 'leaf-b'), ('alpha-book', '/book.pdf', 'leaf-a')):
+        for slug, path, tag in (('alpha-budget', '/budget.md', 'leaf-a'), ('beta-backoff', '/backoff.md', 'leaf-b'), ('alpha-book', '/book.pdf', 'leaf-a'),
+                                ('beta-epub', '/book.epub', 'leaf-b')):
             r = helpers.run('fetch-source.py', [slug, '--url', self.server.url(path), '--tags', tag, '--license', 'CC-BY-4.0', '--root', self.root])
             self.assertEqual(r.code, 0, r.err)
 
@@ -45,16 +50,20 @@ class CheckUpstream(helpers.WikiTestCase):
         self.assertIn('unchanged    alpha-budget', r.out)
         self.assertIn('unchanged    alpha-book-2-part-two', r.out)
         self.assertIn('unreachable  alpha-doc: ', r.out)
-        self.assertIn('6 checked, 0 changed', r.out)
+        self.assertIn('unchanged    beta-epub-2-part-two', r.out)
+        self.assertIn('8 checked, 0 changed', r.out)
         self.routes['/budget.md'] = (200, {'Content-Type': 'text/markdown'}, b'# Budgets\n\nFive percent.\n')
         self.routes['/book.pdf'] = (200, {'Content-Type': 'application/pdf'}, pdfmaker.make(
             [pdfmaker.text((72, 700, b'Text of page %d.' % i)) for i in range(pdf.SLICE_PAGES + 1)],
             [(0, b'Part One', 0, None), (0, b'Part Two', 60, None)]))
+        self.routes['/book.epub'] = (200, {'Content-Type': 'application/epub+zip'}, epubmaker.make(
+            [('p1.xhtml', '<h1>Part One</h1><p>%s</p>' % ' '.join(['one'] * epub.SLICE_WORDS))], [(0, 'Part One', 'p1.xhtml')]))
         out = json.loads(self.check('--json').out)['sources']
         status = {s['slug']: s['status'] for s in out}
         self.assertEqual((status['alpha-budget'], status['beta-backoff'], status['alpha-book-1-part-one'], status['alpha-book-2-part-two']),
                          ('changed', 'unchanged', 'changed', 'changed'))
         self.assertEqual([s['detail'] for s in out if s['slug'] == 'alpha-book-2-part-two'], ['no slice starts on page 51 any more'])
+        self.assertEqual([s['detail'] for s in out if s['slug'] == 'beta-epub-2-part-two'], ['no top-level entry 2 in its contents any more'])
         sources = manifest.load(self.root, 'sources')
         self.assertTrue(sources['alpha-budget'].get('upstream_changed'))
         wiki = helpers.run('wiki-check.py', ['--root', self.root])

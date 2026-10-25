@@ -8,17 +8,19 @@
 Fetches URL (or reads PATH, a copy you already have of the source at URL) and
 saves it as sllmwiki/sources/<slug>.md: markdown and text byte for byte, an
 HTML page's main content converted, a PDF's text layer with its outline as
-headings, a LaTeX source's sections as headings and its math kept as TeX (its
+headings, an EPUB's chapters in reading order (never one whose chapters are
+encrypted), a LaTeX source's sections as headings and its math kept as TeX (its
 \\input files read from beside --file), a plain-text standard (an RFC) with its
 numbered sections as headings, a code file in one fenced block so citations
 can name its lines (#L10-L20), with the "Original source" footer. The source is recorded with a
 starter abstract (its opening words, marked abstract_draft); read the source
 and replace it with `manifest.py set-abstract <slug> --abstract "..."`.
 
-A PDF over 100 pages with an outline is saved as one source per top-level
-outline entry, <slug>-<n>-<chapter>, each with a starter abstract to replace
+A PDF over 100 pages with an outline, or an EPUB over 40,000 words whose table
+of contents has two or more top-level entries, is saved as one source per
+top-level entry, <slug>-<n>-<chapter>, each with a starter abstract to replace
 when a question first reads it. Such slices can't be refreshed yet; save the
-PDF again under a new slug.
+book again under a new slug.
 
 --license is what you found in the source's license or terms (an SPDX id such
 as CC-BY-4.0, or "unknown", or "proprietary"). The source policy decides
@@ -42,7 +44,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import config, convert, fetch, footer, layout, manifest, pdf, policy, wikiindex  # noqa: E402
+from lib import config, convert, fetch, footer, layout, manifest, policy, wikiindex  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, read_bytes, today  # noqa: E402
 
@@ -77,7 +79,7 @@ def read_source(args):
 
 
 def to_markdown(kind, data, url, content_type='', include=None, name=''):
-    """(the markdown, [(title, page, markdown)] slices of a long outlined PDF)."""
+    """(the markdown, [(title, fragment, markdown)] slices of a long outlined PDF or EPUB)."""
     try:
         return convert.convert(kind, data, url, content_type, include, name)
     except convert.ConvertError as e:
@@ -147,10 +149,10 @@ def main(argv):
         cli.fail('nothing to save: the source has no text')
     keep_abstract = existing and not existing.get('abstract_draft')
     if slices and existing:
-        cli.fail(f'{args.slug} is now over {pdf.SLICE_PAGES} pages with an outline, so it would be saved in slices; save it again under a new slug')
+        cli.fail(f'{args.slug} is now long enough to be saved in slices; save it again under a new slug')
     if slices:
-        parts = [(slice_slug(args.slug, n, title), text.encode(), args.url + (f'#page={page + 1}' if page is not None else ''),
-                  f'{title}: {draft_abstract(text)}') for n, (title, page, text) in enumerate(slices, 1)]
+        parts = [(slice_slug(args.slug, n, title), text.encode(), args.url + (f'#{frag}' if frag else ''),
+                  f'{title}: {draft_abstract(text)}') for n, (title, frag, text) in enumerate(slices, 1)]
         taken = [s for s, _, _, _ in parts if s in sources]
         if taken:
             cli.fail(f'already saved: {", ".join(taken)}')
@@ -180,7 +182,7 @@ def main(argv):
         print(dumps(results[0] if not slices else {'slices': results}))
         return 0
     if slices:
-        print(f'saved {args.slug} in {len(results)} slices, one per top-level outline entry ({why}):')
+        print(f'saved {args.slug} in {len(results)} slices, one per top-level entry of its outline or contents ({why}):')
     for r in results:
         print(f'{"refreshed" if existing else "saved"} {r["file"]} ({kind}, {r["bytes"]:,} bytes)' + ('' if slices else f': {why}'))
     if not keep_abstract:

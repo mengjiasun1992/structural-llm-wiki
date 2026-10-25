@@ -10,7 +10,8 @@ sources manifest, which wiki-check then reports (SOURCE_UPSTREAM_CHANGED: re-ing
 it with fetch-source.py --refresh, and narratives pinned to it get rechecked).
 An unchanged one loses any earlier mark. A source that can't be fetched or
 converted is reported and left as it is. A long PDF saved in slices is fetched
-once and each slice compared with the new slice at the same page.
+once and each slice compared with the new slice at the same place: the same
+page of a PDF, the same top-level entry of an EPUB's contents.
 
 A saved copy also differs when the skill's converter has improved since it was
 saved (a PDF's placeholder title dropped, say): re-ingesting takes the better copy.
@@ -21,6 +22,7 @@ Exit code: 0, 1 on a refusal (no such slug or tag), 2 on a usage error.
 
 import argparse
 import os
+import re
 import sys
 
 sys.dont_write_bytecode = True
@@ -38,10 +40,10 @@ def fetch_converted(url):
     return convert.convert(fetch.kind_of(r.content_type, r.url), r.data, r.url, r.content_type, None, r.url)
 
 
-def page_of(url):
-    """A slice's page from its URL's #page=N, or None."""
-    _, _, frag = url.partition('#page=')
-    return int(frag) if frag.isdigit() else None
+def place_of(url):
+    """A slice's place from its URL's fragment (page=N, chapter=N), or None."""
+    _, _, frag = url.partition('#')
+    return frag if re.match(r'(page|chapter)=\d+\Z', frag) else None
 
 
 def compare(root, entry, fetched):
@@ -56,11 +58,12 @@ def compare(root, entry, fetched):
     if isinstance(got, Exception):
         return 'unreachable', str(got)
     body, slices = got
-    page = page_of(entry['url'])
-    if page is not None:
-        match = [s for s in slices if s[1] is not None and s[1] + 1 == page]
+    place = place_of(entry['url'])
+    if place is not None:
+        match = [s for s in slices if s[1] == place]
         if not match:
-            return 'changed', f'no slice starts on page {page} any more'
+            kind, n = place.split('=')
+            return 'changed', f'no slice starts on page {n} any more' if kind == 'page' else f'no top-level entry {n} in its contents any more'
         body = match[0][2].encode()
     saved = split_footer(read_bytes(os.path.join(root, layout.in_content(entry['file']))))[0]
     if split_footer(body)[0].rstrip(b'\n') == saved.rstrip(b'\n'):

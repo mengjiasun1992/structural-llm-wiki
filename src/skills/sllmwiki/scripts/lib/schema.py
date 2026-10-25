@@ -17,7 +17,7 @@ TEMPLATE = re.compile(r'[a-z0-9][a-z0-9_-]*\Z')
 MD5 = re.compile(r'[0-9a-f]{32}\Z')
 VERSION = re.compile(r'[0-9]+\.[0-9]+\Z')
 URL = re.compile(r'https?://\S+\Z')
-KINDS = ('text', 'html', 'pdf', 'tex', 'code', 'link')
+KINDS = ('text', 'html', 'pdf', 'epub', 'tex', 'code', 'link')
 
 
 class Field:

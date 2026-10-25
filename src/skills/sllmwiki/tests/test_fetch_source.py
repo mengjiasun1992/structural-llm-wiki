@@ -6,9 +6,10 @@ import os
 import unittest
 from unittest import mock
 
+import epubmaker
 import helpers
 import pdfmaker
-from lib import footer, manifest, pdf, policy
+from lib import epub, footer, manifest, pdf, policy
 from lib.util import read_bytes, source_hash
 
 MD = b'# Retry budgets\n\nA retry budget caps retries at a share of requests.\n\n## How\n\nTen percent.\n'
@@ -23,6 +24,13 @@ ROUTES = {
     '/book.pdf': (200, {'Content-Type': 'application/pdf'}, pdfmaker.make(
         [pdfmaker.text((72, 700, b'Text of page %d.' % i)) for i in range(pdf.SLICE_PAGES + 1)],
         [(0, b'Part One', 0, None), (0, b'Part Two', 50, None), (0, b'', 60, None)])),
+    '/book.epub': (200, {'Content-Type': 'application/epub+zip'}, epubmaker.make(
+        [('a.xhtml', '<h1>Budgets</h1><p>Retries cap at <a href="b.xhtml">ten percent</a>.</p>')], [(0, 'Budgets', 'a.xhtml')], title='On Retries')),
+    '/long.epub': (200, {'Content-Type': 'application/octet-stream'}, epubmaker.make(
+        [('p1.xhtml', '<h1>Part One</h1><p>%s</p>' % ' '.join(['one'] * epub.SLICE_WORDS)), ('p2.xhtml', '<h1>Part Two</h1><p>%s</p>' % ' '.join(['two'] * epub.SLICE_MIN_WORDS))],
+        [(0, 'Part One', 'p1.xhtml'), (0, 'Part Two', 'p2.xhtml')])),
+    '/locked.epub': (200, {'Content-Type': 'application/epub+zip'}, epubmaker.make(
+        [('a.xhtml', '<p>Locked.</p>')], encrypted=[('a.xhtml', epubmaker.ENC)])),
     '/image': (200, {'Content-Type': 'image/png'}, b'\x89PNG'),
     '/ewma.go': (200, {'Content-Type': 'text/plain; charset=utf-8'}, b'package ewma\n\nfunc Next(a, x, p float64) float64 {\n\treturn a*x + (1-a)*p\n}\n'),
     '/rfc.txt': (200, {'Content-Type': 'text/plain'}, b'Header\n\n1.  One\n\n   Text one.\n\n2.  Two\n\n   Text two.\n\n3.  Three\n\n   Text three.\n'),
@@ -108,7 +116,7 @@ class FetchSource(helpers.WikiTestCase):
         self.assertIn('no such tag(s): nope', r.err)
 
     def test_what_cant_be_saved(self):
-        for path, msg in (('/paper.pdf', 'a broken PDF: no catalog; record it as a link'), ('/image', 'not markdown, text, HTML or PDF'),
+        for path, msg in (('/paper.pdf', 'a broken PDF: no catalog; record it as a link'), ('/image', 'not markdown, text, HTML, PDF or EPUB'), ('/locked.epub', 'encrypted (DRM); never get around it; record it as a link'),
                           ('/empty', 'nothing to save'), ('/latin1', 'isn\'t UTF-8'), ('/login', 'never get around it')):
             r = self.fetch('x', path)
             self.assertEqual(r.code, 1, path)
@@ -136,10 +144,20 @@ class FetchSource(helpers.WikiTestCase):
         self.assertIn('already saved: alpha-book-1-part-one', self.fetch('alpha-book', '/book.pdf').err)
         manifest.save(self.root, 'sources', 'alpha-long', dict(one, file='sources/alpha-long.md'))
         helpers.write(self.root, 'sllmwiki/sources/alpha-long.md', 'x')
-        self.assertIn('would be saved in slices', self.fetch('alpha-long', '/book.pdf', '--refresh').err)
+        self.assertIn('long enough to be saved in slices', self.fetch('alpha-long', '/book.pdf', '--refresh').err)
         r = self.fetch('alpha-other', '/book.pdf', '--json')
         self.assertEqual([s['slug'] for s in json.loads(r.out)['slices']], ['alpha-other-1-part-one', 'alpha-other-2-part-two'])
         self.assertEqual(helpers.load_script('fetch-source.py').slice_slug('x', 3, '!!!'), 'x-3')
+
+    def test_an_epub(self):
+        r = self.fetch('alpha-retries', '/book.epub', '--json')
+        self.assertEqual((r.code, json.loads(r.out)['kind']), (0, 'epub'), r.err)
+        saved = read_bytes(os.path.join(self.root, 'sllmwiki/sources/alpha-retries.md')).decode()
+        self.assertTrue(saved.startswith('# On Retries\n\n## Budgets\n\nRetries cap at ten percent.\n'))
+        r = self.fetch('alpha-long', '/long.epub')  # served as octet-stream: the .epub name tells
+        self.assertIn('saved alpha-long in 2 slices', r.out)
+        two = manifest.load(self.root, 'sources')['alpha-long-2-part-two']
+        self.assertEqual((two['kind'], two['url'].split('#')[1]), ('epub', 'chapter=2'))
 
     def test_a_latex_source(self):
         self.assertEqual(self.fetch('alpha-tex', '/paper.tex').code, 0)

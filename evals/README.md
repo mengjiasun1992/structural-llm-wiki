@@ -21,6 +21,8 @@ Unit tests (`src/skills/sllmwiki/tests/`) check the scripts; these evals check t
 | ingest-public-restricted | in a wiki that may be public, a proprietary source is a link and a question to the owner; no permission is claimed | smoke, policy |
 | ingest-personal-data | a section with personal data is left out of the saved copy, and the gap marked | policy |
 | ingest-pdf | a PDF is saved with its outline as headings | full, sources |
+| ingest-epub | an EPUB is saved under its title, its chapters in reading order as headings, and abstracted | full, sources |
+| ingest-epub-drm | an EPUB whose chapters are encrypted is recorded as a link: no copy saved, nothing decrypted | smoke, policy |
 | template-choice | four questions, one per kind of subject, each get their template's skeleton (concept, survey, technical, comparison); nothing is written | smoke, templates |
 | template-new | asked for a postmortem template, it reads `steps/template.md`, starts one from the closest template with `--new-template`, checks it, and never merges | templates |
 | narrative-publish | a narrative is planned, finished with no errors, and published as one unmerged pull request | full, publishing, grounding |
