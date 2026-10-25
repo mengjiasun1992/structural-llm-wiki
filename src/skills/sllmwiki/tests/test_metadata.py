@@ -70,6 +70,18 @@ class Write(unittest.TestCase):
         self.assertTrue(out.endswith('A note someone left.\n'))
         self.assertEqual(metadata.write(out, {}), out)  # writing what's there changes nothing
 
+    def test_history_in_the_earlier_form(self):
+        old = DOC.replace('  - 1.1 (2026-10-02)', '  - v1.1 (2026-10-02)').replace('  - 1.0 (2026-10-01)', '  - v1.0 (2026-10-01)')
+        self.assertEqual([v for v, _, _ in metadata.read(old)['history']], ['1.1', '1.0'])
+        out = metadata.write(old, {'version': '2.0'}, ('2.0', '2026-10-25', 'Rewritten.'))
+        self.assertIn('  - 2.0 (2026-10-25): Rewritten.\n  - 1.1 (2026-10-02): Wider scope.\n  - 1.0 (2026-10-01): First version.\n', out)
+        self.assertNotIn('v1.', out)  # rewritten in the current form, never left below the plan
+        both = DOC.replace('A note someone left.', '  - v1.0 (2026-10-01): First version.\n\nA note someone left.')
+        self.assertEqual([v for v, _, _ in metadata.read(metadata.write(both, {}))['history']], ['1.1', '1.0'])  # a copy in both forms: once
+        shuffled = DOC.replace('  - 1.1 (2026-10-02): Wider scope.\n  - 1.0 (2026-10-01): First version.',
+                               '  - 1.0 (2026-10-01): First version.\n  - 1.1 (2026-10-02): Wider scope.')
+        self.assertEqual([v for v, _, _ in metadata.read(metadata.write(shuffled, {}))['history']], ['1.1', '1.0'])  # newest first
+
     def test_model_and_reading_plan(self):
         out = metadata.write(DOC, {'model': 'claude-opus-5-5'}, plan=['`a`, in full: high relevance, authority A, 2026-01-01', '`b`, not read: a link'])
         self.assertIn('- **Template:** concept_brief_overview\n- **Model:** claude-opus-5-5\n- **Created:**', out)

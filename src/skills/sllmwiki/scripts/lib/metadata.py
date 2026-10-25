@@ -30,7 +30,7 @@ FIELDS = (('version', 'Version'), ('template', 'Template'), ('language', 'Langua
 WORDS_PER_MINUTE = 230  # a reader's pace through technical prose; CJK text counts its characters as words (lib/language.py)
 UNREAD = ('References', 'SMEs', 'Metadata')  # sections a reader looks things up in rather than reads
 _FIELD = re.compile(r'- \*\*(?P<name>[^*]+):\*\*[ \t]*(?P<value>.*)\Z')
-_ENTRY = re.compile(r'[ \t]+- (?P<version>[0-9]+\.[0-9]+) \((?P<date>[0-9-]+)\): (?P<note>.*)\Z')
+_ENTRY = re.compile(r'[ \t]+- v?(?P<version>[0-9]+\.[0-9]+) \((?P<date>[0-9-]+)\): (?P<note>.*)\Z')  # v1.0: the earlier form
 _STEP = re.compile(r'[ \t]+[0-9]+\. (?P<step>.*)\Z')
 
 
@@ -117,7 +117,12 @@ def write(text, fields, history=None, plan=None):
     body = lines[span[0] + 1:span[1]]
     current = read(text)
     current.update({k: v for k, v in fields.items() if v is not None})
-    entries = ([history] if history else []) + current['history']
+    entries, seen = [], set()
+    for entry in ([history] if history else []) + current['history']:
+        if entry[0] not in seen:  # one entry per version: an old v1.0 line and its 1.0 copy are the same
+            seen.add(entry[0])
+            entries.append(entry)
+    entries.sort(key=lambda e: tuple(int(p) for p in e[0].split('.')), reverse=True)  # newest first
     steps = current['plan'] if plan is None else plan
     known = {label.lower() for _, label in FIELDS} | {'history', 'reading plan'}
     other = [line for line in body if line.strip() and not _ENTRY.match(line) and not _STEP.match(line)
