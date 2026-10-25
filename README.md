@@ -8,7 +8,7 @@
 
 **Your group's knowledge, researched by your coding agent, cited to the exact source, and reviewed like code.**
 
-**What it is.** Structural LLM Wiki is a set of agent skills, packaged as a Claude Code plugin, that turns a git repository into a wiki your coding agent researches and keeps up to date. You give it questions. It finds the sources that answer them (design docs, code, specifications, papers, web pages), saves them in the repository, and writes one *narrative* per question: a short document that teaches the answer, with every claim linked to the section of a saved source that supports it. Topic tags tie the sources, the narratives and the people who know each area together, and every run arrives as one pull request you review.
+**What it is.** Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) has an LLM build and maintain a persistent, interlinked markdown wiki from raw sources. Structural LLM Wiki adds what a group needs on top. It's a set of agent skills, packaged as a Claude Code plugin, that turns a git repository into a wiki your coding agent researches and keeps up to date. You give it questions. It finds the sources that answer them (design docs, code, specifications, papers, web pages), saves them in the repository, and writes one *narrative* per question: a short document that teaches the answer, in a shape that fits the question or one you define, with every claim linked to the section of a saved source that supports it. Topic tags tie the sources, the narratives and the people who know each area together. Every run arrives as one pull request you review, and each release attaches the whole wiki as a book.
 
 ## Who it's for, and what it fixes
 
@@ -52,8 +52,6 @@
 - **A book with every release.** Each release attaches the whole wiki as a PDF, an EPUB or one HTML file: parts by topic, chapters in teaching order, diagrams and math drawn as on GitHub, and appendices of sources, terms and open questions. You can read it offline or hand it to a colleague.
 - **Frugal and repeatable.** Scripts do everything mechanical; the agent reads the smallest thing that answers and nothing twice, so your tokens go to judgment.
 - **Yours, in plain files.** Markdown and YAML in git: browse it on GitHub, open it as an Obsidian vault, read it as a book, and run it from any agent that supports [Agent Skills](https://agentskills.io).
-
-Inspired by Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), where an LLM builds and maintains a persistent, interlinked markdown wiki from raw sources. Structural LLM Wiki adds what a group needs on top: topic tags that link sources, narratives and people; every claim traced to a section of a saved source; templates that teach, and your own; every change reviewed; and a book of it all at each release.
 
 ## What it's like to use
 
