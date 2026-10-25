@@ -209,7 +209,8 @@ class Rewritten:
 def _version_line(text, pack):
     m = metadata.read(text)
     parts = ([f'{pack.t("Version")} {m["version"]}'] if m['version'] else []) + ([m['last_modified']] if m['last_modified'] else [])
-    return f'*{" · ".join(parts)}*' if parts else None
+    parts.append(pack.t('{n} min read').replace('{n}', str(metadata.reading(text)[1])))
+    return f'*{" · ".join(parts)}*'
 
 
 def rewrite(root, book, slug):
@@ -366,7 +367,7 @@ def summary(text):
     return paras[0] if paras else ''
 
 
-def _map(book, part, depth=0, summaries=None):
+def _map(book, part, depth=0, summaries=None, minutes=None):
     """A part's chapters and sections as a list of links, each section with its own; with
     summaries ({slug: text}), each chapter's after its link and each section's description,
     so a part page can be skimmed."""
@@ -374,9 +375,10 @@ def _map(book, part, depth=0, summaries=None):
 
     def after(text):
         return f' <span class="summary">— {text}</span>' if summaries is not None and text else ''
-    out = ''.join(f'{pad}- {_link(book, c)}{after((summaries or {}).get(c))}\n' for c in part.chapters)
+    out = ''.join(f'{pad}- {_link(book, c)}{" · " + minutes[c] if minutes and c in minutes else ""}{after((summaries or {}).get(c))}\n'
+                  for c in part.chapters)
     for s in part.sections:
-        out += f'{pad}- [{part_title(book, s)}](#{part_label(s.tag)}){after(_escape(s.description))}\n' + _map(book, s, depth + 1, summaries)
+        out += f'{pad}- [{part_title(book, s)}](#{part_label(s.tag)}){after(_escape(s.description))}\n' + _map(book, s, depth + 1, summaries, minutes)
     return out
 
 
@@ -438,13 +440,13 @@ def cover(name, version, date, commit, pack, entries, listing, source=None, mode
             f'({CONTENTS})=\n## {pack.t("Contents")}\n\n{listing}\n' + _toctree(entries))
 
 
-def part_page(book, part, pack, summaries=None):
+def part_page(book, part, pack, summaries=None, minutes=None):
     """parts/<tag>.md: the tag's title and description, a map of its chapters (with their
     summaries) and sections, and its see-also."""
     text = f'({part_label(part.tag)})=\n# {part_title(book, part)}\n\n{_escape(part.description)}\n\n'
     entries = [f'../chapters/{c}' for c in part.chapters] + [s.tag for s in part.sections]
     if entries:
-        text += _map(book, part, 0, summaries or {}) + '\n' + _toctree(entries) + '\n'
+        text += _map(book, part, 0, summaries or {}, minutes) + '\n' + _toctree(entries) + '\n'
     if part.see_also:
         text += f'**{pack.t("See also")}:** ' + ', '.join(_link(book, c) for c in part.see_also) + '\n'
     return text.rstrip('\n') + '\n'
@@ -568,8 +570,10 @@ def stage(root, name, version, date, commit, source=None, title=None, author=Non
         for s in r.sources:
             linked_by.setdefault(s, []).append(slug)
     summaries = {slug: summary(text) for slug, text in texts.items()}
+    minutes = {slug: pack.t('{n} min').replace('{n}', str(metadata.reading(read_text(os.path.join(root, layout.NARRATIVES, f'{slug}.md')))[1]))
+               for slug in texts}
     for tag, part in parts.items():
-        files[f'parts/{tag}.md'] = head(b, title, trail(tag)[:-1], pack) + part_page(b, part, pack, summaries)
+        files[f'parts/{tag}.md'] = head(b, title, trail(tag)[:-1], pack) + part_page(b, part, pack, summaries, minutes)
     pages = [(APPENDICES[0][2], sources_page(b, manifest.load(root, 'sources'), linked_by, pack) if linked_by else None),
              (APPENDICES[1][2], glossary_page(b, texts, pack)), (APPENDICES[2][2], questions_page(b, texts, pack))]
     for file, text in pages:

@@ -23,8 +23,9 @@ def _first_sentence(text, limit=30):
     return m.group(1) if m else short + ('…' if len(words) > limit else '')
 
 
-def render(tree, tag, questions):
-    """The page for tag; questions maps a narrative slug to its question."""
+def render(tree, tag, questions, minutes=None):
+    """The page for tag; questions maps a narrative slug to its question, and minutes to its reading time."""
+    minutes = minutes or {}
     e = tree.tags[tag]
     lines = [f'# {tag}', '', GENERATED, '', e.get('description') or '', '']
     chain = list(reversed(tree.ancestors(tag)))
@@ -37,7 +38,8 @@ def render(tree, tag, questions):
     if narratives['primary'] or narratives['supporting']:
         lines += ['## Narratives', '']
         for role in ('primary', 'supporting'):
-            lines += [f'- [{questions.get(n, n)}](../narratives/{n}.md){" (supporting)" if role == "supporting" else ""}' for n in narratives[role]]
+            lines += [f'- [{questions.get(n, n)}](../narratives/{n}.md){f" · {minutes[n]} min" if minutes.get(n) else ""}'
+                      f'{" (supporting)" if role == "supporting" else ""}' for n in narratives[role]]
         lines.append('')
     sources = tree.sources_of(tag)
     if sources:

@@ -44,13 +44,24 @@ def questions(root, tree):
     return out
 
 
+def minutes(root, tree):
+    """{slug: reading time in minutes} of every narrative with a file."""
+    out = {}
+    for slug in tree.narratives:
+        path = os.path.join(root, layout.NARRATIVES, f'{slug}.md')
+        if os.path.isfile(path):
+            out[slug] = metadata.reading(read_text(path))[1]
+    return out
+
+
 def pages(root):
     """{repository-relative path: text} of every page the wiki generates."""
     tree = tagtree.load(root)
     qs = questions(root, tree)
+    mins = minutes(root, tree)
     out = {layout.INDEX: render(tree, qs)}
     for tag in tree.tags:
-        out[tagpages.path(tag)] = tagpages.render(tree, tag, qs)
+        out[tagpages.path(tag)] = tagpages.render(tree, tag, qs, mins)
     return out
 
 

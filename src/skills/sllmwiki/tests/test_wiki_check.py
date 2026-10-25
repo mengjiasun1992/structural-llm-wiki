@@ -19,7 +19,7 @@ class Pages(helpers.WikiTestCase):
 
     def test_a_tag_page(self):
         text = self.read('sllmwiki/tags/leaf-a.md')
-        for want in ('# leaf-a\n', '**Path:** [root-topic](root-topic.md) / leaf-a', '- [What is alpha?](../narratives/what-is-alpha.md)\n',
+        for want in ('# leaf-a\n', '**Path:** [root-topic](root-topic.md) / leaf-a', '- [What is alpha?](../narratives/what-is-alpha.md) · 1 min\n',
                      '- [alpha-doc](../sources/alpha-doc.md): Alpha systems and how they retry failed requests.\n',
                      '- [gamma-link](<https://example.com/gamma>): A pointer', '## Who to ask\n\n- @ann: wrote the alpha doc\n'):
             self.assertIn(want, text)
@@ -34,7 +34,7 @@ class Pages(helpers.WikiTestCase):
         manifest.put_source(self.root, 'beta-doc', abstract=' '.join(['long'] * 40), abstract_draft=True)
         wikiindex.sync(self.root, write=True)
         text = self.read('sllmwiki/tags/leaf-b.md')
-        self.assertIn('- [What is alpha?](../narratives/what-is-alpha.md) (supporting)', text)
+        self.assertIn('- [What is alpha?](../narratives/what-is-alpha.md) · 1 min (supporting)', text)
         self.assertIn('(abstract not written yet): ' + ' '.join(['long'] * 30) + '…', text)
 
     def test_an_empty_wiki(self):

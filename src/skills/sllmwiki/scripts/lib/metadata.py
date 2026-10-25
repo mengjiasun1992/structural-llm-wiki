@@ -8,6 +8,7 @@
     - **Model:** claude-opus-5-5
     - **Created:** 2026-10-01
     - **Last modified:** 2026-10-21
+    - **Words:** 1,240 (about 5 min)
     - **History:**
       - 1.1 (2026-10-21): Added the retry budget.
       - 1.0 (2026-10-01): First version.
@@ -16,14 +17,18 @@
       2. `gateway-design-doc`, in full: high relevance, authority A, 2026-09-30
 
 The model and the reading plan are views of the narrative's manifest entry
-(its models and grades), written by finish-narrative.
+(its models and grades), and the words a count of its text (reading()), all
+written by finish-narrative.
 """
 
 import re
 
 from . import numbering
 
-FIELDS = (('version', 'Version'), ('template', 'Template'), ('language', 'Language'), ('model', 'Model'), ('created', 'Created'), ('last_modified', 'Last modified'))
+FIELDS = (('version', 'Version'), ('template', 'Template'), ('language', 'Language'), ('model', 'Model'), ('created', 'Created'), ('last_modified', 'Last modified'),
+          ('words', 'Words'))
+WORDS_PER_MINUTE = 230  # a reader's pace through technical prose; CJK text counts its characters as words (lib/language.py)
+UNREAD = ('References', 'SMEs', 'Metadata')  # sections a reader looks things up in rather than reads
 _FIELD = re.compile(r'- \*\*(?P<name>[^*]+):\*\*[ \t]*(?P<value>.*)\Z')
 _ENTRY = re.compile(r'[ \t]+- (?P<version>[0-9]+\.[0-9]+) \((?P<date>[0-9-]+)\): (?P<note>.*)\Z')
 _STEP = re.compile(r'[ \t]+[0-9]+\. (?P<step>.*)\Z')
@@ -33,6 +38,27 @@ def title(text):
     """The question: the narrative's # title."""
     m = re.search(r'^# (.+?)[ \t]*$', text, re.M)
     return m.group(1) if m else None
+
+
+def reading(text):
+    """(words, minutes) of what a reader reads in the narrative: everything but its front matter, code and
+    diagram blocks, and the References, SMEs and Metadata sections; at WORDS_PER_MINUTE, at least a minute."""
+    from .compat import scan
+    from .narrativecheck import words  # the count budgets use: markdown, link targets and code fences left out
+    lines = text.split('\n')
+    for name in UNREAD:
+        span = numbering.section('\n'.join(lines), name)
+        if span:
+            del lines[span[0]:span[1]]
+    kinds, _ = scan(lines)
+    n = words([line for line, kind in zip(lines, kinds) if kind in ('text', 'math')])
+    return n, max(1, round(n / WORDS_PER_MINUTE))
+
+
+def reading_label(text):
+    """Metadata's Words: '1,240 (about 5 min)'."""
+    n, minutes = reading(text)
+    return f'{n:,} (about {minutes} min)'
 
 
 def section_lines(text, name):

@@ -80,6 +80,8 @@ it, and how to write it.
 | Published | 发布日期 |
 | Cited by | 引用于 |
 | Known issues | 已知问题 |
+| {n} min read | 阅读约 {n} 分钟 |
+| {n} min | {n} 分钟 |
 | Original | 原文 |
 | The narratives in this book are the wiki owner's work. Every source belongs to its authors: the book links to it and quotes it briefly, but never copies it. | 本书中的叙述是 wiki 所有者的作品。每个来源都归其作者所有：本书链接到来源并简短引用，但从不复制。 |
 | The narratives were written by an LLM and reviewed by the owner. | 这些叙述由大语言模型撰写，并经所有者审阅。 |
