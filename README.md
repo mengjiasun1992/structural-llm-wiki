@@ -5,6 +5,8 @@
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757.svg)](#setup)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](#requirements)
+[![Scripts](https://github.com/mengjiasun1992/structural-llm-wiki/actions/workflows/check-scripts.yml/badge.svg?branch=mainline)](https://github.com/mengjiasun1992/structural-llm-wiki/actions/workflows/check-scripts.yml?query=branch%3Amainline)
+[![Book](https://github.com/mengjiasun1992/structural-llm-wiki/actions/workflows/check-book.yml/badge.svg?branch=mainline)](https://github.com/mengjiasun1992/structural-llm-wiki/actions/workflows/check-book.yml?query=branch%3Amainline)
 
 **Your group's knowledge, researched by your coding agent, cited to the exact source, and reviewed like code.**
 
