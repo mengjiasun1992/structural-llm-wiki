@@ -391,6 +391,41 @@ class Commands(unittest.TestCase):
         self.book('stage', staged)
         self.assertEqual(json.loads(helpers.read(staged, 'book.json'))['author'], 'Notes on systems')  # the title, by default
 
+    def test_parse(self):
+        self.assertIn('const PARSE_ONLY = true', bookbuild.page([], self.vendor, parse=True))
+        self.assertIn("'[-]': ['noundefined']", bookbuild.page([], self.vendor, parse=True))  # an unknown macro is an error
+        self.assertIn('const PARSE_ONLY = false', bookbuild.page([], self.vendor))
+        r = self.book('parse', '--vendor', self.vendor, '--chrome', self.chrome)
+        self.assertEqual((r.code, r.out.strip().split('\n')[-1]), (0, 'parse: 5 diagram(s) and formula(s) checked, 0 error(s)'))
+        alpha = 'sllmwiki/narratives/what-is-alpha.md'
+        text = helpers.read(self.root, alpha).replace('## 6. Design', '```mermaid\nBAD diagram\n```\n\nRate $\\BAD{x}$ and $y$ and again $\\BAD{x}$.\n\n## 6. Design')
+        helpers.write(self.root, alpha, text)
+        r = self.book('parse', '--vendor', self.vendor, '--chrome', self.chrome, '--base', 'HEAD', '--json')
+        self.assertEqual(r.code, 1)
+        data = json.loads(r.out)
+        lines = [i for i, l in enumerate(text.split('\n'), 1) if 'BAD' in l]
+        self.assertEqual(data['checked'], 4)  # only what the change brings: the diagram and three formulas (one twice)
+        self.assertEqual([(f['code'], f['where'].split(':')[1]) for f in data['findings']],
+                         [('DIAGRAM_SYNTAX', str(lines[0] - 1)), ('MATH_SYNTAX', str(lines[1])), ('MATH_SYNTAX', str(lines[1]))])
+        self.assertEqual(data['findings'][0]['message'], 'Parse error')
+        r = self.book('parse', '--vendor', self.vendor, '--chrome', self.chrome, '--base', 'HEAD')
+        self.assertIn(f'error  DIAGRAM_SYNTAX  {alpha}:', r.out)
+        self.assertIn('3 error(s)', r.out)
+
+    def test_parse_needs(self):
+        r = self.book('parse', '--vendor', self.vendor, '--base', 'HEAD', '--chrome', os.path.join(self.tmp, 'none'))
+        self.assertEqual((r.code, '0 diagram(s) and formula(s) checked' in r.out), (0, True))  # nothing changed: no Chrome needed
+        with mock.patch.dict(os.environ, {'CHROME': ''}):
+            r = self.book('parse', '--vendor', self.vendor, '--chrome', os.path.join(self.tmp, 'none'))
+        self.assertEqual((r.code, 'no Chrome found to parse' in r.err), (1, True))
+        os.environ['STUB_EMPTY'] = '1'
+        r = self.book('parse', '--vendor', self.vendor, '--chrome', self.chrome)
+        self.assertEqual((r.code, 'wrote no results' in r.err), (1, True))
+        del os.environ['STUB_EMPTY']
+        self.assertEqual(self.book('parse').code, 2)  # no --vendor
+        r = self.book('stage')
+        self.assertEqual((r.code, 'stage needs a folder' in r.err), (2, True))
+
     def test_known_issues(self):
         self.assertEqual(book.issues({'problems': [], 'warnings': []}), '')
         data = {'problems': [{'code': 'BOOK_LINK', 'where': 'chapters/a.md:3', 'message': '#x: no section'}],

@@ -11,7 +11,7 @@
 # earlier one failed, so one run reports every problem.
 
 name: Structural LLM Wiki Checks
-description: Check a Structural LLM Wiki's manifests, tags, narratives, YAML and markdown.
+description: Check a Structural LLM Wiki's manifests, tags, narratives, diagrams, math, YAML and markdown.
 
 runs:
   using: composite
@@ -39,6 +39,19 @@ runs:
       if: success() || failure()
       shell: bash
       run: python3 "$GITHUB_ACTION_PATH/../../skills/sllmwiki/scripts/narrative-format.py"
+
+    # book.py parse: each diagram and formula a pull request brings parses as GitHub draws it, with
+    # the same mermaid.js and MathJax as the book (src/actions/release-book/vendor/), in the runner's
+    # Chrome; only the base commit is fetched, to compare with
+    - name: Diagrams and math parse
+      if: (success() || failure()) && github.event_name == 'pull_request'
+      shell: bash
+      env:
+        BASE: ${{ github.event.pull_request.base.sha }}
+      run: |
+        git fetch --quiet --depth=1 origin "$BASE"
+        python3 "$GITHUB_ACTION_PATH/../../skills/sllmwiki/scripts/book.py" parse --base "$BASE" \
+          --vendor "$GITHUB_ACTION_PATH/../release-book/vendor"
 
     # check-yaml.py (src/tools/): every YAML file but the sources parses by the spec.
     - name: YAML is valid

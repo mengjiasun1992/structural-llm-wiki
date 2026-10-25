@@ -30,7 +30,10 @@ CHROMES = ('google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browse
 SPHINX_LANGUAGES = {'zh-hans': 'zh_CN', 'zh-hant': 'zh_TW', 'pt-br': 'pt_BR'}
 
 _PAGE = """<!doctype html><meta charset="utf-8">
-<script>window.MathJax = {svg: {fontCache: 'none'}, startup: {typeset: false}};</script>
+<script>
+const PARSE_ONLY = %(parse)s;  // check syntax (mermaid.parse; MathJax without noundefined, so \\foo is an error) without drawing
+window.MathJax = {svg: {fontCache: 'none'}, startup: {typeset: false}, tex: PARSE_ONLY ? {packages: {'[-]': ['noundefined']}} : {}};
+</script>
 <script src="%(mathjax)s"></script>
 <script src="%(mermaid)s"></script>
 <textarea id="result"></textarea>
@@ -47,7 +50,7 @@ const items = %(items)s;
   for (const it of items) {
     try {
       if (it.kind === 'mermaid') {
-        out.push({id: it.id, svg: (await mermaid.render('r' + it.id, it.source)).svg});
+        out.push({id: it.id, svg: PARSE_ONLY ? (await mermaid.parse(it.source), '') : (await mermaid.render('r' + it.id, it.source)).svg});
       } else {
         const node = await MathJax.tex2svgPromise(it.source, {display: it.kind === 'display'});
         const err = node.querySelector('[data-mjx-error]');
@@ -79,10 +82,10 @@ def libraries(vendor):
     return h.hexdigest()[:12]
 
 
-def page(items, vendor):
+def page(items, vendor, parse=False):
     """The HTML page that draws items ([{id, kind, source}]) with the vendored libraries."""
     url = 'file://' + os.path.abspath(vendor).replace(os.sep, '/') + '/'
-    return _PAGE % {'mathjax': url + MATHJAX, 'mermaid': url + MERMAID, 'font': json.dumps(FONT),
+    return _PAGE % {'mathjax': url + MATHJAX, 'mermaid': url + MERMAID, 'font': json.dumps(FONT), 'parse': json.dumps(parse),
                     'items': json.dumps(items, ensure_ascii=False).replace('</', '<\\/')}
 
 
@@ -99,11 +102,12 @@ def results(dom):
     return out
 
 
-def draw(items, vendor, chrome, workdir, timeout=600):
-    """Run Chrome on page(items) in workdir; results() of what it dumped."""
+def draw(items, vendor, chrome, workdir, timeout=600, parse=False):
+    """Run Chrome on page(items) in workdir; results() of what it dumped. With parse, only each
+    diagram's syntax is checked (an empty SVG for one that parses)."""
     path = os.path.join(workdir, '_render.html')
     with open(path, 'w', encoding='utf-8') as f:
-        f.write(page(items, vendor))
+        f.write(page(items, vendor, parse))
     run = subprocess.run([chrome, '--headless', '--disable-gpu', '--no-sandbox', '--allow-file-access-from-files',
                           '--virtual-time-budget=60000', '--dump-dom', 'file://' + os.path.abspath(path).replace(os.sep, '/')],
                          capture_output=True, text=True, timeout=timeout, check=False)
