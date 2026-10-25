@@ -18,6 +18,7 @@ import re
 import shutil
 import subprocess
 import zipfile
+from xml.etree import ElementTree
 
 from . import compat
 
@@ -218,9 +219,46 @@ def print_pdf(html_path, pdf_path, chrome, title, timeout=600):
     return None
 
 
-def declare_svg(src, dst):
-    """Copy the EPUB src to dst with each page that holds inline SVG declared so in its package file
-    (properties="svg"), which EPUB 3 requires and Sphinx's builder leaves out."""
+XHTML, OPS, NCX = 'http://www.w3.org/1999/xhtml', 'http://www.idpf.org/2007/ops', 'http://www.daisy.org/z3986/2005/ncx/'
+
+
+def _pages_only(text, kind):
+    """A navigation file (kind 'nav', the EPUB 3 nav.xhtml, or 'ncx', the EPUB 2 toc.ncx) with only its
+    entries for whole pages: an entry pointing inside a page (#) goes, with what's under it."""
+    ns = XHTML if kind == 'nav' else NCX
+    for prefix, uri in (('', ns), ('epub', OPS)):
+        ElementTree.register_namespace(prefix, uri)
+    root = ElementTree.fromstring(text)
+    entry, link, attr = (f'{{{ns}}}li', f'{{{ns}}}a', 'href') if kind == 'nav' else (f'{{{ns}}}navPoint', f'{{{ns}}}content', 'src')
+    for parent in list(root.iter()):
+        for child in list(parent):
+            target = child.find(link)
+            if child.tag == entry and target is not None and '#' in target.get(attr, ''):
+                parent.remove(child)
+    if kind == 'nav':
+        for parent in list(root.iter()):
+            for child in list(parent):
+                if child.tag == f'{{{ns}}}ol' and not len(child):
+                    parent.remove(child)
+    else:
+        for parent in list(root.iter(entry)):  # a page's top section listed under the page itself: fold it in
+            src = parent.find(link).get(attr)
+            for i, child in reversed(list(enumerate(parent))):
+                if child.tag == entry and child.find(link).get(attr) == src:
+                    parent.remove(child)
+                    for j, grandchild in enumerate(child.findall(entry)):
+                        parent.insert(i + j, grandchild)
+        orders = {}
+        for point in root.iter(entry):  # in reading order; a page listed twice keeps one number, as the NCX rules ask
+            point.set('playOrder', str(orders.setdefault(point.find(link).get(attr), len(orders) + 1)))
+    return '<?xml version="1.0" encoding="utf-8"?>\n' + ElementTree.tostring(root, encoding='unicode')
+
+
+def finish_epub(src, dst):
+    """Copy the EPUB src to dst, finished: each page that holds inline SVG declared so in its package file
+    (properties="svg"), which EPUB 3 requires and Sphinx's builder leaves out; and the reader's contents
+    (nav.xhtml, toc.ncx) listing only whole pages, the cover, parts, sections, chapters and appendices,
+    not the sections inside a chapter."""
     with zipfile.ZipFile(src) as zin:
         names = zin.namelist()
         opf = next(n for n in names if n.endswith('.opf'))
@@ -233,9 +271,13 @@ def declare_svg(src, dst):
             if href and posixpath.normpath(posixpath.join(base, href.group(1))) in svg and 'properties=' not in tag:
                 tag = tag.replace('<item ', '<item properties="svg" ', 1)
             return tag
-        package = re.sub(r'<item\b[^>]*>', item, zin.read(opf).decode('utf-8'))
+        changed = {opf: re.sub(r'<item\b[^>]*>', item, zin.read(opf).decode('utf-8'))}
+        for n in names:
+            kind = 'nav' if posixpath.basename(n) == 'nav.xhtml' else 'ncx' if n.endswith('.ncx') else None
+            if kind:
+                changed[n] = _pages_only(zin.read(n).decode('utf-8'), kind)
         with zipfile.ZipFile(dst, 'w') as zout:  # mimetype first and stored, as EPUB requires
             zout.writestr(zipfile.ZipInfo('mimetype'), zin.read('mimetype'), compress_type=zipfile.ZIP_STORED)
             for n in names:
                 if n != 'mimetype':
-                    zout.writestr(n, package if n == opf else zin.read(n), compress_type=zipfile.ZIP_DEFLATED)
+                    zout.writestr(n, changed.get(n, zin.read(n)), compress_type=zipfile.ZIP_DEFLATED)

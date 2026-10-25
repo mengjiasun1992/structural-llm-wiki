@@ -4,6 +4,7 @@
 import json
 import os
 import shutil
+import re
 import stat
 import subprocess
 import sys
@@ -56,6 +57,8 @@ if '-b' in sys.argv and sys.argv[sys.argv.index('-b') + 1] == 'epub':  # a minim
                                   '<item id="b" href="b.xhtml" media-type="application/xhtml+xml" /></manifest></package>')
         z.writestr('a.xhtml', '<html><body><svg role="img"/></body></html>')
         z.writestr('b.xhtml', '<html><body>text</body></html>')
+        z.writestr('nav.xhtml', NAV)
+        z.writestr('toc.ncx', NCX)
     print('a.md:3: WARNING: something odd', file=sys.stderr)
     sys.exit(0)
 os.makedirs(os.path.join(out, '_static'), exist_ok=True)
@@ -70,6 +73,20 @@ open(os.path.join(out, 'index.html'), 'w', encoding='utf-8').write(
     '<pre>' + args + '</pre><div>' + ('SVG-IN' if '<svg' in body else 'NO-SVG') + '</div></body></html>')
 print('a.md:3: WARNING: something odd', file=sys.stderr)
 '''
+
+
+NAV = ('<?xml version="1.0" encoding="utf-8"?><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">'
+       '<body><nav epub:type="toc"><ol><li><a href="index.xhtml">Book</a></li><li><a href="parts/p.xhtml">Part</a><ol>'
+       '<li><a href="chapters/c.xhtml">Chapter</a><ol><li><a href="chapters/c.xhtml#c-1-abstract">1. Abstract</a><ol>'
+       '<li><a href="chapters/c.xhtml#c-11-x">1.1 X</a></li></ol></li></ol></li></ol></li></ol></nav></body></html>')
+NCX = ('<?xml version="1.0"?><ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1"><navMap>'
+       '<navPoint id="n1" playOrder="1"><navLabel><text>Part</text></navLabel><content src="parts/p.xhtml"/>'
+       '<navPoint id="n2" playOrder="1"><navLabel><text>Part</text></navLabel><content src="parts/p.xhtml"/>'
+       '<navPoint id="n3" playOrder="2"><navLabel><text>Chapter</text></navLabel><content src="chapters/c.xhtml"/>'
+       '<navPoint id="n4" playOrder="3"><navLabel><text>1. Abstract</text></navLabel><content src="chapters/c.xhtml#c-1"/></navPoint>'
+       '</navPoint></navPoint></navPoint><navPoint id="n9" playOrder="9"><navLabel><text>A</text></navLabel><content src="a.xhtml"/>'
+       '</navPoint></navMap></ncx>')
+SPHINX = SPHINX.replace("z.writestr('nav.xhtml', NAV)", "z.writestr('nav.xhtml', %r)" % NAV).replace("z.writestr('toc.ncx', NCX)", "z.writestr('toc.ncx', %r)" % NCX)
 
 
 def program(folder, name, code):
@@ -142,6 +159,17 @@ class Units(unittest.TestCase):
                               f'<div class="diagram"><svg id="r{m}">M</svg></div>\n\n\n\n<div class="diagram"><svg id="r{m}-1">M</svg></div>\n\n\n'
                               'Again <span class="math"><svg id="ra">A</svg></span>.\n')
         self.assertEqual(counts[m], 2)
+
+    def test_the_shared_stylesheet_suits_an_epub(self):
+        css = helpers.read(os.path.join(helpers.SKILL_DIR, 'templates', 'book', '_static'), 'book.css')
+        for rejected in ('^=', ':is(', ':has(', '@page'):  # what epubcheck's CSS parser refuses; book-html.css has them
+            self.assertNotIn(rejected, css)
+        body = re.search(r'(?m)^body \{([^}]*)\}', css).group(1)
+        self.assertNotIn('background', body)  # an e-reader's own page colour shows through
+        self.assertNotRegex(body, r'(?<![-\w])color:')
+        self.assertNotRegex(css, r'(?m)^html \{')
+        conf = helpers.read(os.path.join(helpers.SKILL_DIR, 'templates', 'book'), 'conf.py')
+        self.assertIn("epub_exclude_files = ['_static/book-html.css']", conf)
 
     def test_sphinx_language(self):
         self.assertEqual([bookbuild.sphinx_language(t) for t in ('en', 'zh-Hans', 'zh-Hant', 'pt-BR', 'de-CH', None)],
@@ -252,7 +280,7 @@ class Commands(unittest.TestCase):
         text = helpers.read(out, f'{name}-v1.html')
         self.assertIn('SVG-IN', text)  # Sphinx read the rendered pages
         for arg in ('-b singlehtml', f'-c {os.path.join(helpers.SKILL_DIR, "templates", "book")}', f'project={name}',
-                    'version=v1', 'release=v1', 'language=en'):
+                    'version=v1', 'release=v1', 'language=en', f'epub_author={name}', 'epub_publisher=sllmwiki'):
             self.assertIn(arg, text)
         data = json.loads(helpers.read(out, 'staged/book.json'))
         self.assertEqual(data['files'], {'html': html})
@@ -316,6 +344,10 @@ class Commands(unittest.TestCase):
             self.assertEqual(z.namelist()[0], 'mimetype')
             self.assertEqual(z.getinfo('mimetype').compress_type, zipfile.ZIP_STORED)
             package = z.read('content.opf').decode()
+            nav, ncx = z.read('nav.xhtml').decode(), z.read('toc.ncx').decode()
+        self.assertEqual(re.findall(r'href="([^"]+)"', nav), ['index.xhtml', 'parts/p.xhtml', 'chapters/c.xhtml'])  # whole pages only
+        self.assertIn('xmlns:epub="http://www.idpf.org/2007/ops"', nav)
+        self.assertEqual(re.findall(r'<navPoint id="(\w+)" playOrder="(\d+)"', ncx), [('n1', '1'), ('n3', '2'), ('n9', '3')])  # folded, renumbered
         self.assertIn('<item properties="svg" id="a" href="a.xhtml"', package)  # the page with an SVG
         self.assertIn('<item id="b" href="b.xhtml"', package)
         self.assertEqual([w['where'] for w in data['warnings']], ['sphinx'])  # the same warning isn't listed twice

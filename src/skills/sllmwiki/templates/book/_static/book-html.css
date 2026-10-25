@@ -1,6 +1,14 @@
 /* What the single-file HTML and the PDF add to book.css (conf.py's html_css_files): rules that
    rely on its one-page structure (section ids, :is() and :has()) and on Chrome's printing (@page
    margin boxes), which an EPUB has no use for and its readers don't all parse. */
+/* The warm page and the dark theme that follows the reader's system: an e-reader keeps its own colours. */
+:root { --bg: #fbf8f1; --fg: #26231f; --muted: #6b655c; --soft: 1; --link: #1f5fa8; --rule: #e4dccd;
+        --code: #f2ede3; --card: #ffffff; --note: #3d7bc4; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #1c1b19; --fg: #e3ddd2; --muted: #a39d92; --link: #8dbdf2; --rule: #3a3731;
+          --code: #2a2825; --card: #f7f3ea; --note: #6aa3e0; }
+}
+html, body { background: var(--bg); color: var(--fg); }
 /* Sizes by kind of page, not by depth: a chapter is as big wherever its part sits. */
 h1, :is(section[id^="part-"], section[id^="ch-"], section[id^="book-"]) > :is(h1, h2, h3, h4, h5, h6):first-child { font-size: 2rem; margin-top: 0; }
 section[id^="part-"] > :is(h1, h2, h3, h4, h5, h6):first-child { font-size: 2.2rem; }

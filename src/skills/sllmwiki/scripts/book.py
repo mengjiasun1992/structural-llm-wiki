@@ -154,7 +154,7 @@ def _sphinx(root, out, staged, data, sphinx, builder):
     cmd = [*shlex.split(sphinx), '-q', '-b', builder, '-c', TEMPLATE, '-d', os.path.join(build, 'doctrees'),
            '-D', f'project={data["name"]}', '-D', f'version={data["version"]}', '-D', f'release={data["version"]}',
            '-D', f'copyright={data["name"]}', '-D', f'language={lang}', '-D', f'epub_basename={name}',
-           staged, os.path.join(build, builder)]
+           '-D', f'epub_author={data["name"]}', '-D', 'epub_publisher=sllmwiki', staged, os.path.join(build, builder)]
     try:
         run = subprocess.run(cmd, capture_output=True, text=True, check=False)
     except OSError as e:
@@ -176,15 +176,15 @@ def html_book(root, out, staged, data, sphinx):
 
 
 def epub_book(root, out, staged, data, sphinx):
-    """Sphinx's EPUB 3 of the rendered staged book, its package file declaring the pages with inline SVG:
-    (path, Sphinx's warnings), or (None, why it failed)."""
+    """Sphinx's EPUB 3 of the rendered staged book, finished (bookbuild.finish_epub): (path, Sphinx's warnings),
+    or (None, why it failed)."""
     warnings, why = _sphinx(root, out, staged, data, sphinx, 'epub')
     name = f'{data["name"]}-{data["version"]}'
     built = os.path.join(out, '_build', 'epub', f'{name}.epub')
     if why or not os.path.isfile(built):
         return None, why or 'Sphinx wrote no EPUB'
     path = os.path.join(out, f'{name}.epub')
-    bookbuild.declare_svg(built, path)
+    bookbuild.finish_epub(built, path)
     return path, warnings
 
 
