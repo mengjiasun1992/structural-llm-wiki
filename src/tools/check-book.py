@@ -27,6 +27,8 @@ And, with --book, against what staging recorded:
   SVG_COUNT        fewer drawn diagrams and formulas than book.json lists
   BOOK_PROBLEM     a problem or warning book.json records (BOOK_LINK,
                    BOOK_RENDER, BOOK_SPHINX, ...)
+  TITLE            the page's <title>, which a PDF viewer shows too, isn't the
+                   book's title and version (Sphinx's default adds "documentation")
 
 CI runs it on the fixture wiki's book (.github/workflows/check-book.yml). It
 reports; it never edits. Exit code: 0 = fine, 1 = findings, 2 = usage error.
@@ -46,6 +48,7 @@ class _Scan(html.parser.HTMLParser):
         super().__init__(convert_charrefs=True)
         self.ids, self.links, self.remote, self.scripts, self.svgs, self.code = [], [], [], 0, 0, []
         self.titles, self._title = [], None  # chapters' titles: a chapter's section is ch-<slug>
+        self.page_title, self._in_title = None, False
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
@@ -63,6 +66,8 @@ class _Scan(html.parser.HTMLParser):
         for attr in ('src', 'srcset', 'poster', 'data') + (('href',) if tag == 'link' else ()):
             if re.match(r'(?:https?:)?//', a.get(attr) or ''):
                 self.remote.append(f'<{tag} {attr}="{a[attr]}">')
+        if tag == 'title' and self.page_title is None:
+            self._in_title = True
         if tag == 'svg' and a.get('role') == 'img':
             self.svgs += 1
         classes = (a.get('class') or '').split()
@@ -73,10 +78,14 @@ class _Scan(html.parser.HTMLParser):
             self._title = None
 
     def handle_data(self, data):
+        if self._in_title:
+            self.page_title = (self.page_title or '') + data
         if isinstance(self._title, list):
             self._title.append(data)
 
     def handle_endtag(self, tag):
+        if tag == 'title':
+            self._in_title = False
         if isinstance(self._title, list) and re.match(r'h[1-6]\Z', tag):
             self.titles.append(''.join(self._title).strip())
             self._title = None
@@ -105,6 +114,9 @@ def check(text, book=None, max_bytes=None, seconds=None, max_seconds=None):
     if book is not None:
         if scan.svgs < len(book.get('renders', [])):
             out.append(('SVG_COUNT', f'{scan.svgs} drawn, but book.json lists {len(book["renders"])} diagrams and formulas'))
+        want = ' '.join(str(book[k]) for k in ('title', 'version') if book.get(k))
+        if want and (scan.page_title or '').strip() != want:
+            out.append(('TITLE', f'<title> is "{(scan.page_title or "").strip()}", not "{want}"'))
         for f in book.get('problems', []) + book.get('warnings', []):
             out.append(('BOOK_PROBLEM', f'{f["code"]} {f["where"]}: {f["message"]}'))
     return out

@@ -384,7 +384,7 @@ class Commands(unittest.TestCase):
         self.assertIn('[{Notes on systems 📖}](#book--cover)', helpers.read(out, 'staged/chapters/what-is-alpha.md'))
         self.assertEqual(helpers.read(out, f'{name}-v1.pdf'), '%PDF-1.4 "{Notes on systems 📖}"')  # the running head
         sphinx = helpers.read(out, f'{name}-v1.html')
-        for arg in ('project=Notes on systems', 'copyright=Mengjia Sun', 'epub_author=Mengjia Sun'):
+        for arg in ('project=Notes on systems', 'html_title=Notes on systems v1', 'copyright=Mengjia Sun', 'epub_author=Mengjia Sun'):
             self.assertIn(arg, sphinx)
         helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-release]\ntitle = "Notes on systems"\n')
         staged = os.path.join(self.tmp, 'staged')
