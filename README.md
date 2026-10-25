@@ -10,34 +10,36 @@
 
 **What it is.** An agent skill, packaged as a Claude Code plugin, that turns a git repository into a wiki your coding agent researches and keeps current. You ask questions. It finds and saves the sources that answer them (code, design docs, specifications, papers, web pages) and writes one *narrative* per question: a short document that teaches the answer, with every claim linked to the section of a source that supports it. Each run arrives as one pull request you review. It builds on Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) and adds what a group needs: claims you can check, review before anything lands, topic tags that connect sources, answers and the people who know them, and a book at each release.
 
-**See one.** [sllmwiki-demo](https://github.com/mengjiasun1992/sllmwiki-demo) is a wiki built with this skill, on distributed systems and moving averages: start at [its index](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/SLLMWIKI_INDICES.md), read [What is a distributed system?](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-is-a-distributed-system.md), and see [the pull request](https://github.com/mengjiasun1992/sllmwiki-demo/pull/6) that wrote its narratives.
+**What it saves.** Hours to days of digging, reading and writing per question become minutes of the agent's work and your review. In the demo, one unattended run wrote four cited narratives from 29 sources in 21 minutes ([PR #6](https://github.com/mengjiasun1992/sllmwiki-demo/pull/6)), and a release built the whole wiki as a PDF, an EPUB and an HTML book in about a minute. Every pull request records what its run took, so you can check.
+
+**See one.** [sllmwiki-demo](https://github.com/mengjiasun1992/sllmwiki-demo) is a wiki built with this skill, on distributed systems and moving averages: start at [its index](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/SLLMWIKI_INDICES.md), read [What is a distributed system?](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-is-a-distributed-system.md), see [the pull request](https://github.com/mengjiasun1992/sllmwiki-demo/pull/6) that wrote its narratives, and download its book: [PDF](https://github.com/mengjiasun1992/sllmwiki-demo/releases/download/v2026.10.25.2/sllmwiki-demo-v2026.10.25.2.pdf), [EPUB](https://github.com/mengjiasun1992/sllmwiki-demo/releases/download/v2026.10.25.2/sllmwiki-demo-v2026.10.25.2.epub) or [HTML](https://github.com/mengjiasun1992/sllmwiki-demo/releases/download/v2026.10.25.2/sllmwiki-demo-v2026.10.25.2.html), from [release v2026.10.25.2](https://github.com/mengjiasun1992/sllmwiki-demo/releases/tag/v2026.10.25.2).
 
 ## Who it's for, and what it fixes
 
 ### Builders: you need to understand a system before you change it
 
-- What the code does is in the code, why it does it is in a design doc that drifted two releases ago, and the rest is in a chat thread you can't find.
+- What the code does is in the code, why it does it is in a design doc that drifted two releases ago, and the rest is in a chat thread you can't find. Piecing it together takes an afternoon, every time.
 - Asking the one person who knows interrupts them, and the same question comes back next month from someone else.
 - An AI assistant answers in seconds, but you can't tell which parts it read and which it guessed, and the answer is gone when the session ends.
 
-**With the wiki,** you ask, and the answer cites the exact lines of code and the section of the design doc it rests on, and names the people who know the area. It's saved, so the next person who asks gets the same answer, already reviewed. When the code or the doc changes, the answers that rest on them are flagged.
+**With the wiki,** you ask, and in seconds (or minutes, if the agent has to research it) the answer cites the exact lines of code and the section of the design doc it rests on, and names the people who know the area. It's saved, so the next person who asks gets the same answer, already reviewed. When the code or the doc changes, the answers that rest on them are flagged.
 
 ### Tech leads: what the group knows has to outlive who knows it
 
-- Onboarding takes weeks, and it runs through the same few senior engineers.
+- Onboarding takes weeks, and it runs through the same few senior engineers, whose days go to explaining instead of building.
 - The reasons behind a design live in reviews and meetings, and leave with the people who were there.
 - Documentation nobody owns goes stale quietly, and nobody can say which pages are still true.
 - AI-written docs are cheap to make and expensive to check.
 
-**With the wiki,** questions become reviewed documents in git, with the sources and reasoning behind them and a history of how the group's understanding changed. Every change arrives as a pull request with a checklist, and nothing lands until someone merges it. Staleness is tracked, not guessed. Each release attaches the whole wiki as a book, an onboarding pack that's current as of that day.
+**With the wiki,** the agent does the research and the writing, and your seniors review instead of writing from scratch. Questions become reviewed documents in git, with the sources and reasoning behind them and a history of how the group's understanding changed. Every change arrives as a pull request with a checklist, and nothing lands until someone merges it. Staleness is tracked, not guessed. Each release attaches the whole wiki as a book, an onboarding pack that's current as of that day.
 
 ### Researchers: the reading never ends, and summaries can't be trusted
 
-- There are more papers than time, and an abstract is too thin to decide which ones deserve a full read.
+- There are more papers than time: a close read costs hours, and an abstract is too thin to decide which ones deserve it.
 - Notes lose track of where each claim came from, so a review of the field has to be redone from scratch.
 - LLM summaries sound right and cite sections that don't say what they claim, or papers that don't exist.
 
-**With the wiki,** sources are saved verbatim and every claim links to the section that supports it, with quotations checked word for word. Definitions come from the sources that state them most rigorously. A survey maps a field, a comparison weighs the candidates, and a template of your own, such as a ten-minute primer on one paper, helps you decide what to read in full. The review grows with every question instead of starting over.
+**With the wiki,** sources are saved verbatim and every claim links to the section that supports it, with quotations checked word for word. Definitions come from the sources that state them most rigorously. A survey maps a field, a comparison weighs the candidates, and a template of your own, such as a ten-minute primer on one paper, helps you decide in ten minutes what deserves the hours. The review grows with every question instead of starting over.
 
 ## How it addresses them
 
@@ -173,7 +175,7 @@ title = ""                  # the book's title; empty: the repository's name
 author = ""                 # its author; empty: the title
 ```
 
-**Books.** Turn on the formats you want in `Config.toml` (`init` asks). `/sllmwiki:release` publishes a dated release of the wiki on GitHub (`v2026.10.24`), with notes on what changed since the last one, and the wiki's release workflow attaches the wiki as a book in each format the `[structural-llm-wiki-release]` table turns on: a cover, a contents page, a part per topic with each chapter's summary and reading time, the narratives in teaching order, and appendices of sources, a glossary and open questions. Its diagrams and math are drawn as they are on GitHub, and the file works offline. GitHub's *Releases → Draft a new release* does the same without the agent; `--preview` builds the book from a branch as a workflow artifact. The book carries each source's abstract, license and link, never its saved copy. A diagram or formula that wouldn't draw, or a link the book couldn't follow, fails the pull request that brings it, long before a release. How it works: [docs/book_design.md](docs/book_design.md).
+**Books.** Turn on the formats you want in `Config.toml` (`init` asks). `/sllmwiki:release` publishes a dated release of the wiki on GitHub (`v2026.10.24`), with notes on what changed since the last one, and the wiki's release workflow attaches the wiki as a book in each format the `[structural-llm-wiki-release]` table turns on: a cover, a contents page, a part per topic with each chapter's summary and reading time, the narratives in teaching order, and appendices of sources, a glossary and open questions. Its diagrams and math are drawn as they are on GitHub, and the file works offline. GitHub's *Releases → Draft a new release* does the same without the agent; `--preview` builds the book from a branch as a workflow artifact. The book carries each source's abstract, license and link, never its saved copy. A diagram or formula that wouldn't draw, or a link the book couldn't follow, fails the pull request that brings it, long before a release. The demo's [release v2026.10.25.2](https://github.com/mengjiasun1992/sllmwiki-demo/releases/tag/v2026.10.25.2) has all three. How it works: [docs/book_design.md](docs/book_design.md).
 
 **Languages.** Narratives are written in the wiki's `language`, and one can name its own (`- **Language:** zh-Hans` in its Metadata, or ask for a language when you ask the question). Sources stay in the language they were written in, and a quotation keeps its source's words, translated after it. Headings come from a language pack, `templates/languages/<tag>.md`: the skill ships English and Simplified Chinese (`zh-Hans`), each one it has evaluated, and a pack can carry its language's writing rules. For another language, copy [the English pack](src/skills/sllmwiki/templates/languages/en.md) into your wiki's `templates/languages/` and fill in the translations; the skill writes in it, and says it hasn't evaluated it. Without a pack, headings stay English around prose in your language. Word budgets stay in words; Chinese and Japanese text counts its characters at 1.6 to a word.
 
