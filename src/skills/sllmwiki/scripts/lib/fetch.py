@@ -77,7 +77,7 @@ class _RateLimited(Exception):
 def _fetch_once(url, timeout):
     if not re.match(r'https?://', url):
         raise FetchError(f'{url}: only http(s) URLs are fetched')
-    req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT, 'Accept': 'text/html,text/markdown,text/plain,application/pdf;q=0.9,*/*;q=0.5'})
+    req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT, 'Accept': 'text/html,text/markdown,text/plain,application/pdf;q=0.9,application/epub+zip;q=0.9,*/*;q=0.5'})
     try:
         with urllib.request.urlopen(req, timeout=timeout, context=tls_context()) as r:
             data = r.read(MAX_BYTES + 1)
@@ -97,17 +97,17 @@ def _fetch_once(url, timeout):
 
 
 def kind_of(content_type, name):
-    """'text', 'html', 'pdf', 'tex' or 'code' from a content type, else from the file name's extension; None when neither tells.
+    """'text', 'html', 'pdf', 'epub', 'tex' or 'code' from a content type, else from the file name's extension; None when neither tells.
     A code file served as plain text is code."""
     ct = (content_type or '').split(';')[0].strip().lower()
     ext = os.path.splitext(name.split('?')[0].split('#')[0])[1].lower()
     if ext in plaintext.LANGUAGES and (ct in ('', 'text/plain', 'application/octet-stream') or ct.startswith('text/x-')):
         return 'code'
     by_type = {'text/markdown': 'text', 'text/x-markdown': 'text', 'text/plain': 'text', 'text/html': 'html',
-               'application/xhtml+xml': 'html', 'application/pdf': 'pdf', 'application/x-tex': 'tex', 'text/x-tex': 'tex'}
+               'application/xhtml+xml': 'html', 'application/pdf': 'pdf', 'application/epub+zip': 'epub', 'application/x-tex': 'tex', 'text/x-tex': 'tex'}
     if ct in by_type:
         return by_type[ct]
-    return {'.md': 'text', '.markdown': 'text', '.txt': 'text', '.html': 'html', '.htm': 'html', '.pdf': 'pdf', '.tex': 'tex'}.get(ext)
+    return {'.md': 'text', '.markdown': 'text', '.txt': 'text', '.html': 'html', '.htm': 'html', '.pdf': 'pdf', '.epub': 'epub', '.tex': 'tex'}.get(ext)
 
 
 def charset(content_type):

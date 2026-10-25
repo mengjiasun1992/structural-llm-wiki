@@ -255,15 +255,24 @@ def _escape(text):
     return re.sub(r'([\\`*_\[\]<>])', r'\\\1', text)
 
 
-def convert(page, base_url=None):
-    """(markdown, title) for an HTML page's main content."""
+def _parse(page, base_url):
+    """(the main content's markdown, the page's <title>)."""
     tree = _Tree()
     tree.feed(page)
     tree.close()
     main = _find(tree.root, 'main') or _find(tree.root, 'article') or _find(tree.root, 'body') or tree.root
     blocks = _Writer(base_url).blocks(main)
-    text = '\n\n'.join(b for b in blocks if b.strip())
-    title = re.sub(r'\s+', ' ', tree.title or '').strip() or None
+    return '\n\n'.join(b for b in blocks if b.strip()), re.sub(r'\s+', ' ', tree.title or '').strip() or None
+
+
+def body(page, base_url=None):
+    """An HTML page's main content as markdown, without a title added: an EPUB's chapter, say."""
+    return _parse(page, base_url)[0].strip() + '\n'
+
+
+def convert(page, base_url=None):
+    """(markdown, title) for an HTML page's main content."""
+    text, title = _parse(page, base_url)
     if title and not re.match(r'# ', text):
         text = f'# {title}\n\n{text}' if text else f'# {title}'
     return text.strip() + '\n', title

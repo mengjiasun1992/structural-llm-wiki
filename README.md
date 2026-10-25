@@ -74,7 +74,7 @@ Your wiki is its own git repository, plain files you can read anywhere:
 | Content | Where | What it is |
 |---|---|---|
 | **Narratives** | `sllmwiki/narratives/` | One answer per question, opening with an abstract, every claim cited; the figures a narrative draws in `figures/` |
-| **Sources** | `sllmwiki/sources/` | The docs, web pages, papers and code the answers rest on, saved as markdown, each with its URL, date, license and a short abstract |
+| **Sources** | `sllmwiki/sources/` | The docs, web pages, papers, books and code the answers rest on, saved as markdown, each with its URL, date, license and a short abstract |
 | **Tags** | `sllmwiki/tags/` | A tree of topics, each with a page listing its narratives, sources and the people who know it |
 | **Index** | `SLLMWIKI_INDICES.md` | A clickable map of the topics, for GitHub |
 | **Your templates** | `templates/` | Optional: your own kinds of narratives, and language packs |
