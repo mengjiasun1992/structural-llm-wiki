@@ -1,6 +1,6 @@
 # Design: the wiki as a book
 
-- **Status:** proposed
+- **Status:** built (phases B0 to B6)
 - **Execution plan:** [book_execution_plan.md](book_execution_plan.md)
 - **Wiki design:** [structural_llm_wiki_design.md](structural_llm_wiki_design.md)
 
@@ -393,14 +393,14 @@ A workflow in the skill (`workflows/release.md`, `scripts/release.py`):
 | # | Decision | Status |
 |---|---|---|
 | 1 | Formats: PDF, EPUB, single-file HTML, each its own setting | made |
-| 2 | Default: `pdf_book = true`, the others `false` | proposed |
-| 3 | Renderer: Sphinx + MyST only (no mdBook, Quarto or LaTeX) | proposed |
-| 4 | Diagrams and math pre-rendered to SVG in headless Chrome, for every format | proposed |
-| 5 | Trigger: `release: published` for releases, `workflow_dispatch` for previews | proposed |
-| 6 | Versions: the date, `vYYYY.MM.DD`, with `.2` for a second release that day | proposed |
-| 7 | Saved copies of sources in a book: never | proposed |
-| 8 | SMEs in a book: never | proposed |
-| 9 | A release from a red default branch: refused, unless the owner says to | proposed |
+| 2 | Default: `pdf_book = true`, the others `false` | made |
+| 3 | Renderer: Sphinx + MyST only (no mdBook, Quarto or LaTeX) | made |
+| 4 | Diagrams and math pre-rendered to SVG in headless Chrome, for every format | made |
+| 5 | Trigger: `release: published` for releases, `workflow_dispatch` for previews | made |
+| 6 | Versions: the date, `vYYYY.MM.DD`, with `.2` for a second release that day | made |
+| 7 | Saved copies of sources in a book: never | made |
+| 8 | SMEs in a book: never | made |
+| 9 | A release from a red default branch: refused, unless the owner says to | made |
 
 ## 11. Options set aside
 

@@ -1,6 +1,6 @@
 # Execution plan: the wiki as a book
 
-- **Status:** proposed
+- **Status:** done: phases B0 to B6 merged
 - **Design:** [book_design.md](book_design.md)
 
 ## 1. Approach

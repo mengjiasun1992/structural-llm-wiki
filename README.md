@@ -22,13 +22,15 @@ Unlike an answer in a chat session, the knowledge stays: narratives build on and
 
 - **Answers you can check, claim by claim.** Every claim cites the exact section of a source saved in the wiki, so checking it is one click. What no source states is marked as the narrative's own reasoning (`[→]`), and what the sources don't answer as a gap (`[?]`). Quotations are verified word for word against their source.
 - **Written to be learned.** The answer's shape fits its subject: a concept is defined in short to set the intuition, then rigorously from the source that defines it best; a mechanism is worked through one running example, with real numbers and diagrams; a field is mapped before its parts; a choice compares every common candidate; a case is followed to its causes. Each of the five templates has an aim, and lint grades every narrative against it.
+- **Your own kinds of answers.** When the five don't fit, add your own template, such as a postmortem or a ten-minute primer on a paper, from a sentence describing it. It is checked, finished and graded against its own aim like the bundled ones.
+- **A book with every release.** Each release attaches the whole wiki as a PDF, an EPUB or one HTML file: parts by topic, chapters in teaching order, diagrams and math drawn as on GitHub, and appendices of sources, terms and open questions. You can read it offline or hand it to a colleague.
 - **Knowledge that compounds.** One narrative per question, built on and linked to the ones before it. Each records the source versions it read and the narratives it builds on, so a change upstream flags exactly what it affects.
 - **Research-grade sourcing.** Sources are chosen for the question, then ranked by relevance, by authority (code, specifications and original papers first) and by date; each narrative records its reading plan and the model that wrote it. Licenses are respected, and logins and paywalls are never bypassed.
 - **Reviewed like code.** Each run is one pull request: a review checklist on top, the decisions it couldn't make next, and what it cost. Nothing merges until you do.
 - **Frugal and repeatable.** Scripts do everything mechanical; the agent reads the smallest thing that answers and nothing twice, so your tokens go to judgment.
-- **Yours, in plain files.** Markdown and YAML in git: browse it on GitHub, open it as an Obsidian vault, keep it ready to build as a book, and run it from any agent that supports [Agent Skills](https://agentskills.io).
+- **Yours, in plain files.** Markdown and YAML in git: browse it on GitHub, open it as an Obsidian vault, read it as a book, and run it from any agent that supports [Agent Skills](https://agentskills.io).
 
-Inspired by Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), where an LLM builds and maintains a persistent, interlinked markdown wiki from raw sources. Structural LLM Wiki adds what a group needs on top: topic tags that link sources, narratives and people; every claim traced to a section of a saved source; templates that teach; and every change reviewed.
+Inspired by Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), where an LLM builds and maintains a persistent, interlinked markdown wiki from raw sources. Structural LLM Wiki adds what a group needs on top: topic tags that link sources, narratives and people; every claim traced to a section of a saved source; templates that teach, and your own; every change reviewed; and a book of it all at each release.
 
 ## What it's like to use
 
@@ -39,6 +41,8 @@ Inspired by Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpath
 **Grow it by asking questions.** `/sllmwiki:build` takes the questions you want answered and does the research unattended: it reuses what the wiki already answers, finds and saves the sources the rest need, writes a narrative per question and checks every claim against its source. You come back to one pull request, opening with a checklist and the few decisions it left you. Comment on anything and the agent reworks the same pull request; nothing enters the wiki until you merge.
 
 **It stays true.** Every answer records the source versions it was built from and the answers it builds on. When a source changes, or an answer is rewritten, exactly the answers that depend on it are flagged, so you recheck those and nothing else.
+
+**Share it as a book.** `/sllmwiki:release` makes a dated release of the wiki on GitHub, with notes on what changed, and attaches the wiki as a book in the formats you turned on. That gives you one file of everything the group knows, as of that day.
 
 ![Every kind of question gets the shape that teaches it. What is X? In short, then rigorously, and its edge cases. How does X work? One real example, walked through with its numbers. Principles of X? The field mapped first, then each idea in brief. X or Y? Every option compared, and the rule for when each wins. What happened? The timeline, the chain of causes, and the lessons.](docs/images/answer-shapes.svg)
 
@@ -52,6 +56,9 @@ Your wiki is its own git repository, plain files you can read anywhere. Its know
 | **Sources** | `sllmwiki/sources/` | The docs, web pages, papers and code the answers rest on, saved as markdown, each with its URL, date, license and a short abstract |
 | **Tags** | `sllmwiki/tags/` | A tree of topics, each with a page listing its narratives, sources and the people who know it |
 | **Index** | `SLLMWIKI_INDICES.md` | A clickable map of the topics, for GitHub |
+| **Your templates** | `templates/` | Optional: your own kinds of narratives, and language packs |
+| **Settings** | `Config.toml` | Optional: the source policy, markers, language, the book's formats, title and author |
+| **Books** | the repository's Releases | The wiki as a PDF, EPUB or HTML file, attached to each release; never committed |
 
 The demo wiki has each: [narratives](https://github.com/mengjiasun1992/sllmwiki-demo/tree/main/sllmwiki/narratives), [sources](https://github.com/mengjiasun1992/sllmwiki-demo/tree/main/sllmwiki/sources), [tags](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/tags/tags.yaml) and [the index](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/SLLMWIKI_INDICES.md).
 
@@ -116,7 +123,8 @@ Codex, Cursor, Copilot and other agents install the skill with the [`skills` CLI
 **Reviewing.** Each run's pull request starts with a checklist (tags, sources, each narrative). Tick each box as you check it; the wiki's "Review checklist" check turns green when all are ticked. Leave comments, and ask the agent to "apply the review comments on PR #12". [The demo's PR #6](https://github.com/mengjiasun1992/sllmwiki-demo/pull/6) is one run's pull request, checklist and all.
 
 **Narrative templates.** Each kind of answer above comes from a template, picked by the question's subject: `concept_brief_overview` ("What is X?", [example](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-is-a-distributed-system.md)), `technical_brief_overview` ("How does X work?", [example](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-is-an-ewma-exponentially-weighted-moving-average-and-how-does-it-work.md)), `comparison` ("X vs Y", [example](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/when-should-software-use-an-ewma-instead-of-other-moving-averages.md)), `survey` ("What are the principles of X?", [example](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-are-the-common-design-tenets-and-principles-for-distributed-systems.md)) or `case_study` ("What happened in this incident, and what does it teach?"). Each comes with a writing guide for a reader new to the topic, and an aim lint grades it on.
- Bring your own with `/sllmwiki:template "postmortems of our incidents"`: the agent starts one from the closest bundled template and shapes it from your description, in a pull request. It lives in the wiki's `templates/<name>/` as a `template.md` and a `guide.md`, which you can also write by hand; one named like a bundled template replaces it.
+
+**Your own templates.** For a kind of answer the five don't fit, describe it: `/sllmwiki:template "postmortems of our incidents"`. The agent starts from the closest bundled template and shapes its sections, writing guide and aim from your description. It checks the result and opens a pull request. The template lives in your wiki's `templates/<name>/` as a `template.md` (a short header and the sections every answer needs) and a `guide.md` (its reader, aim, style and checklist), and you can also write it by hand. From then on the agent picks it for the questions its header says it fits, and lint grades its narratives on its aim. A template named like a bundled one replaces it; to change only a length, set `max_words` in `Config.toml` instead. The demo has one: [`skim_read`](https://github.com/mengjiasun1992/sllmwiki-demo/tree/main/templates/skim_read), a ten-minute primer on a long paper for someone deciding whether to read it, and [a narrative made with it](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-does-keeping-calm-argue-and-is-it-worth-reading-in-full.md). How templates work: [the design, §4.5.5](docs/structural_llm_wiki_design.md#455-a-wikis-own-templates).
 
 **Citations and markers.** As in a paper, a claim's numbered citations sit inside its sentence, before the period, separated by commas: `… exponentially [3], [6].` What no source states is marked `[→]` (our own reasoning), and something the sources don't answer `[?]`, where a citation goes, or once on a heading for a whole section; each narrative defines the ones it uses ([an example](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-is-an-ewma-exponentially-weighted-moving-average-and-how-does-it-work.md)). Turn them off with `markers = false` (see below).
 
@@ -145,7 +153,7 @@ title = ""                  # the book's title; empty: the repository's name
 author = ""                 # its author; empty: the title
 ```
 
-**Books.** `/sllmwiki:release` publishes a dated release of the wiki on GitHub (`v2026.10.24`), with notes on what changed since the last one, and the wiki's release workflow attaches the wiki as a book in each format the `[structural-llm-wiki-release]` table turns on: a cover, a contents page, a part per topic with each chapter's summary, the narratives in teaching order, and appendices of sources, a glossary and open questions. Its diagrams and math are drawn as they are on GitHub, and the file works offline. GitHub's *Releases → Draft a new release* does the same without the agent; `--preview` builds the book from a branch as a workflow artifact. The book carries each source's abstract, license and link, never its saved copy. How it works: [docs/book_design.md](docs/book_design.md).
+**Books.** Turn on the formats you want in `Config.toml` (`init` asks). `/sllmwiki:release` publishes a dated release of the wiki on GitHub (`v2026.10.24`), with notes on what changed since the last one, and the wiki's release workflow attaches the wiki as a book in each format the `[structural-llm-wiki-release]` table turns on: a cover, a contents page, a part per topic with each chapter's summary and reading time, the narratives in teaching order, and appendices of sources, a glossary and open questions. Its diagrams and math are drawn as they are on GitHub, and the file works offline. GitHub's *Releases → Draft a new release* does the same without the agent; `--preview` builds the book from a branch as a workflow artifact. The book carries each source's abstract, license and link, never its saved copy. A diagram or formula that wouldn't draw, or a link the book couldn't follow, fails the pull request that brings it, long before a release. How it works: [docs/book_design.md](docs/book_design.md).
 
 **Languages.** Narratives are written in the wiki's `language`, and one can name its own (`- **Language:** zh-Hans` in its Metadata, or ask for a language when you ask the question). Sources stay in the language they were written in, and a quotation keeps its source's words, translated after it. Headings come from a language pack, `templates/languages/<tag>.md`: the skill ships English and Simplified Chinese (`zh-Hans`), each one it has evaluated, and a pack can carry its language's writing rules. For another language, copy [the English pack](src/skills/sllmwiki/templates/languages/en.md) into your wiki's `templates/languages/` and fill in the translations; the skill writes in it, and says it hasn't evaluated it. Without a pack, headings stay English around prose in your language. Word budgets stay in words; Chinese and Japanese text counts its characters at 1.6 to a word.
 
@@ -168,7 +176,7 @@ The scripts enforce what they can. This is a cautious default, not legal advice:
 
 ## Design
 
-[docs/structural_llm_wiki_design.md](docs/structural_llm_wiki_design.md) has the architecture and the decisions behind it; [docs/skill_execution_plan.md](docs/skill_execution_plan.md), how it's being built.
+[docs/structural_llm_wiki_design.md](docs/structural_llm_wiki_design.md) has the architecture and the decisions behind it, and [docs/book_design.md](docs/book_design.md) the book a release attaches. [docs/skill_execution_plan.md](docs/skill_execution_plan.md) and [docs/book_execution_plan.md](docs/book_execution_plan.md) say how each was built.
 
 ## Developing
 
@@ -177,9 +185,9 @@ src/
 ├── skills/sllmwiki/   the skill: SKILL.md, workflows/, steps/, scripts/, templates/, tests/
 ├── commands/          Claude Code commands, one per workflow and step
 ├── actions/           the GitHub actions a wiki's CI calls
-└── tools/             CI tools outside the skill (check-yaml)
+└── tools/             CI tools outside the skill (check-yaml, check-book)
 evals/                 behavior evals, kept outside the skill so they never ship with it
-docs/                  the design, the plan, and their figures
+docs/                  the designs, their plans, and their figures
 ```
 
 `AGENTS.md` has the rules for changing this repository: tests with every logic change and coverage at 95% or above, instruction word budgets, evals for behavior changes. Run the tests, and try the plugin from a checkout:
