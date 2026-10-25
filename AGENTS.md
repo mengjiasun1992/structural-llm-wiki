@@ -86,7 +86,7 @@ claude plugin eval . --scaffold --allow-tools Bash Write Edit --max-cost-usd 20 
 
 - `--scaffold` is required: every case builds its fixture wiki with a scaffold script.
 - Results go to `evals/results/`, which is git-ignored; never commit them.
-- On macOS with Apple's `git`, `git` can't run inside the eval sandbox, so cases that need git (`init-new`, `narrative-publish`, `build-small`, the ingest cases) fail there. Run those on Linux instead: the **Evals** workflow (Actions → Evals → Run workflow) takes a tag or a case, the runs per case, a model and a cost ceiling, and keeps the report as an artifact. It needs an `ANTHROPIC_API_KEY` repository secret, costs money per run, and runs only when started by hand. Before a release, run every case three times there (`all`, 3 runs).
+- On macOS with Apple's `git`, `git` can't run inside the eval sandbox, so cases that need git (`init-new`, `narrative-publish`, `build-small`, the ingest cases) fail there. Run those on Linux instead: the **Evals** workflow (Actions → Evals → Run workflow) takes a tag or a case, the runs per case, a model, a cost ceiling and whether to add the no-plugin baseline, and keeps the report as an artifact. It needs an `ANTHROPIC_API_KEY` repository secret, costs money per run, and runs only when started by hand. Before a release, run every case three times there with the baseline (`all`, 3 runs, `with-without`); the baseline doubles the runs, so raise the cost ceiling with it.
 
 ## Writing evals
 
