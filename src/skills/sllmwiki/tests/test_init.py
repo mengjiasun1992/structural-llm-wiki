@@ -84,7 +84,7 @@ class Init(unittest.TestCase):
         self.assertEqual((done['.github/workflows/wiki-checks.yml'], done['CLAUDE.md'], done['Config.toml']), ('updated', 'updated', 'added settings to'))
         self.assertEqual(self.read('README.md'), '# Ours\n\nAbout this wiki.\nMore.\n')
         cfg = self.read('Config.toml')
-        self.assertIn('markers = false\nsource_copies = "allow"\n', cfg)  # added after the wiki's own line, its value kept
+        self.assertIn('markers = false\nsource_copies = "allow"     # the source policy', cfg)  # added after the wiki's own line, its value kept
         self.assertIn('\n\n# notes on the next table\n[other-tool]\nx = 1\n', cfg)
         self.assertIn('[structural-llm-wiki-addons]\nobsidian = false', cfg)
         self.assertEqual(config.load(self.root).settings['markers'], False)
@@ -186,6 +186,43 @@ class Init(unittest.TestCase):
         out = mod.add_missing_settings('[structural-llm-wiki-settings]\nmarkers = true\n', template)
         self.assertIn('\n[structural-llm-wiki-release]\npdf_book = true', out)
         self.assertEqual(mod.add_missing_settings(out, template), out)
+
+    def test_ask_and_set(self):
+        r = self.init('--ask', '--json')
+        data = json.loads(r.out)
+        self.assertTrue(data['first_setup'])
+        keys = [q['key'] for q in data['ask']]
+        self.assertEqual(sorted(keys), sorted(helpers.load_script('init.py').ASK))
+        self.assertNotIn('max_quote_words', keys)  # kept at its default unless edited
+        q = next(q for q in data['ask'] if q['key'] == 'pdf_book')
+        self.assertEqual((q['table'], q['value'], q['about']), ('structural-llm-wiki-release', True, 'a PDF: share, print, read anywhere'))
+        self.assertTrue(all(q['about'] for q in data['ask']))
+        self.assertFalse(os.path.exists(os.path.join(self.root, 'Config.toml')))  # --ask writes nothing
+        r = self.init('--name', 'w', '--set', 'language=zh-Hans', '--set', 'epub_book=TRUE', '--set', 'title=我的 "笔记"',
+                      '--set', 'smes_exclude=@me, dependabot', '--set', 'max_quote_words=30', '--set', 'obsidian=true')
+        self.assertEqual(r.code, 0, r.err)
+        cfg = self.read('Config.toml')
+        for line in ('language = "zh-Hans"        # narratives', 'epub_book = true            # an EPUB',
+                     'smes_exclude = ["@me", "dependabot"] # never', 'max_quote_words = 30        # the longest'):
+            self.assertIn(line, cfg)
+        self.assertEqual(config.load(self.root).release['title'], '我的 "笔记"')
+        self.assertTrue(os.path.isfile(os.path.join(self.root, 'sllmwiki', '.obsidian', 'graph.json')))  # the answer took effect in the same run
+        self.assertIn('nothing new to ask about', self.init('--ask').out)
+        # a rerun asks only about settings the plugin added since; --set changes one in place
+        helpers.write(self.root, 'Config.toml', cfg.replace('author = ""                 # its author; empty: the title\n', ''))
+        self.assertEqual([q['key'] for q in json.loads(self.init('--ask', '--json').out)['ask']], ['author'])
+        self.assertEqual(self.init('--ask').out, 'author = "": its author; empty: the title\ninit: 1 setting(s) to ask about\n')
+        r = self.init('--set', 'author=Ann', '--set', 'markers=false')
+        self.assertEqual(r.code, 0, r.err)
+        self.assertIn('author = "Ann"', self.read('Config.toml'))
+        self.assertIn('markers = false             # false', self.read('Config.toml'))
+
+    def test_set_refusals(self):
+        for pair, says in (('markers=maybe', 'true or false'), ('max_quote_words=lots', 'a number'), ('colour=red', 'settings are author'),
+                           ('nokey', 'settings are'), ('source_copies=some', 'must be "allow" or "links-only"')):
+            r = self.init('--name', 'w', '--set', pair)
+            self.assertEqual((r.code, says in r.err), (2, True), (pair, r.err))
+        self.assertFalse(os.path.exists(os.path.join(self.root, 'Config.toml')))
 
     def test_settings_for_a_missing_table(self):
         mod = helpers.load_script('init.py')

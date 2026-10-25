@@ -3,9 +3,7 @@
 # plugin update to add settings this file doesn't have yet.
 
 [structural-llm-wiki-settings]
-# The source policy: "allow" keeps reference copies in a private wiki and only
-# openly licensed sources in a public one; "links-only" keeps no copies at all.
-source_copies = "allow"
+source_copies = "allow"     # the source policy: "allow" keeps reference copies in a private wiki, only openly licensed ones in a public one; "links-only" keeps no copies
 max_quote_words = 50        # the longest quotation a narrative may take from a source
 smes_exclude = []           # never listed as SMEs, such as this wiki's owner or bots: ["@alice", "dependabot"]
 markers = true              # false: no [→] or [?] markers in narratives
