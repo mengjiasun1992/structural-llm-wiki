@@ -411,6 +411,10 @@ class Commands(unittest.TestCase):
         r = self.book('parse', '--vendor', self.vendor, '--chrome', self.chrome, '--base', 'HEAD')
         self.assertIn(f'error  DIAGRAM_SYNTAX  {alpha}:', r.out)
         self.assertIn('3 error(s)', r.out)
+        helpers.write(self.root, alpha, text.replace('BAD', 'OK').replace('```mermaid\nOK diagram', '```mermaid\nflowchart LR\n  a --> b'))
+        helpers.write(self.root, 'sllmwiki/narratives/what-is-new.md', '# New\n\n```mermaid\nBAD new\n```\n')  # not committed yet
+        r = self.book('parse', '--vendor', self.vendor, '--chrome', self.chrome, '--base', 'HEAD', '--json')
+        self.assertIn('sllmwiki/narratives/what-is-new.md:3', [f['where'] for f in json.loads(r.out)['findings']])
 
     def test_parse_needs(self):
         r = self.book('parse', '--vendor', self.vendor, '--base', 'HEAD', '--chrome', os.path.join(self.tmp, 'none'))
