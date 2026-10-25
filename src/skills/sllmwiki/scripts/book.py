@@ -8,9 +8,11 @@
       and the appendices (sources, glossary, open questions). Also writes
       OUT/book.json: the parts, the chapter order, every anchor, every diagram
       and formula to render, and the problems found. The wiki is only read.
-      --name defaults to the wiki's folder name, --version to "preview",
-      --date to today, --commit to the current commit and --source (the
-      wiki's web page, which the cover links to) to its origin remote's.
+      --name (the files' name) defaults to the wiki's folder name, --version
+      to "preview", --date to today, --commit to the current commit and
+      --source (the wiki's web page, which the cover links to) to its origin
+      remote's. The cover's title and the author are Config.toml's title and
+      author ([structural-llm-wiki-release]), by default the name and the title.
       Problems: BOOK_LINK (a link or anchor the book can't resolve),
       BOOK_CYCLE (narratives built on each other in a cycle), BOOK_FIGURE (a
       figure that isn't there). Exit code 1 when there are any.
@@ -82,9 +84,11 @@ def _empty(cli_out):
 
 def stage(root, out, args):
     """Write the staged book into out; its book.json."""
+    release = config.get(root).release
     staged = book.stage(root, args.name or os.path.basename(root), args.version, args.date,
                         _git(root, 'rev-parse', '--short', 'HEAD') if args.commit is None else args.commit,
-                        book.web_url(_git(root, 'remote', 'get-url', 'origin')) if args.source is None else args.source or None)
+                        book.web_url(_git(root, 'remote', 'get-url', 'origin')) if args.source is None else args.source or None,
+                        release['title'] or None, release['author'] or None)
     for rel, text in staged.files.items():
         write_text(os.path.join(out, rel), text)
     for fig in staged.figures:
@@ -152,9 +156,9 @@ def _sphinx(root, out, staged, data, sphinx, builder):
     build = os.path.join(out, '_build')
     name = f'{data["name"]}-{data["version"]}'
     cmd = [*shlex.split(sphinx), '-q', '-b', builder, '-c', TEMPLATE, '-d', os.path.join(build, 'doctrees'),
-           '-D', f'project={data["name"]}', '-D', f'version={data["version"]}', '-D', f'release={data["version"]}',
-           '-D', f'copyright={data["name"]}', '-D', f'language={lang}', '-D', f'epub_basename={name}',
-           '-D', f'epub_author={data["name"]}', '-D', 'epub_publisher=sllmwiki', staged, os.path.join(build, builder)]
+           '-D', f'project={data["title"]}', '-D', f'version={data["version"]}', '-D', f'release={data["version"]}',
+           '-D', f'copyright={data["author"]}', '-D', f'language={lang}', '-D', f'epub_basename={name}',
+           '-D', f'epub_author={data["author"]}', '-D', 'epub_publisher=sllmwiki', staged, os.path.join(build, builder)]
     try:
         run = subprocess.run(cmd, capture_output=True, text=True, check=False)
     except OSError as e:
@@ -260,7 +264,7 @@ def main(argv):
             elif fmt == 'pdf':
                 pdf = os.path.splitext(path)[0] + '.pdf'
                 chrome = bookbuild.find_chrome(args.chrome)
-                why = bookbuild.print_pdf(path, pdf, chrome, f'{{{data["name"]} 📖}}') if chrome else 'no Chrome found to print it'
+                why = bookbuild.print_pdf(path, pdf, chrome, f'{{{data["title"]} 📖}}') if chrome else 'no Chrome found to print it'
                 if why:
                     data['failed']['pdf'] = why
                 else:

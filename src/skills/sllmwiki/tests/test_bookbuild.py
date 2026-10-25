@@ -367,8 +367,29 @@ class Commands(unittest.TestCase):
     def test_an_epub_sphinx_writes_nothing_for(self):
         with mock.patch.object(subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, '', '')):
             mod = helpers.load_script('book.py')
-            self.assertEqual(mod.epub_book(self.root, self.tmp, self.tmp, {'name': 'w', 'version': 'v'}, 'sphinx-build'),
+            self.assertEqual(mod.epub_book(self.root, self.tmp, self.tmp, {'name': 'w', 'title': 'W', 'author': 'W', 'version': 'v'}, 'sphinx-build'),
                              (None, 'Sphinx wrote no EPUB'))
+
+    def test_a_title_and_an_author(self):
+        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-release]\npdf_book = true\nhtml_book = true\n'
+                                                'title = "Notes on systems"\nauthor = "Mengjia Sun"\n')
+        out = os.path.join(self.tmp, 'out')
+        r = self.book('build', out, '--vendor', self.vendor, '--chrome', self.chrome, '--sphinx', self.sphinx, '--version', 'v1')
+        self.assertEqual(r.code, 0, r.err)
+        data = json.loads(helpers.read(out, 'staged/book.json'))
+        name = os.path.basename(self.root)
+        self.assertEqual((data['name'], data['title'], data['author']), (name, 'Notes on systems', 'Mengjia Sun'))
+        self.assertEqual(sorted(os.path.basename(f) for f in data['files'].values()), [f'{name}-v1.html', f'{name}-v1.pdf'])  # files keep the name
+        self.assertTrue(helpers.read(out, 'staged/index.md').startswith('(book--cover)=\n# {Notes on systems 📖}\n'))
+        self.assertIn('[{Notes on systems 📖}](#book--cover)', helpers.read(out, 'staged/chapters/what-is-alpha.md'))
+        self.assertEqual(helpers.read(out, f'{name}-v1.pdf'), '%PDF-1.4 "{Notes on systems 📖}"')  # the running head
+        sphinx = helpers.read(out, f'{name}-v1.html')
+        for arg in ('project=Notes on systems', 'copyright=Mengjia Sun', 'epub_author=Mengjia Sun'):
+            self.assertIn(arg, sphinx)
+        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-release]\ntitle = "Notes on systems"\n')
+        staged = os.path.join(self.tmp, 'staged')
+        self.book('stage', staged)
+        self.assertEqual(json.loads(helpers.read(staged, 'book.json'))['author'], 'Notes on systems')  # the title, by default
 
     def test_known_issues(self):
         self.assertEqual(book.issues({'problems': [], 'warnings': []}), '')

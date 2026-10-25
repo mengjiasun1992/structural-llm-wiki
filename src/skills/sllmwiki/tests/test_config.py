@@ -99,12 +99,15 @@ class Release(unittest.TestCase):
     def test_the_book_formats(self):
         self.assertEqual(parse('').book_formats(), ['pdf'])  # the PDF by default
         c = parse('[structural-llm-wiki-release]\nhtml_book = true\npdf_book = false\n')
-        self.assertEqual((c.release, c.book_formats()), ({'pdf_book': False, 'epub_book': False, 'html_book': True}, ['html']))
+        self.assertEqual((c.release, c.book_formats()), ({'pdf_book': False, 'epub_book': False, 'html_book': True, 'title': '', 'author': ''}, ['html']))
 
     def test_bad_release_settings(self):
-        self.assertIn('unknown setting structural-llm-wiki-release.zzz (known: pdf_book, epub_book, html_book)',
+        self.assertIn('unknown setting structural-llm-wiki-release.zzz (known: pdf_book, epub_book, html_book, title, author)',
                       problems('[structural-llm-wiki-release]\nzzz = true\n')[0])
         self.assertIn('html_book must be true or false', problems('[structural-llm-wiki-release]\nhtml_book = "yes"\n')[0])
+        self.assertIn('title must be a string', problems('[structural-llm-wiki-release]\ntitle = true\n')[0])
+        c = parse('[structural-llm-wiki-release]\ntitle = "Notes on systems"\nauthor = "Mengjia"\n')
+        self.assertEqual((c.release['title'], c.release['author'], c.book_formats()), ('Notes on systems', 'Mengjia', ['pdf']))
 
 
 class Tables(unittest.TestCase):

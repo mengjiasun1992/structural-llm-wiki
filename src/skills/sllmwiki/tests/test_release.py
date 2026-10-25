@@ -189,6 +189,12 @@ class Release(helpers.WikiTestCase):
         self.assertIn('gh api repos/o/wiki/commits/', self.rel('plan').err)
         self.assertIn('HTTP 401', self.rel('plan').err)
 
+    def test_the_release_is_titled_by_the_book(self):
+        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-release]\ntitle = "Notes on systems"\n')
+        self.rel('plan')
+        self.rel('create')
+        self.assertTrue(any(f'--title Notes on systems {TODAY}' in c for c in self.calls()))
+
     def test_notes_from_a_file_and_a_build_that_fails(self):
         self.rel('plan')
         helpers.write(self.outside, 'mine.md', 'My notes.\n')
