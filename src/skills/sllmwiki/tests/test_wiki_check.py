@@ -73,6 +73,14 @@ class Check(helpers.WikiTestCase):
         self.assertEqual(r.code, 1)
         self.assertIn('YAML_INVALID', r.out)
 
+    def test_the_wikis_own_templates(self):
+        self.write('templates/postmortem/template.md', '---\ndescription: x\n---\n\n## Timeline\n\n<what happened>\n')
+        self.write('Config.toml', '[structural-llm-wiki-templates.runbook]\nmax_words = 900\n')
+        found = {(f['code'], f['file']): f['message'] for f in json.loads(self.wc('--json').out)['findings']}
+        self.assertIn('header needs exactly', found[('TEMPLATE_INVALID', 'templates/postmortem')])
+        self.assertIn('no template runbook', found[('TEMPLATE_INVALID', 'Config.toml')])
+        self.assertEqual(self.wc().code, 1)
+
     def test_schema_and_tree(self):
         text = self.read('sllmwiki/tags/tags.yaml')
         self.write('sllmwiki/tags/tags.yaml', text.replace('parent: root-topic\n  smes', 'parent: gone\n  smes').replace('description: Second leaf', 'descripton: Second leaf'))
