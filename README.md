@@ -10,23 +10,46 @@
 
 **What it is.** Structural LLM Wiki is a set of agent skills, packaged as a Claude Code plugin, that turns a git repository into a wiki your coding agent researches and keeps up to date. You give it questions. It finds the sources that answer them (design docs, code, specifications, papers, web pages), saves them in the repository, and writes one *narrative* per question: a short document that teaches the answer, with every claim linked to the section of a saved source that supports it. Topic tags tie the sources, the narratives and the people who know each area together, and every run arrives as one pull request you review.
 
-- **For builders,** it's living documentation of your own systems, grounded in their code and design docs, with the exact lines cited and the people who know each area.
-- **For tech leads,** it's onboarding that stays current, with every change reviewed and the reasons behind the design kept next to it.
-- **For researchers,** it's a structured, cited review of a field: definitions taken from the sources that state them most rigorously, and every claim one click from its evidence.
+## Who it's for, and what it fixes
 
-Unlike an answer in a chat session, the knowledge stays: narratives build on and link to each other, and when a source changes, exactly the narratives built on it are flagged for review.
+### Builders: you need to understand a system before you change it
+
+- What the code does is in the code, why it does it is in a design doc that drifted two releases ago, and the rest is in a chat thread you can't find.
+- Asking the one person who knows interrupts them, and the same question comes back next month from someone else.
+- An AI assistant answers in seconds, but you can't tell which parts it read and which it guessed, and the answer is gone when the session ends.
+
+**With the wiki,** you ask, and the answer cites the exact lines of code and the section of the design doc it rests on, and names the people who know the area. It's saved, so the next person who asks gets the same answer, already reviewed. When the code or the doc changes, the answers that rest on them are flagged.
+
+### Tech leads: what the group knows has to outlive who knows it
+
+- Onboarding takes weeks, and it runs through the same few senior engineers.
+- The reasons behind a design live in reviews and meetings, and leave with the people who were there.
+- Documentation nobody owns goes stale quietly, and nobody can say which pages are still true.
+- AI-written docs are cheap to make and expensive to check.
+
+**With the wiki,** questions become reviewed documents in git, with the sources and reasoning behind them and a history of how the group's understanding changed. Every change arrives as a pull request with a checklist, and nothing lands until someone merges it. Staleness is tracked, not guessed. Each release attaches the whole wiki as a book, an onboarding pack that's current as of that day.
+
+### Researchers: the reading never ends, and summaries can't be trusted
+
+- There are more papers than time, and an abstract is too thin to decide which ones deserve a full read.
+- Notes lose track of where each claim came from, so a review of the field has to be redone from scratch.
+- LLM summaries sound right and cite sections that don't say what they claim, or papers that don't exist.
+
+**With the wiki,** sources are saved verbatim and every claim links to the section that supports it, with quotations checked word for word. Definitions come from the sources that state them most rigorously. A survey maps a field, a comparison weighs the candidates, and a template of your own, such as a ten-minute primer on one paper, helps you decide what to read in full. The review grows with every question instead of starting over.
 
 **See one.** [sllmwiki-demo](https://github.com/mengjiasun1992/sllmwiki-demo) is a wiki built with this skill, on distributed systems and moving averages: start at [its index](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/SLLMWIKI_INDICES.md), read [What is a distributed system?](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-is-a-distributed-system.md), and see [the pull request](https://github.com/mengjiasun1992/sllmwiki-demo/pull/6) that wrote its narratives.
 
-## Why it's different
+## How it addresses them
 
-- **Answers you can check, claim by claim.** Every claim cites the exact section of a source saved in the wiki, so checking it is one click. What no source states is marked as the narrative's own reasoning (`[→]`), and what the sources don't answer as a gap (`[?]`). Quotations are verified word for word against their source.
-- **Written to be learned.** The answer's shape fits its subject: a concept is defined in short to set the intuition, then rigorously from the source that defines it best; a mechanism is worked through one running example, with real numbers and diagrams; a field is mapped before its parts; a choice compares every common candidate; a case is followed to its causes. Each of the five templates has an aim, and lint grades every narrative against it.
-- **Your own kinds of answers.** When the five don't fit, add your own template, such as a postmortem or a ten-minute primer on a paper, from a sentence describing it. It is checked, finished and graded against its own aim like the bundled ones.
+- **You can trust an answer because you can check it, claim by claim.** Every claim cites the exact section of a source saved in the wiki, so checking it is one click. What no source states is marked as the narrative's own reasoning (`[→]`), and what the sources don't answer as a gap (`[?]`), never filled with a guess. Quotations are verified word for word, and lint checks each claim against the section it cites.
+- **Knowledge stays and compounds, instead of vanishing with the chat.** One narrative per question, kept in git and built on the ones before it: a new answer links to what the wiki already explains instead of repeating it, and the agent reuses or extends an existing answer before writing a new one.
+- **Answers stay true as things change.** Each narrative records the source versions it read and the narratives it builds on. When a source changes upstream or an answer is rewritten, exactly the narratives that depend on it are flagged, so you recheck those and nothing else.
+- **It teaches, so a newcomer can learn from it, not just look things up.** The answer's shape fits its subject: a concept is defined in short to set the intuition, then rigorously; a mechanism is worked through one running example, with real numbers and diagrams; a field is mapped before its parts; a choice compares every common candidate; an incident is followed to its causes. Each of the five templates has an aim, and lint grades every narrative against it.
+- **Your own kinds of answers.** When the five don't fit, describe what you need, such as a postmortem or a ten-minute primer on a paper, and the agent makes a template for it. It is checked, finished and graded against its own aim like the bundled ones.
+- **It knows who to ask.** Each topic lists the people behind its code and docs, ranked by evidence from git history, code owners and authorship, with a question worth asking each.
+- **Research-grade sourcing.** Sources are chosen for the question, then ranked by relevance, by authority (code, specifications and original papers first) and by date. Each narrative records its reading plan and the model that wrote it. Licenses are respected, and logins and paywalls are never bypassed.
+- **Reviewed like code, and nobody has to babysit it.** The agent researches unattended and delivers one pull request: a review checklist on top, the decisions it couldn't make next, and what the run cost. Nothing merges until you do.
 - **A book with every release.** Each release attaches the whole wiki as a PDF, an EPUB or one HTML file: parts by topic, chapters in teaching order, diagrams and math drawn as on GitHub, and appendices of sources, terms and open questions. You can read it offline or hand it to a colleague.
-- **Knowledge that compounds.** One narrative per question, built on and linked to the ones before it. Each records the source versions it read and the narratives it builds on, so a change upstream flags exactly what it affects.
-- **Research-grade sourcing.** Sources are chosen for the question, then ranked by relevance, by authority (code, specifications and original papers first) and by date; each narrative records its reading plan and the model that wrote it. Licenses are respected, and logins and paywalls are never bypassed.
-- **Reviewed like code.** Each run is one pull request: a review checklist on top, the decisions it couldn't make next, and what it cost. Nothing merges until you do.
 - **Frugal and repeatable.** Scripts do everything mechanical; the agent reads the smallest thing that answers and nothing twice, so your tokens go to judgment.
 - **Yours, in plain files.** Markdown and YAML in git: browse it on GitHub, open it as an Obsidian vault, read it as a book, and run it from any agent that supports [Agent Skills](https://agentskills.io).
 
@@ -34,7 +57,7 @@ Inspired by Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpath
 
 ## What it's like to use
 
-![Three moments, from your side. Ask anything: an answer in seconds, each claim cited, and who to ask. Grow it by asking: it researches while you're away, and you review one pull request; nothing lands till you merge. It stays true: when a source changes, exactly the answers that rest on it are flagged, and the rest stay untouched.](docs/images/three-moments.svg)
+![Four moments, from your side. Ask anything: an answer in seconds, each claim cited, and who to ask. Grow it by asking: it researches while you're away, and you review one pull request; nothing lands till you merge. It stays true: when a source changes, exactly the answers that rest on it are flagged, and the rest stay untouched. Share it as a book: each release, such as v2026.10.24, attaches the whole wiki as a PDF to print and share, an EPUB for e-readers and phones, and one HTML file for a browser; read it offline, or hand it on.](docs/images/four-moments.svg)
 
 **Ask anything, any time.** `/sllmwiki:query` answers from what the wiki already knows, reading as little as it can, so most answers come back in seconds. Every claim cites the narrative or source it came from, and the answer names the people who know the area. If the wiki doesn't cover the question yet, you still get an answer, clearly labeled DRAFT, and an offer to research it properly.
 
@@ -44,7 +67,7 @@ Inspired by Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpath
 
 **Share it as a book.** `/sllmwiki:release` makes a dated release of the wiki on GitHub, with notes on what changed, and attaches the wiki as a book in the formats you turned on. That gives you one file of everything the group knows, as of that day.
 
-![Every kind of question gets the shape that teaches it. What is X? In short, then rigorously, and its edge cases. How does X work? One real example, walked through with its numbers. Principles of X? The field mapped first, then each idea in brief. X or Y? Every option compared, and the rule for when each wins. What happened? The timeline, the chain of causes, and the lessons.](docs/images/answer-shapes.svg)
+![Every kind of question gets the shape that teaches it. What is X? In short, then rigorously, and its edge cases. How does X work? One real example, walked through with its numbers. Principles of X? The field mapped first, then each idea in brief. X or Y? Every option compared, and the rule for when each wins. What happened? The timeline, the chain of causes, and the lessons. Your own kind? A postmortem, a primer: a template you describe.](docs/images/answer-shapes.svg)
 
 ### What's in your wiki
 
