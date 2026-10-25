@@ -33,9 +33,20 @@ class Read(unittest.TestCase):
         self.assertEqual(metadata.title(DOC), 'What is X?')
         self.assertEqual(metadata.abstract(DOC), 'First paragraph on two lines.\n\nSecond.')
         self.assertEqual(metadata.read(DOC), {'version': '1.1', 'template': 'concept_brief_overview', 'language': None, 'model': None, 'created': '2026-10-01',
-                                              'last_modified': '2026-10-02',
+                                              'last_modified': '2026-10-02', 'words': None,
                                               'history': [('1.1', '2026-10-02', 'Wider scope.'), ('1.0', '2026-10-01', 'First version.')],
                                               'plan': []})
+
+    def test_reading_time(self):
+        prose = ' '.join(['word'] * 460)
+        doc = (f'---\ntags: [a]\n---\n# Q\n\n## 1. Abstract\n\n{prose}\n\n```mermaid\n{prose}\n```\n\n'
+               f'## 2. References\n\n{prose}\n\n## 3. Metadata\n\n- **Version:** 1.0\n- **Words:** stale\n')
+        n, minutes = metadata.reading(doc)
+        self.assertEqual((n, minutes), (463, 2))  # the title, '1. Abstract' and the prose; not code, References or Metadata
+        self.assertEqual(metadata.reading_label(doc), '463 (about 2 min)')
+        self.assertEqual(metadata.reading('# Q\n\nShort.\n'), (2, 1))  # at least a minute
+        self.assertEqual(metadata.reading('# 问\n\n' + '字' * 736 + '\n')[1], 2)  # CJK at 1.6 characters a word
+        self.assertEqual(metadata.read(doc)['words'], 'stale')
 
     def test_missing_parts(self):
         self.assertIsNone(metadata.title('No title\n'))

@@ -121,8 +121,13 @@ def check(root, rel, text, settings, offered):
     out = []
     if not re.match(r'# \S', text):
         out.append(('error', 'NO_TITLE', 1, 'a narrative starts with its question as the # title'))
-    name = metadata.read(text)['template']
+    meta = metadata.read(text)
+    name = meta['template']
     template = offered.get(name)
+    if meta['words'] and meta['words'] != metadata.reading_label(text):
+        at = next(i for i, line in enumerate(text.split('\n'), 1) if line.startswith('- **Words:**'))
+        out.append(('warning', 'WORDS_OUTDATED', at, f'Metadata says {meta["words"]} words; it is {metadata.reading_label(text)} now '
+                                                    '(finish-narrative.py updates it)'))
     if not name:
         out.append(('error', 'NO_TEMPLATE', 1, 'Metadata names no template (- **Template:** <name>)'))
     elif not template:

@@ -148,7 +148,7 @@ class Rewrite(helpers.WikiTestCase):
         b = book.model(self.root)
         r = book.rewrite(self.root, b, 'what-is-alpha')
         lines = r.text.split('\n')
-        self.assertEqual(lines[:4], ['(ch--what-is-alpha)=', '# What is alpha?', '', '*Version 1.0 · 2026-10-02*'])
+        self.assertEqual(lines[:4], ['(ch--what-is-alpha)=', '# What is alpha?', '', '*Version 1.0 · 2026-10-02 · 1 min read*'])
         self.assertIn('(what-is-alpha--5-how-does-it-work)=\n## 5. How does it work?', r.text)
         self.assertIn('twice as long [\\[1\\]](#src--alpha-doc).', r.text)  # a citation goes to Appendix A
         self.assertIn('1. [alpha-doc: details](#src--alpha-doc)', r.text)
@@ -186,7 +186,7 @@ class Rewrite(helpers.WikiTestCase):
         self.assertIn(f'({label})=\n## 3. 环如何工作', r.text)
         self.assertIn(f'[第三节](#{label})和[同一节](#{label})', r.text)
         pack = language.pack('zh-Hans')
-        self.assertIn(f'*{pack.t("Version")} 2.0 · 2026-10-20*', r.text)
+        self.assertIn(f'*{pack.t("Version")} 2.0 · 2026-10-20 · 阅读约 1 分钟*', r.text)
         self.assertEqual(r.problems, [])
 
     def test_front_matter_is_left_out(self):
@@ -199,11 +199,11 @@ class Rewrite(helpers.WikiTestCase):
         line = [i for i, l in enumerate(helpers.read(self.root, 'sllmwiki/narratives/what-is-alpha.md').split('\n'), 1) if '#nope' in l][0]
         self.assertEqual(r.problems[0][1], f'sllmwiki/narratives/what-is-alpha.md:{line}')  # lines still count the front matter
 
-    def test_no_metadata_no_version_line(self):
+    def test_no_metadata_only_the_reading_time(self):
         helpers.add_narrative(self.root, 'bare', 'Bare?')
         helpers.write(self.root, 'sllmwiki/narratives/bare.md', '# Bare?\n\n## 1. Abstract\n\nText.\n')
         r = book.rewrite(self.root, book.model(self.root), 'bare')
-        self.assertEqual(r.text, '(ch--bare)=\n# Bare?\n\n(bare--1-abstract)=\n## 1. Abstract\n\nText.\n')
+        self.assertEqual(r.text, '(ch--bare)=\n# Bare?\n\n*1 min read*\n\n(bare--1-abstract)=\n## 1. Abstract\n\nText.\n')
 
     def test_labels(self):
         self.assertEqual((book.chapter_label('a'), book.section_label('a', '1-x'), book.source_label('s'), book.part_label('t')),
@@ -289,15 +289,15 @@ class Stage(unittest.TestCase):
         self.assertEqual(st.files['parts/root-topic.md'],
                          f'{head()}(part--root-topic)=\n# Root topic\n\nThe root topic\n\n'
                          f'- [Leaf a](#part--leaf-a){summ("First leaf, about alpha systems")}\n'
-                         f'  - [什么是重试？](#ch--zh-what-is-retry){zh}\n'
-                         f'  - [What is alpha?](#ch--what-is-alpha){summ(summary)}\n'
+                         f'  - [什么是重试？](#ch--zh-what-is-retry) · 1 min{zh}\n'
+                         f'  - [What is alpha?](#ch--what-is-alpha) · 1 min{summ(summary)}\n'
                          f'- [Leaf b](#part--leaf-b){summ("Second leaf, about beta caching")}\n'
-                         f'  - [How does beta work?](#ch--how-does-beta-work){summ(summary)}\n\n'
+                         f'  - [How does beta work?](#ch--how-does-beta-work) · 1 min{summ(summary)}\n\n'
                          '```{toctree}\n:hidden:\n\nleaf-a\nleaf-b\n```\n')
         self.assertTrue(st.files['parts/leaf-a.md'].startswith(head(('root-topic', 'Root topic')) + '(part--leaf-a)=\n# Leaf a\n'))
         alpha = st.files['chapters/what-is-alpha.md']
         self.assertTrue(alpha.startswith(head(('root-topic', 'Root topic'), ('leaf-a', 'Leaf a'))
-                                         + '(ch--what-is-alpha)=\n# What is alpha?\n\n*Version 1.0 · 2026-10-02*\n\n'), alpha[:500])
+                                         + '(ch--what-is-alpha)=\n# What is alpha?\n\n*Version 1.0 · 2026-10-02 · 1 min read*\n\n'), alpha[:500])
         self.assertTrue(alpha.endswith('\n\n<div class="endmark">\n\n[sllmwiki](https://github.com/mengjiasun1992/structural-llm-wiki)\n\n</div>\n'))
         self.assertTrue(st.files['appendix-glossary.md'].startswith(head() + '(book--glossary)=\n# Appendix B: Glossary\n'))
         self.assertEqual((st.manifest['source'], st.manifest['models']), ('https://github.com/o/my-wiki', ['Claude Opus 5.5', 'some-model']))

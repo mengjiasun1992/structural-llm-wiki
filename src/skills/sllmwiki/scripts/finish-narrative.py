@@ -128,6 +128,7 @@ def main(argv):
     version = fields.get('version') or meta['version']
     if model:
         fields['model'] = model
+    fields['words'] = metadata.reading_label(text)  # Metadata isn't counted, so writing it doesn't change it
     text = metadata.write(text, fields, history, plan)  # the template was read from the Metadata section, so there is one
     write_text(path, text)
     try:
