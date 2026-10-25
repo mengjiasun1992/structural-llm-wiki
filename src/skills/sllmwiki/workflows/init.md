@@ -10,8 +10,6 @@ A wiki is a git repository of its own. Run this in the repository that will hold
 6. Commit:
    - **First setup:** `init.py --commit --prompt "<the user's request, verbatim>"`, which stages only what it wrote, then push the default branch if there's a remote.
    - **A rerun:** `publish.py summary init --json '{...}'` with what changed, `publish.py commit init --subject "Bring the wiki up to date"` and `publish.py pr`. Never push the default branch.
-
-   If the wiki's CI then fails with "Unable to resolve action … repository not found", the plugin's repository is private and doesn't share its actions with this wiki's owner: say so.
 7. Reply with what was created or updated, and how to start: `/sllmwiki:build "<a first question>"`. Say that `Config.toml` holds the answers and the other settings, to change any time.
 
 Rerun after a plugin update: it refreshes the files it owns and keeps the wiki's own.

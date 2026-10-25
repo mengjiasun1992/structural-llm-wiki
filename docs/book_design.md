@@ -371,9 +371,7 @@ A workflow in the skill (`workflows/release.md`, `scripts/release.py`):
    same pipeline on a developer's computer when Python, Sphinx and Chrome are
    installed, for developing the book, not as a promise to users.
 5. **Private repositories:** a release's files need a GitHub login to
-   download; share the file itself. While this skill's repository is private,
-   the wiki's workflow can only call its action with the access setting in
-   the README.
+   download; share the file itself.
 
 ## 9. Sources, licenses and responsibility
 
