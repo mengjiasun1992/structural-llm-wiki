@@ -356,7 +356,7 @@ A workflow in the skill (`workflows/release.md`, `scripts/release.py`):
 | When | What runs | Cost | Catches |
 |---|---|---|---|
 | Every pull request | staging's model and rewriting, in `wiki-check.py` (the `wiki-checks` action) | seconds, Python only | a link that works in the wiki but not in the book (a section the narrative lacks, its Metadata, a narrative with no chapter), a `built_on` cycle |
-| A pull request that changes a diagram or a formula | a parse of just those, in headless Chrome | about 20 seconds | a diagram or formula GitHub would show as an error |
+| A pull request that changes a diagram or a formula | `book.py parse --base` in the `wiki-checks` action: the ones it brings, parsed in headless Chrome with the book's mermaid.js (`mermaid.parse`) and MathJax (an unknown macro, which MathJax would draw in red, is an error) | a few seconds; none without a change | `DIAGRAM_SYNTAX` and `MATH_SYNTAX`, with the line: a diagram or formula GitHub would show as an error |
 | A release | the full build, for each format that's on | 2 to 3 minutes | warnings go to the release notes |
 | A preview | the full build, as an artifact | the same | the same |
 

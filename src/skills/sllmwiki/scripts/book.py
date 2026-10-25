@@ -37,6 +37,14 @@
       book is staged and no file is written. Problems and warnings are listed
       (Sphinx's are BOOK_SPHINX) and don't stop the book; exit code 1 when a
       format fails.
+  book.py parse --vendor DIR [--base REF] [--chrome PATH]
+      Checks that each diagram and formula parses, as GitHub draws them, with
+      the same mermaid.js (mermaid.parse) and MathJax the book uses: with
+      --base, only those a change brings, in the narratives changed since REF
+      (a pull request's base), and not in REF's version of them; without it,
+      every one. Reports DIAGRAM_SYNTAX and MATH_SYNTAX with the file, the
+      line and the parser's message (exit code 1). Nothing to check needs no
+      Chrome.
   book.py issues STAGED
       The release notes' "Known issues" section for a built book: its
       problems, warnings and failed formats from book.json, in the wiki's
@@ -54,10 +62,11 @@ import shlex
 import shutil
 import subprocess
 import sys
+import tempfile
 
 sys.dont_write_bytecode = True
 
-from lib import book, bookbuild, config, language, layout  # noqa: E402
+from lib import book, bookbuild, compat, config, language, layout  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.util import dumps, write_text  # noqa: E402
 
@@ -192,10 +201,64 @@ def epub_book(root, out, staged, data, sphinx):
     return path, warnings
 
 
+def to_parse(root, base=None):
+    """[(file, line, kind, source)] of the diagrams and formulas to check: with base, those in narratives
+    changed since base (the working tree against it) whose kind and source aren't in base's version."""
+    folder = layout.NARRATIVES
+    if base:
+        names = _git(root, 'diff', '--name-only', base, '--', folder).split('\n')
+    else:
+        names = [f'{folder}/{n}' for n in sorted(os.listdir(os.path.join(root, folder)))]
+    out = []
+    for rel in names:
+        path = os.path.join(root, rel)
+        if not (rel.endswith('.md') and os.path.dirname(rel) == folder and os.path.isfile(path)):
+            continue
+        before = {(r.kind, r.source) for r in compat.renderables(_git(root, 'show', f'{base}:{rel}'))} if base else set()
+        with open(path, encoding='utf-8') as f:
+            text = f.read()
+        out += [(rel, r.first + 1, r.kind, r.source) for r in compat.renderables(text) if (r.kind, r.source) not in before]
+    return out
+
+
+def parse(root, base, vendor, chrome, as_json):
+    """Check what to_parse finds in Chrome; print the findings; the exit code."""
+    found = to_parse(root, base)
+    items, where = {}, {}
+    for rel, line, kind, source in found:
+        rid = book.render_id(kind, source)
+        items[rid] = {'id': rid, 'kind': kind, 'source': source}
+        where.setdefault(rid, []).append(f'{rel}:{line}')
+    findings = []
+    if items:
+        browser = bookbuild.find_chrome(chrome)
+        if not browser:
+            cli.fail('no Chrome found to parse the diagrams and formulas: pass --chrome or set $CHROME')
+        with tempfile.TemporaryDirectory() as tmp:
+            try:
+                results = bookbuild.draw(list(items.values()), vendor, browser, tmp, parse=True)
+            except ValueError as e:
+                cli.fail(str(e))
+        for rid, result in results.items():
+            if isinstance(result, dict):
+                code = 'DIAGRAM_SYNTAX' if items[rid]['kind'] == 'mermaid' else 'MATH_SYNTAX'
+                message = ' '.join(result['error'].split())[:300]
+                findings += [{'code': code, 'where': w, 'message': message} for w in where[rid]]
+    findings.sort(key=lambda f: f['where'])
+    if as_json:
+        print(dumps({'checked': len(found), 'findings': findings}))
+    else:
+        for f in findings:
+            print(f'error  {f["code"]:<15} {f["where"]}: {f["message"]}')
+        print(f'parse: {len(found)} diagram(s) and formula(s) checked, {len(findings)} error(s)')
+    return 1 if findings else 0
+
+
 def main(argv):
     p = argparse.ArgumentParser(prog='book.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument('command', choices=['stage', 'render', 'build', 'issues'])
-    p.add_argument('out')
+    p.add_argument('command', choices=['stage', 'render', 'build', 'issues', 'parse'])
+    p.add_argument('out', nargs='?')
+    p.add_argument('--base')
     p.add_argument('--name')
     p.add_argument('--version', default='preview')
     p.add_argument('--date', default=datetime.date.today().isoformat())
@@ -209,6 +272,12 @@ def main(argv):
     p.add_argument('--json', action='store_true')
     p.add_argument('--root')
     args = p.parse_args(argv)
+    if args.command == 'parse':
+        if not args.vendor or not all(os.path.isfile(os.path.join(args.vendor, n)) for n in (bookbuild.MERMAID, bookbuild.MATHJAX)):
+            cli.usage(f'parse needs --vendor DIR holding {bookbuild.MERMAID} and {bookbuild.MATHJAX}')
+        return parse(cli.wiki(args.root), args.base, args.vendor, args.chrome, args.json)
+    if not args.out:
+        cli.usage(f'{args.command} needs a folder')
     if args.command in ('render', 'build'):
         if not args.vendor or not all(os.path.isfile(os.path.join(args.vendor, n)) for n in (bookbuild.MERMAID, bookbuild.MATHJAX)):
             cli.usage(f'{args.command} needs --vendor DIR holding {bookbuild.MERMAID} and {bookbuild.MATHJAX}')
