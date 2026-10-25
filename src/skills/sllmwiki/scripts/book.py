@@ -166,6 +166,7 @@ def _sphinx(root, out, staged, data, sphinx, builder):
     name = f'{data["name"]}-{data["version"]}'
     cmd = [*shlex.split(sphinx), '-q', '-b', builder, '-c', TEMPLATE, '-d', os.path.join(build, 'doctrees'),
            '-D', f'project={data["title"]}', '-D', f'version={data["version"]}', '-D', f'release={data["version"]}',
+           '-D', f'html_title={data["title"]} {data["version"]}',  # not Sphinx's "<project> <release> documentation"
            '-D', f'copyright={data["author"]}', '-D', f'language={lang}', '-D', f'epub_basename={name}',
            '-D', f'epub_author={data["author"]}', '-D', 'epub_publisher=sllmwiki', staged, os.path.join(build, builder)]
     try:
