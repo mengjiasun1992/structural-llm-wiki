@@ -10,7 +10,7 @@
 
 **Your group's knowledge, researched by your coding agent, cited to the exact source, and reviewed like code.**
 
-**What it is?** An agent skill, packaged as a Claude Code plugin, that turns a git repository into a wiki your coding agent researches and keeps current. You ask questions. It finds and saves the sources that answer them (code, design docs, specifications, papers, web pages) and writes one *narrative* per question: a short document that teaches the answer, with every claim linked to the section of a source that supports it. Each run arrives as one pull request you review. It builds on Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) and adds what a group needs: claims you can check, review before anything lands, topic tags that connect sources, answers and the people who know them, and a book at each release.
+**What it is?** An agent skill, packaged as a Claude Code plugin, that turns a git repository into a wiki your coding agent researches and keeps current. You ask questions. It finds and saves the *sources* that answer them: a source is a verbatim copy of existing material, such as code, a design doc, a specification, a paper or a web page. Then it writes one *narrative* per question: an account of the connected facts and claims that answer it, told in order, that says what happened or how something works. A narrative tells; it stays out of the way, and every claim links to the section of a source that supports it. Each run arrives as one pull request you review. It builds on Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) and adds what a group needs: claims you can check, review before anything lands, topic tags that connect sources, answers and the people who know them, and a book at each release.
 
 **What it saves?** Hours to days of digging, reading and writing per question become minutes of the agent's work and your review. In the demo, one unattended run wrote four cited narratives from 29 sources in 21 minutes ([PR #6](https://github.com/mengjiasun1992/sllmwiki-demo/pull/6)), and a release built the whole wiki as a PDF, an EPUB and an HTML book in about a minute. Every pull request records what its run took, so you can check.
 
@@ -75,15 +75,15 @@ Your wiki is its own git repository, plain files you can read anywhere:
 
 | Content | Where | What it is |
 |---|---|---|
-| **Narratives** | `sllmwiki/narratives/` | One answer per question, opening with an abstract, every claim cited; the figures a narrative draws in `figures/` |
-| **Sources** | `sllmwiki/sources/` | The docs, web pages, papers, books and code the answers rest on, saved as markdown, each with its URL, date, license and a short abstract |
+| **Sources** | `sllmwiki/sources/` | Verbatim copies of the docs, web pages, papers, books and code the answers rest on, saved as markdown and never edited, each with its URL, date, license and a short abstract |
+| **Narratives** | `sllmwiki/narratives/` | One per question: the facts and claims that answer it, told in order, opening with an abstract, every claim cited; the figures a narrative draws in `figures/` |
 | **Tags** | `sllmwiki/tags/` | A tree of topics, each with a page listing its narratives, sources and the people who know it |
 | **Index** | `SLLMWIKI_INDICES.md` | A clickable map of the topics, for GitHub |
 | **Your templates** | `templates/` | Optional: your own kinds of narratives, and language packs |
 | **Settings** | `Config.toml` | Optional: the source policy, markers, language, the book's formats, title and author |
 | **Books** | the repository's Releases | The wiki as a PDF, EPUB or HTML file, attached to each release; never committed |
 
-The demo wiki has each: [narratives](https://github.com/mengjiasun1992/sllmwiki-demo/tree/main/sllmwiki/narratives), [sources](https://github.com/mengjiasun1992/sllmwiki-demo/tree/main/sllmwiki/sources), [tags](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/tags/tags.yaml) and [the index](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/SLLMWIKI_INDICES.md).
+The demo wiki has each: [sources](https://github.com/mengjiasun1992/sllmwiki-demo/tree/main/sllmwiki/sources), [narratives](https://github.com/mengjiasun1992/sllmwiki-demo/tree/main/sllmwiki/narratives), [tags](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/tags/tags.yaml) and [the index](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/SLLMWIKI_INDICES.md).
 
 How it's built, and why: [the design](docs/structural_llm_wiki_design.md).
 

@@ -32,6 +32,7 @@ This document covers the architecture and the decisions behind it. The skill's f
 ## 2. Principles
 
 - **The wiki is a dedicated git repository.** Git provides history, review and rollback.
+- **Two kinds of content: sources and narratives.** A *source* is a verbatim copy of existing material: code, a design doc, a specification, a paper, a book, a web page. A *narrative* is an account of connected facts and claims, told in order, that answers one question: what happened, or how does this work? The emphasis is on telling, and the teller stays out of the way: a narrative presents what its sources establish, in the order that teaches it, rather than the writer's own position.
 - **Sources are ground truth.** Sources are saved verbatim (§4.3) and never summarized or edited. Narratives are built from them and checked against them.
 - **Every claim is traceable.** A claim in a narrative cites a section of a saved source with a numbered link (`claim [\[3\]](../sources/<file>.md#<section>).`, inside the sentence as in a paper, several separated by commas, brackets escaped so Obsidian doesn't read `[[3]]` as a wikilink), or is marked as the narrative's own reasoning (`[→]`) or as a gap the sources don't answer (`[?]`). §4.10 defines the markers, and how a wiki turns them off.
 - **The question drives the run.** Tags, sources and the reading plan are chosen for the questions asked, not for a topic in general, so nothing is collected that no answer uses.
@@ -164,7 +165,7 @@ A tag stores only its description, its parent and its SMEs. Its children, source
 
 ### 4.3 Sources and `sources/manifest.yaml`
 
-A source is saved as the most faithful text that can be checked:
+A source is a verbatim copy of existing material, kept so that every claim built on it can be checked against the original's own words. It is saved as the most faithful text that can be checked:
 
 | Kind | Saved as |
 |---|---|
@@ -218,7 +219,7 @@ The question (the title), the Abstract, the version and the dates live in the na
 
 ### 4.5 Narratives
 
-One question per file in `narratives/`; the question is the title, unchanged.
+A narrative presents an account of connected events, facts or claims, told in order, and answers "what happened, or how does this work?" Its emphasis is on telling: the narrative stays out of the way, letting the sources' facts carry the account. What it adds is the telling itself: the order, the running example, and the reasoning that connects one cited fact to the next, which it marks as its own (§4.10). One question per file in `narratives/`; the question is the title, unchanged.
 
 #### 4.5.1 Structure
 
