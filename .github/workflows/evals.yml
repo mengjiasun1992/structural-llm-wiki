@@ -25,6 +25,11 @@ on:
       threshold:
         description: 'The score every case must reach for the job to pass (0 to 1)'
         default: '1.0'
+      baseline:
+        description: 'Also run each case without the plugin and report the difference (with-without before a release)'
+        type: choice
+        options: [none, with-without]
+        default: none
 
 permissions:
   contents: read
@@ -83,6 +88,7 @@ jobs:
           MAX_COST: ${{ inputs.max_cost_usd }}
           MODEL: ${{ inputs.model }}
           THRESHOLD: ${{ inputs.threshold }}
+          ABLATION: ${{ inputs.baseline }}
         run: |
           if [ -z "$ANTHROPIC_API_KEY" ]; then
             echo "::error::Add an ANTHROPIC_API_KEY secret (Settings → Secrets and variables → Actions) to run the evals."
@@ -94,7 +100,7 @@ jobs:
           # exit 0: every case reached the threshold; 1: a case fell short or a run failed;
           # 2: a partial run (the cost ceiling was hit)
           claude plugin eval . --trust-plugin "${select[@]}" --scaffold --allow-tools Bash Write Edit \
-            --runs "$RUNS" --ablation none --model "$MODEL" --max-cost-usd "$MAX_COST" -j 8 \
+            --runs "$RUNS" --ablation "$ABLATION" --model "$MODEL" --max-cost-usd "$MAX_COST" -j 8 \
             --threshold "$THRESHOLD" --json evals/results/results.json --no-publish < /dev/null
 
       - name: Keep the report
