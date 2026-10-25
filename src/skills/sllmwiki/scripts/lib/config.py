@@ -17,7 +17,10 @@
 
     [structural-llm-wiki-release]
     pdf_book = true
+    epub_book = false
     html_book = false
+    title = ""
+    author = ""
 
 Every setting has a default, so the file is optional. Tables whose names don't
 start with structural-llm-wiki- belong to other tools and are left alone; a
@@ -55,7 +58,10 @@ ADDON_DEFAULTS = {
 }
 RELEASE_DEFAULTS = {  # what a release attaches (docs/book_design.md §3)
     'pdf_book': True,    # a PDF: share, print, read anywhere
+    'epub_book': False,  # an EPUB: e-readers and phones
     'html_book': False,  # one self-contained HTML file, for a browser
+    'title': '',         # the book's title; empty: the repository's name
+    'author': '',        # its author; empty: the title
 }
 _TEMPLATE_NAME = re.compile(r'[a-z0-9][a-z0-9_-]*\Z')
 _LANGUAGE = re.compile(r'[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*\Z')  # as lib/language.py's TAG
@@ -80,7 +86,7 @@ class Config:
 
     def book_formats(self):
         """The formats a release builds: 'html' for html_book, and so on."""
-        return [key[:-len('_book')] for key, on in self.release.items() if on]
+        return [key[:-len('_book')] for key, on in self.release.items() if key.endswith('_book') and on]
 
 
 def _hint(key, known):
@@ -155,8 +161,8 @@ def _release(table, problems):
     for key, value in table.items():
         if key not in RELEASE_DEFAULTS:
             problems.append(f'unknown setting {RELEASE}.{key}{_hint(key, list(RELEASE_DEFAULTS))}')
-        elif type(value) is not bool:
-            problems.append(f'{RELEASE}.{key} must be true or false')
+        elif type(value) is not type(RELEASE_DEFAULTS[key]):
+            problems.append(f'{RELEASE}.{key} must be {_kind(RELEASE_DEFAULTS[key])}')
         else:
             out[key] = value
     return out

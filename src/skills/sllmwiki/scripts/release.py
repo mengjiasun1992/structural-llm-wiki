@@ -107,7 +107,7 @@ def create(root, notes_file):
     notes = notes_file or os.path.join(state(root), 'notes.md')
     if not os.path.isfile(notes):
         cli.fail(f'no notes at {notes}')
-    name = os.path.basename(p['repo'])
+    name = config.get(root).release['title'] or os.path.basename(p['repo'])  # the book's title, as on its cover
     url = gh(root, 'release', 'create', p['version'], '-R', p['repo'], '--target', p['commit'],
              '--title', f'{name} {p["version"]}', '--notes-file', notes).strip()
     p['url'] = url

@@ -1,0 +1,52 @@
+/* What the single-file HTML and the PDF add to book.css (conf.py's html_css_files): rules that
+   rely on its one-page structure (section ids, :is() and :has()) and on Chrome's printing (@page
+   margin boxes), which an EPUB has no use for and its readers don't all parse. */
+/* The warm page and the dark theme that follows the reader's system: an e-reader keeps its own colours. */
+:root { --bg: #fbf8f1; --fg: #26231f; --muted: #6b655c; --soft: 1; --link: #1f5fa8; --rule: #e4dccd;
+        --code: #f2ede3; --card: #ffffff; --note: #3d7bc4; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #1c1b19; --fg: #e3ddd2; --muted: #a39d92; --link: #8dbdf2; --rule: #3a3731;
+          --code: #2a2825; --card: #f7f3ea; --note: #6aa3e0; }
+}
+html, body { background: var(--bg); color: var(--fg); }
+/* Sizes by kind of page, not by depth: a chapter is as big wherever its part sits. */
+h1, :is(section[id^="part-"], section[id^="ch-"], section[id^="book-"]) > :is(h1, h2, h3, h4, h5, h6):first-child { font-size: 2rem; margin-top: 0; }
+section[id^="part-"] > :is(h1, h2, h3, h4, h5, h6):first-child { font-size: 2.2rem; }
+section[id^="ch-"] section > :is(h2, h3, h4, h5, h6):first-child { font-size: 1.35rem; }
+section[id^="ch-"] section section > :is(h3, h4, h5, h6):first-child { font-size: 1.15rem; }
+/* Under a chapter's title, its version and date. */
+section[id^="ch-"] > :is(h1, h2, h3, h4, h5, h6):first-child + p > em:only-child { color: var(--muted); font-size: .95rem; }
+/* Each part, section and chapter starts a page: a break in print; on screen, sllmwiki's mark
+   (braces around an open book, {📖}) between two rules. */
+span[id^="document-"] + section, span[id^="document-"] + .headnote { position: relative; margin-top: 4.5rem; padding-top: 3.4rem;
+  background: linear-gradient(var(--rule), var(--rule)) left 0 top 12px / calc(50% - 34px) 1px no-repeat,
+              linear-gradient(var(--rule), var(--rule)) right 0 top 12px / calc(50% - 34px) 1px no-repeat; }
+span[id^="document-"] + section::before, span[id^="document-"] + .headnote::before { content: ""; position: absolute; top: 0; left: calc(50% - 18px); width: 36px; height: 24px;
+  background-color: var(--muted); -webkit-mask: var(--mark) center / contain no-repeat; mask: var(--mark) center / contain no-repeat; }
+/* After a chapter's closing credit, the next page needs no second mark. */
+section[id^="ch-"]:has(.endmark) + span[id^="document-"] + :is(section, .headnote) { background: none; margin-top: 3.5rem; padding-top: 0; }
+section[id^="ch-"]:has(.endmark) + span[id^="document-"] + :is(section, .headnote)::before { content: none; }
+/* The PDF (Chrome prints the single-file HTML): A4, page numbers at the foot of every page but the cover;
+   book.py build adds the book's title as the running head. The cover, the front page and the contents each
+   take a page, and every part, section and chapter starts a new one. */
+@page { size: A4; margin: 22mm 20mm 24mm;
+        @bottom-center { content: counter(page); font: 9pt "Noto Sans", sans-serif; color: #666; } }
+@page :first { @top-center { content: none; } @bottom-center { content: none; } }
+@media print {
+  :root { --bg: #fff; --fg: #000; --muted: #555; --card: #fff; --link: #1f4f8a; }
+  html, body { background: #fff; }
+  body { max-width: none; padding: 0; font-size: 10.5pt; line-height: 1.5; }
+  #book-cover > h1:first-child { font-size: 30pt; margin-top: 60mm; }
+  #book-about, #book-contents { break-before: page; }
+  .headnote .to-contents { display: none; }
+  span[id^="document-"] + section, span[id^="document-"] + .headnote { background: none; margin-top: 0; padding-top: 0; break-before: page; }
+  span[id^="document-"] + section::before, span[id^="document-"] + .headnote::before { content: none; }
+  section[id^="ch-"]:has(.endmark) + span[id^="document-"] + :is(section, .headnote) { margin-top: 0; }
+  h1, h2, h3, h4, h5, h6 { break-after: avoid; }
+  p, li { orphans: 3; widows: 3; }
+  .diagram, table, pre, .math.display, .admonition { break-inside: avoid; }
+  .diagram { padding: 0; }
+  .diagram svg { max-height: 220mm; }
+  a { text-decoration: none; }
+  table { display: table; font-size: 9pt; }
+}

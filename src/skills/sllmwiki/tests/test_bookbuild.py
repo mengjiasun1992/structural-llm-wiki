@@ -4,9 +4,11 @@
 import json
 import os
 import shutil
+import re
 import stat
 import subprocess
 import sys
+import zipfile
 import tempfile
 import unittest
 from unittest import mock
@@ -40,10 +42,25 @@ print('<html><body><textarea id="result">' + html.escape(json.dumps(out)) + '</t
 '''
 
 # A stand-in for sphinx-build: writes a singlehtml folder like Sphinx's.
-SPHINX = '''import os, sys
+SPHINX = '''import os, sys, zipfile
 if os.environ.get('STUB_SPHINX_FAIL'):
     print('Extension error: no myst_parser', file=sys.stderr); sys.exit(2)
 out, src = sys.argv[-1], sys.argv[-2]
+if '-b' in sys.argv and sys.argv[sys.argv.index('-b') + 1] == 'epub':  # a minimal EPUB: a page with an SVG and one without
+    if os.environ.get('STUB_EPUB_FAIL'):
+        print('epub: broken', file=sys.stderr); sys.exit(2)
+    name = next(a.split('=', 1)[1] for a in sys.argv if a.startswith('epub_basename='))
+    os.makedirs(out, exist_ok=True)
+    with zipfile.ZipFile(os.path.join(out, name + '.epub'), 'w') as z:
+        z.writestr('mimetype', 'application/epub+zip')
+        z.writestr('content.opf', '<package><manifest><item id="a" href="a.xhtml" media-type="application/xhtml+xml" />'
+                                  '<item id="b" href="b.xhtml" media-type="application/xhtml+xml" /></manifest></package>')
+        z.writestr('a.xhtml', '<html><body><svg role="img"/></body></html>')
+        z.writestr('b.xhtml', '<html><body>text</body></html>')
+        z.writestr('nav.xhtml', NAV)
+        z.writestr('toc.ncx', NCX)
+    print('a.md:3: WARNING: something odd', file=sys.stderr)
+    sys.exit(0)
 os.makedirs(os.path.join(out, '_static'), exist_ok=True)
 open(os.path.join(out, '_static', 'book.css'), 'w').write('body { color: #111; }')
 open(os.path.join(out, 'fig.svg'), 'w').write('<svg/>')
@@ -56,6 +73,20 @@ open(os.path.join(out, 'index.html'), 'w', encoding='utf-8').write(
     '<pre>' + args + '</pre><div>' + ('SVG-IN' if '<svg' in body else 'NO-SVG') + '</div></body></html>')
 print('a.md:3: WARNING: something odd', file=sys.stderr)
 '''
+
+
+NAV = ('<?xml version="1.0" encoding="utf-8"?><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">'
+       '<body><nav epub:type="toc"><ol><li><a href="index.xhtml">Book</a></li><li><a href="parts/p.xhtml">Part</a><ol>'
+       '<li><a href="chapters/c.xhtml">Chapter</a><ol><li><a href="chapters/c.xhtml#c-1-abstract">1. Abstract</a><ol>'
+       '<li><a href="chapters/c.xhtml#c-11-x">1.1 X</a></li></ol></li></ol></li></ol></li></ol></nav></body></html>')
+NCX = ('<?xml version="1.0"?><ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1"><navMap>'
+       '<navPoint id="n1" playOrder="1"><navLabel><text>Part</text></navLabel><content src="parts/p.xhtml"/>'
+       '<navPoint id="n2" playOrder="1"><navLabel><text>Part</text></navLabel><content src="parts/p.xhtml"/>'
+       '<navPoint id="n3" playOrder="2"><navLabel><text>Chapter</text></navLabel><content src="chapters/c.xhtml"/>'
+       '<navPoint id="n4" playOrder="3"><navLabel><text>1. Abstract</text></navLabel><content src="chapters/c.xhtml#c-1"/></navPoint>'
+       '</navPoint></navPoint></navPoint><navPoint id="n9" playOrder="9"><navLabel><text>A</text></navLabel><content src="a.xhtml"/>'
+       '</navPoint></navMap></ncx>')
+SPHINX = SPHINX.replace("z.writestr('nav.xhtml', NAV)", "z.writestr('nav.xhtml', %r)" % NAV).replace("z.writestr('toc.ncx', NCX)", "z.writestr('toc.ncx', %r)" % NCX)
 
 
 def program(folder, name, code):
@@ -129,6 +160,17 @@ class Units(unittest.TestCase):
                               'Again <span class="math"><svg id="ra">A</svg></span>.\n')
         self.assertEqual(counts[m], 2)
 
+    def test_the_shared_stylesheet_suits_an_epub(self):
+        css = helpers.read(os.path.join(helpers.SKILL_DIR, 'templates', 'book', '_static'), 'book.css')
+        for rejected in ('^=', ':is(', ':has(', '@page'):  # what epubcheck's CSS parser refuses; book-html.css has them
+            self.assertNotIn(rejected, css)
+        body = re.search(r'(?m)^body \{([^}]*)\}', css).group(1)
+        self.assertNotIn('background', body)  # an e-reader's own page colour shows through
+        self.assertNotRegex(body, r'(?<![-\w])color:')
+        self.assertNotRegex(css, r'(?m)^html \{')
+        conf = helpers.read(os.path.join(helpers.SKILL_DIR, 'templates', 'book'), 'conf.py')
+        self.assertIn("epub_exclude_files = ['_static/book-html.css']", conf)
+
     def test_sphinx_language(self):
         self.assertEqual([bookbuild.sphinx_language(t) for t in ('en', 'zh-Hans', 'zh-Hant', 'pt-BR', 'de-CH', None)],
                          ['en', 'zh_CN', 'zh_TW', 'pt_BR', 'de_CH', 'en'])
@@ -160,7 +202,7 @@ class Commands(unittest.TestCase):
         os.environ['STUB_LOG'] = self.log
 
     def tearDown(self):
-        for k in ('STUB_LOG', 'STUB_EMPTY', 'STUB_SETUP', 'STUB_SPHINX_FAIL', 'STUB_PDF_FAIL'):
+        for k in ('STUB_LOG', 'STUB_EMPTY', 'STUB_SETUP', 'STUB_SPHINX_FAIL', 'STUB_PDF_FAIL', 'STUB_EPUB_FAIL'):
             os.environ.pop(k, None)
         shutil.rmtree(self.tmp, ignore_errors=True)
 
@@ -222,7 +264,7 @@ class Commands(unittest.TestCase):
         staged = os.path.join(self.tmp, 'staged')
         for argv, says in [(['render', staged], 'needs --vendor'), (['render', staged, '--vendor', self.tmp], 'needs --vendor'),
                            (['render', staged, '--vendor', self.vendor], "isn't a staged book"),
-                           (['build', staged, '--vendor', self.vendor, '--formats', 'epub'], '--formats can be pdf, html, not epub'),
+                           (['build', staged, '--vendor', self.vendor, '--formats', 'mobi'], '--formats can be pdf, epub, html, not mobi'),
                            (['build', staged, '--vendor', self.vendor, '--formats', ','], 'not nothing')]:
             r = self.book(*argv)
             self.assertEqual(r.code, 2, argv)
@@ -238,7 +280,7 @@ class Commands(unittest.TestCase):
         text = helpers.read(out, f'{name}-v1.html')
         self.assertIn('SVG-IN', text)  # Sphinx read the rendered pages
         for arg in ('-b singlehtml', f'-c {os.path.join(helpers.SKILL_DIR, "templates", "book")}', f'project={name}',
-                    'version=v1', 'release=v1', 'language=en'):
+                    'version=v1', 'release=v1', 'language=en', f'epub_author={name}', 'epub_publisher=sllmwiki'):
             self.assertIn(arg, text)
         data = json.loads(helpers.read(out, 'staged/book.json'))
         self.assertEqual(data['files'], {'html': html})
@@ -290,6 +332,64 @@ class Commands(unittest.TestCase):
                           '--chrome', os.path.join(self.tmp, 'no-chrome'), '--sphinx', self.sphinx)
         self.assertEqual(r.code, 1)
         self.assertIn('pdf failed: no Chrome found to print it', r.out)
+
+    def test_an_epub(self):
+        out = os.path.join(self.tmp, 'out')
+        r = self.book('build', out, '--vendor', self.vendor, '--formats', 'epub', '--chrome', self.chrome, '--sphinx', self.sphinx, '--version', 'v1')
+        self.assertEqual(r.code, 0, r.err)
+        data = json.loads(helpers.read(out, 'staged/book.json'))
+        epub = data['files']['epub']
+        self.assertEqual((list(data['files']), os.path.basename(epub)), (['epub'], f'{os.path.basename(self.root)}-v1.epub'))
+        with zipfile.ZipFile(epub) as z:
+            self.assertEqual(z.namelist()[0], 'mimetype')
+            self.assertEqual(z.getinfo('mimetype').compress_type, zipfile.ZIP_STORED)
+            package = z.read('content.opf').decode()
+            nav, ncx = z.read('nav.xhtml').decode(), z.read('toc.ncx').decode()
+        self.assertEqual(re.findall(r'href="([^"]+)"', nav), ['index.xhtml', 'parts/p.xhtml', 'chapters/c.xhtml'])  # whole pages only
+        self.assertIn('xmlns:epub="http://www.idpf.org/2007/ops"', nav)
+        self.assertEqual(re.findall(r'<navPoint id="(\w+)" playOrder="(\d+)"', ncx), [('n1', '1'), ('n3', '2'), ('n9', '3')])  # folded, renumbered
+        self.assertIn('<item properties="svg" id="a" href="a.xhtml"', package)  # the page with an SVG
+        self.assertIn('<item id="b" href="b.xhtml"', package)
+        self.assertEqual([w['where'] for w in data['warnings']], ['sphinx'])  # the same warning isn't listed twice
+        os.environ['STUB_EPUB_FAIL'] = '1'
+        out2 = os.path.join(self.tmp, 'out2')
+        r = self.book('build', out2, '--vendor', self.vendor, '--formats', 'epub,html', '--chrome', self.chrome, '--sphinx', self.sphinx)
+        self.assertEqual(r.code, 1)
+        data = json.loads(helpers.read(out2, 'staged/book.json'))
+        self.assertEqual(list(data['files']), ['html'])  # one format failing doesn't stop the others
+        self.assertIn('epub: broken', data['failed']['epub'])
+        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-release]\npdf_book = false\nepub_book = true\n')
+        out3 = os.path.join(self.tmp, 'out3')
+        os.environ.pop('STUB_EPUB_FAIL')
+        self.book('build', out3, '--vendor', self.vendor, '--chrome', self.chrome, '--sphinx', self.sphinx)
+        self.assertEqual(list(json.loads(helpers.read(out3, 'staged/book.json'))['files']), ['epub'])
+
+    def test_an_epub_sphinx_writes_nothing_for(self):
+        with mock.patch.object(subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, '', '')):
+            mod = helpers.load_script('book.py')
+            self.assertEqual(mod.epub_book(self.root, self.tmp, self.tmp, {'name': 'w', 'title': 'W', 'author': 'W', 'version': 'v'}, 'sphinx-build'),
+                             (None, 'Sphinx wrote no EPUB'))
+
+    def test_a_title_and_an_author(self):
+        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-release]\npdf_book = true\nhtml_book = true\n'
+                                                'title = "Notes on systems"\nauthor = "Mengjia Sun"\n')
+        out = os.path.join(self.tmp, 'out')
+        r = self.book('build', out, '--vendor', self.vendor, '--chrome', self.chrome, '--sphinx', self.sphinx, '--version', 'v1')
+        self.assertEqual(r.code, 0, r.err)
+        data = json.loads(helpers.read(out, 'staged/book.json'))
+        name = os.path.basename(self.root)
+        self.assertEqual((data['name'], data['title'], data['author']), (name, 'Notes on systems', 'Mengjia Sun'))
+        self.assertEqual(sorted(os.path.basename(f) for f in data['files'].values()), [f'{name}-v1.html', f'{name}-v1.pdf'])  # files keep the name
+        self.assertTrue(helpers.read(out, 'staged/index.md').startswith('(book--cover)=\n# {Notes on systems 📖}\n'))
+        self.assertIn('[{Notes on systems 📖}](#book--cover)', helpers.read(out, 'staged/chapters/what-is-alpha.md'))
+        self.assertEqual(helpers.read(out, f'{name}-v1.pdf'), '%PDF-1.4 "{Notes on systems 📖}"')  # the running head
+        sphinx = helpers.read(out, f'{name}-v1.html')
+        for arg in ('project=Notes on systems', 'copyright=Mengjia Sun', 'epub_author=Mengjia Sun'):
+            self.assertIn(arg, sphinx)
+        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-release]\ntitle = "Notes on systems"\n')
+        staged = os.path.join(self.tmp, 'staged')
+        self.book('stage', staged)
+        self.assertEqual(json.loads(helpers.read(staged, 'book.json'))['author'], 'Notes on systems')  # the title, by default
 
     def test_known_issues(self):
         self.assertEqual(book.issues({'problems': [], 'warnings': []}), '')

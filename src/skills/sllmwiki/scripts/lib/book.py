@@ -542,8 +542,11 @@ class Staged:
         self.files, self.figures, self.manifest = files, figures, manifest
 
 
-def stage(root, name, version, date, commit, source=None):
-    """The book of the wiki at root as plain Markdown for Sphinx (design §6.2); source is the wiki's URL."""
+def stage(root, name, version, date, commit, source=None, title=None, author=None):
+    """The book of the wiki at root as plain Markdown for Sphinx (design §6.2): name names its files, title (by
+    default the name) is on its cover, author defaults to the title, and source is the wiki's URL."""
+    title = title or name
+    author = author or title
     b = model(root)
     pack = language.pack(config.get(root).settings['language']) or language.ENGLISH
     files, figures, problems, linked_by, texts = {}, [], list(b.problems), {}, {}
@@ -559,23 +562,23 @@ def stage(root, name, version, date, commit, source=None):
     for slug in b.order():
         r = rewrite(root, b, slug)
         texts[slug] = r.text
-        files[f'chapters/{slug}.md'] = head(b, name, trail(b.chapters[slug].tag), pack) + r.text.rstrip('\n') + '\n' + ENDMARK
+        files[f'chapters/{slug}.md'] = head(b, title, trail(b.chapters[slug].tag), pack) + r.text.rstrip('\n') + '\n' + ENDMARK
         problems += r.problems
         figures += r.figures
         for s in r.sources:
             linked_by.setdefault(s, []).append(slug)
     summaries = {slug: summary(text) for slug, text in texts.items()}
     for tag, part in parts.items():
-        files[f'parts/{tag}.md'] = head(b, name, trail(tag)[:-1], pack) + part_page(b, part, pack, summaries)
+        files[f'parts/{tag}.md'] = head(b, title, trail(tag)[:-1], pack) + part_page(b, part, pack, summaries)
     pages = [(APPENDICES[0][2], sources_page(b, manifest.load(root, 'sources'), linked_by, pack) if linked_by else None),
              (APPENDICES[1][2], glossary_page(b, texts, pack)), (APPENDICES[2][2], questions_page(b, texts, pack))]
     for file, text in pages:
         if text:
-            files[f'{file}.md'] = head(b, name, [], pack) + text
+            files[f'{file}.md'] = head(b, title, [], pack) + text
     made = [(label, t, file) for (label, t, file), (_, text) in zip(APPENDICES, pages) if text]
     recorded = manifest.load(root, 'narratives')
     models = model_names([m for slug in b.order() for m in (recorded[slug].get('models') or {}).values()])
-    files['index.md'] = cover(name, version, date, commit, pack, [f'parts/{p.tag}' for p in b.parts] + [f for _, _, f in made],
+    files['index.md'] = cover(title, version, date, commit, pack, [f'parts/{p.tag}' for p in b.parts] + [f for _, _, f in made],
                               contents(b, pack, [(label, t) for label, t, _ in made]), source, models)
     renders = {}
     for path, text in sorted(files.items()):
@@ -584,7 +587,7 @@ def stage(root, name, version, date, commit, source=None):
             if path not in entry['files']:
                 entry['files'].append(path)
     anchors = sorted({line[1:-2] for t in files.values() for line in t.split('\n') if re.match(r'\([^()\s]+\)=\Z', line)})
-    book_json = {'name': name, 'version': version, 'date': date, 'commit': commit, 'source': source, 'models': models,
+    book_json = {'name': name, 'title': title, 'author': author, 'version': version, 'date': date, 'commit': commit, 'source': source, 'models': models,
                  'parts': [{'tag': s.tag, 'depth': s.depth, 'chapters': s.chapters} for p in b.parts for s in p.walk()],
                  'order': b.order(), 'anchors': anchors,
                  'renders': [dict(id=k, **v) for k, v in renders.items()],

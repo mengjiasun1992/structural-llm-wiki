@@ -23,4 +23,7 @@ obsidian = false            # true: set the wiki up to open sllmwiki/ as an Obsi
 # The book a release attaches, each format turned on on its own (/sllmwiki:release builds it).
 [structural-llm-wiki-release]
 pdf_book = true             # a PDF: share, print, read anywhere
+epub_book = false           # an EPUB: e-readers and phones
 html_book = false           # one self-contained HTML file, for a browser
+title = ""                  # the book's title, on its cover and in readers' libraries; empty: the repository's name
+author = ""                 # its author; empty: the title

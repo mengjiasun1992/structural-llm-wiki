@@ -36,6 +36,8 @@ The first time `init` runs, `Config.toml` gets a release table:
 pdf_book = true      # a PDF: share, print, read anywhere
 epub_book = false    # an EPUB: e-readers and phones
 html_book = false    # one self-contained HTML file, for a browser
+title = ""           # the book's title; empty: the repository's name
+author = ""          # its author; empty: the title
 ```
 
 `init` also installs the release workflow, which does nothing until a release
@@ -131,6 +133,8 @@ on a light card so they stay readable.
 pdf_book = true      # a PDF: share, print, read anywhere
 epub_book = false    # an EPUB: e-readers and phones
 html_book = false    # one self-contained HTML file, for a browser
+title = ""           # the book's title; empty: the repository's name
+author = ""          # its author; empty: the title
 ```
 
 - **A table of its own,** read by `lib/config.py` like the others: unknown
@@ -140,6 +144,7 @@ html_book = false    # one self-contained HTML file, for a browser
   valid: a release then has notes and no files.
 - **Each key appears when its format works** (the execution plan's phases),
   so no setting ever names something that isn't there.
+- **The title and the author** are settings: a repository's name is rarely a book's. Files keep the repository's name (`<repo>-<version>.pdf`), so a title with spaces or Chinese never lands in a link; the EPUB's author is `author`, by default the title, and its publisher sllmwiki.
 - **Nothing else is configurable at first** (theme, cover, fonts, order). The
   book has to read well with no tuning (§5); a setting is added when a real
   wiki needs one, as for every setting (design doc §4.9).
@@ -166,7 +171,7 @@ html_book = false    # one self-contained HTML file, for a browser
 
 | Part | From |
 |---|---|
-| Cover | the wiki's name (the repository's) and 📖; "Made by sllmwiki and \<models\>, from \<wiki\>", the models from the narratives manifest, the wiki linked to its repository (`--source`, by default its `origin` remote); the version, the date, the commit |
+| Cover | the book's title (`title`, by default the repository's name) and 📖; "Made by sllmwiki and \<models\>, from \<wiki\>", the models from the narratives manifest, the wiki linked to its repository (`--source`, by default its `origin` remote); the version, the date, the commit |
 | Front page | §9's text, the markers' meaning, how citations work |
 | Contents | generated: a list of links to the parts, sections and chapters (a visible toctree would pull the whole book into a single-file HTML) |
 | One part per top-level tag, sections per child tag | `tags.yaml`: each part opens with links up, the tag's description, and a map of its chapters (each with its Abstract's first paragraph) and sections (each with its description) |
@@ -284,8 +289,12 @@ shouldn't carry to every install, stay in the action (`render --vendor`):
 - **Structure:** every toctree is hidden. A single-file HTML puts a visible
   toctree's pages in its place, so the contents and each part's map of its
   chapters are lists of links staging writes.
-- **Theme:** Sphinx's `basic` theme with the action's own stylesheet: one
-  stylesheet for screen, print and EPUB, and no theme package to install.
+- **Theme:** Sphinx's `basic` theme with the skill's own stylesheets, and no
+  theme package to install: `book.css`, for every format, in CSS 2.1
+  selectors that e-readers and `epubcheck` read; and `book-html.css`, which
+  the single-file HTML and the PDF add, for what relies on their one-page
+  structure (section ids, `:is()`, `:has()`) and on Chrome's printing (page
+  margin boxes). The EPUB neither links nor packs it.
 - **Language:** Sphinx's `language` is the wiki's `language` (Config.toml);
   generated labels (Appendix, Glossary, Sources) come from the language pack.
 - **Builders:** `singlehtml` for the HTML and PDF, `epub` for the EPUB, reusing
@@ -308,11 +317,13 @@ shouldn't carry to every install, stay in the action (`render --vendor`):
   builds the PDF, so Chinese text and Unicode such as `ₜ₊₁` print correctly.
   Chrome embeds a CJK or color font as Type 3 glyphs; the text still extracts,
   which is what the check tests.
-- **EPUB:** Sphinx's EPUB 3 with the cover, a navigation document from the
-  contents, inline SVG, and a small-screen stylesheet (wide tables scroll,
-  diagrams fit the width). Sphinx doesn't declare the pages that hold inline
-  SVG (`properties="svg"` in the package file), so the build adds it.
-  Validated with `epubcheck`.
+- **EPUB:** Sphinx's EPUB 3, from the same staged, rendered pages: the cover
+  page first (text, as in the other formats; no cover image), the reader's
+  contents from every part, section and chapter (`epub_tocscope =
+  'includehidden'`, since the toctrees are hidden), inline SVG, and the small
+  screen rules (narrower margins, tables that scroll, diagrams that fit).
+  Sphinx doesn't declare the pages that hold inline SVG (`properties="svg"`
+  in the package file), so the build adds it. Validated with `epubcheck`.
 
 ### 6.6 The release workflow and action
 

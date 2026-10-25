@@ -138,7 +138,11 @@ max_words = 3000            # a template's word budget, over its own
 obsidian = false            # true: set the wiki up to open as an Obsidian vault
 
 [structural-llm-wiki-release]
-html_book = false           # true: a release attaches the wiki as one HTML file
+pdf_book = true             # a release attaches the wiki as a PDF
+epub_book = false           # true: as an EPUB too, for e-readers
+html_book = false           # true: as one HTML file, for a browser
+title = ""                  # the book's title; empty: the repository's name
+author = ""                 # its author; empty: the title
 ```
 
 **Books.** `/sllmwiki:release` publishes a dated release of the wiki on GitHub (`v2026.10.24`), with notes on what changed since the last one, and the wiki's release workflow attaches the wiki as a book in each format the `[structural-llm-wiki-release]` table turns on: a cover, a contents page, a part per topic with each chapter's summary, the narratives in teaching order, and appendices of sources, a glossary and open questions. Its diagrams and math are drawn as they are on GitHub, and the file works offline. GitHub's *Releases → Draft a new release* does the same without the agent; `--preview` builds the book from a branch as a workflow artifact. The book carries each source's abstract, license and link, never its saved copy. How it works: [docs/book_design.md](docs/book_design.md).

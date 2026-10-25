@@ -18,7 +18,7 @@ suppress_warnings = ['misc.highlighting_failure']  # a block no lexer knows stay
 
 html_theme = 'basic'
 html_static_path = ['_static']
-html_css_files = ['book.css']
+html_css_files = ['book.css', 'book-html.css']
 html_sidebars = {'**': []}
 html_show_sphinx = False
 html_show_sourcelink = False
@@ -27,6 +27,10 @@ html_use_index = False
 html_domain_indices = False
 
 epub_show_urls = 'no'
+epub_css_files = ['book.css']  # without book-html.css, which only the one-page HTML and the PDF use
+epub_exclude_files = ['_static/book-html.css']  # nor packed: epubcheck reads every stylesheet in the book
+epub_tocscope = 'includehidden'  # the toctrees are hidden (the contents are links), but the reader's contents list them
+epub_tocdepth = 6  # parts, their sections at any depth, every chapter, and the chapters' own sections
 
 
 def staged_ids(app, doctree):

@@ -106,5 +106,33 @@ class CheckBook(unittest.TestCase):
             self.assertIn('pdfinfo failed: broken', self.run_tool(GOOD, '--pdf', os.path.join(self.tmp, 'book.pdf')).err)
 
 
+    def java(self, report):
+        """A stand-in java that answers -jar epubcheck.jar ... --json - with report (None: no JSON)."""
+        bin_ = os.path.join(self.tmp, 'jbin')
+        out = 'Validating.\nEpub Name: x\n' + (json.dumps(report) if report is not None else 'Exception in thread main')
+        helpers.write(bin_, 'java', f'#!{sys.executable}\nimport sys\nsys.stdout.write({out!r})\n')
+        os.chmod(os.path.join(bin_, 'java'), 0o755)
+        return mock.patch.dict(os.environ, {'PATH': bin_ + os.pathsep + os.environ['PATH']})
+
+    def test_an_epub(self):
+        for f in ('book.epub', 'epubcheck.jar'):
+            helpers.write(self.tmp, f, 'x')
+        epub = ['--epub', os.path.join(self.tmp, 'book.epub'), '--epubcheck', os.path.join(self.tmp, 'epubcheck.jar')]
+        with self.java({'messages': [{'severity': 'WARNING', 'ID': 'W', 'message': 'meh', 'locations': []}]}):
+            self.assertEqual(self.run_tool(GOOD, *epub).code, 0)  # warnings don't fail it
+        bad = {'messages': [{'severity': 'ERROR', 'ID': 'OPF-014', 'message': 'The property "svg" should be declared',
+                             'locations': [{'path': 'chapters/a.xhtml', 'line': -1}]}, {'severity': 'FATAL', 'ID': 'RSC-016', 'message': 'bad XML'}]}
+        with self.java(bad):
+            r = self.run_tool(GOOD, *epub, '--json')
+        self.assertEqual(r.code, 1)
+        self.assertEqual([f['message'] for f in json.loads(r.out)['findings']],
+                         ['OPF-014 chapters/a.xhtml:-1: The property "svg" should be declared', 'RSC-016 :: bad XML'])
+        with self.java(None):
+            r = self.run_tool(GOOD, *epub)
+        self.assertEqual((r.code, 'epubcheck gave no report' in r.err), (2, True))
+        r = self.run_tool(GOOD, '--epub', os.path.join(self.tmp, 'book.epub'))
+        self.assertEqual((r.code, '--epub needs --epubcheck' in r.err), (2, True))
+
+
 if __name__ == '__main__':
     unittest.main()
