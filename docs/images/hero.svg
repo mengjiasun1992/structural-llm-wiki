@@ -107,7 +107,6 @@
   </g>
   <g fill="#161a36" stroke="#8fa2ff" stroke-width="4">
     <circle cx="330" cy="520" r="9"/><circle cx="410" cy="520" r="9"/><circle cx="490" cy="520" r="9"/><circle cx="560" cy="520" r="9"/>
-    <circle cx="800" cy="520" r="9"/>
   </g>
   <g fill="#161a36" stroke="#f5b544" stroke-width="4"><circle cx="645" cy="556" r="8"/></g>
   <circle cx="730" cy="520" r="12" fill="#f5b544"/>
@@ -123,16 +122,26 @@
     <text x="1030" y="516" font-size="13" fill="#c9c3b3">your group, and</text>
     <text x="1030" y="534" font-size="13" fill="#c9c3b3">their agents</text>
   </g>
+  <!-- 5. a release: the wiki as a book -->
+  <path d="M786 508 h22 l10 12 l-10 12 h-22 Z" fill="#f5b544" stroke="#161a36" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="794" cy="520" r="3" fill="#161a36"/>
+  <text x="776" y="556" font-size="13" fill="#c9c3b3"><tspan fill="#f5b544" font-weight="800">5 </tspan>each release, a book</text>
+  <g font-size="10" font-weight="800" fill="#161a36" text-anchor="middle">
+    <rect x="790" y="566" width="34" height="18" rx="5" fill="#f26d6d"/><text x="807" y="579">PDF</text>
+    <rect x="830" y="566" width="40" height="18" rx="5" fill="#6fd39a"/><text x="850" y="579">EPUB</text>
+    <rect x="876" y="566" width="42" height="18" rx="5" fill="#8fa2ff"/><text x="897" y="579">HTML</text>
+  </g>
   <path d="M860 520 H 878" stroke="#8fa2ff" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 8"/>
 
   <!-- the words -->
   <text x="868" y="226" font-size="34" font-weight="800" fill="#fbf6ea">Structural</text>
   <text x="868" y="266" font-size="34" font-weight="800" fill="#fbf6ea">LLM Wiki</text>
   <g font-size="17" fill="#c9c3b3">
-    <circle cx="874" cy="302" r="3.5" fill="#f5b544"/><text x="888" y="308">Ask your agent a question</text>
-    <circle cx="874" cy="330" r="3.5" fill="#f5b544"/><text x="888" y="336">Get an answer that teaches</text>
-    <circle cx="874" cy="358" r="3.5" fill="#f5b544"/><text x="888" y="364">Every claim tied to its source</text>
-    <circle cx="874" cy="386" r="3.5" fill="#f5b544"/><text x="888" y="392">Reviewed like code</text>
-    <circle cx="874" cy="414" r="3.5" fill="#f5b544"/><text x="888" y="420" fill="#f5b544" font-weight="700">Kept in git for your group</text>
+    <circle cx="874" cy="302" r="3.5" fill="#f5b544"/><text x="888" y="308">Answers you can check</text>
+    <circle cx="874" cy="330" r="3.5" fill="#f5b544"/><text x="888" y="336">Written to teach</text>
+    <circle cx="874" cy="358" r="3.5" fill="#f5b544"/><text x="888" y="364">Knowledge that compounds</text>
+    <circle cx="874" cy="386" r="3.5" fill="#f5b544"/><text x="888" y="392">Stays true as sources change</text>
+    <circle cx="874" cy="414" r="3.5" fill="#f5b544"/><text x="888" y="420">Reviewed like code</text>
+    <circle cx="874" cy="442" r="3.5" fill="#f5b544"/><text x="888" y="448" fill="#f5b544" font-weight="700">Kept in git, shared as a book</text>
   </g>
 </svg>

@@ -17,7 +17,7 @@ The Structural LLM Wiki gives that knowledge a durable home: a git repository th
 3. **Answer.** For each question, the agent reads what the question needs, once, and writes a narrative that answers it, with every claim traced to a section of a source.
 4. **Verify.** Scripts check everything mechanical; lint checks each claim against the source section it cites and against related narratives, and grades each narrative against its template's aim. When a source changes, exactly the narratives that depend on it are checked again.
 5. **Review.** The run lands as one pull request with a review checklist; the owner comments or merges.
-6. **Use.** A person or another agent asks the wiki a question and gets a cited answer, read from the smallest thing that answers it: a narrative's abstract, one section, one cited source section.
+6. **Use.** A person or another agent asks the wiki a question and gets a cited answer, read from the smallest thing that answers it: a narrative's abstract, one section, one cited source section. Or they read the whole wiki as a book: each release attaches it as a PDF, an EPUB or one HTML file (§10).
 
 ![The knowledge loop: you ask; your coding agent collects sources and answers; scripts and lint verify; you review one pull request; people and agents use the cited answers, and what they can't answer starts the next run](images/knowledge-loop.svg)
 
@@ -27,7 +27,7 @@ Each run arrives as a single pull request against the default branch, so people 
 
 This document covers the architecture and the decisions behind it. The skill's files are the source of truth for step-by-step behavior: `src/skills/sllmwiki/workflows/` and `src/skills/sllmwiki/steps/`.
 
-**One skill: two workflows made of steps.** `build` builds knowledge (§5) and `query` uses it (§6), plus a one-time `init`. They are made of five steps: `tags`, `ingest`, `smes`, `narrative` and `lint`, and each step also runs on its own. They share one data model, one set of scripts and one set of rules, so they live in a single skill: `SKILL.md` routes to a workflow or step file, which the agent reads only when it runs. Separate skills would each need their own copy of the scripts, since an installer copies one skill folder at a time and a skill can rely only on files inside it.
+**One skill: workflows made of steps.** `build` builds knowledge (§5), `query` uses it (§6) and `release` publishes it as a book (§10), plus `init`, which sets a wiki up and keeps it current. `build` is made of five steps: `tags`, `ingest`, `smes`, `narrative` and `lint`, and each step also runs on its own; a sixth, `template`, gives a wiki its own kind of narrative (§4.5.5). They share one data model, one set of scripts and one set of rules, so they live in a single skill: `SKILL.md` routes to a workflow or step file, which the agent reads only when it runs. Separate skills would each need their own copy of the scripts, since an installer copies one skill folder at a time and a skill can rely only on files inside it.
 
 ## 2. Principles
 
@@ -47,7 +47,7 @@ This document covers the architecture and the decisions behind it. The skill's f
   - **Keep the right attention.** The context holds what the question needs, the most relevant, authoritative and newest material last (§7.1); parent and neighboring topics are noted, not read.
 - **Say each rule once.** Every rule has one home (§9), and other files point to it.
 - **Readable where people read.** Plain markdown that renders the same on GitHub, in Obsidian and in the book renderers (§4.8), with no export step and no second copy.
-- **Only what's used.** A setting exists only when a real wiki or a group's policy needs it, it has a safe default, and a script enforces it (§4.9). An add-on is off until a wiki turns it on, and it costs nothing while off. No migrations, and no states a real wiki hasn't needed (§11 lists what waits).
+- **Only what's used.** A setting exists only when a real wiki or a group's policy needs it, it has a safe default, and a script enforces it (§4.9). An add-on is off until a wiki turns it on, and it costs nothing while off. No migrations, and no states a real wiki hasn't needed (§12 lists what waits).
 - **Tool-neutral.** The workflows name capabilities (docs search, code search, page fetch, git history) rather than specific tools.
 
 ## 3. Layout
@@ -62,20 +62,23 @@ structural-llm-wiki/
 ├── src/
 │   ├── skills/sllmwiki/                   # the one skill
 │   │   ├── SKILL.md                       # routing and the rules every run shares
-│   │   ├── workflows/                     # build, query, init: read when the workflow runs
-│   │   ├── steps/                         # tags, ingest, smes, narrative, lint: read when the step runs
+│   │   ├── workflows/                     # build, query, release, init: read when the workflow runs
+│   │   ├── steps/                         # tags, ingest, smes, narrative, lint, template: read when the step runs
 │   │   ├── scripts/                       # the deterministic scripts, each documented by its --help
 │   │   │   └── lib/                       # shared modules
-│   │   ├── templates/                     # narratives/ (templates and guides); languages/ (language packs); wiki/ (what init installs)
+│   │   ├── templates/                     # narratives/ (templates and guides); languages/ (language packs); book/ (Sphinx's conf.py and stylesheets);
+│   │   │                                  # wiki/ and the *.yml workflows (what init installs)
 │   │   └── tests/                         # unit tests for the scripts, and the instruction budgets
 │   ├── commands/                          # Claude Code commands, one per workflow and step
-│   ├── actions/                           # GitHub actions a wiki's CI calls
-│   └── tools/                             # CI-only tools outside the skill (check-yaml)
+│   ├── actions/                           # GitHub actions a wiki's CI calls: wiki-checks, review-checklist, release-book
+│   └── tools/                             # CI-only tools outside the skill (check-yaml, check-book)
 ├── evals/                                 # behavior evals, outside the skill so they never ship with it
 └── docs/
     ├── images/                            # this document's and the README's figures
     ├── structural_llm_wiki_design.md      # this file
-    └── skill_execution_plan.md            # how it is built
+    ├── skill_execution_plan.md            # how it is built
+    ├── book_design.md                     # the book a release attaches (§10)
+    └── book_execution_plan.md             # how the book was built
 ```
 
 **A wiki repository** (created by `init`), always laid out the same way:
@@ -88,9 +91,9 @@ structural-llm-wiki/
 ├── CLAUDE.md                 # imports AGENTS.md for Claude Code
 ├── .gitignore
 ├── .claude/settings.json     # offers the sllmwiki plugin to the group's members
-├── .github/workflows/        # wiki-checks.yml; review-checklist.yml (red until a run PR's boxes are ticked)
+├── .github/workflows/        # wiki-checks.yml; review-checklist.yml (red until a run PR's boxes are ticked); release-book.yml (§10)
 ├── Config.toml               # optional: the wiki's settings and add-ons (§4.9)
-├── templates/                # optional: the wiki's own narrative templates (§4.5) and languages/ packs (§4.9)
+├── templates/                # optional: the wiki's own narrative templates (§4.5.5) and languages/ packs (§4.9)
 └── sllmwiki/                 # the knowledge: also the Obsidian vault and a book's source
     ├── .obsidian/graph.json  # with the Obsidian add-on: written once by init
     ├── tags/
@@ -99,7 +102,7 @@ structural-llm-wiki/
     ├── sources/              # sources, saved verbatim
     │   └── manifest.yaml
     └── narratives/           # narratives, one per question
-        ├── figures/<slug>/   # figures a narrative generates (§4.5)
+        ├── figures/<slug>/   # figures a narrative generates (§4.5.3)
         └── manifest.yaml
 ```
 
@@ -216,7 +219,9 @@ The question (the title), the Abstract, the version and the dates live in the na
 
 One question per file in `narratives/`; the question is the title, unchanged.
 
-**Structure.** Every narrative has the same top and appendices, defined once in `templates/narratives/shared.md`: an **Abstract** (one sentence on the problem, the answer in two or three, then 3–5 key takeaways; 80–150 words), a small **Terminology** table of the terms the whole narrative leans on and every abbreviation, the body, then an optional **Appendix** (the Glossary, and details and examples a reader may want but doesn't need to follow the answer), **SMEs**, **References** (sources read, code references, related narratives, citations) and **Metadata** (version, template, model, history, reading plan). Every heading of level 2 to 4 is numbered (`## 1. Abstract`, `### 5.1 …`). The shared writing guide holds the style every narrative shares, each rule stated once, in priority order: context once, in layers (the Abstract for a reader deciding whether to read on, the first section's orientation, each key example's scene, each section's opening), ideas before sources, the map before the details, one or two key examples carried through the sections, a shape that fits the content, and detail in its place. A template's guide adds only what its kind of narrative needs.
+#### 4.5.1 Structure
+
+Every narrative has the same top and appendices, defined once in `templates/narratives/shared.md`: an **Abstract** (one sentence on the problem, the answer in two or three, then 3–5 key takeaways; 80–150 words), a small **Terminology** table of the terms the whole narrative leans on and every abbreviation, the body, then an optional **Appendix** (the Glossary, and details and examples a reader may want but doesn't need to follow the answer), **SMEs**, **References** (sources read, code references, related narratives, citations) and **Metadata** (version, template, model, history, reading plan). Every heading of level 2 to 4 is numbered (`## 1. Abstract`, `### 5.1 …`). The shared writing guide holds the style every narrative shares, each rule stated once, in priority order: context once, in layers (the Abstract for a reader deciding whether to read on, the first section's orientation, each key example's scene, each section's opening), ideas before sources, the map before the details, one or two key examples carried through the sections, a shape that fits the content, and detail in its place. A template's guide adds only what its kind of narrative needs.
 
 ![Anatomy of a narrative: the question as its title; the Abstract and Terminology for a reader deciding whether to read on; the template's sections for a reader learning it; the appendices and Metadata for a reviewer checking it](images/narrative-anatomy.svg)
 
@@ -224,11 +229,17 @@ One question per file in `narratives/`; the question is the title, unchanged.
 
 **Orientation.** Every narrative's first section orients the reader in a few sentences before any definition or mechanism: what the subject is, where and when one meets it, who deals with it, and why it matters.
 
-**Links between narratives.** A narrative that mentions a concept another narrative covers links to it, to its section where one fits, and says it in a sentence at most instead of explaining it again, so the wiki says each thing once and its narratives connect. Section anchors carry the section's number, so `narrative-format` and `wiki-check` report a link to a section that isn't there (`NARRATIVE_ANCHOR`), and `finish-narrative` and `wiki-check --fix` repair one whose section was only renumbered.
+#### 4.5.2 Links between narratives
 
-**Figures.** Diagrams are mermaid by default. Where mermaid can't show an idea well, such as a curve, measured data or geometry, a narrative may embed a figure it generates, computed from its own formulas or cited numbers, never copied from a source. It is an SVG (a PNG only for what SVG can't hold), the two formats GitHub, Obsidian, mdBook and Sphinx all show, in `narratives/figures/<slug>/`, and it is kept small for the agents that may read it: an SVG under 40 KB, a PNG under 150 KB and 1600 px wide. Every diagram and figure has a caption line under it, `*Figure 5-1: what it shows.*`, numbered by its section; with the alt text, the caption says what the picture shows, so no agent needs to open it. `finish-narrative` renumbers the captions and the references to them. `narrative-format` checks a figure's place, format, alt text and size, that an SVG is self-contained and has an opaque background for dark themes, and every caption; `wiki-check` reports a figure no narrative shows. `images = false` (§4.9) keeps a wiki to mermaid.
+A narrative that mentions a concept another narrative covers links to it, to its section where one fits, and says it in a sentence at most instead of explaining it again, so the wiki says each thing once and its narratives connect. Section anchors carry the section's number, so `narrative-format` and `wiki-check` report a link to a section that isn't there (`NARRATIVE_ANCHOR`), and `finish-narrative` and `wiki-check --fix` repair one whose section was only renumbered.
 
-**Templates.** A template is a folder with `template.md` and `guide.md`. The skeleton is the schema: its headings are the required sections, in order; a heading ending in `(optional)` may be left out; a section holding a ` ```mermaid ` placeholder needs a diagram. A short YAML header gives `description`, `use_when`, `max_words` (the body's budget) and `abstract_words`. The guide (audience and purpose with its aim, voice and tone, structure, evidence, length, checklist, and for the bundled templates, examples) holds the style, and every template's guide is written for a reader new to the topic: the problem before the mechanism, prerequisites before use, one notation throughout, rules of thumb for every parameter. Its Examples section says where the narrative's one or two key examples appear in each of its sections, so the reader never switches context to follow a point.
+#### 4.5.3 Figures
+
+Diagrams are mermaid by default. Where mermaid can't show an idea well, such as a curve, measured data or geometry, a narrative may embed a figure it generates, computed from its own formulas or cited numbers, never copied from a source. It is an SVG (a PNG only for what SVG can't hold), the two formats GitHub, Obsidian, mdBook and Sphinx all show, in `narratives/figures/<slug>/`, and it is kept small for the agents that may read it: an SVG under 40 KB, a PNG under 150 KB and 1600 px wide. Every diagram and figure has a caption line under it, `*Figure 5-1: what it shows.*`, numbered by its section; with the alt text, the caption says what the picture shows, so no agent needs to open it. `finish-narrative` renumbers the captions and the references to them. `narrative-format` checks a figure's place, format, alt text and size, that an SVG is self-contained and has an opaque background for dark themes, and every caption; `wiki-check` reports a figure no narrative shows. `images = false` (§4.9) keeps a wiki to mermaid.
+
+#### 4.5.4 Templates
+
+A template is a folder with `template.md` and `guide.md`. The skeleton is the schema: its headings are the required sections, in order; a heading ending in `(optional)` may be left out; a section holding a ` ```mermaid ` placeholder needs a diagram. A short YAML header gives `description`, `use_when`, `max_words` (the body's budget) and `abstract_words`. The guide (audience and purpose with its aim, voice and tone, structure, evidence, length, checklist, and for the bundled templates, examples) holds the style, and every template's guide is written for a reader new to the topic: the problem before the mechanism, prerequisites before use, one notation throughout, rules of thumb for every parameter. Its Examples section says where the narrative's one or two key examples appear in each of its sections, so the reader never switches context to follow a point.
 
 A template is chosen by the subject, not the question's wording:
 
@@ -258,9 +269,21 @@ Four are shown in the [demo wiki](https://github.com/mengjiasun1992/sllmwiki-dem
 
 Lint grades each narrative on each axis of its template's aim, met, partly or missed, with the evidence, helped by `narrative-format.py --stats` (the body against its budget; words, citations and markers per section; citations by the authority of what they cite).
 
-**A wiki's own templates.** A group can bring its own: a folder in the wiki's `templates/` with a `template.md` and a `guide.md` is offered next to the bundled ones, and is checked the same way (`lib/templates.py`): the header's four keys; the guide's six sections, with the **Takeaway** and the **Aim** whose axes lint grades every narrative on; and a body of `##` sections, each with its `<…>` line, repeating none of the shared ones. One with a bundled template's name replaces it. `/sllmwiki:template` makes one with the agent, from the closest template. A wiki that only wants a different budget for a template sets it in `Config.toml` (§4.9) instead of copying the template.
+#### 4.5.5 A wiki's own templates
 
-**What scripts do for every narrative.** After any edit, the agent runs one command, `finish-narrative` (§7.5): it numbers the headings and figure captions, repairs links to a renumbered section of another narrative, escapes what the renderers would misread (§4.8), converts old markers and adds a Terminology row for each marker the narrative uses (when markers are on), bumps the version and history when asked, writes the manifest entry with the current pins of the sources it read and the narratives it builds on, and regenerates the index and tag pages. The agent writes the content; the script does the rest.
+The five bundled templates cover the common kinds of questions; a group adds its own for the kinds they don't fit, such as a postmortem of its incidents, a runbook, or a ten-minute primer on one paper.
+
+- **What it is.** A folder in the wiki's `templates/` with a `template.md` and a `guide.md`, the same two files as a bundled template. It is offered next to the bundled ones, and the narrative step picks it by its `use_when` like any other. One with a bundled template's name replaces that template in this wiki.
+- **How it's made.** `/sllmwiki:template "<what it's for>"` runs the `template` step: it starts from the closest template (`narrative-format.py --new-template <name> --from <closest>`), shapes the header, the sections and the guide from the owner's description, checks the result, and lands it as one pull request. It can also be written by hand.
+- **How it's checked.** By `lib/templates.py`, the same way as a bundled one: the header's four keys; the guide's six sections, with the **Takeaway** and the **Aim** whose axes lint grades every narrative on; and a body of `##` sections, each with its `<…>` line, repeating none of the shared ones. `narrative-format.py --templates` lists every template with its aim and any problem; one that doesn't load is a problem, not a template.
+- **The same bar as the bundled ones.** Its narratives get the shared top and appendices, citations, markers and finishing, and lint grades them against its aim.
+- **Only a different length?** Set the budget in `Config.toml` (§4.9) instead of copying the template.
+
+The [demo wiki](https://github.com/mengjiasun1992/sllmwiki-demo) has one: [`skim_read`](https://github.com/mengjiasun1992/sllmwiki-demo/tree/main/templates/skim_read), a ten-minute primer on one long work for a reader from the field deciding whether to read it in full (aim: faithful, focused, decisive), and [a narrative written with it](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-does-keeping-calm-argue-and-is-it-worth-reading-in-full.md).
+
+#### 4.5.6 What scripts do for every narrative
+
+After any edit, the agent runs one command, `finish-narrative` (§7.5): it numbers the headings and figure captions, repairs links to a renumbered section of another narrative, escapes what the renderers would misread (§4.8), converts old markers and adds a Terminology row for each marker the narrative uses (when markers are on), bumps the version and history when asked, writes the manifest entry with the current pins of the sources it read and the narratives it builds on, and regenerates the index and tag pages. The agent writes the content; the script does the rest.
 
 ### 4.6 Why YAML
 
@@ -290,7 +313,7 @@ A wiki is read on GitHub page by page, opened in [Obsidian](https://obsidian.md)
 
 ### 4.9 Settings and add-ons: `Config.toml`
 
-A wiki can keep a `Config.toml` at its root. Every setting has a default, so the file is optional; `init` writes it with the defaults and a note on each, and a rerun adds any setting the file lacks, keeping the wiki's values.
+A wiki can keep a `Config.toml` at its root. Every setting has a default, so the file is optional; `init` writes it with the defaults and a note on each, and a rerun adds any setting the file lacks, keeping the wiki's values. On a first setup `init` asks the owner about the settings they'd want to choose (language, source policy, the book's formats, title and author, Obsidian, markers, figures, who never to list as an SME), and on a rerun only about those added since (`init.py --ask`, `--set`).
 
 ```toml
 [structural-llm-wiki-settings]
@@ -298,7 +321,7 @@ source_copies = "allow"     # "allow": a private wiki keeps reference copies, a 
 max_quote_words = 50        # the longest quotation a narrative may take from a source
 smes_exclude = []           # never listed as SMEs, such as the wiki's owner or bots: ["@alice", "dependabot"]
 markers = true              # false: no [→] or [?] markers (§4.10)
-images = true               # false: diagrams in mermaid only, no generated figures (§4.5)
+images = true               # false: diagrams in mermaid only, no generated figures (§4.5.3)
 language = "en"             # the language narratives are written in, a BCP 47 tag; sources keep their own
 
 [structural-llm-wiki-templates.technical_brief_overview]   # a template's budgets, over its header
@@ -307,10 +330,18 @@ abstract_words = [150, 300]
 
 [structural-llm-wiki-addons]
 obsidian = false            # true: the Obsidian add-on (§4.8)
+
+[structural-llm-wiki-release]
+pdf_book = true             # the book a release attaches (§10): a PDF
+epub_book = false           # an EPUB, for e-readers and phones
+html_book = false           # one self-contained HTML file, for a browser
+title = ""                  # the book's title; empty: the repository's name
+author = ""                 # its author; empty: the title
 ```
 
 - **What earns a setting.** A real wiki or a group's policy needs it, it has a safe default, and a script enforces it. Each setting above meets all three: the one real wiki raised a template's budget, set the Obsidian add-on on, and had its owner wrongly listed as an SME; its owner found the markers cluttering and asked what they meant; `source_copies` and `max_quote_words` are what legal review may need to tighten. Nothing configures the layout (§3).
 - **Language.** Narratives are written in `language`; one names its own in its Metadata (`- **Language:** zh-Hans`), which `finish-narrative` writes for every narrative. Sources are never translated, and a quotation keeps its source's words with a translation after it. A narrative's headings, and the few labels the scripts write (table headers, figure captions, the markers' rows), come from a language pack, `templates/languages/<tag>.md`: a table from the English text to its translation, bundled or the wiki's own, like a template. A pack may end with a `## Writing` section, its language's rules (Chinese: terms glossed in English on first use, full-width punctuation, a space between Chinese and Latin text), which `--skeleton` points the narrative step to. The skill bundles a language only once narratives written in it have been evaluated: English and Simplified Chinese ship; a wiki's own pack for another language works, with a note that it hasn't been. The scripts find a section by its English title or any pack's translation, so they work the same in every language; `narrative-format` warns of a heading its pack translates left in English (`HEADING_LANGUAGE`) and of a language with no pack (`LANGUAGE_PACK`), whose headings stay English. Metadata's fields are never translated. Budgets stay in words: CJK text counts its characters at 1.6 to a word, and search indexes CJK text by character pairs. Lint checks grammar and wording in the narrative's language.
+- **The book.** `[structural-llm-wiki-release]` turns each format on separately (§10); with all three off, a release has notes and no files.
 - **Add-ons** are optional features, each a key in `[structural-llm-wiki-addons]`, off by default. An add-on is listed only once it exists, and its work (files written, builds run) happens only when it is on, so a wiki that doesn't use it never waits for it.
 - **One reader.** Every script reads the file through `lib/config.py`. An unknown table key, a mistyped value or an unknown template is an error: `wiki-check` reports it (`CONFIG_INVALID`) and the scripts that write refuse to run until it's fixed. The tables are prefixed with the project's name, so the file can also hold other tools' tables, which are left alone.
 
@@ -389,7 +420,7 @@ The questions and the user's words are passed to every step. A request that name
 
 ### 5.3 Commit messages
 
-`publish.py commit` writes every commit message: `[sllmwiki][<action>][<tags>] <summary>`, then the step's summary, then the request that started the run, verbatim, in a `Prompt:` block. Actions: `init`, `tags`, `ingest`, `smes`, `narrative`, `lint`.
+`publish.py commit` writes every commit message: `[sllmwiki][<action>][<tags>] <summary>`, then the step's summary, then the request that started the run, verbatim, in a `Prompt:` block. Actions: `init`, `template`, `tags`, `ingest`, `smes`, `narrative`, `lint`. A release isn't a commit: it changes no file (§10).
 
 ## 6. Using knowledge: `query`
 
@@ -481,7 +512,8 @@ Before writing, `search.py narratives` finds narratives that answer the same or 
 |---|---|---|---|
 | `build` | `<questions or topic>` | Runs the steps (§5) and manages the run PR | through its steps |
 | `query` | `<question> [--root <wiki>]` | Answers by tiers (§6); offers to file or to `build` | nothing |
-| `init` | `[repo name]` | Turns the current directory into a wiki: layout, README, `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `.claude/settings.json`, CI, `Config.toml` with its defaults and notes, `graph.json` with the Obsidian add-on; offers to create the remote; checks the default branch; refreshes the files it owns when the plugin updates, keeping the wiki's content | first commit |
+| `release` | `[--preview]` | Checks the default branch, drafts the notes from the manifests, creates a dated GitHub release, and waits for the book (§10); `--preview` builds the book from a branch as a workflow artifact | a release, no files |
+| `init` | `[repo name]` | Turns the current directory into a wiki: layout, README, `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `.claude/settings.json`, CI and the release workflow, `Config.toml` with its defaults and notes, `graph.json` with the Obsidian add-on; asks the owner's preferences and writes them (§4.9); offers to create the remote; checks the default branch; refreshes the files it owns when the plugin updates, keeping the wiki's content | first commit |
 
 | Step | Input | Does | Writes |
 |---|---|---|---|
@@ -490,7 +522,7 @@ Before writing, `search.py narratives` finds narratives that answer the same or 
 | `smes` | `<tags>` | Locates the code and docs behind the tags, ranks people by `contributors.py` (git log and blame, `CODEOWNERS`, doc authorship, reviews); never lists anyone in `smes_exclude` (§4.9), nor the wiki's own committers for their wiki commits | `smes` in `tags.yaml` |
 | `narrative` | `<question>` | Reuse or expand first (§7.4); reading plan (§7.1); writes by template and guide; `finish-narrative`; lint | a narrative |
 | `lint` | `<narrative \| tag \| description>` | §7.3 | fixes, and decisions on the PR |
-| `template` | `<what the template is for>` | Starts the wiki's own template from the closest one (`narrative-format.py --new-template`), shapes its header, sections and guide from the owner's description, and checks it (§4.5); a length alone goes to `Config.toml` instead | `templates/<name>/` |
+| `template` | `<what the template is for>` | Starts the wiki's own template from the closest one (`narrative-format.py --new-template`), shapes its header, sections and guide from the owner's description, and checks it (§4.5.5); a length alone goes to `Config.toml` instead | `templates/<name>/` |
 
 ## 9. Instruction design
 
@@ -501,7 +533,17 @@ Instructions are what every run pays for in tokens, and where most past defects 
 - **Word budgets**, checked by `test_instructions`: `SKILL.md` 900 words; each workflow 1,200; each step 1,200; `shared.md` 600; `shared-guide.md` 900; each template with its guide 1,400. A `build` run then loads under 9,000 words of instructions, a `query` under 2,500.
 - **No dangling references.** `test_instructions` also checks that every script and option an instruction names exists.
 
-## 10. Distribution
+## 10. Releases and the book
+
+A wiki is written and reviewed on GitHub and explored in Obsidian; neither gives a group something to hand a colleague, read offline, or keep as the record of what it knew on a given day. A release does. [The book design](book_design.md) has the details; in short:
+
+- **A release is a dated snapshot.** `/sllmwiki:release` (`release.py plan`, `create`, `wait`) checks that the default branch's checks pass, picks the version (`v2026.10.24`, `.2` for a second that day), drafts notes from the manifests (narratives added and updated, sources added, open questions), and creates a GitHub release. It changes no file and isn't a pull request. GitHub's *Draft a new release* does the same without the agent.
+- **The wiki's `release-book` workflow builds the book** in each format `[structural-llm-wiki-release]` turns on (§4.9) and attaches the files. `book.py stage` writes the book's Markdown in a scratch folder; headless Chrome draws every diagram and formula as SVG with pinned mermaid.js and MathJax, so the book draws what GitHub draws; Sphinx with MyST-Parser builds a single-file HTML and an EPUB from it, and Chrome prints the PDF from the HTML. A failing format doesn't stop the others, and warnings go to the notes as *Known issues*. `--preview` builds the same files from a branch as a workflow artifact.
+- **What's in it.** A cover, a front page saying whose work is whose, contents, a part per top-level tag with a map of its chapters and their reading times, the narratives as chapters in teaching order (what they build on first, then concept, survey, technical, comparison, case study), and appendices of the sources (abstract, license, link), a glossary and the open questions. Never the saved copies of sources, and never SMEs: the file travels.
+- **Problems surface on the pull request, not at release.** `wiki-check` runs staging's model on every pull request and reports a link the book couldn't follow, and `book.py parse --base` parses the diagrams and formulas a pull request brings (`DIAGRAM_SYNTAX`, `MATH_SYNTAX`).
+- **Nothing to install.** GitHub's runners build it; the files need no network, JavaScript or fonts. This repository's `check-book` workflow builds the fixture wiki's book on every change to the book's code and checks it (`tools/check-book.py`, `epubcheck`).
+
+## 11. Distribution
 
 - The skill uses the [Agent Skills](https://agentskills.io) format, so any compatible agent can load it.
 - For Claude Code, this repo is both a plugin (`sllmwiki`) and a marketplace (`structural-llm-wiki`) that lists itself; each workflow and step is also a command, `/sllmwiki:<name>`.
@@ -509,14 +551,13 @@ Instructions are what every run pays for in tokens, and where most past defects 
 - Other agents install with `npx skills add mengjiasun1992/structural-llm-wiki`; with no commands, users ask for a workflow or step in their own words.
 - A wiki's CI calls this repository's actions at the plugin's release tag; `init` moves the tag when the plugin updates.
 
-## 11. Not in v1
+## 12. Not in v1
 
 Each waits until a real wiki needs it; adding one later starts as a proposal in `docs/`.
 
 | Not in v1 | Instead | Why it waits |
 |---|---|---|
 | Configurable paths, custom marker text, a default template, hiding bundled templates | One layout; fixed markers, on or off; the narrative step picks a template by its `use_when` | Never changed in the one real wiki, and the source of most of the churn |
-| Book builds | The markdown stays book-ready (§4.8); a release builds a PDF, EPUB or single-file HTML book, each its own setting, as [the book design](book_design.md) proposes | Proposed; not built yet |
 | Draft narratives and their states | A labeled DRAFT answer in `query`'s reply, and an offer to `build` | The one real wiki never kept a draft |
 | Tag abstracts rolled up the tree | `query` starts from narrative abstracts | Rewriting every abstract up to the root on each change was the costliest bookkeeping |
 | The `decision_record` template | The bundled templates; a wiki can add its own | Never used |
