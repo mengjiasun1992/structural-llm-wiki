@@ -8,7 +8,6 @@ read back from the dumped DOM.
 """
 
 import base64
-import gzip
 import hashlib
 import html
 import json
@@ -75,27 +74,42 @@ def find_chrome(given=None):
     return None
 
 
+def _parts(path):
+    """A library kept in numbered parts beside where it belongs (mermaid.min.1.js, mermaid.min.2.js, …), in order:
+    the plugin directory takes no file over 5 MiB, and its scan reads only plain text."""
+    stem, ext = os.path.splitext(path)
+    out, n = [], 1
+    while os.path.isfile(f'{stem}.{n}{ext}'):
+        out.append(f'{stem}.{n}{ext}')
+        n += 1
+    return out
+
+
 def unpacked(vendor):
-    """A folder holding both libraries, or None. A library may be kept gzipped (mermaid.min.js.gz: the plugin
-    directory takes no file over 5 MiB); it is unpacked once into a temporary folder named by its hash."""
+    """A folder holding both libraries whole, or None: vendor itself, or, when a library is kept in parts,
+    a temporary folder named by their hash, where the parts are joined once."""
     if not vendor:
         return None
     paths = {n: os.path.join(vendor, n) for n in (MERMAID, MATHJAX)}
     if all(os.path.isfile(p) for p in paths.values()):
         return vendor
-    if not all(os.path.isfile(p) or os.path.isfile(p + '.gz') for p in paths.values()):
+    sources = {n: [p] if os.path.isfile(p) else _parts(p) for n, p in paths.items()}
+    if not all(sources.values()):
         return None
     h = hashlib.md5()
-    for p in paths.values():
-        with open(p if os.path.isfile(p) else p + '.gz', 'rb') as f:
-            h.update(f.read())
+    for files in sources.values():
+        for f in files:
+            with open(f, 'rb') as src:
+                h.update(src.read())
     out = os.path.join(tempfile.gettempdir(), f'sllmwiki-vendor-{h.hexdigest()[:12]}')
     os.makedirs(out, exist_ok=True)
-    for name, p in paths.items():
+    for name, files in sources.items():
         dest = os.path.join(out, name)
         if not os.path.isfile(dest):
-            with (open(p, 'rb') if os.path.isfile(p) else gzip.open(p + '.gz', 'rb')) as src, open(dest + '.part', 'wb') as f:
-                shutil.copyfileobj(src, f)
+            with open(dest + '.part', 'wb') as f:
+                for part in files:
+                    with open(part, 'rb') as src:
+                        shutil.copyfileobj(src, f)
             os.replace(dest + '.part', dest)
     return out
 

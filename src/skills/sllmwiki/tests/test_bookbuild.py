@@ -114,19 +114,17 @@ class Units(unittest.TestCase):
             self.assertIsNone(bookbuild.find_chrome())
         self.assertIsNone(bookbuild.find_chrome(os.path.join(self.tmp, 'nothing')))  # given, so nothing else is tried
 
-    def test_a_gzipped_library_is_unpacked(self):
-        import gzip
+    def test_a_library_in_parts_is_joined(self):
         import hashlib
-        v = os.path.join(self.tmp, 'gz')
-        os.makedirs(v)
-        with gzip.open(os.path.join(v, 'mermaid.min.js.gz'), 'wb') as f:
-            f.write(b'// mermaid')
+        v = os.path.join(self.tmp, 'parts')
+        helpers.write(v, 'mermaid.min.1.js', '// mer\n')
+        helpers.write(v, 'mermaid.min.2.js', 'maid\n')
         helpers.write(v, 'tex-svg-full.js', '// mathjax')
         out = bookbuild.unpacked(v)
-        self.assertEqual((helpers.read(out, 'mermaid.min.js'), helpers.read(out, 'tex-svg-full.js')), ('// mermaid', '// mathjax'))
-        self.assertEqual(bookbuild.unpacked(v), out)  # unpacked once, by the libraries' hash
+        self.assertEqual((helpers.read(out, 'mermaid.min.js'), helpers.read(out, 'tex-svg-full.js')), ('// mer\nmaid\n', '// mathjax'))
+        self.assertEqual(bookbuild.unpacked(v), out)  # joined once, by the parts' hash
         self.assertIsNone(bookbuild.unpacked(os.path.join(self.tmp, 'nothing')))
-        # the action's own copy: what it unpacks is the pinned file (vendor/README.md's SHA-256)
+        # the action's own copy: joined, it is the pinned file (vendor/README.md's SHA-256)
         real = bookbuild.unpacked(os.path.join(helpers.REPO, 'src', 'actions', 'release-book', 'vendor'))
         with open(os.path.join(real, 'mermaid.min.js'), 'rb') as f:
             self.assertEqual(hashlib.sha256(f.read()).hexdigest(), 'a8a6a6f805b074a8261a2825c86f99c8054acb3b35f50bb7e24a4f9f2c3c3b9f')
