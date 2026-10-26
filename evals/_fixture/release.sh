@@ -15,7 +15,7 @@ git remote set-url origin git@github.com:o/wiki.git
 git config "url.$origin.insteadOf" git@github.com:o/wiki.git
 mkdir -p .github/workflows
 printf 'name: Book\n' > .github/workflows/release-book.yml
-printf '[structural-llm-wiki-release]\nhtml_book = true\n' > Config.toml
+printf '[structural-llm-wiki-release]\nhtml_book = true\n' > sllmwiki/Config.toml
 git add -A && git commit -q -m "install the release workflow"
 git tag v2026.10.01
 tests="$(cd "$here/../../src/skills/sllmwiki/tests" && pwd)"

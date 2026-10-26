@@ -21,13 +21,13 @@ class Defaults(helpers.WikiTestCase):
         self.assertEqual(config.problems(self.root), [])
 
     def test_a_file_overrides_what_it_sets(self):
-        self.write('Config.toml', '[structural-llm-wiki-settings]\nmarkers = false\n\n[structural-llm-wiki-addons]\nobsidian = true\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nmarkers = false\n\n[structural-llm-wiki-addons]\nobsidian = true\n')
         c = config.load(self.root)
         self.assertEqual((c.settings['markers'], c.settings['max_quote_words'], c.addons['obsidian']), (False, 50, True))
 
     def test_get_falls_back_to_the_defaults(self):
-        self.write('Config.toml', '[structural-llm-wiki-settings]\nmarkers = "no"\n')
-        self.assertEqual(config.problems(self.root), ['Config.toml: structural-llm-wiki-settings.markers must be true or false'])
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nmarkers = "no"\n')
+        self.assertEqual(config.problems(self.root), ['sllmwiki/Config.toml: structural-llm-wiki-settings.markers must be true or false'])
         self.assertTrue(config.get(self.root).settings['markers'])
         with self.assertRaises(ConfigError):
             config.load(self.root)
@@ -59,7 +59,7 @@ class Settings(unittest.TestCase):
                 found = problems(f'[structural-llm-wiki-settings]\n{line}\n')
                 self.assertEqual(len(found), 1, found)
                 self.assertIn(msg, found[0])
-                self.assertTrue(found[0].startswith('Config.toml: '))
+                self.assertTrue(found[0].startswith('sllmwiki/Config.toml: '))
 
 
 class Templates(unittest.TestCase):
@@ -128,7 +128,7 @@ class Tables(unittest.TestCase):
 
     def test_a_toml_error(self):
         self.assertEqual(problems('[structural-llm-wiki-settings]\nmax_quote_words = 1.5\n'),
-                         ['Config.toml: line 2: expected a string, a whole number, true or false, or an array (Config.toml uses no other values)'])
+                         ['sllmwiki/Config.toml: line 2: expected a string, a whole number, true or false, or an array (Config.toml uses no other values)'])
 
 
 if __name__ == '__main__':

@@ -7,7 +7,7 @@ narrative follows is shared-skeleton.md with the body put where it says
 <!-- sllmwiki:body -->, and the skeleton is the schema: its ## headings are the
 required sections, in order; a heading ending in "(optional)" may be left out;
 <...> in a heading matches any text; a section holding a ```mermaid block
-needs a diagram. A wiki's own template in templates/<name>/ is offered next to
+needs a diagram. A wiki's own template in sllmwiki/templates/<name>/ is offered next to
 the bundled ones, and one with a bundled template's name replaces it.
 Config.toml's [structural-llm-wiki-templates.<name>] tables set budgets over a
 template's header.
@@ -183,7 +183,7 @@ def get(root, name):
 
 def create(root, name, base):
     """Start the wiki's own template name from base (a template it offers, bundled or its own), as a copy of
-    its template.md and guide.md in templates/<name>/; the folder. Named like a bundled template, it replaces
+    its template.md and guide.md in sllmwiki/templates/<name>/; the folder. Named like a bundled template, it replaces
     it. Raises TemplateError when the name is taken or not a template's, or base isn't offered."""
     if not NAME.match(name):
         raise TemplateError(f'{name}: a template\'s name is lowercase letters, digits, _ and -')

@@ -20,7 +20,7 @@ narrative shares (design doc §4.5, §4.8, §4.10).
                                       grades on; a problem with one of the wiki's own (exit 1), and a heading
                                       its language pack doesn't translate (a warning)
   narrative-format.py --new-template NAME --from BASE
-                     starts the wiki's own template NAME in templates/NAME/, a copy of
+                     starts the wiki's own template NAME in sllmwiki/templates/NAME/, a copy of
                      BASE's template.md and guide.md to edit; named like a bundled
                      template, it replaces it
   narrative-format.py --skeleton NAME the skeleton a new narrative starts from, in the wiki's language
@@ -76,7 +76,7 @@ def main(argv):
                  'max_words': t.max_words, 'abstract_words': t.abstract_words, 'aim': t.aim} for t in offered.values()]
         tag = config.get(root).settings['language']
         pack = language.pack(tag)
-        warnings = [f'template {t.name}: {tag} keeps "{title}" in English: translate it in templates/{language.FOLDER}/{tag}.md'
+        warnings = [f'template {t.name}: {tag} keeps "{title}" in English: translate it in {layout.TEMPLATES}/{language.FOLDER}/{tag}.md'
                     for t in offered.values() if t.source == 'wiki' and pack and pack.tag != language.DEFAULT
                     for title in templates.untranslated(t, pack)]
         if args.json:
@@ -97,7 +97,7 @@ def main(argv):
         p = language.pack(tag)
         if not p:
             print(f'narrative-format: no language pack for {tag}, so the headings are English; '
-                  f'add templates/{language.FOLDER}/{tag}.md to translate them', file=sys.stderr)
+                  f'add {layout.TEMPLATES}/{language.FOLDER}/{tag}.md to translate them', file=sys.stderr)
         elif p.source == 'wiki' and p.tag not in language.bundled():
             print(f'narrative-format: {p.name} is this wiki\'s own pack; the skill hasn\'t evaluated writing in it', file=sys.stderr)
         if p and p.writing:

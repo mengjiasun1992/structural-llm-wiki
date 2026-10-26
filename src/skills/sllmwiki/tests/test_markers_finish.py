@@ -203,11 +203,11 @@ class Finish(helpers.WikiTestCase):
         self.write(NARRATIVE, helpers.narrative_text())
         r = self.finish('what-is-alpha', '--primary', 'no-such-tag')
         self.assertIn('no such tag(s): no-such-tag', r.err)
-        self.write('Config.toml', '[structural-llm-wiki-settings]\nmarkers = 1\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nmarkers = 1\n')
         self.assertIn('Config.toml is invalid', self.finish('what-is-alpha').err)
 
     def test_markers_off_adds_no_rows(self):
-        self.write('Config.toml', '[structural-llm-wiki-settings]\nmarkers = false\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nmarkers = false\n')
         self.write(NARRATIVE, helpers.narrative_text(extra=f'\nMine. {R}\n'))
         r = self.finish('what-is-alpha')
         self.assertEqual(r.code, 1)

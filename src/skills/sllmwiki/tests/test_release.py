@@ -154,7 +154,7 @@ class Release(helpers.WikiTestCase):
         self.commit('more')
         self.respond(**{'release list': [{'tagName': 'v2026.10.01', 'publishedAt': '2026-10-01T00:00:00Z', 'isDraft': False},
                                          {'tagName': 'v2099.01.01', 'publishedAt': '2099-01-01T00:00:00Z', 'isDraft': True}]})
-        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-release]\nhtml_book = true\n')
+        helpers.write(self.root, 'sllmwiki/Config.toml', '[structural-llm-wiki-release]\nhtml_book = true\n')
         r = self.rel('plan', '--json')
         self.assertEqual(r.code, 0, r.err)
         out = json.loads(r.out)
@@ -190,7 +190,7 @@ class Release(helpers.WikiTestCase):
         self.assertIn('HTTP 401', self.rel('plan').err)
 
     def test_the_release_is_titled_by_the_book(self):
-        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-release]\ntitle = "Notes on systems"\n')
+        helpers.write(self.root, 'sllmwiki/Config.toml', '[structural-llm-wiki-release]\ntitle = "Notes on systems"\n')
         self.rel('plan')
         self.rel('create')
         self.assertTrue(any(f'--title Notes on systems {TODAY}' in c for c in self.calls()))

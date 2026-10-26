@@ -198,13 +198,13 @@ class FetchSource(helpers.WikiTestCase):
             self.assertEqual(self.entry('granted')['permission'], 'Jane Doe, 2026-10-21')
 
     def test_links_only_keeps_no_copies(self):
-        self.write('Config.toml', '[structural-llm-wiki-settings]\nsource_copies = "links-only"\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nsource_copies = "links-only"\n')
         r = self.fetch('x', '/budget.md', license='CC0-1.0')
         self.assertEqual(r.code, 1)
         self.assertIn('links-only', r.err)
 
     def test_invalid_config_refuses(self):
-        self.write('Config.toml', '[structural-llm-wiki-settings]\nsource_copies = "some"\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nsource_copies = "some"\n')
         r = self.fetch('x', '/budget.md')
         self.assertEqual(r.code, 1)
         self.assertIn('Config.toml is invalid', r.err)

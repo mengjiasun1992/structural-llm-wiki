@@ -71,9 +71,9 @@ class SectionPatterns(unittest.TestCase):
 
 class WikiTemplates(helpers.WikiTestCase):
     def add(self, name, template=TEMPLATE, guide=GUIDE):
-        helpers.write(self.root, f'templates/{name}/template.md', template)
+        helpers.write(self.root, f'sllmwiki/templates/{name}/template.md', template)
         if guide is not None:
-            helpers.write(self.root, f'templates/{name}/guide.md', guide)
+            helpers.write(self.root, f'sllmwiki/templates/{name}/guide.md', guide)
 
     def test_a_wiki_template_is_offered(self):
         self.add('runbook')
@@ -85,7 +85,7 @@ class WikiTemplates(helpers.WikiTestCase):
         self.assertEqual(templates.get(self.root, 'concept_brief_overview').source, 'wiki')
 
     def test_config_budgets_win_over_the_header(self):
-        self.write('Config.toml', '[structural-llm-wiki-templates.technical_brief_overview]\nmax_words = 3000\n\n'
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-templates.technical_brief_overview]\nmax_words = 3000\n\n'
                                   '[structural-llm-wiki-templates.concept_brief_overview]\nabstract_words = [100, 300]\n')
         found, problems = templates.available(self.root)
         self.assertEqual(problems, [])
@@ -109,10 +109,10 @@ class WikiTemplates(helpers.WikiTestCase):
                 found, problems = templates.available(self.root)
                 self.assertNotIn(name, found)
                 self.assertTrue(any(name in p and msg in p for p in problems), problems)
-                shutil.rmtree(os.path.join(self.root, 'templates', name))
+                shutil.rmtree(os.path.join(self.root, 'sllmwiki', 'templates', name))
 
     def test_budgets_for_a_template_that_doesnt_exist(self):
-        self.write('Config.toml', '[structural-llm-wiki-templates.runbook]\nmax_words = 500\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-templates.runbook]\nmax_words = 500\n')
         self.assertIn('there\'s no template runbook', templates.available(self.root)[1][0])
 
     def test_get_an_unknown_template(self):
@@ -121,7 +121,7 @@ class WikiTemplates(helpers.WikiTestCase):
         self.assertIn('there are case_study, comparison, concept_brief_overview, survey, technical_brief_overview', str(e.exception))
 
     def test_folders_without_a_template_are_ignored(self):
-        os.makedirs(os.path.join(self.root, 'templates', 'notes'))
+        os.makedirs(os.path.join(self.root, 'sllmwiki', 'templates', 'notes'))
         self.assertEqual(templates.available(self.root)[1], [])
 
 
@@ -131,7 +131,7 @@ class NewTemplate(helpers.WikiTestCase):
 
     def test_start_one_from_a_bundled_template(self):
         folder = templates.create(self.root, 'postmortem', 'case_study')
-        self.assertEqual(folder, os.path.join(self.root, 'templates', 'postmortem'))
+        self.assertEqual(folder, os.path.join(self.root, 'sllmwiki', 'templates', 'postmortem'))
         for f in ('template.md', 'guide.md'):
             self.assertEqual(helpers.read(folder, f), helpers.read(os.path.join(templates.BUNDLED, 'case_study'), f))
         offered, problems = templates.available(self.root)
@@ -142,7 +142,7 @@ class NewTemplate(helpers.WikiTestCase):
         templates.create(self.root, 'survey', 'survey')  # a copy that replaces the bundled survey here
         self.assertEqual(templates.get(self.root, 'survey').source, 'wiki')
         templates.create(self.root, 'field-survey', 'survey')  # from the wiki's own
-        self.assertEqual(helpers.read(self.root, 'templates/field-survey/template.md'), helpers.read(self.root, 'templates/survey/template.md'))
+        self.assertEqual(helpers.read(self.root, 'sllmwiki/templates/field-survey/template.md'), helpers.read(self.root, 'sllmwiki/templates/survey/template.md'))
 
     def test_refusals(self):
         for name, base, says in [('Bad Name', 'survey', 'lowercase letters'), ('x', 'nope', 'no template nope')]:
@@ -152,12 +152,12 @@ class NewTemplate(helpers.WikiTestCase):
         templates.create(self.root, 'x', 'survey')
         with self.assertRaises(TemplateError) as e:
             templates.create(self.root, 'x', 'survey')
-        self.assertIn('templates/x already exists', str(e.exception))
+        self.assertIn('sllmwiki/templates/x already exists', str(e.exception))
 
     def test_the_command(self):
         r = helpers.run('narrative-format.py', ['--new-template', 'postmortem', '--from', 'case_study'], cwd=self.root)
         self.assertEqual(r.code, 0, r.err)
-        self.assertIn('started templates/postmortem/ from case_study', r.out)
+        self.assertIn('started sllmwiki/templates/postmortem/ from case_study', r.out)
         self.assertIn('postmortem (wiki,', helpers.run('narrative-format.py', ['--templates'], cwd=self.root).out)
         self.assertEqual(helpers.run('narrative-format.py', ['--new-template', 'postmortem', '--from', 'case_study'], cwd=self.root).code, 1)
         r = helpers.run('narrative-format.py', ['--new-template', 'other'], cwd=self.root)
@@ -179,8 +179,8 @@ class Schema(helpers.WikiTestCase):
         self.assertTrue(all(t.takeaway for t in templates.available(self.root)[0].values()))
 
     def problem(self, template=TEMPLATE, guide=GUIDE):
-        helpers.write(self.root, 'templates/runbook/template.md', template)
-        helpers.write(self.root, 'templates/runbook/guide.md', guide)
+        helpers.write(self.root, 'sllmwiki/templates/runbook/template.md', template)
+        helpers.write(self.root, 'sllmwiki/templates/runbook/guide.md', guide)
         found = templates.available(self.root)[1]
         return found[0] if found else None
 
@@ -208,10 +208,10 @@ class Schema(helpers.WikiTestCase):
         self.problem()
         r = helpers.run('narrative-format.py', ['--templates', '--json'], cwd=self.root)
         self.assertEqual((r.code, json.loads(r.out)['warnings']), (0, []))  # English needs no translation
-        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-settings]\nlanguage = "zh-Hans"\n')
+        helpers.write(self.root, 'sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nlanguage = "zh-Hans"\n')
         r = helpers.run('narrative-format.py', ['--templates'], cwd=self.root)
         self.assertEqual(r.code, 0)  # a warning, not a problem
-        self.assertIn('warning: template runbook: zh-Hans keeps "Steps" in English: translate it in templates/languages/zh-Hans.md', r.out)
+        self.assertIn('warning: template runbook: zh-Hans keeps "Steps" in English: translate it in sllmwiki/templates/languages/zh-Hans.md', r.out)
         self.assertIn('aim: exact, safe', r.out)
         self.assertEqual(templates.untranslated(templates.get(self.root, 'survey'), templates.language.pack('zh-Hans')), [])
 

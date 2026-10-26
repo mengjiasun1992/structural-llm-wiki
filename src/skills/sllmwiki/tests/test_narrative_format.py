@@ -50,7 +50,7 @@ class Checks(helpers.WikiTestCase):
         self.assertIn(('ABSTRACT_LENGTH', 1), self.codes(text.replace(helpers.ABSTRACT, 'Too short.')))
         long = text.replace('Requests fail, and alpha systems send them again.', ' '.join(['word'] * 1900))
         self.assertIn(('BODY_LENGTH', 1), self.codes(long))
-        self.write('Config.toml', '[structural-llm-wiki-templates.technical_brief_overview]\nmax_words = 3000\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-templates.technical_brief_overview]\nmax_words = 3000\n')
         self.assertNotIn(('BODY_LENGTH', 1), self.codes(long))
 
     def test_numbers_and_citations(self):
@@ -155,7 +155,7 @@ class Command(helpers.WikiTestCase):
         self.assertEqual(self.nf('--skeleton', 'nope').code, 1)
 
     def test_template_problems(self):
-        helpers.write(self.root, 'templates/broken/template.md', 'no header\n')
+        helpers.write(self.root, 'sllmwiki/templates/broken/template.md', 'no header\n')
         r = self.nf('--templates')
         self.assertEqual(r.code, 1)
         self.assertIn('problem: wiki template broken', r.out)

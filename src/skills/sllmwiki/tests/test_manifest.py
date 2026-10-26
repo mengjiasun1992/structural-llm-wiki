@@ -137,7 +137,7 @@ class Command(helpers.WikiTestCase):
         r = run(self.root, 'add-tag', 'leaf-a', '--description', 'x')
         self.assertEqual((r.code, r.err), (1, 'manifest.py: tag leaf-a exists; change it with put-tag\n'))
         self.assertEqual(run(self.root, 'put-tag').code, 2)
-        self.write('Config.toml', '[structural-llm-wiki-settings]\nmarkers = 1\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nmarkers = 1\n')
         r = run(self.root, 'add-tag', 'x', '--description', 'x')
         self.assertEqual(r.code, 1)
         self.assertIn('Config.toml is invalid', r.err)

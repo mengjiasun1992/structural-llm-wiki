@@ -1,4 +1,4 @@
-"""SLLMWIKI_INDICES.md, GitHub's map of the wiki (design doc §4.8): a mermaid
+"""sllmwiki/SLLMWIKI_INDICES.md, GitHub's map of the wiki (design doc §4.8): a mermaid
 diagram of the tag tree whose nodes open the tag pages, and the same tree as a
 nested list; and pages(), every generated page with its text."""
 
@@ -9,6 +9,11 @@ from .compat import escape
 from .util import read_text
 
 GENERATED = '<!-- sllmwiki:generated: rewritten by wiki-check.py --fix -->'
+
+
+def _rel(path):
+    """A repository path as a link from the index, which sits in the content folder."""
+    return os.path.relpath(path, os.path.dirname(layout.INDEX)).replace(os.sep, '/')
 
 
 def render(tree, questions):
@@ -26,11 +31,11 @@ def render(tree, questions):
         if parent in ids:
             lines.append(f'    {ids[parent]} --> {ids[tag]}')
     for _, tag in walk:
-        lines.append(f'    click {ids[tag]} "{tagpages.path(tag)}"')
+        lines.append(f'    click {ids[tag]} "{_rel(tagpages.path(tag))}"')
     lines += ['```', '']
     for depth, tag in walk:
         count = sum(len(v) for v in tree.narratives_of(tag).values())
-        lines.append(f'{"  " * depth}- [{tag}]({tagpages.path(tag)}): {tree.tags[tag].get("description") or ""}'
+        lines.append(f'{"  " * depth}- [{tag}]({_rel(tagpages.path(tag))}): {tree.tags[tag].get("description") or ""}'
                      + (f' ({count} narrative{"s" if count != 1 else ""})' if count else ''))
     return escape('\n'.join(lines) + '\n')[0]
 

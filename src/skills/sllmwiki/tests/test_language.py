@@ -40,7 +40,7 @@ RELEASE = ['Released while these checks failed:', 'Since', 'First release', 'nar
 class Packs(helpers.WikiTestCase):
     def setUp(self):
         super().setUp()
-        self.write('templates/languages/zh-Hans.md', PACK)
+        self.write('sllmwiki/templates/languages/zh-Hans.md', PACK)
         self.assertEqual(language.use(self.root), [])
 
     def tearDown(self):
@@ -65,8 +65,8 @@ class Packs(helpers.WikiTestCase):
                           ('# 中文\n\n| Abstract | 摘要 |\n| Abstract | 提要 |\n', 'twice')):
             with self.assertRaisesRegex(ValueError, why):
                 language.parse('zh', text, 'wiki')
-        self.write('templates/languages/zh.md', '| Abstract | 摘要 |\n')
-        self.write('templates/languages/chinese.md', '# 中文\n')
+        self.write('sllmwiki/templates/languages/zh.md', '| Abstract | 摘要 |\n')
+        self.write('sllmwiki/templates/languages/chinese.md', '# 中文\n')
         problems = language.use(self.root)
         self.assertTrue(any('zh.md' in p for p in problems) and any('chinese.md' in p for p in problems), problems)
         r = helpers.run('wiki-check.py', ['--json'], cwd=self.root)
@@ -115,10 +115,10 @@ class Packs(helpers.WikiTestCase):
         self.assertEqual(self.codes(fr), [('LANGUAGE_PACK', 1)])
 
     def test_a_language_with_no_pack_in_config(self):
-        self.write('Config.toml', '[structural-llm-wiki-settings]\nlanguage = "fr"\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nlanguage = "fr"\n')
         r = helpers.run('wiki-check.py', ['--json'], cwd=self.root)
         self.assertIn('LANGUAGE_PACK', r.out)
-        self.write('Config.toml', '[structural-llm-wiki-settings]\nlanguage = "zh_CN"\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nlanguage = "zh_CN"\n')
         self.assertTrue(any('language tag' in p for p in config.problems(self.root)))
 
     def test_words_count_cjk_characters(self):
@@ -180,7 +180,7 @@ class Bundled(helpers.WikiTestCase):
         self.assertNotIn('evaluated', r.err)
 
     def test_a_wiki_pack_for_a_language_the_skill_does_not_ship(self):
-        self.write('templates/languages/fr.md', '# Français\n\n| English | Translation |\n|---|---|\n| Abstract | Résumé |\n')
+        self.write('sllmwiki/templates/languages/fr.md', '# Français\n\n| English | Translation |\n|---|---|\n| Abstract | Résumé |\n')
         r = helpers.run('narrative-format.py', ['--skeleton', 'concept_brief_overview', '--language', 'fr'], cwd=self.root)
         self.assertIn('## 1. Résumé', r.out)
         self.assertIn("hasn't evaluated", r.err)
