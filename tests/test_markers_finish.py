@@ -94,9 +94,14 @@ class Finish(helpers.WikiTestCase):
     def grades(self, data):
         return helpers.write(self.tmp, 'grades.json', json.dumps(data))
 
+    def order(self, grades, *tags):
+        r = helpers.run('reading-plan.py', ['order', *tags, '--grades', grades, '--root', self.root])
+        self.assertEqual(r.code, 0, r.err)
+
     def test_the_reading_plan_and_the_model_are_recorded_and_shown(self):
         g = self.grades({'alpha-doc': {'relevance': 'high', 'authority': 'A'}, 'beta-doc': {'relevance': 'medium', 'authority': 'C'},
                          'elsewhere': {'relevance': 'low', 'authority': 'B'}})
+        self.order(g, '--primary', 'leaf-a', '--supporting', 'leaf-b')
         r = self.finish('what-is-alpha', '--primary', 'leaf-a', '--supporting', 'leaf-b', '--grades', g, '--model', 'claude-opus-5-5',
                         '--bump', 'minor', '--note', 'Read beta too.')
         self.assertEqual(r.code, 0, r.out)
@@ -121,7 +126,15 @@ class Finish(helpers.WikiTestCase):
         self.assertEqual(self.finish('later', '--primary', 'leaf-a', '--read', 'alpha-doc').code, 0)
         self.assertEqual(self.finish('what-is-alpha', '--primary', 'leaf-a', '--grades', g).code, 0)
         self.assertNotIn('`later`', '\n'.join(metadata.read(self.read(NARRATIVE))['plan']))
-        os.remove(g + '.plan.json')  # no saved plan: every narrative on the tags, as before
+        os.remove(g + '.plan.json')  # no reading plan: refused, so the plan is never skipped
+        r = self.finish('what-is-alpha', '--grades', g)
+        self.assertEqual(r.code, 1)
+        self.assertIn('no reading plan for', r.err)
+        self.order(g, '--primary', 'leaf-a')
+        plan = g + '.plan.json'  # grades changed after their plan: the plan is the older file
+        os.utime(plan, (os.path.getmtime(g) - 5,) * 2)
+        self.assertIn('changed after its reading plan', self.finish('what-is-alpha', '--grades', g).err)
+        self.order(g, '--primary', 'leaf-a')  # a fresh plan reads the narratives there are now
         self.assertEqual(self.finish('what-is-alpha', '--grades', g).code, 0)
         self.assertIn('`later`, in full: existing narrative, background', metadata.read(self.read(NARRATIVE))['plan'])
 

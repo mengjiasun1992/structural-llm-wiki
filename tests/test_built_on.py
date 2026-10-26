@@ -26,6 +26,7 @@ class BuiltOn(helpers.WikiTestCase):
         return [f['code'] for f in json.loads(r.out)['findings']]
 
     def test_pinned_and_checked(self):
+        self.assertEqual(helpers.run('reading-plan.py', ['order', '--primary', 'leaf-a', '--grades', self.grades, '--root', self.root]).code, 0)
         r = self.finish('--primary', 'leaf-a', '--read', 'alpha-doc', '--grades', self.grades)
         self.assertEqual(r.code, 0, r.out + r.err)
         entry = manifest.load(self.root, 'narratives')['how-does-beta-work']
