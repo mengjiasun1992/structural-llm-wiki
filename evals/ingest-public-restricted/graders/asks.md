@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: 'permission'
+pattern: 'permission|permit|approv|allow(s|ed)? (it|a copy|keeping)'
 flags: i
 ---
 
