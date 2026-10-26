@@ -4,7 +4,7 @@ Inside a run (`build`, a filed query, or a rework), write within it. Alone, the 
 
 ## 1. Reuse or expand first
 
-`search.py narratives "<keywords>"`. If a narrative already asks this question, or one close to it, update it rather than writing a second. Write a new narrative only for a genuinely different question, and link it to the closest one. Say which you chose, and why, in the summary.
+`search.py narratives "<keywords>"`. If a narrative already asks this question, or one close to it, update it rather than writing a second. Write a new narrative only for a genuinely different question, and link it to the closest one. A narrower question that a narrative only touches in passing, such as how a mechanism works where "What is X?" defines it, is different: it gets its own narrative, since "What is X?" stays at definition level. Say which you chose, and why, in the summary.
 
 ## 2. Plan the reading
 
