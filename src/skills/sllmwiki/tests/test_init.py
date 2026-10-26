@@ -98,6 +98,13 @@ class Init(unittest.TestCase):
         self.assertIn('replaced GitHub\'s starter README.md', r.out)
         self.assertIn('/sllmwiki:query', self.read('README.md'))
 
+    def test_empty_placeholders_arent_unrelated(self):
+        # the eval sandbox on Linux puts empty files and folders over the config files it guards
+        helpers.write(self.root, '.bashrc', '')
+        helpers.write(self.root, '.mcp.json', '')
+        os.makedirs(os.path.join(self.root, '.idea'))
+        self.assertEqual(self.init('--name', 'demo-wiki').code, 0)
+
     def test_unrelated_files(self):
         helpers.write(self.root, 'src/app.py', 'print()\n')
         helpers.write(self.root, 'package.json', '{}')
@@ -111,7 +118,7 @@ class Init(unittest.TestCase):
         other = tempfile.mkdtemp(prefix='init-many-')
         try:
             for i in range(10):
-                helpers.write(other, f'f{i}.txt', '')
+                helpers.write(other, f'f{i}.txt', 'notes\n')
             self.assertIn(', …)', helpers.run('init.py', ['--root', other]).err)
         finally:
             shutil.rmtree(other)
