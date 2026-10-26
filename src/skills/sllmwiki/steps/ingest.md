@@ -31,7 +31,7 @@
   - PDFs, EPUBs and LaTeX are converted; an EPUB whose chapters are encrypted (DRM) is refused, so record a link. A LaTeX source in several files: put them in one folder and pass the main one with `--file`.
   - A table or figure a page only links to ("Full size table"): when a question needs it, save the linked page too, as its own source.
   - When it refuses (the source policy, a login, a format it can't read), record a link instead.
-- **A link:** `manifest.py put-source <slug> --kind link --url <url> --license <id> --tags <tags> --abstract "<abstract>"`.
+- **A link:** `manifest.py put-source <slug> --kind link --url <url> --license <id> --tags <tags> --abstract "<abstract>"`. A saved copy the wiki may not keep (`wiki-check` reports `SOURCE_POLICY`) becomes one in place with `put-source <slug> --kind link --drop-copy`; then fix the narratives citing it.
 
 ## 4. Abstract
 

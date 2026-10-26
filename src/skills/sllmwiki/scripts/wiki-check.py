@@ -114,7 +114,7 @@ def check(root, fix=False, seen_by=None):
             add(('error', 'SOURCE_ATTRIBUTION', rel, f'{slug}: its footer must give its URL, {e.get("url")} (fetch-source.py --refresh rewrites it)'))
         ok, why = policy.may_copy(settings['source_copies'], seen_by, e.get('license'), e.get('permission'))
         if not ok:
-            add(('error', 'SOURCE_POLICY', rel, f'{slug}: {why}'))
+            add(('error', 'SOURCE_POLICY', rel, f'{slug}: {why}; keep a link instead: manifest.py put-source {slug} --kind link --drop-copy'))
 
     folder = os.path.join(root, layout.NARRATIVES)
     written = {f[:-3] for f in os.listdir(folder) if f.endswith('.md')} if os.path.isdir(folder) else set()

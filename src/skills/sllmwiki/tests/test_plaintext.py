@@ -57,6 +57,24 @@ class Standard(unittest.TestCase):
         self.assertIsNone(plaintext.standard('Notes\n\n1.  Only one\n\n2.  Or two\n'))
 
 
+class Rst(unittest.TestCase):
+    def test_section_titles_become_headings(self):
+        text = ('=======\nClients\n=======\n\nIntro with ``code``.\n\nLoad balancing\n--------------\n\nText::\n\n'
+                '    a block\n    -------\n\nPeak EWMA\n~~~~~~~~~\n\nMore.\n\nRetries\n-------\n\nLast.\n')
+        self.assertEqual(plaintext.rst(text), '# Clients\n\nIntro with ``code``.\n\n## Load balancing\n\nText::\n\n'
+                         '    a block\n    -------\n\n### Peak EWMA\n\nMore.\n\n## Retries\n\nLast.\n')
+
+    def test_text_without_titles_and_short_underlines(self):
+        self.assertIsNone(plaintext.rst('Just text\nand more\n'))
+        self.assertIsNone(plaintext.rst('A long title\n---\n'))  # an underline shorter than its title isn't one
+
+    def test_convert_uses_it_for_rst(self):
+        from lib import convert
+        data = b'Title\n=====\n\nBody.\n'
+        self.assertEqual(convert.convert('text', data, 'https://e.com/a.rst', 'text/plain', name='a.rst')[0], b'# Title\n\nBody.\n')
+        self.assertEqual(convert.convert('text', b'No titles.\n', 'https://e.com/a.rst', 'text/x-rst', name='a')[0], b'No titles.\n')
+
+
 class Code(unittest.TestCase):
     TEXT = 'def ewma(prev, x, a):\n    return a * x + (1 - a) * prev\n\n# done\n'
 

@@ -49,6 +49,10 @@ def convert(kind, data, url, content_type='', include=None, name=''):
         raise ConvertError('the text isn\'t UTF-8; save a UTF-8 copy and pass it with --file') from None
     if kind == 'code':
         return plaintext.code(text, name).encode(), []
-    markdown = 'markdown' in content_type or os.path.splitext(name.split('?')[0])[1].lower() in ('.md', '.markdown')
+    ext = os.path.splitext(name.split('?')[0])[1].lower()
+    if 'x-rst' in content_type or ext == '.rst':
+        converted = plaintext.rst(text)
+        return (converted.encode() if converted else data), []
+    markdown = 'markdown' in content_type or ext in ('.md', '.markdown')
     standard = None if markdown else plaintext.standard(text)
     return (standard.encode() if standard else data), []

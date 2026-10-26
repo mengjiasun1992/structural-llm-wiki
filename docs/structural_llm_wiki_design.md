@@ -169,13 +169,13 @@ A source is a verbatim copy of existing material, kept so that every claim built
 
 | Kind | Saved as |
 |---|---|
-| `text` | markdown or plain text, byte for byte; a plain-text standard (an RFC, three or more numbered sections) with its numbered sections as headings, each section verbatim in a fenced block, its page headers and footers left out |
-| `html` | the page's main content (`<main>` or `<article>`, without navigation, comments or scripts) converted to markdown by a small converter: headings, paragraphs, lists, tables, code, links. Images stay links to the original |
+| `text` | markdown or plain text, byte for byte; a plain-text standard (an RFC, three or more numbered sections) with its numbered sections as headings, each section verbatim in a fenced block, its page headers and footers left out; reStructuredText with its section titles as headings, the rest byte for byte |
+| `html` | the page's main content (`<main>` or `<article>`, without navigation, comments, scripts or headings' permalink marks) converted to markdown by a small converter: headings, paragraphs, lists, tables, code, links. Images stay links to the original |
 | `pdf` | the text layer, with the PDF's own outline (its bookmarks) as the headings, so sections and citations follow its chapters and sections; `## Page <n>` headings only for a PDF without an outline |
 | `epub` | the book's chapters in its reading order (its spine), each converted like an HTML page, its headings set at the depth its table of contents gives it; links within the book keep only their text, images their alt text. A book whose chapters are encrypted (DRM) is refused, never decrypted |
 | `tex` | a LaTeX source's body: its sections as headings, its math kept as TeX (`$…$`, `$$…$$`), its formatting as markdown, the rest of its markup dropped; `\input` files read from beside it |
 | `code` | a code file verbatim in one fenced block, so a citation names its lines as the file numbers them: `#L10-L20` |
-| `link` | nothing: a pointer (live code, dashboards, a source that may not be copied) |
+| `link` | nothing: a pointer (live code, dashboards, a source that may not be copied); `manifest.py put-source --kind link --drop-copy` turns a saved copy into one in place |
 
 Each saved file ends with a generated "Original source" footer (its URL and license), which is left out of its hash. One entry per source, keyed by slug (`<topic>-<source-name>`):
 
