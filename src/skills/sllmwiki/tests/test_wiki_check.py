@@ -11,7 +11,7 @@ from lib import compat, manifest, policy, tagpages, wikiindex
 
 class Pages(helpers.WikiTestCase):
     def test_the_index(self):
-        text = self.read('sllmwiki/SLLMWIKI_INDICES.md')
+        text = self.read('sllmwiki/.SLLMWIKI_INDICES.md')
         self.assertIn('    t0 --> t1\n', text)
         self.assertIn('    click t1 "tags/leaf-a.md"\n', text)
         self.assertIn('  - [leaf-a](tags/leaf-a.md): First leaf, about alpha systems (1 narrative)\n', text)
@@ -80,12 +80,12 @@ class Check(helpers.WikiTestCase):
         self.assertTrue({('OLD_LAYOUT', 'Config.toml'), ('OLD_LAYOUT', 'templates')} <= found, found)
 
     def test_the_wikis_own_templates(self):
-        self.write('sllmwiki/templates/postmortem/template.md', '---\ndescription: x\n---\n\n## Timeline\n\n<what happened>\n')
+        self.write('sllmwiki/.templates/postmortem/template.md', '---\ndescription: x\n---\n\n## Timeline\n\n<what happened>\n')
         self.write('sllmwiki/Config.toml', '[structural-llm-wiki-templates.runbook]\nmax_words = 900\n')
         found = {(f['code'], f['file']): f['message'] for f in json.loads(self.wc('--json').out)['findings']}
-        self.assertIn('header needs exactly', found[('TEMPLATE_INVALID', 'sllmwiki/templates/postmortem')])
+        self.assertIn('header needs exactly', found[('TEMPLATE_INVALID', 'sllmwiki/.templates/postmortem')])
         self.assertIn('no template runbook', found[('TEMPLATE_INVALID', 'sllmwiki/Config.toml')])
-        self.assertFalse([f for f in found if f[1].startswith('sllmwiki/templates/postmortem/')])  # a skeleton, not a page to check
+        self.assertFalse([f for f in found if f[1].startswith('sllmwiki/.templates/postmortem/')])  # a skeleton, not a page to check
         self.assertEqual(self.wc().code, 1)
 
     def test_schema_and_tree(self):

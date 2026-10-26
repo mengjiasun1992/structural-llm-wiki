@@ -111,7 +111,7 @@ LINKS = """
 See [the background](#3-background), [nothing](#nope), [alpha](what-is-alpha.md),
 [how alpha works](what-is-alpha.md#5-how-does-it-work), [alpha's metadata](what-is-alpha.md#9-metadata),
 [a ghost](ghost.md), [beta's doc](../sources/beta-doc.md), [no such source](../sources/nope.md#x),
-[leaf a](../tags/leaf-a.md), [a tag with nothing](../tags/leaf-b.md), [the index](../SLLMWIKI_INDICES.md),
+[leaf a](../tags/leaf-a.md), [a tag with nothing](../tags/leaf-b.md), [the index](../.SLLMWIKI_INDICES.md),
 [the README](../../README.md), [the web](https://example.com/x.md), `[code](what-is-alpha.md)`.
 
 ![A flow](figures/how-is-beta-built/flow.svg) ![Gone](figures/how-is-beta-built/gone.png)

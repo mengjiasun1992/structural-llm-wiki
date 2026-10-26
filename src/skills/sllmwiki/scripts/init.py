@@ -186,17 +186,18 @@ class Init:
 
     def move_old(self):
         """Before 1.0, the settings, the templates and the index were at the root: move them into sllmwiki/."""
-        for old, new in ((layout.OLD_CONFIG, layout.CONFIG), (layout.OLD_TEMPLATES, layout.TEMPLATES)):
+        for old, new in ((layout.OLD_CONFIG, layout.CONFIG), *((t, layout.TEMPLATES) for t in layout.OLD_TEMPLATES)):
             if os.path.exists(self.path(old)) and not os.path.exists(self.path(new)):
                 os.rename(self.path(old), self.path(new))
                 self.done.append((f'moved {old} to', new))
-        old = self.path(layout.OLD_INDEX)
-        if os.path.isfile(old) and wikiindex.GENERATED in read_text(old):  # pages() writes it in its new place
-            os.remove(old)
-            self.done.append(('removed the old', layout.OLD_INDEX))
-            readme = read_text(self.path('README.md')) if self.exists('README.md') else ''
-            if f']({layout.OLD_INDEX})' in readme:  # the README init wrote links to it; only that link changes
-                self.put('README.md', readme.replace(f']({layout.OLD_INDEX})', f']({layout.INDEX})'), 'pointed the index link in')
+        readme = read_text(self.path('README.md')) if self.exists('README.md') else ''
+        for old in layout.OLD_INDEX:
+            if os.path.isfile(self.path(old)) and wikiindex.GENERATED in read_text(self.path(old)):  # pages() writes it in its new place
+                os.remove(self.path(old))
+                self.done.append(('removed the old', old))
+            readme = readme.replace(f']({old})', f']({layout.INDEX})')  # the README init wrote links to it; only that link changes
+        if self.exists('README.md') and readme != read_text(self.path('README.md')):
+            self.put('README.md', readme, 'pointed the index link in')
 
     def readme(self):
         text = read_text(os.path.join(WIKI, 'README.md')).replace('{{name}}', self.name)

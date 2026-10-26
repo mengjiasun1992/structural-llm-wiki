@@ -5,11 +5,11 @@
 
 Errors:
   CONFIG_INVALID            Config.toml has a problem
-  OLD_LAYOUT                Config.toml, templates/ or SLLMWIKI_INDICES.md still at the root, where they were
-                            before 1.0 (warning; rerun /sllmwiki:init, which moves them into sllmwiki/)
-  LANGUAGE_PACK_INVALID     a language pack in sllmwiki/templates/languages/ can't be read
+  OLD_LAYOUT                Config.toml, templates/ or SLLMWIKI_INDICES.md where they were before 1.0
+                            (warning; rerun /sllmwiki:init, which moves them)
+  LANGUAGE_PACK_INVALID     a language pack in sllmwiki/.templates/languages/ can't be read
   LANGUAGE_PACK             Config.toml's language has no pack, so headings stay English (warning)
-  TEMPLATE_INVALID          one of the wiki's templates in sllmwiki/templates/ doesn't load (so it isn't
+  TEMPLATE_INVALID          one of the wiki's templates in sllmwiki/.templates/ doesn't load (so it isn't
                             offered), or Config.toml sets budgets for a template there isn't
   YAML_INVALID              tags.yaml or a manifest can't be read
   MISSING_FIELD, UNKNOWN_FIELD, BAD_TYPE, BAD_VALUE, BAD_ENTRY
@@ -63,9 +63,9 @@ def check(root, fix=False, seen_by=None):
     """[(severity, code, file, message)] for the whole wiki; with fix, the generated pages are rewritten first."""
     out = []
     add = out.append
-    for old in (layout.OLD_CONFIG, layout.OLD_TEMPLATES, layout.OLD_INDEX):
+    for old in (layout.OLD_CONFIG, *layout.OLD_TEMPLATES, *layout.OLD_INDEX):
         if os.path.exists(os.path.join(root, old)):
-            add(('warning', 'OLD_LAYOUT', old, f'{old} belongs in sllmwiki/ since 1.0: rerun /sllmwiki:init, which moves it'))
+            add(('warning', 'OLD_LAYOUT', old, f'{old} has moved since 1.0 (sllmwiki/Config.toml, .templates/, .SLLMWIKI_INDICES.md): rerun /sllmwiki:init, which moves it'))
     for p in config.problems(root):
         add(('error', 'CONFIG_INVALID', layout.CONFIG, p))
     settings = config.get(root).settings

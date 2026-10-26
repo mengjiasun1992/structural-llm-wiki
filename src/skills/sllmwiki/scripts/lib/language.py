@@ -3,7 +3,7 @@ pack that translates its headings and the few labels the scripts write.
 
 A wiki's language is Config.toml's `language` ("en" by default); a narrative
 may name its own in its Metadata, `- **Language:** zh-Hans`. Sources keep the
-language they were written in. A pack is sllmwiki/templates/languages/<tag>.md, bundled
+language they were written in. A pack is sllmwiki/.templates/languages/<tag>.md, bundled
 or the wiki's own (which replaces a bundled one): a # heading naming the
 language, then a table of the English text as the skeleton, the templates and
 the scripts write it, and its translation.
@@ -30,7 +30,7 @@ from .layout import TEMPLATES
 from .util import read_text
 
 BUNDLED = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'templates', 'languages'))
-FOLDER = 'languages'  # under the wiki's sllmwiki/templates/
+FOLDER = 'languages'  # under the wiki's sllmwiki/.templates/
 DEFAULT = 'en'
 TAG = re.compile(r'[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*\Z')
 FIELD = re.compile(r'^- \*\*Language:\*\*[ \t]*(\S+)[ \t]*$', re.M)

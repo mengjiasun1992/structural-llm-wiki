@@ -1,4 +1,4 @@
-"""sllmwiki/SLLMWIKI_INDICES.md, GitHub's map of the wiki (design doc §4.8): a mermaid
+"""sllmwiki/.SLLMWIKI_INDICES.md, GitHub's map of the wiki (design doc §4.8): a mermaid
 diagram of the tag tree whose nodes open the tag pages, and the same tree as a
 nested list; and pages(), every generated page with its text."""
 
