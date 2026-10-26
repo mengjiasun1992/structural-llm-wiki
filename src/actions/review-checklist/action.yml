@@ -6,7 +6,7 @@
 #     pull_request:
 #       types: [opened, edited, synchronize, reopened]
 #   steps:
-#     - uses: mengjiasun1992/structural-llm-wiki/src/actions/review-checklist@v1.0.0
+#     - uses: mengjiasun1992/structural-llm-wiki/src/actions/review-checklist@v1.1.0
 
 name: Review checklist
 description: Fail until every box in a run's review checklist is ticked.
