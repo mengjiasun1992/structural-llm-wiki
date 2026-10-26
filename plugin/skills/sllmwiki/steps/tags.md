@@ -15,4 +15,4 @@
    - `checklist`: one item per question, naming its tags, for the owner to confirm;
    - `body`: a table of question, primary and supporting tags, with the new tags marked new.
 
-Run on its own (`/sllmwiki:tags`), reply with that table instead; add tags only when the user confirms.
+Run on its own (asked which tags a topic belongs to), reply with that table instead; add tags only when the user confirms.
