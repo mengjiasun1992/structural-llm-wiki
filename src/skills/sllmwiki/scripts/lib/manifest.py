@@ -54,15 +54,26 @@ def remove(root, kind, key):
     write_text(path, wikiyaml.remove_entry(read_text(path), key))
 
 
-def put_source(root, slug, **changes):
+def put_source(root, slug, drop_copy=False, **changes):
     """Create a link source, or change fields of any existing source (a saved
-    copy's file and kind are fetch-source.py's)."""
+    copy's file and kind are fetch-source.py's). drop_copy turns a saved copy
+    into a link in place: its file is deleted, its other fields and place kept."""
     entries = load(root, 'sources')
     entry = dict(entries.get(slug, {}))
     if slug not in entries and changes.get('kind') != 'link':
         raise ManifestError(f'{slug} is new: save a copy with fetch-source.py, or record a link with kind link')
-    if slug in entries and entry.get('kind') != 'link' and {'file', 'kind'} & {k for k, v in changes.items() if v is not None}:
-        raise ManifestError(f'{slug} is a saved copy: fetch-source.py --refresh changes its file and kind')
+    copy = slug in entries and entry.get('kind') != 'link'
+    if drop_copy and not (copy and changes.get('kind') == 'link'):
+        raise ManifestError(f'--drop-copy turns a saved copy into a link (with --kind link); {slug} isn\'t a saved copy' if not copy
+                            else '--drop-copy needs --kind link')
+    if copy and not drop_copy and {'file', 'kind'} & {k for k, v in changes.items() if v is not None}:
+        raise ManifestError(f'{slug} is a saved copy: fetch-source.py --refresh changes its file and kind, '
+                            'and --kind link --drop-copy turns it into a link')
+    if drop_copy:
+        path = os.path.join(root, layout.in_content(entry.pop('file')))
+        if os.path.exists(path):
+            os.remove(path)
+        entry.pop('abstract_draft', None)
     entry.update({k: v for k, v in changes.items() if v is not None})
     return save(root, 'sources', slug, entry)
 

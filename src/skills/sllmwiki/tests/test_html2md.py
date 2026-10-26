@@ -71,6 +71,14 @@ class Convert(unittest.TestCase):
         self.assertEqual(convert('<p><em>a<span hidden>gone</span></em></p>')[0], '*a*\n')
 
 
+    def test_a_headings_permalink_mark_is_left_out(self):
+        md = convert('<main><h2>Load balancing<a class="headerlink" href="#lb" title="Link to this heading">¶</a></h2>'
+                     '<p>See <a class="reference" href="#lb">this</a>.</p><h3>Retries ¶</h3></main>')[0]
+        self.assertIn('## Load balancing\n', md)
+        self.assertIn('### Retries\n', md)
+        self.assertIn('See this.', md)  # an ordinary link to the page itself keeps its text
+        self.assertNotIn('¶', md)
+
     def test_math_is_kept_as_tex(self):
         wiki = ('<p>Here <span class="mwe-math-element mwe-math-element-inline"><span style="display: none;">'
                 '<math alttext="{\\textstyle s_{t}=\\alpha x_{t}}"><semantics><mi>s</mi></semantics></math></span>'

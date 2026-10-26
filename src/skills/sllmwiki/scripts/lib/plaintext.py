@@ -3,6 +3,8 @@
   standard(text) -> markdown, or None: a plain-text standard (an RFC) with its
       numbered sections as headings, each section's text verbatim in a fenced
       block, page headers and footers left out
+  rst(text) -> markdown, or None: reStructuredText with its section titles as
+      headings, levels in the order their adornments first appear, the rest verbatim
   code(text, name) -> markdown: a code file verbatim in one fenced block, so
       its line numbers are the file's own
   lines(markdown, anchor) -> the code lines an #L<start>-L<end> anchor names, or None
@@ -59,6 +61,31 @@ def standard(text):
             parts.append(f'{"#" * min(depth + 1, 6)} {number}. {m.group("title")}')
             start = i + 1
     return '\n\n'.join(parts) + '\n'
+
+
+ADORNMENT = re.compile(r'([!-/:-@\[-`{-~])\1{2,}\s*\Z')  # one punctuation character, repeated
+
+
+def rst(text):
+    lines = text.replace('\r\n', '\n').split('\n')
+    styles, out, i, found = [], [], 0, 0
+    while i < len(lines):
+        over = ADORNMENT.match(lines[i]) and i + 2 < len(lines) and lines[i + 2].strip() == lines[i].strip()
+        at = i + 1 if over else i
+        title = lines[at].strip() if at < len(lines) else ''
+        under = lines[at + 1] if at + 1 < len(lines) else ''
+        if (title and not ADORNMENT.match(lines[at]) and (over or not lines[at][:1].isspace()) and ADORNMENT.match(under)
+                and len(under.strip()) >= len(title) and (at == 0 or over or not lines[at - 1].strip())):
+            style = (under.strip()[0], bool(over))
+            if style not in styles:
+                styles.append(style)
+            out.append(f'{"#" * min(styles.index(style) + 1, 6)} {title}')
+            found += 1
+            i = at + 2
+            continue
+        out.append(lines[i])
+        i += 1
+    return '\n'.join(out) if found else None
 
 
 def code(text, name):

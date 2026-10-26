@@ -62,6 +62,9 @@ class _Tree(html.parser.HTMLParser):
 
 def _hidden(node):
     a = node.attrs
+    # a heading's permalink mark (Sphinx and MkDocs: <a class="headerlink">¶</a>) isn't the page's text
+    if node.tag == 'a' and 'headerlink' in (a.get('class') or '').split():
+        return True
     return (node.tag in DROP or (a.get('role') or '').lower() in DROP_ROLES or 'hidden' in a
             or (a.get('aria-hidden') or '').lower() == 'true' or re.search(r'display:\s*none', a.get('style') or '') is not None)
 
@@ -148,7 +151,7 @@ class _Writer:
     def block(self, c, depth):
         t = c.tag
         if t in ('h1', 'h2', 'h3', 'h4', 'h5', 'h6'):
-            text = self.inline(c).replace('\n', ' ').strip()
+            text = re.sub(r'\s*[¶§]\Z', '', self.inline(c).replace('\n', ' ').strip())
             return [f'{"#" * int(t[1])} {text}'] if text else []
         if t == 'hr':
             return ['---']

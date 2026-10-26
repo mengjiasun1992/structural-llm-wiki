@@ -4,10 +4,11 @@ so they're never edited by hand (design doc §4.2-§4.4).
 
   manifest.py add-tag <tag> --description TEXT [--parent TAG]
   manifest.py put-tag <tag> [--description TEXT] [--smes "@a: why" "@b: why" | --no-smes]
-  manifest.py put-source <slug> [--kind link] [--url URL] [--published DATE] [--license ID]
+  manifest.py put-source <slug> [--kind link [--drop-copy]] [--url URL] [--published DATE] [--license ID]
                          [--license-url URL] [--tags a,b] [--abstract TEXT]
       Records a link, or changes the fields of an existing source; saved copies
-      come from fetch-source.py.
+      come from fetch-source.py. --kind link --drop-copy turns a saved copy into
+      a link in place, deleting its file: for a copy the wiki may not keep.
   manifest.py set-abstract <slug> --abstract TEXT
       The agent's abstract for a source, replacing a draft.
   manifest.py put-narrative <slug> --template NAME --primary a,b [--supporting c] [--read s1,s2]
@@ -51,6 +52,7 @@ def parser():
     s = sub.add_parser('put-source')
     s.add_argument('slug')
     s.add_argument('--kind', choices=['link'])
+    s.add_argument('--drop-copy', action='store_true')
     for opt in ('--url', '--published', '--license', '--license-url', '--abstract'):
         s.add_argument(opt)
     s.add_argument('--tags', type=tags_arg)
@@ -85,10 +87,10 @@ def main(argv):
             print(f'updated tag {args.tag}')
         elif args.command == 'put-source':
             new = args.slug not in manifest.load(root, 'sources')
-            manifest.put_source(root, args.slug, kind=args.kind, url=args.url, published=args.published, license=args.license,
+            manifest.put_source(root, args.slug, drop_copy=args.drop_copy, kind=args.kind, url=args.url, published=args.published, license=args.license,
                                 license_url=args.license_url, tags=args.tags, abstract=args.abstract,
                                 ingested=today() if new else None)
-            print(f'{"recorded" if new else "updated"} source {args.slug}')
+            print(f'{"recorded" if new else "made a link of" if args.drop_copy else "updated"} source {args.slug}')
         elif args.command == 'set-abstract':
             manifest.set_abstract(root, args.slug, args.abstract)
             print(f'set the abstract of {args.slug}')

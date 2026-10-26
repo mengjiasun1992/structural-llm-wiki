@@ -1,5 +1,6 @@
 """Tests for lib/manifest.py and scripts/manifest.py."""
 
+import os
 import unittest
 
 import helpers
@@ -46,6 +47,24 @@ class Library(helpers.WikiTestCase):
             manifest.put_source(self.root, 'alpha-doc', kind='link')
         self.assertIn('fetch-source.py --refresh', str(e.exception))
         manifest.put_source(self.root, 'gamma-link', url='https://e.com/g2')  # a link's fields can all change
+
+    def test_drop_copy_turns_a_saved_copy_into_a_link_in_place(self):
+        order = list(manifest.load(self.root, 'sources'))
+        path = os.path.join(self.root, 'sllmwiki', 'sources', 'alpha-doc.md')
+        self.assertTrue(os.path.exists(path))
+        r = run(self.root, 'put-source', 'alpha-doc', '--kind', 'link', '--drop-copy', '--license', 'proprietary')
+        self.assertEqual(r.out, 'made a link of source alpha-doc\n')
+        sources = manifest.load(self.root, 'sources')
+        self.assertEqual(list(sources), order)  # its place kept
+        self.assertEqual((sources['alpha-doc']['kind'], sources['alpha-doc']['license']), ('link', 'proprietary'))
+        self.assertNotIn('file', sources['alpha-doc'])
+        self.assertIn('abstract', sources['alpha-doc'])
+        self.assertFalse(os.path.exists(path))
+        for argv, says in ((['gamma-link', '--kind', 'link', '--drop-copy'], "isn't a saved copy"),
+                           (['beta-doc', '--drop-copy'], 'needs --kind link')):
+            r = run(self.root, 'put-source', *argv)
+            self.assertEqual(r.code, 1)
+            self.assertIn(says, r.err)
 
     def test_set_abstract_clears_the_draft(self):
         manifest.put_source(self.root, 'alpha-doc', abstract_draft=True)

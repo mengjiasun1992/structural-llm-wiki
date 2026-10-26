@@ -104,10 +104,10 @@ def kind_of(content_type, name):
     if ext in plaintext.LANGUAGES and (ct in ('', 'text/plain', 'application/octet-stream') or ct.startswith('text/x-')):
         return 'code'
     by_type = {'text/markdown': 'text', 'text/x-markdown': 'text', 'text/plain': 'text', 'text/html': 'html',
-               'application/xhtml+xml': 'html', 'application/pdf': 'pdf', 'application/epub+zip': 'epub', 'application/x-tex': 'tex', 'text/x-tex': 'tex'}
+               'application/xhtml+xml': 'html', 'application/pdf': 'pdf', 'application/epub+zip': 'epub', 'application/x-tex': 'tex', 'text/x-tex': 'tex', 'text/x-rst': 'text'}
     if ct in by_type:
         return by_type[ct]
-    return {'.md': 'text', '.markdown': 'text', '.txt': 'text', '.html': 'html', '.htm': 'html', '.pdf': 'pdf', '.epub': 'epub', '.tex': 'tex'}.get(ext)
+    return {'.md': 'text', '.markdown': 'text', '.txt': 'text', '.html': 'html', '.htm': 'html', '.pdf': 'pdf', '.epub': 'epub', '.tex': 'tex', '.rst': 'text'}.get(ext)
 
 
 def charset(content_type):
