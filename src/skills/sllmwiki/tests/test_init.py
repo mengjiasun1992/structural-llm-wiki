@@ -98,6 +98,23 @@ class Init(unittest.TestCase):
         self.assertIn('replaced GitHub\'s starter README.md', r.out)
         self.assertIn('/sllmwiki:query', self.read('README.md'))
 
+    def test_a_guarded_settings_file_is_reported_not_fatal(self):
+        # a sandbox guards .claude/settings.json from scripts: init reports it, and writes the rest
+        import init
+        guarded, real = os.path.join(self.root, '.claude', 'settings.json'), open
+
+        def refuse(path, *a, **k):
+            if str(path) == guarded:
+                raise PermissionError(13, 'Permission denied', path)
+            return real(path, *a, **k)
+        for existing in (False, True):
+            if existing:
+                helpers.write(self.root, '.claude/settings.json', '{}')
+            run = init.Init(self.root, 'demo-wiki')
+            with mock.patch('builtins.open', refuse):
+                run.settings()
+            self.assertEqual(run.done, [(init.SKIPPED, '.claude/settings.json')])
+
     def test_empty_placeholders_arent_unrelated(self):
         # the eval sandbox on Linux puts empty files and folders over the config files it guards
         helpers.write(self.root, '.bashrc', '')

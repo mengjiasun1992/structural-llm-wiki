@@ -10,6 +10,6 @@ A wiki is a git repository of its own. Run this in the repository that will hold
 6. Commit:
    - **First setup:** `init.py --commit --prompt "<the user's request, verbatim>"`, which stages only what it wrote, then push the default branch if there's a remote.
    - **A rerun:** `publish.py summary init --json '{...}'` with what changed, `publish.py commit init --subject "Bring the wiki up to date"` and `publish.py pr`. Never push the default branch.
-7. Reply with what was created or updated, and how to start: `/sllmwiki:build "<a first question>"`. Say that `Config.toml` holds the answers and the other settings, to change any time.
+7. Reply with what was created or updated, and how to start: `/sllmwiki:build "<a first question>"`. Say that `Config.toml` holds the answers and the other settings, to change any time. If `init.py` couldn't write `.claude/settings.json` (a sandbox guards it), give the owner the two keys from the skill's `templates/wiki/.claude/settings.json` to merge in by hand, so the team's agents load the plugin.
 
 Rerun after a plugin update: it refreshes the files it owns and keeps the wiki's own.

@@ -53,6 +53,10 @@ EXPECTED = {'.git', 'README.md', 'LICENSE', 'LICENSE.md', '.gitignore', '.github
             'Config.toml', 'SLLMWIKI_INDICES.md', 'sllmwiki', 'templates'}
 
 
+# what init reports for a file it was refused, such as a sandbox's guarded .claude/settings.json
+SKIPPED = "couldn't write (blocked); add the plugin to it by hand:"
+
+
 def action_ref():
     """The ref the wiki's CI calls the actions at: this plugin's release tag, or mainline without a version."""
     try:
@@ -216,15 +220,18 @@ class Init:
         with open(os.path.join(WIKI, '.claude', 'settings.json'), encoding='utf-8') as f:
             want = json.load(f)
         have = {}
-        if self.exists(rel):
-            try:
-                have = json.loads(read_text(self.path(rel)))
-            except ValueError:
-                cli.fail(f'{rel} isn\'t valid JSON; fix it, then rerun init')
-        merged = dict(have)
-        for key in ('extraKnownMarketplaces', 'enabledPlugins'):
-            merged[key] = {**have.get(key, {}), **want[key]}
-        self.refresh(rel, json.dumps(merged, indent=2) + '\n')
+        try:
+            if self.exists(rel):
+                try:
+                    have = json.loads(read_text(self.path(rel)))
+                except ValueError:
+                    cli.fail(f'{rel} isn\'t valid JSON; fix it, then rerun init')
+            merged = dict(have)
+            for key in ('extraKnownMarketplaces', 'enabledPlugins'):
+                merged[key] = {**have.get(key, {}), **want[key]}
+            self.refresh(rel, json.dumps(merged, indent=2) + '\n')
+        except OSError:  # a sandbox guards Claude Code's settings from scripts
+            self.done.append((SKIPPED, rel))
 
     def config(self):
         template = read_text(os.path.join(WIKI, 'Config.toml'))
@@ -359,7 +366,7 @@ def main(argv):
     run.obsidian()
     run.pages()
     if args.commit:
-        written = sorted({rel for verb, rel in run.done if verb != 'kept'})
+        written = sorted({rel for verb, rel in run.done if verb not in ('kept', SKIPPED)})
         if written:  # only what init wrote: the owner's other untracked files stay theirs
             subprocess.run(['git', 'add', '--', *written], cwd=root, check=True)
         msg = '[sllmwiki][init] Set up the wiki\n\nPrompt:\n' + '\n'.join('> ' + line if line else '>' for line in args.prompt.split('\n')) + '\n'
