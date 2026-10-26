@@ -1,8 +1,9 @@
 {
   "name": "structural-llm-wiki",
-  "description": "Structural LLM Wiki skills that structure knowledge in git with tags, lineage, and version control.",
+  "description": "The marketplace for Structural LLM Wiki (sllmwiki): an agent skill that turns a git repository into a wiki your coding agent researches and keeps current.",
   "owner": {
-    "name": "Mengjia Sun"
+    "name": "Mengjia Sun",
+    "url": "https://github.com/mengjiasun1992"
   },
   "plugins": [
     {
@@ -10,6 +11,12 @@
       "displayName": "Structural LLM Wiki",
       "source": "./plugin",
       "description": "Structural LLM Wiki (sllmwiki) is an agent skill, packaged as a Claude Code plugin, that turns a git repository into a wiki your coding agent researches and keeps current. Start with /sllmwiki:init in an empty repository. Guide: https://github.com/mengjiasun1992/structural-llm-wiki/blob/mainline/README.md",
+      "author": {
+        "name": "Mengjia Sun",
+        "url": "https://github.com/mengjiasun1992"
+      },
+      "license": "Apache-2.0",
+      "category": "knowledge-management",
       "homepage": "https://github.com/mengjiasun1992/structural-llm-wiki",
       "repository": "https://github.com/mengjiasun1992/structural-llm-wiki",
       "keywords": [
@@ -26,6 +33,9 @@
         "git",
         "obsidian",
         "book"
+      ],
+      "tags": [
+        "llm-wiki"
       ]
     }
   ]
