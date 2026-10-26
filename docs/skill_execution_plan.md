@@ -1,6 +1,6 @@
 # Execution plan: implementing the sllmwiki skill
 
-- **Status:** in progress
+- **Status:** done: phases 1 to 5 merged; released as v1.0.0
 - **Design:** [structural_llm_wiki_design.md](structural_llm_wiki_design.md)
 
 ## 1. Approach
