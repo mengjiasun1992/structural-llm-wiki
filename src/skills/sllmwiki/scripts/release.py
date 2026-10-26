@@ -120,7 +120,8 @@ def wait(root, timeout, interval):
     deadline, run = time.time() + timeout, None
     while True:
         runs = _runs(root, p['repo'], 'release')
-        run = next((r for r in runs if r.get('headBranch') == p['version']), None)
+        # the planned commit's run: a release made again under the same name leaves the earlier one's run in the list
+        run = next((r for r in runs if r.get('headBranch') == p['version'] and r.get('headSha', p['commit']) == p['commit']), None)
         if run and run.get('status') == 'completed':
             break
         if time.time() >= deadline:
@@ -138,7 +139,7 @@ def wait(root, timeout, interval):
 
 def _runs(root, repo, event, branch=None):
     return json.loads(gh(root, 'run', 'list', '-R', repo, '--workflow', os.path.basename(release.WORKFLOW), '--event', event,
-                         *(['--branch', branch] if branch else []), '--limit', '20', '--json', 'databaseId,status,conclusion,headBranch,url'))
+                         *(['--branch', branch] if branch else []), '--limit', '20', '--json', 'databaseId,status,conclusion,headBranch,headSha,url'))
 
 
 def preview(root, repo, timeout, interval):
