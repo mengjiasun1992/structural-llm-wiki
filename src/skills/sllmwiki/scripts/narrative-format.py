@@ -20,7 +20,7 @@ narrative shares (design doc §4.5, §4.8, §4.10).
                                       grades on; a problem with one of the wiki's own (exit 1), and a heading
                                       its language pack doesn't translate (a warning)
   narrative-format.py --new-template NAME --from BASE
-                     starts the wiki's own template NAME in sllmwiki/templates/NAME/, a copy of
+                     starts the wiki's own template NAME in sllmwiki/.templates/NAME/, a copy of
                      BASE's template.md and guide.md to edit; named like a bundled
                      template, it replaces it
   narrative-format.py --skeleton NAME the skeleton a new narrative starts from, in the wiki's language

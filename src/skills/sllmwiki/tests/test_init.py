@@ -38,7 +38,7 @@ class Init(unittest.TestCase):
                     'README.md', 'AGENTS.md', 'CLAUDE.md', '.gitignore', '.claude/settings.json',
                     '.github/workflows/wiki-checks.yml', '.github/workflows/review-checklist.yml', '.github/workflows/release-book.yml'):
             self.assertEqual(done[rel], 'created', rel)
-        self.assertEqual(done['sllmwiki/SLLMWIKI_INDICES.md'], 'generated')
+        self.assertEqual(done['sllmwiki/.SLLMWIKI_INDICES.md'], 'generated')
         self.assertTrue(self.read('README.md').startswith('# demo-wiki\n'))
         self.assertEqual(self.read('CLAUDE.md'), '@AGENTS.md\n')
         import init
@@ -130,19 +130,33 @@ class Init(unittest.TestCase):
         os.rename(os.path.join(self.root, 'sllmwiki', 'Config.toml'), os.path.join(self.root, 'Config.toml'))
         helpers.write(self.root, 'Config.toml', helpers.read(self.root, 'Config.toml').replace('markers = true', 'markers = false'))
         self.assertFalse(config.load(self.root).settings['markers'])  # read at the root until init moves it
-        os.rename(os.path.join(self.root, 'sllmwiki', 'SLLMWIKI_INDICES.md'), os.path.join(self.root, 'SLLMWIKI_INDICES.md'))
-        helpers.write(self.root, 'README.md', self.read('README.md').replace('](sllmwiki/SLLMWIKI_INDICES.md)', '](SLLMWIKI_INDICES.md)'))
+        os.rename(os.path.join(self.root, 'sllmwiki', '.SLLMWIKI_INDICES.md'), os.path.join(self.root, 'SLLMWIKI_INDICES.md'))
+        helpers.write(self.root, 'README.md', self.read('README.md').replace('](sllmwiki/.SLLMWIKI_INDICES.md)', '](SLLMWIKI_INDICES.md)'))
         helpers.write(self.root, 'templates/skim_read/template.md', 'x\n')
         done = json.loads(self.init('--json').out)['done']
-        for d in ({'what': 'moved Config.toml to', 'file': 'sllmwiki/Config.toml'}, {'what': 'moved templates to', 'file': 'sllmwiki/templates'},
+        for d in ({'what': 'moved Config.toml to', 'file': 'sllmwiki/Config.toml'}, {'what': 'moved templates to', 'file': 'sllmwiki/.templates'},
                   {'what': 'removed the old', 'file': 'SLLMWIKI_INDICES.md'}):
             self.assertIn(d, done)
-        self.assertEqual(self.read('sllmwiki/templates/skim_read/template.md'), 'x\n')
-        self.assertIn('](sllmwiki/SLLMWIKI_INDICES.md)', self.read('README.md'))
+        self.assertEqual(self.read('sllmwiki/.templates/skim_read/template.md'), 'x\n')
+        self.assertIn('](sllmwiki/.SLLMWIKI_INDICES.md)', self.read('README.md'))
         self.assertFalse(config.load(self.root).settings['markers'])
-        self.assertTrue(os.path.isfile(os.path.join(self.root, 'sllmwiki', 'SLLMWIKI_INDICES.md')))
+        self.assertTrue(os.path.isfile(os.path.join(self.root, 'sllmwiki', '.SLLMWIKI_INDICES.md')))
         for old in ('Config.toml', 'templates', 'SLLMWIKI_INDICES.md'):
             self.assertFalse(os.path.exists(os.path.join(self.root, old)), old)
+
+    def test_the_visible_templates_and_index_get_their_dot_names(self):
+        # briefly, they were sllmwiki/templates/ and sllmwiki/SLLMWIKI_INDICES.md, which Obsidian shows
+        self.assertEqual(self.init('--name', 'demo-wiki').code, 0)
+        os.rename(os.path.join(self.root, 'sllmwiki', '.SLLMWIKI_INDICES.md'), os.path.join(self.root, 'sllmwiki', 'SLLMWIKI_INDICES.md'))
+        helpers.write(self.root, 'README.md', self.read('README.md').replace('](sllmwiki/.SLLMWIKI_INDICES.md)', '](sllmwiki/SLLMWIKI_INDICES.md)'))
+        helpers.write(self.root, 'sllmwiki/templates/skim_read/template.md', 'x\n')
+        done = json.loads(self.init('--json').out)['done']
+        self.assertIn({'what': 'moved sllmwiki/templates to', 'file': 'sllmwiki/.templates'}, done)
+        self.assertIn({'what': 'removed the old', 'file': 'sllmwiki/SLLMWIKI_INDICES.md'}, done)
+        self.assertEqual(self.read('sllmwiki/.templates/skim_read/template.md'), 'x\n')
+        self.assertIn('](sllmwiki/.SLLMWIKI_INDICES.md)', self.read('README.md'))
+        for gone in ('sllmwiki/templates', 'sllmwiki/SLLMWIKI_INDICES.md'):
+            self.assertFalse(os.path.exists(os.path.join(self.root, gone)), gone)
 
     def test_empty_placeholders_arent_unrelated(self):
         # the eval sandbox on Linux puts empty files and folders over the config files it guards
@@ -175,7 +189,7 @@ class Init(unittest.TestCase):
         r = self.init('--json')
         self.assertIn({'what': 'created', 'file': layout.OBSIDIAN_GRAPH}, json.loads(r.out)['done'])
         graph = json.loads(self.read(layout.OBSIDIAN_GRAPH))
-        self.assertEqual(graph['search'], '-path:sources -path:templates -file:SLLMWIKI_INDICES')
+        self.assertEqual(graph['search'], '-path:sources')
         helpers.write(self.root, layout.OBSIDIAN_GRAPH, '{"mine": true}')
         self.init()
         self.assertEqual(self.read(layout.OBSIDIAN_GRAPH), '{"mine": true}')  # the wiki's from then on

@@ -2,7 +2,7 @@
 
 The language narratives are written in by default, and the model for every
 other pack. To add a language, copy this file to your wiki's
-`sllmwiki/templates/languages/<tag>.md`, named by its BCP 47 tag (such as `zh-Hans.md`),
+`sllmwiki/.templates/languages/<tag>.md`, named by its BCP 47 tag (such as `zh-Hans.md`),
 change the heading to the language's name, and fill in the right column. A row
 left blank stays English. Metadata's fields are never translated. A pack may end
 with a `## Writing` section of rules for writing in its language, as a list:

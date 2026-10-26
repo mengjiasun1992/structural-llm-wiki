@@ -20,11 +20,14 @@ SOURCES_MANIFEST = f'{SOURCES}/manifest.yaml'
 NARRATIVES = f'{CONTENT}/narratives'
 NARRATIVES_MANIFEST = f'{NARRATIVES}/manifest.yaml'
 OBSIDIAN_GRAPH = f'{CONTENT}/.obsidian/graph.json'
-INDEX = f'{CONTENT}/SLLMWIKI_INDICES.md'
-TEMPLATES = f'{CONTENT}/templates'  # the wiki's own narrative templates and language packs
+# the index and the templates aren't knowledge: their dot names keep them out of Obsidian (file list, graph, search)
+INDEX = f'{CONTENT}/.SLLMWIKI_INDICES.md'
+TEMPLATES = f'{CONTENT}/.templates'  # the wiki's own narrative templates and language packs
 CONFIG = f'{CONTENT}/Config.toml'
-# where these were before 1.0, at the repository's root: init moves them, and the settings are read there until it does
-OLD_TEMPLATES, OLD_INDEX, OLD_CONFIG = 'templates', 'SLLMWIKI_INDICES.md', 'Config.toml'
+# where these were before 1.0: init moves them, and the settings are read at the root until it does
+OLD_CONFIG = 'Config.toml'
+OLD_TEMPLATES = ('templates', f'{CONTENT}/templates')
+OLD_INDEX = ('SLLMWIKI_INDICES.md', f'{CONTENT}/SLLMWIKI_INDICES.md')
 
 
 def in_content(rel):
