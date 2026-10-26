@@ -8,7 +8,7 @@
     {
       "name": "sllmwiki",
       "source": "./",
-      "description": "Set up and maintain a Structural LLM Wiki repository: init, build (tags, ingest, SMEs, narrative, lint) and query."
+      "description": "Structural LLM Wiki (sllmwiki) is an agent skill, packaged as a Claude Code plugin, that turns a git repository into a wiki your coding agent researches and keeps current."
     }
   ]
 }
