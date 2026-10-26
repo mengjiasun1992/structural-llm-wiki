@@ -34,7 +34,7 @@ For each question that isn't a reuse, follow `steps/narrative.md`. After each, `
 
 ## 7. Lint
 
-Follow `steps/lint.md` for the narratives this run wrote or updated, inside this run: its one commit and its findings go on this pull request.
+Follow `steps/lint.md` for the narratives this run wrote or updated, inside this run: its one commit and its findings go on this pull request. Never skip it, however short the narratives or sure the writing: it is the only check of each claim against the section it cites.
 
 ## 8. Hand off
 
