@@ -5,9 +5,9 @@
 
 Errors:
   CONFIG_INVALID            Config.toml has a problem
-  LANGUAGE_PACK_INVALID     a language pack in templates/languages/ can't be read
+  LANGUAGE_PACK_INVALID     a language pack in sllmwiki/templates/languages/ can't be read
   LANGUAGE_PACK             Config.toml's language has no pack, so headings stay English (warning)
-  TEMPLATE_INVALID          one of the wiki's templates in templates/ doesn't load (so it isn't
+  TEMPLATE_INVALID          one of the wiki's templates in sllmwiki/templates/ doesn't load (so it isn't
                             offered), or Config.toml sets budgets for a template there isn't
   YAML_INVALID              tags.yaml or a manifest can't be read
   MISSING_FIELD, UNKNOWN_FIELD, BAD_TYPE, BAD_VALUE, BAD_ENTRY
@@ -152,11 +152,12 @@ def check(root, fix=False, seen_by=None):
 
 
 def pages(root):
-    """Every markdown page under sllmwiki/ but the saved sources (verbatim) and hidden folders such as .obsidian."""
+    """Every markdown page under sllmwiki/ but the saved sources (verbatim), the templates (skeletons, not pages)
+    and hidden folders such as .obsidian."""
     out = []
     for folder, dirs, files in os.walk(os.path.join(root, layout.CONTENT)):
         rel_dir = os.path.relpath(folder, root).replace(os.sep, '/')
-        dirs[:] = sorted(d for d in dirs if not d.startswith('.') and f'{rel_dir}/{d}' != layout.SOURCES)
+        dirs[:] = sorted(d for d in dirs if not d.startswith('.') and f'{rel_dir}/{d}' not in (layout.SOURCES, layout.TEMPLATES))
         out += [f'{rel_dir}/{f}' for f in sorted(files) if f.endswith('.md')]
     return out
 

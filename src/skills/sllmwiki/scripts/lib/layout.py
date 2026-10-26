@@ -21,7 +21,8 @@ NARRATIVES = f'{CONTENT}/narratives'
 NARRATIVES_MANIFEST = f'{NARRATIVES}/manifest.yaml'
 OBSIDIAN_GRAPH = f'{CONTENT}/.obsidian/graph.json'
 INDEX = 'SLLMWIKI_INDICES.md'
-TEMPLATES = 'templates'
+TEMPLATES = f'{CONTENT}/templates'  # the wiki's own narrative templates and language packs
+OLD_TEMPLATES = 'templates'  # where they were before 1.0: init moves them
 CONFIG = 'Config.toml'
 
 

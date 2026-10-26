@@ -1,10 +1,10 @@
 # template: make or change one of this wiki's narrative templates
 
-A wiki can bring its own templates, for kinds of answers the bundled ones don't fit: a folder in `templates/<name>/` with a `template.md` and a `guide.md`, offered next to the bundled ones; one named like a bundled template replaces it. A wiki that only wants a different length sets `max_words` or `abstract_words` in `Config.toml` instead (`[structural-llm-wiki-templates.<name>]`); do that, and stop here.
+A wiki can bring its own templates, for kinds of answers the bundled ones don't fit: a folder in `sllmwiki/templates/<name>/` with a `template.md` and a `guide.md`, offered next to the bundled ones; one named like a bundled template replaces it. A wiki that only wants a different length sets `max_words` or `abstract_words` in `Config.toml` instead (`[structural-llm-wiki-templates.<name>]`); do that, and stop here.
 
 ## 1. Start from the closest template
 
-From what the owner describes (the questions it answers, its reader, what each answer must contain), pick the closest template in `narrative-format.py --templates`. Then `narrative-format.py --new-template <name> --from <closest>` copies it into `templates/<name>/` for you to change. To change a bundled template for this wiki only, give its own name. Choose a short noun for a new name, such as `postmortem`.
+From what the owner describes (the questions it answers, its reader, what each answer must contain), pick the closest template in `narrative-format.py --templates`. Then `narrative-format.py --new-template <name> --from <closest>` copies it into `sllmwiki/templates/<name>/` for you to change. To change a bundled template for this wiki only, give its own name. Choose a short noun for a new name, such as `postmortem`.
 
 ## 2. Shape the template
 
@@ -17,7 +17,7 @@ From what the owner describes (the questions it answers, its reader, what each a
 
 ## 3. Check it
 
-`narrative-format.py --templates` must list it, with its aim, and no problem; it checks the header, the guide's sections, Takeaway and Aim, and that the body has `##` sections, each with its `<…>` line, and repeats none of the shared ones. `narrative-format.py --skeleton <name>` must show the skeleton you meant. In a wiki whose `language` isn't English, `--templates` warns of each new heading the wiki's language pack (`templates/languages/<tag>.md`) doesn't translate; narratives keep it in English until it does: say so in the summary.
+`narrative-format.py --templates` must list it, with its aim, and no problem; it checks the header, the guide's sections, Takeaway and Aim, and that the body has `##` sections, each with its `<…>` line, and repeats none of the shared ones. `narrative-format.py --skeleton <name>` must show the skeleton you meant. In a wiki whose `language` isn't English, `--templates` warns of each new heading the wiki's language pack (`sllmwiki/templates/languages/<tag>.md`) doesn't translate; narratives keep it in English until it does: say so in the summary.
 
 ## 4. Summary
 

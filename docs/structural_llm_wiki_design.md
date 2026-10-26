@@ -94,7 +94,6 @@ structural-llm-wiki/
 ├── .claude/settings.json     # offers the sllmwiki plugin to the group's members
 ├── .github/workflows/        # wiki-checks.yml; review-checklist.yml (red until a run PR's boxes are ticked); release-book.yml (§10)
 ├── Config.toml               # optional: the wiki's settings and add-ons (§4.9)
-├── templates/                # optional: the wiki's own narrative templates (§4.5.5) and languages/ packs (§4.9)
 └── sllmwiki/                 # the knowledge: also the Obsidian vault and a book's source
     ├── .obsidian/graph.json  # with the Obsidian add-on: written once by init
     ├── tags/
@@ -102,9 +101,11 @@ structural-llm-wiki/
     │   └── <tag>.md          # generated: a page per tag
     ├── sources/              # sources, saved verbatim
     │   └── manifest.yaml
-    └── narratives/           # narratives, one per question
-        ├── figures/<slug>/   # figures a narrative generates (§4.5.3)
-        └── manifest.yaml
+    ├── narratives/           # narratives, one per question
+    │   ├── figures/<slug>/   # figures a narrative generates (§4.5.3)
+    │   └── manifest.yaml
+    └── templates/            # optional: the wiki's own narrative templates (§4.5.5) and languages/ packs (§4.9);
+                              # skeletons, so the checks, the graph and the book leave them out
 ```
 
 The layout is fixed: the scripts know it, and no setting changes it. A repository is a wiki when `sllmwiki/tags/tags.yaml` exists; every workflow but `init` stops and points to `init` otherwise.
@@ -275,13 +276,13 @@ Lint grades each narrative on each axis of its template's aim, met, partly or mi
 
 The five bundled templates cover the common kinds of questions; a group adds its own for the kinds they don't fit, such as a postmortem of its incidents, a runbook, or a ten-minute primer on one paper.
 
-- **What it is.** A folder in the wiki's `templates/` with a `template.md` and a `guide.md`, the same two files as a bundled template. It is offered next to the bundled ones, and the narrative step picks it by its `use_when` like any other. One with a bundled template's name replaces that template in this wiki.
+- **What it is.** A folder in the wiki's `sllmwiki/templates/` with a `template.md` and a `guide.md`, the same two files as a bundled template. It is offered next to the bundled ones, and the narrative step picks it by its `use_when` like any other. One with a bundled template's name replaces that template in this wiki.
 - **How it's made.** `/sllmwiki:template "<what it's for>"` runs the `template` step: it starts from the closest template (`narrative-format.py --new-template <name> --from <closest>`), shapes the header, the sections and the guide from the owner's description, checks the result, and lands it as one pull request. It can also be written by hand.
 - **How it's checked.** By `lib/templates.py`, the same way as a bundled one: the header's four keys; the guide's six sections, with the **Takeaway** and the **Aim** whose axes lint grades every narrative on; and a body of `##` sections, each with its `<…>` line, repeating none of the shared ones. `narrative-format.py --templates` lists every template with its aim and any problem; one that doesn't load is a problem, not a template, and `wiki-check` reports it (`TEMPLATE_INVALID`), as it does a `Config.toml` budget for a template there isn't, so the wiki's CI fails on it.
 - **The same bar as the bundled ones.** Its narratives get the shared top and appendices, citations, markers and finishing, and lint grades them against its aim.
 - **Only a different length?** Set the budget in `Config.toml` (§4.9) instead of copying the template.
 
-The [demo wiki](https://github.com/mengjiasun1992/sllmwiki-demo) has one: [`skim_read`](https://github.com/mengjiasun1992/sllmwiki-demo/tree/main/templates/skim_read), a ten-minute primer on one long work for a reader from the field deciding whether to read it in full (aim: faithful, focused, decisive), and [a narrative written with it](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-does-keeping-calm-argue-and-is-it-worth-reading-in-full.md).
+The [demo wiki](https://github.com/mengjiasun1992/sllmwiki-demo) has one: [`skim_read`](https://github.com/mengjiasun1992/sllmwiki-demo/tree/main/sllmwiki/templates/skim_read), a ten-minute primer on one long work for a reader from the field deciding whether to read it in full (aim: faithful, focused, decisive), and [a narrative written with it](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-does-keeping-calm-argue-and-is-it-worth-reading-in-full.md).
 
 #### 4.5.6 What scripts do for every narrative
 
@@ -342,7 +343,7 @@ author = ""                 # its author; empty: the title
 ```
 
 - **What earns a setting.** A real wiki or a group's policy needs it, it has a safe default, and a script enforces it. Each setting above meets all three: the one real wiki raised a template's budget, set the Obsidian add-on on, and had its owner wrongly listed as an SME; its owner found the markers cluttering and asked what they meant; `source_copies` and `max_quote_words` are what legal review may need to tighten. Nothing configures the layout (§3).
-- **Language.** Narratives are written in `language`; one names its own in its Metadata (`- **Language:** zh-Hans`), which `finish-narrative` writes for every narrative. Sources are never translated, and a quotation keeps its source's words with a translation after it. A narrative's headings, and the few labels the scripts write (table headers, figure captions, the markers' rows), come from a language pack, `templates/languages/<tag>.md`: a table from the English text to its translation, bundled or the wiki's own, like a template. A pack may end with a `## Writing` section, its language's rules (Chinese: terms glossed in English on first use, full-width punctuation, a space between Chinese and Latin text), which `--skeleton` points the narrative step to. The skill bundles a language only once narratives written in it have been evaluated: English and Simplified Chinese ship; a wiki's own pack for another language works, with a note that it hasn't been. The scripts find a section by its English title or any pack's translation, so they work the same in every language; `narrative-format` warns of a heading its pack translates left in English (`HEADING_LANGUAGE`) and of a language with no pack (`LANGUAGE_PACK`), whose headings stay English. Metadata's fields are never translated. Budgets stay in words: CJK text counts its characters at 1.6 to a word, and search indexes CJK text by character pairs. Lint checks grammar and wording in the narrative's language.
+- **Language.** Narratives are written in `language`; one names its own in its Metadata (`- **Language:** zh-Hans`), which `finish-narrative` writes for every narrative. Sources are never translated, and a quotation keeps its source's words with a translation after it. A narrative's headings, and the few labels the scripts write (table headers, figure captions, the markers' rows), come from a language pack, `languages/<tag>.md` in the skill's templates or the wiki's `sllmwiki/templates/`: a table from the English text to its translation, bundled or the wiki's own, like a template. A pack may end with a `## Writing` section, its language's rules (Chinese: terms glossed in English on first use, full-width punctuation, a space between Chinese and Latin text), which `--skeleton` points the narrative step to. The skill bundles a language only once narratives written in it have been evaluated: English and Simplified Chinese ship; a wiki's own pack for another language works, with a note that it hasn't been. The scripts find a section by its English title or any pack's translation, so they work the same in every language; `narrative-format` warns of a heading its pack translates left in English (`HEADING_LANGUAGE`) and of a language with no pack (`LANGUAGE_PACK`), whose headings stay English. Metadata's fields are never translated. Budgets stay in words: CJK text counts its characters at 1.6 to a word, and search indexes CJK text by character pairs. Lint checks grammar and wording in the narrative's language.
 - **The book.** `[structural-llm-wiki-release]` turns each format on separately (§10); with all three off, a release has notes and no files.
 - **Add-ons** are optional features, each a key in `[structural-llm-wiki-addons]`, off by default. An add-on is listed only once it exists, and its work (files written, builds run) happens only when it is on, so a wiki that doesn't use it never waits for it.
 - **One reader.** Every script reads the file through `lib/config.py`. An unknown table key, a mistyped value or an unknown template is an error: `wiki-check` reports it (`CONFIG_INVALID`) and the scripts that write refuse to run until it's fixed. The tables are prefixed with the project's name, so the file can also hold other tools' tables, which are left alone.
@@ -524,7 +525,7 @@ Before writing, `search.py narratives` finds narratives that answer the same or 
 | `smes` | `<tags>` | Locates the code and docs behind the tags, ranks people by `contributors.py` (git log and blame, `CODEOWNERS`, doc authorship, reviews); never lists anyone in `smes_exclude` (§4.9), nor the wiki's own committers for their wiki commits | `smes` in `tags.yaml` |
 | `narrative` | `<question>` | Reuse or expand first (§7.4); reading plan (§7.1); writes by template and guide; `finish-narrative`; lint | a narrative |
 | `lint` | `<narrative \| tag \| description>` | §7.3 | fixes, and decisions on the PR |
-| `template` | `<what the template is for>` | Starts the wiki's own template from the closest one (`narrative-format.py --new-template`), shapes its header, sections and guide from the owner's description, and checks it (§4.5.5); a length alone goes to `Config.toml` instead | `templates/<name>/` |
+| `template` | `<what the template is for>` | Starts the wiki's own template from the closest one (`narrative-format.py --new-template`), shapes its header, sections and guide from the owner's description, and checks it (§4.5.5); a length alone goes to `Config.toml` instead | `sllmwiki/templates/<name>/` |
 
 ## 9. Instruction design
 

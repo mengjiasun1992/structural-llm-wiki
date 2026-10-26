@@ -155,7 +155,7 @@ class Command(helpers.WikiTestCase):
         self.assertEqual(self.nf('--skeleton', 'nope').code, 1)
 
     def test_template_problems(self):
-        helpers.write(self.root, 'templates/broken/template.md', 'no header\n')
+        helpers.write(self.root, 'sllmwiki/templates/broken/template.md', 'no header\n')
         r = self.nf('--templates')
         self.assertEqual(r.code, 1)
         self.assertIn('problem: wiki template broken', r.out)

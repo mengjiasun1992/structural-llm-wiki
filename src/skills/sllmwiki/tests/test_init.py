@@ -124,6 +124,14 @@ class Init(unittest.TestCase):
                 run.settings()
             self.assertEqual(run.done, [(init.SKIPPED, '.claude/settings.json')])
 
+    def test_the_old_templates_folder_moves_under_sllmwiki(self):
+        self.assertEqual(self.init('--name', 'demo-wiki').code, 0)
+        helpers.write(self.root, 'templates/skim_read/template.md', 'x\n')
+        r = self.init('--json')
+        self.assertIn({'what': 'moved templates/ to', 'file': 'sllmwiki/templates'}, json.loads(r.out)['done'])
+        self.assertEqual(self.read('sllmwiki/templates/skim_read/template.md'), 'x\n')
+        self.assertFalse(os.path.exists(os.path.join(self.root, 'templates')))
+
     def test_empty_placeholders_arent_unrelated(self):
         # the eval sandbox on Linux puts empty files and folders over the config files it guards
         helpers.write(self.root, '.bashrc', '')
@@ -155,7 +163,7 @@ class Init(unittest.TestCase):
         r = self.init('--json')
         self.assertIn({'what': 'created', 'file': layout.OBSIDIAN_GRAPH}, json.loads(r.out)['done'])
         graph = json.loads(self.read(layout.OBSIDIAN_GRAPH))
-        self.assertEqual(graph['search'], '-path:sources')
+        self.assertEqual(graph['search'], '-path:sources -path:templates')
         helpers.write(self.root, layout.OBSIDIAN_GRAPH, '{"mine": true}')
         self.init()
         self.assertEqual(self.read(layout.OBSIDIAN_GRAPH), '{"mine": true}')  # the wiki's from then on

@@ -16,7 +16,7 @@ class Layout(unittest.TestCase):
             (layout.TAGS, layout.SOURCES, layout.SOURCES_MANIFEST, layout.NARRATIVES, layout.NARRATIVES_MANIFEST,
              layout.OBSIDIAN_GRAPH, layout.INDEX, layout.TEMPLATES, layout.CONFIG),
             ('sllmwiki/tags/tags.yaml', 'sllmwiki/sources', 'sllmwiki/sources/manifest.yaml', 'sllmwiki/narratives',
-             'sllmwiki/narratives/manifest.yaml', 'sllmwiki/.obsidian/graph.json', 'SLLMWIKI_INDICES.md', 'templates', 'Config.toml'))
+             'sllmwiki/narratives/manifest.yaml', 'sllmwiki/.obsidian/graph.json', 'SLLMWIKI_INDICES.md', 'sllmwiki/templates', 'Config.toml'))
         self.assertEqual(layout.in_content('sources/a.md'), 'sllmwiki/sources/a.md')
 
 

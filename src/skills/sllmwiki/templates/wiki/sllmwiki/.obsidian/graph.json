@@ -1,5 +1,5 @@
 {
-  "search": "-path:sources",
+  "search": "-path:sources -path:templates",
   "showTags": false,
   "showAttachments": false,
   "hideUnresolved": true,

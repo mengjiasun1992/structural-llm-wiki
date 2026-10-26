@@ -14,7 +14,7 @@ A Structural LLM Wiki: this team's knowledge, kept in git by a coding agent with
 | `sllmwiki/sources/` | Sources, saved verbatim with their URL and license; `manifest.yaml` lists them |
 | `sllmwiki/narratives/` | One narrative per question; `manifest.yaml` records their tags and the source versions they read |
 | `sllmwiki/tags/` | The tag tree, `tags.yaml`, and a generated page per tag |
-| `templates/` | This wiki's own narrative templates, if any |
+| `sllmwiki/templates/` | This wiki's own narrative templates and language packs, if any |
 | `Config.toml` | This wiki's settings |
 
 ## Reading a narrative

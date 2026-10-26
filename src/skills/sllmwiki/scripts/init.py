@@ -182,6 +182,10 @@ class Init:
     def layout(self):
         for kind in ('tags', 'sources', 'narratives'):
             self.create(manifest.FILES[kind], manifest.HEADERS[kind])
+        old, new = self.path(layout.OLD_TEMPLATES), self.path(layout.TEMPLATES)
+        if os.path.isdir(old) and not os.path.exists(new):  # the wiki's templates before 1.0, at the root
+            os.rename(old, new)
+            self.done.append(('moved templates/ to', layout.TEMPLATES))
 
     def readme(self):
         text = read_text(os.path.join(WIKI, 'README.md')).replace('{{name}}', self.name)

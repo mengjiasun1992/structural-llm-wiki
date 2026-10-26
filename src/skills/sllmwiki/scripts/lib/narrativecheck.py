@@ -6,7 +6,7 @@ renderer reads alike."""
 import os
 import re
 
-from . import citations, compat, figures, language, manifest, markers, mdlinks, metadata, numbering, quotes, xrefs
+from . import citations, compat, figures, language, layout, manifest, markers, mdlinks, metadata, numbering, quotes, xrefs
 from .compat import mask_code_spans, mask_math_spans, scan
 
 PLACEHOLDER = re.compile(r'<(?!https?://|mailto:|/)[^<>\n]*\s[^<>\n]*>')
@@ -75,7 +75,7 @@ def check_language(text, template, default):
     tag, pack = language.for_narrative(text, default)
     if pack is language.ENGLISH and tag.lower().split('-')[0] != 'en':
         return [('warning', 'LANGUAGE_PACK', 1, f'no language pack for {tag}: its headings stay English; '
-                                                 f'add templates/{language.FOLDER}/{tag}.md to translate them')]
+                                                 f'add {layout.TEMPLATES}/{language.FOLDER}/{tag}.md to translate them')]
     out = []
     sections = template.sections()
     for h in numbering.headings(text):
