@@ -46,7 +46,7 @@ cli = Cli('init.py', 'usage: init.py [--name NAME] [--force] [--set KEY=VALUE ..
 SKILL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMPLATES = os.path.join(SKILL, 'templates')
 WIKI = os.path.join(TEMPLATES, 'wiki')
-PLUGIN_JSON = os.path.normpath(os.path.join(SKILL, '..', '..', '..', '.claude-plugin', 'plugin.json'))
+PLUGIN_JSON = os.path.normpath(os.path.join(SKILL, '..', '..', '.claude-plugin', 'plugin.json'))  # plugin/skills/sllmwiki -> plugin/
 WORKFLOWS = ('wiki-checks.yml', 'review-checklist.yml', 'release-book.yml')
 # What may already be in a folder that becomes a wiki: a new repository's files
 EXPECTED = {'.git', 'README.md', 'LICENSE', 'LICENSE.md', '.gitignore', '.github', '.claude', 'CLAUDE.md', 'AGENTS.md', '.DS_Store',

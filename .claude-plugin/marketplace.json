@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "sllmwiki",
-      "source": "./",
+      "source": "./plugin",
       "description": "Structural LLM Wiki (sllmwiki) is an agent skill, packaged as a Claude Code plugin, that turns a git repository into a wiki your coding agent researches and keeps current."
     }
   ]

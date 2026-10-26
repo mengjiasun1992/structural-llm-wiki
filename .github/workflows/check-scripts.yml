@@ -27,16 +27,16 @@ jobs:
       # every Python and shell script compiles on this Python (find, so a folder with none is fine)
       - name: Scripts parse
         run: |
-          find src/skills/sllmwiki/scripts src/tools -name '*.py' -print0 | xargs -0 -r python3 -m py_compile
-          find src/skills/sllmwiki/scripts -name '*.sh' -print0 | xargs -0 -r -n1 bash -n
+          find plugin/skills/sllmwiki/scripts src/tools -name '*.py' -print0 | xargs -0 -r python3 -m py_compile
+          find plugin/skills/sllmwiki/scripts src/tools -name '*.sh' -print0 | xargs -0 -r -n1 bash -n
 
       # tests/run.py runs each test module in its own process; coverage fails below
       # fail_under in pyproject.toml (95%). It runs once the test runner exists.
       - name: Unit tests, with coverage (fails below 95%; see pyproject.toml)
-        if: hashFiles('src/skills/sllmwiki/tests/run.py') != ''
+        if: hashFiles('tests/run.py') != ''
         run: |
           python3 -m pip install --quiet --disable-pip-version-check "coverage[toml]==7.6.10"
-          python3 src/skills/sllmwiki/tests/run.py --coverage
+          python3 tests/run.py --coverage
 
   lint-scripts:
     runs-on: ubuntu-latest
@@ -52,9 +52,9 @@ jobs:
 
       - name: Python (ruff; rules in pyproject.toml)
         if: success() || failure()
-        run: ruff check src/skills/sllmwiki/scripts src/skills/sllmwiki/tests src/tools
+        run: ruff check plugin/skills/sllmwiki/scripts tests src/tools
 
       # the skill's scripts and the evals' scaffolds (find, so a folder with none is fine)
       - name: Shell (shellcheck)
         if: success() || failure()
-        run: find src/skills/sllmwiki/scripts evals -name '*.sh' -print0 | xargs -0 -r shellcheck
+        run: find plugin/skills/sllmwiki/scripts src/tools evals -name '*.sh' -print0 | xargs -0 -r shellcheck

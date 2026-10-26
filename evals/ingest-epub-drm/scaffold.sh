@@ -4,7 +4,7 @@ set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 "$here/../_fixture/wiki.sh"
 mkdir -p ../incoming
-tests="$(cd "$here/../../src/skills/sllmwiki/tests" && pwd)"
+tests="$(cd "$here/../../tests" && pwd)"
 PYTHONDONTWRITEBYTECODE=1 python3 - "$tests" <<'PY'
 import sys
 sys.path.insert(0, sys.argv[1])

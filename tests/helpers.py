@@ -16,9 +16,11 @@ import tempfile
 import threading
 import unittest
 
-SKILL_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # src/skills/sllmwiki
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # tests/ is at the repository's root
+SKILL_DIR = os.path.join(REPO, 'plugin', 'skills', 'sllmwiki')
+if not os.path.isdir(SKILL_DIR):  # the copy src/tools/eval-plugin.sh assembles for the evals: the plugin's contents at its root
+    SKILL_DIR = os.path.join(REPO, 'skills', 'sllmwiki')
 SCRIPTS = os.path.join(SKILL_DIR, 'scripts')
-REPO = os.path.dirname(os.path.dirname(os.path.dirname(SKILL_DIR)))
 if SCRIPTS not in sys.path:
     sys.path.insert(0, SCRIPTS)
 sys.dont_write_bytecode = True

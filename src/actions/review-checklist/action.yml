@@ -21,4 +21,4 @@ runs:
       shell: bash
       env:
         PR_BODY: ${{ github.event.pull_request.body }}
-      run: python3 "$GITHUB_ACTION_PATH/../../skills/sllmwiki/scripts/review-checklist.py"
+      run: python3 "$GITHUB_ACTION_PATH/../../../plugin/skills/sllmwiki/scripts/review-checklist.py"

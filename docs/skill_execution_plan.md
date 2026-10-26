@@ -17,10 +17,10 @@ stop between phases.
 **Build.** The skill is Python and markdown, so "build" means it loads:
 
 ```bash
-python3 -m py_compile src/skills/sllmwiki/scripts/*.py src/skills/sllmwiki/scripts/lib/*.py src/tools/*.py
-/usr/bin/python3 -m py_compile src/skills/sllmwiki/scripts/*.py src/skills/sllmwiki/scripts/lib/*.py   # Python 3.9
+python3 -m py_compile plugin/skills/sllmwiki/scripts/*.py plugin/skills/sllmwiki/scripts/lib/*.py src/tools/*.py
+/usr/bin/python3 -m py_compile plugin/skills/sllmwiki/scripts/*.py plugin/skills/sllmwiki/scripts/lib/*.py   # Python 3.9
 claude plugin validate .
-claude --plugin-dir .    # the commands appear as /sllmwiki:<name>
+claude --plugin-dir plugin    # the commands appear as /sllmwiki:<name>
 ```
 
 **Test.** Every script and module comes with `tests/test_<module>.py` in the
@@ -28,10 +28,10 @@ same commit, and coverage of `scripts/` stays at 95% or above after every
 commit (`AGENTS.md`):
 
 ```bash
-python3 src/skills/sllmwiki/tests/run.py --coverage
-/usr/bin/python3 src/skills/sllmwiki/tests/run.py
-ruff check src/skills/sllmwiki/scripts src/skills/sllmwiki/tests src/tools
-shellcheck src/skills/sllmwiki/scripts/*.sh
+python3 tests/run.py --coverage
+/usr/bin/python3 tests/run.py
+ruff check plugin/skills/sllmwiki/scripts tests src/tools
+shellcheck plugin/skills/sllmwiki/scripts/*.sh
 npx --yes markdownlint-cli2@0.13.0 "**/*.md"
 python3 src/tools/check-yaml.py
 ```
@@ -43,7 +43,7 @@ word budget and every script and option the instructions name (design doc §9).
 introduces and runs the smoke set before its pull request:
 
 ```bash
-claude plugin eval . --tag smoke --scaffold --allow-tools Bash \
+src/tools/eval-plugin.sh --tag smoke --scaffold --allow-tools Bash \
   --runs 1 --ablation none --model sonnet --max-cost-usd 5 -j 8
 ```
 
@@ -132,7 +132,7 @@ a cited answer.
 | 1.7 | `scripts/wiki-check.py`, `lib/wikiindex.py`, `lib/tagpages.py` | Schema; manifests against files; pins (`NARRATIVE_SOURCE_CHANGED`); `SOURCE_POLICY`; generated pages current (the index, tag pages), rewritten with `--fix` |
 | 1.8 | `scripts/publish.py`, `scripts/preflight.sh` | Run branch, push, open and update the PR; assemble the PR description and checklist from the steps' JSON summaries, and every commit message (design doc §5.2–§5.3); check git, Python and `gh` |
 | 1.9 | `templates/wiki/`, `templates/*.yml`, `src/actions/review-checklist/`, `scripts/review-checklist.py`, `src/actions/wiki-checks/`, `scripts/init.py` | The wiki's README, `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `.claude/settings.json`, `Config.toml` with its defaults and notes, CI, and `graph.json` with the Obsidian add-on; the review-checklist action; `init` lays them out, refreshes what it owns and adds settings a wiki's `Config.toml` lacks |
-| 1.10 | `SKILL.md`, `workflows/{init,build,query}.md`, `steps/{tags,ingest,narrative}.md`, `src/commands/*.md`, `tests/test_instructions.py` | The instructions, within their budgets (design doc §9); `build` without `smes` and `lint` yet |
+| 1.10 | `SKILL.md`, `workflows/{init,build,query}.md`, `steps/{tags,ingest,narrative}.md`, `plugin/commands/*.md`, `tests/test_instructions.py` | The instructions, within their budgets (design doc §9); `build` without `smes` and `lint` yet |
 
 **Test.** A test module per script and module. `test_fetch_source` serves
 markdown, text and HTML pages (with navigation and comments to strip) from
@@ -230,7 +230,7 @@ too long, not found), `test_check_upstream` (over `LocalServer`),
 | # | Code change | What it does |
 |---|---|---|
 | 5.1 | `README.md` | Checked against the skill as built, its "being rebuilt" note removed; the CI badges; a demo from a public wiki that holds only openly licensed sources, reviewed against the source policy before it goes public |
-| 5.2 | `.claude-plugin/plugin.json`, `templates/*.yml` | The version, and the CI templates' `@v<version>`, bumped together, only when the owner asks (`AGENTS.md`) |
+| 5.2 | `plugin/.claude-plugin/plugin.json`, `templates/*.yml` | The version, and the CI templates' `@v<version>`, bumped together, only when the owner asks (`AGENTS.md`) |
 | 5.3 | (GitHub) | A ruleset on `mainline` requiring the checks; tag `v<version>`; release notes |
 
 **Eval.** Every case, three runs, with the baseline; results, cost and turns in

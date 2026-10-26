@@ -25,7 +25,7 @@ The Structural LLM Wiki gives that knowledge a durable home: a git repository th
 
 Each run arrives as a single pull request against the default branch, so people stay in control of what enters the wiki without having to do the research. Over time the wiki builds up instead of decaying: answers stay linked to their evidence, new findings are reconciled with old ones, and the history shows how the group's understanding evolved.
 
-This document covers the architecture and the decisions behind it. The skill's files are the source of truth for step-by-step behavior: `src/skills/sllmwiki/workflows/` and `src/skills/sllmwiki/steps/`.
+This document covers the architecture and the decisions behind it. The skill's files are the source of truth for step-by-step behavior: `plugin/skills/sllmwiki/workflows/` and `plugin/skills/sllmwiki/steps/`.
 
 **One skill: workflows made of steps.** `build` builds knowledge (§5), `query` uses it (§6) and `release` publishes it as a book (§10), plus `init`, which sets a wiki up and keeps it current. `build` is made of five steps: `tags`, `ingest`, `smes`, `narrative` and `lint`, and each step also runs on its own; a sixth, `template`, gives a wiki its own kind of narrative (§4.5.5). They share one data model, one set of scripts and one set of rules, so they live in a single skill: `SKILL.md` routes to a workflow or step file, which the agent reads only when it runs. Separate skills would each need their own copy of the scripts, since an installer copies one skill folder at a time and a skill can rely only on files inside it.
 
@@ -57,23 +57,24 @@ This document covers the architecture and the decisions behind it. The skill's f
 
 ```text
 structural-llm-wiki/
-├── .claude-plugin/
-│   ├── plugin.json                        # Claude Code plugin manifest
-│   └── marketplace.json                   # makes this repo a plugin marketplace
-├── src/
+├── .claude-plugin/marketplace.json        # makes this repo a plugin marketplace; lists plugin/
+├── plugin/                                # the plugin: only what runs for its users
+│   ├── .claude-plugin/                    # plugin.json (the manifest) and icon.png
 │   ├── skills/sllmwiki/                   # the one skill
 │   │   ├── SKILL.md                       # routing and the rules every run shares
 │   │   ├── workflows/                     # build, query, release, init: read when the workflow runs
 │   │   ├── steps/                         # tags, ingest, smes, narrative, lint, template: read when the step runs
 │   │   ├── scripts/                       # the deterministic scripts, each documented by its --help
 │   │   │   └── lib/                       # shared modules
-│   │   ├── templates/                     # narratives/ (templates and guides); languages/ (language packs); book/ (Sphinx's conf.py and stylesheets);
-│   │   │                                  # wiki/ and the *.yml workflows (what init installs)
-│   │   └── tests/                         # unit tests for the scripts, and the instruction budgets
-│   ├── commands/                          # Claude Code commands, one per workflow and step
-│   ├── actions/                           # GitHub actions a wiki's CI calls: wiki-checks, review-checklist, release-book
-│   └── tools/                             # CI-only tools outside the skill (check-yaml, check-book)
-├── evals/                                 # behavior evals, outside the skill so they never ship with it
+│   │   └── templates/                     # narratives/ (templates and guides); languages/ (language packs); book/ (Sphinx's conf.py and stylesheets);
+│   │                                      # wiki/ and the *.yml workflows (what init installs)
+│   └── commands/                          # Claude Code commands, one per workflow and step
+├── tests/                                 # unit tests for the scripts, and the instruction budgets
+├── src/
+│   ├── actions/                           # GitHub actions a wiki's CI calls, fetched from this repository at the tag:
+│   │                                      # wiki-checks, review-checklist, release-book
+│   └── tools/                             # development and CI tools (eval-plugin.sh, check-yaml, check-book)
+├── evals/                                 # behavior evals, run through src/tools/eval-plugin.sh
 └── docs/
     ├── images/                            # this document's and the README's figures
     ├── structural_llm_wiki_design.md      # this file
@@ -552,6 +553,7 @@ A wiki is written and reviewed on GitHub and explored in Obsidian; neither gives
 - The plugin is installed at **project scope** in each wiki repo, and `init` writes the same `extraKnownMarketplaces` and `enabledPlugins` entries to `.claude/settings.json`, so the group members who clone the wiki are offered it.
 - Other agents install with `npx skills add mengjiasun1992/structural-llm-wiki`; with no commands, users ask for a workflow or step in their own words.
 - A wiki's CI calls this repository's actions at the plugin's release tag; `init` moves the tag when the plugin updates.
+- **The plugin is `plugin/`, and only what runs for its users.** Tests, CI, evals and docs stay outside it, so they never install on a user's machine or enter the plugin directory's review; the actions stay outside too, since a wiki's CI fetches them from this repository at the tag.
 - **What the plugin directory accepts.** Every file is under 5 MiB and is either plain text, which the directory's security scan can read, or an image whose extension matches its format; a binary, bytecode or packed file holds a version for review. `test_plugin_files` checks both on every pull request, so a file that breaks either can't merge. A library too big for one file is kept in plain-text parts that the build joins (mermaid.js: `src/actions/release-book/vendor/split.py`).
 
 ## 12. Not in v1

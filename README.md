@@ -176,7 +176,7 @@ author = ""                 # its author; empty: the title
 
 **Books.** Turn on the formats you want in `Config.toml` (`init` asks). `/sllmwiki:release` publishes a dated release of the wiki on GitHub (`v2026.10.24`), with notes on what changed since the last one, and the wiki's release workflow attaches the wiki as a book in each format the `[structural-llm-wiki-release]` table turns on: a cover, a contents page, a part per topic with each chapter's summary and reading time, the narratives in teaching order, and appendices of sources, a glossary and open questions. Its diagrams and math are drawn as they are on GitHub, and the file works offline. GitHub's *Releases → Draft a new release* does the same without the agent; `--preview` builds the book from a branch as a workflow artifact. The book carries each source's abstract, license and link, never its saved copy. A diagram or formula that wouldn't draw, or a link the book couldn't follow, fails the pull request that brings it, long before a release. The demo's [release v2026.10.25](https://github.com/mengjiasun1992/sllmwiki-demo/releases/tag/v2026.10.25) has all three. How it works: [docs/book_design.md](docs/book_design.md).
 
-**Languages.** Narratives are written in the wiki's `language`, and one can name its own (`- **Language:** zh-Hans` in its Metadata, or ask for a language when you ask the question). Sources stay in the language they were written in, and a quotation keeps its source's words, translated after it. Headings come from a language pack, `languages/<tag>.md` in the skill's or your wiki's templates: the skill ships English and Simplified Chinese (`zh-Hans`), each one it has evaluated, and a pack can carry its language's writing rules. For another language, copy [the English pack](src/skills/sllmwiki/templates/languages/en.md) into your wiki's `sllmwiki/.templates/languages/` and fill in the translations; the skill writes in it, and says it hasn't evaluated it. Without a pack, headings stay English around prose in your language. Word budgets stay in words; Chinese and Japanese text counts its characters at 1.6 to a word.
+**Languages.** Narratives are written in the wiki's `language`, and one can name its own (`- **Language:** zh-Hans` in its Metadata, or ask for a language when you ask the question). Sources stay in the language they were written in, and a quotation keeps its source's words, translated after it. Headings come from a language pack, `languages/<tag>.md` in the skill's or your wiki's templates: the skill ships English and Simplified Chinese (`zh-Hans`), each one it has evaluated, and a pack can carry its language's writing rules. For another language, copy [the English pack](plugin/skills/sllmwiki/templates/languages/en.md) into your wiki's `sllmwiki/.templates/languages/` and fill in the translations; the skill writes in it, and says it hasn't evaluated it. Without a pack, headings stay English around prose in your language. Word budgets stay in words; Chinese and Japanese text counts its characters at 1.6 to a word.
 
 **Obsidian.** With `obsidian = true` and `/sllmwiki:init` rerun, open `sllmwiki/` as a vault: its graph shows tag pages in gold and narratives in indigo. Sources are gray, and the graph hides them until you clear its filter (`-path:sources`); to hide them from search and the quick switcher as well, add `sllmwiki/sources/` to your own *Settings → Files and links → Excluded files*. `init` writes the graph's settings once, and the wiki owns them from then on.
 
@@ -206,12 +206,13 @@ The plugin runs in your agent, on your machine, and its authors collect nothing:
 ## Developing
 
 ```text
-src/
-├── skills/sllmwiki/   the skill: SKILL.md, workflows/, steps/, scripts/, templates/, tests/
-├── commands/          Claude Code commands, one per workflow and step
-├── actions/           the GitHub actions a wiki's CI calls
-└── tools/             CI tools outside the skill (check-yaml, check-book)
-evals/                 behavior evals, kept outside the skill so they never ship with it
+plugin/                the plugin, and only what runs for its users
+├── skills/sllmwiki/   the skill: SKILL.md, workflows/, steps/, scripts/, templates/
+└── commands/          Claude Code commands, one per workflow and step
+tests/                 unit tests for the scripts
+src/actions/           the GitHub actions a wiki's CI calls
+src/tools/             development and CI tools (eval-plugin.sh, check-yaml, check-book)
+evals/                 behavior evals, run through src/tools/eval-plugin.sh
 docs/                  the designs, their plans, and their figures
 ```
 
@@ -219,8 +220,8 @@ docs/                  the designs, their plans, and their figures
 
 ```bash
 python3 -m pip install "coverage[toml]==7.6.10"
-python3 src/skills/sllmwiki/tests/run.py --coverage
-claude --plugin-dir .
+python3 tests/run.py --coverage
+claude --plugin-dir plugin
 ```
 
 ## License

@@ -26,7 +26,7 @@ jobs:
       # src/tools/check-yaml.py: every tracked YAML file and ```yaml block parses, with no
       # repeated keys. It imports the skill's lib/config.py, so it runs once that exists.
       - name: YAML is valid (files and yaml code blocks)
-        if: (success() || failure()) && hashFiles('src/skills/sllmwiki/scripts/lib/config.py') != ''
+        if: (success() || failure()) && hashFiles('plugin/skills/sllmwiki/scripts/lib/config.py') != ''
         run: |
           python3 -m pip install --quiet --disable-pip-version-check pyyaml==6.0.2
           python3 src/tools/check-yaml.py
