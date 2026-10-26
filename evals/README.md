@@ -7,7 +7,7 @@ Unit tests (`src/skills/sllmwiki/tests/`) check the scripts; these evals check t
 | Case | Checks | Tags |
 |---|---|---|
 | not-a-wiki | outside a wiki, a narrative request offers `init` and writes nothing | smoke, routing |
-| init-new | `init.py` lays out an empty repository and commits; no remote is created unasked | smoke, setup |
+| init-new | told to keep the defaults, `init.py` lays out an empty repository and commits; no remote is created unasked | smoke, setup |
 | route-query | a "what does the wiki say" question fires the skill, reads `query.md` and starts with `search.py context` | smoke, routing |
 | route-lint | a lint request reads `steps/lint.md` and gets each cited section from `cited-sections.py` | smoke, routing |
 | route-smes | a "who knows" request reads `steps/smes.md` and ranks people with `contributors.py` | smoke, routing |

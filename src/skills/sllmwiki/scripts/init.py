@@ -53,6 +53,10 @@ EXPECTED = {'.git', 'README.md', 'LICENSE', 'LICENSE.md', '.gitignore', '.github
             'Config.toml', 'SLLMWIKI_INDICES.md', 'sllmwiki', 'templates'}
 
 
+# what init reports for a file it was refused, such as a sandbox's guarded .claude/settings.json
+SKIPPED = "couldn't write (blocked); add the plugin to it by hand:"
+
+
 def action_ref():
     """The ref the wiki's CI calls the actions at: this plugin's release tag, or mainline without a version."""
     try:
@@ -216,15 +220,18 @@ class Init:
         with open(os.path.join(WIKI, '.claude', 'settings.json'), encoding='utf-8') as f:
             want = json.load(f)
         have = {}
-        if self.exists(rel):
-            try:
-                have = json.loads(read_text(self.path(rel)))
-            except ValueError:
-                cli.fail(f'{rel} isn\'t valid JSON; fix it, then rerun init')
-        merged = dict(have)
-        for key in ('extraKnownMarketplaces', 'enabledPlugins'):
-            merged[key] = {**have.get(key, {}), **want[key]}
-        self.refresh(rel, json.dumps(merged, indent=2) + '\n')
+        try:
+            if self.exists(rel):
+                try:
+                    have = json.loads(read_text(self.path(rel)))
+                except ValueError:
+                    cli.fail(f'{rel} isn\'t valid JSON; fix it, then rerun init')
+            merged = dict(have)
+            for key in ('extraKnownMarketplaces', 'enabledPlugins'):
+                merged[key] = {**have.get(key, {}), **want[key]}
+            self.refresh(rel, json.dumps(merged, indent=2) + '\n')
+        except OSError:  # a sandbox guards Claude Code's settings from scripts
+            self.done.append((SKIPPED, rel))
 
     def config(self):
         template = read_text(os.path.join(WIKI, 'Config.toml'))
@@ -296,9 +303,20 @@ def add_missing_settings(text, template):
     return '\n'.join(lines) + '\n'
 
 
+def _empty(path):
+    """An empty file or folder, or something that isn't a file at all: no code or documents in it.
+    A sandbox puts such placeholders over the config files it guards (.bashrc, .gitconfig, .mcp.json)."""
+    try:
+        if os.path.isdir(path):
+            return not os.listdir(path)
+        return not os.path.isfile(path) or os.path.getsize(path) == 0
+    except OSError:
+        return True
+
+
 def unrelated(root):
     """What in root isn't a new repository's or a wiki's."""
-    return sorted(n for n in os.listdir(root) if n not in EXPECTED)
+    return sorted(n for n in os.listdir(root) if n not in EXPECTED and not _empty(os.path.join(root, n)))
 
 
 def main(argv):
@@ -348,8 +366,9 @@ def main(argv):
     run.obsidian()
     run.pages()
     if args.commit:
-        written = sorted({rel for verb, rel in run.done if verb != 'kept'})
-        if written:  # only what init wrote: the owner's other untracked files stay theirs
+        # init's own files, written now or by a run without --commit; the owner's other files stay theirs
+        written = sorted({rel for verb, rel in run.done if verb != SKIPPED and os.path.exists(run.path(rel))})
+        if written:
             subprocess.run(['git', 'add', '--', *written], cwd=root, check=True)
         msg = '[sllmwiki][init] Set up the wiki\n\nPrompt:\n' + '\n'.join('> ' + line if line else '>' for line in args.prompt.split('\n')) + '\n'
         c = subprocess.run(['git', 'commit', '-q', '-F', '-'], cwd=root, input=msg, capture_output=True, text=True)

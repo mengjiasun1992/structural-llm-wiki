@@ -1,5 +1,6 @@
 """Tests for evals/_fixture/wiki.sh, which builds the eval fixture wiki."""
 
+import glob
 import os
 import shutil
 import subprocess
@@ -31,6 +32,15 @@ class EvalFixture(unittest.TestCase):
         origin = helpers.git(self.run_dir, 'remote', 'get-url', 'origin').stdout.strip()
         self.assertEqual(os.path.realpath(origin), os.path.realpath(os.path.join(self.tmp, 'origin.git')))
         self.assertEqual(helpers.git(self.run_dir, 'rev-parse', 'origin/mainline').stdout, helpers.git(self.run_dir, 'rev-parse', 'HEAD').stdout)
+
+
+class Graders(unittest.TestCase):
+    def test_no_inline_regex_flags(self):
+        # claude plugin eval compiles graders' patterns as JavaScript regexes, which refuse (?i);
+        # a regex grader takes flags: i instead
+        for path in glob.glob(os.path.join(helpers.REPO, 'evals', '*', 'graders', '*.md')):
+            with open(path, encoding='utf-8') as f:
+                self.assertNotRegex(f.read(), r'(input_match|pattern): .*\(\?[a-z]', path)
 
 
 if __name__ == '__main__':

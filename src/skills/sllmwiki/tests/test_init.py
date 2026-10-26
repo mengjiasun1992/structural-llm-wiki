@@ -62,6 +62,13 @@ class Init(unittest.TestCase):
         self.assertNotIn('sllmwiki/Untitled.canvas', tracked)
         self.assertTrue(os.path.isfile(os.path.join(self.root, 'sllmwiki', 'Untitled.canvas')))
 
+    def test_commit_after_a_run_without_it(self):
+        # the workflow lays the wiki out, then commits it in a second run, which writes nothing new
+        self.assertEqual(self.init('--name', 'demo-wiki').code, 0)
+        self.assertEqual(self.init('--commit', '--prompt', 'p').code, 0)
+        tracked = helpers.git(self.root, 'ls-files').stdout.split()
+        self.assertTrue({'Config.toml', 'sllmwiki/tags/tags.yaml', '.claude/settings.json'} <= set(tracked), tracked)
+
     def test_a_rerun_changes_nothing_and_commits_nothing(self):
         self.init('--commit', '--prompt', 'p')
         r = self.init('--commit', '--prompt', 'again', '--json')
@@ -98,6 +105,30 @@ class Init(unittest.TestCase):
         self.assertIn('replaced GitHub\'s starter README.md', r.out)
         self.assertIn('/sllmwiki:query', self.read('README.md'))
 
+    def test_a_guarded_settings_file_is_reported_not_fatal(self):
+        # a sandbox guards .claude/settings.json from scripts: init reports it, and writes the rest
+        import init
+        guarded, real = os.path.join(self.root, '.claude', 'settings.json'), open
+
+        def refuse(path, *a, **k):
+            if str(path) == guarded:
+                raise PermissionError(13, 'Permission denied', path)
+            return real(path, *a, **k)
+        for existing in (False, True):
+            if existing:
+                helpers.write(self.root, '.claude/settings.json', '{}')
+            run = init.Init(self.root, 'demo-wiki')
+            with mock.patch('builtins.open', refuse):
+                run.settings()
+            self.assertEqual(run.done, [(init.SKIPPED, '.claude/settings.json')])
+
+    def test_empty_placeholders_arent_unrelated(self):
+        # the eval sandbox on Linux puts empty files and folders over the config files it guards
+        helpers.write(self.root, '.bashrc', '')
+        helpers.write(self.root, '.mcp.json', '')
+        os.makedirs(os.path.join(self.root, '.idea'))
+        self.assertEqual(self.init('--name', 'demo-wiki').code, 0)
+
     def test_unrelated_files(self):
         helpers.write(self.root, 'src/app.py', 'print()\n')
         helpers.write(self.root, 'package.json', '{}')
@@ -111,7 +142,7 @@ class Init(unittest.TestCase):
         other = tempfile.mkdtemp(prefix='init-many-')
         try:
             for i in range(10):
-                helpers.write(other, f'f{i}.txt', '')
+                helpers.write(other, f'f{i}.txt', 'notes\n')
             self.assertIn(', …)', helpers.run('init.py', ['--root', other]).err)
         finally:
             shutil.rmtree(other)

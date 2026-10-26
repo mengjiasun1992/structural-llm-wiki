@@ -90,6 +90,8 @@ jobs:
           THRESHOLD: ${{ inputs.threshold }}
           ABLATION: ${{ inputs.baseline }}
         run: |
+          # the runs' folders off /tmp: under /tmp, the Linux sandbox lets Bash write nothing in them
+          export TMPDIR="$RUNNER_TEMP/evals" && mkdir -p "$TMPDIR"
           if [ -z "$ANTHROPIC_API_KEY" ]; then
             echo "::error::Add an ANTHROPIC_API_KEY secret (Settings → Secrets and variables → Actions) to run the evals."
             exit 1
@@ -101,7 +103,16 @@ jobs:
           # 2: a partial run (the cost ceiling was hit)
           claude plugin eval . --trust-plugin "${select[@]}" --scaffold --allow-tools Bash Write Edit \
             --runs "$RUNS" --ablation "$ABLATION" --model "$MODEL" --max-cost-usd "$MAX_COST" -j 8 \
-            --threshold "$THRESHOLD" --json evals/results/results.json --no-publish < /dev/null
+            --threshold "$THRESHOLD" --json evals/results/results.json --no-publish --keep-temp < /dev/null
+
+      # each run's transcript, named by the run's folder; results.json gives each run's tracePath
+      - name: Collect the traces
+        if: always()
+        run: |
+          mkdir -p evals/results/traces
+          for f in "$RUNNER_TEMP"/evals/claude-eval-*/out/trace.jsonl /tmp/claude-eval-*/out/trace.jsonl; do
+            [ -f "$f" ] && cp "$f" "evals/results/traces/$(basename "$(dirname "$(dirname "$f")")").jsonl"
+          done || true
 
       - name: Keep the report
         if: always()
