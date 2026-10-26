@@ -162,6 +162,29 @@ class Publish(helpers.WikiTestCase):
         self.assertEqual(helpers.git(self.root, 'show', '--name-only', '--format=').stdout.split(), ['Config.toml'])
         self.assertIn('sllmwiki/.obsidian/graph.json', helpers.git(self.root, 'status', '--porcelain').stdout)  # left as it is
 
+    def test_a_sandboxs_placeholders_neither_stop_a_run_nor_are_committed(self):
+        # on Linux, Claude Code's sandbox puts empty files and folders over the config files it guards
+        self.write('.bashrc', '')
+        self.write('.claude/settings.local.json', '')
+        os.makedirs(os.path.join(self.root, '.idea'))
+        r = self.pub('start', 'run', '--title', 't', '--prompt', 'p')
+        self.assertEqual(r.code, 0, r.err)
+        self.write('sllmwiki/narratives/new.md', '# New\n')
+        self.summary('narrative', title='New', checklist=['New'], body='Written.')
+        self.assertEqual(self.pub('commit', 'narrative', '--subject', 'New').code, 0)
+        self.assertEqual(helpers.git(self.root, 'show', '--name-only', '--format=').stdout.split(), ['sllmwiki/narratives/new.md'])
+
+    def test_a_run_never_writes_git_config(self):
+        # Claude Code's sandbox guards .git/config: a lock that exists makes every write to it fail
+        os.makedirs(os.path.join(self.root, '.git', 'config.lock'))
+        self.assertEqual(self.pub('start', 'run', '--title', 't', '--prompt', 'p').code, 0)
+        self.write('sllmwiki/narratives/new.md', '# New\n')
+        self.summary('narrative', title='New', checklist=['New'], body='Written.')
+        self.assertEqual(self.pub('commit', 'narrative', '--subject', 'New').code, 0)
+        r = self.pub('pr')
+        self.assertEqual(r.code, 0, r.err)
+        self.assertEqual(helpers.git(self.root, 'rev-parse', 'origin/sllmwiki/run').stdout, helpers.git(self.root, 'rev-parse', 'HEAD').stdout)
+
     def test_a_diverged_default_branch_stops_the_run(self):
         helpers.git(self.root, 'commit', '-q', '--allow-empty', '-m', 'local only')
         r = self.pub('start', 'run', '--title', 't', '--prompt', 'p')

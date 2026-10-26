@@ -47,7 +47,7 @@ from lib import runstats  # noqa: E402
 from lib.gitrepo import default_branch, has_remote  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
 from lib.policy import github_repo  # noqa: E402
-from lib.util import read_text, write_text  # noqa: E402
+from lib.util import placeholder, read_text, write_text  # noqa: E402
 
 cli = Cli('publish.py', 'usage: publish.py start|summary|commit|pr|resume|status ...; see --help')
 ACTIONS = ('init', 'template', 'tags', 'ingest', 'smes', 'narrative', 'lint')
@@ -106,7 +106,14 @@ def save_state(root, state):
 def dirty(root):
     # not git(), which strips the output: the first line's leading space is part of its status ("XY path")
     lines = subprocess.run(['git', 'status', '--porcelain'], cwd=root, capture_output=True, text=True).stdout.split('\n')
-    return [line for line in lines if line.strip() and not any(line[3:].startswith(p) for p in IGNORED)]
+    return [line for line in lines if line.strip() and not any(line[3:].startswith(p) for p in IGNORED)
+            and not (line.startswith('?? ') and placeholder(os.path.join(root, line[3:])))]
+
+
+def placeholders(root):
+    """The untracked placeholders a sandbox left (util.placeholder), which a run never commits."""
+    lines = subprocess.run(['git', 'status', '--porcelain'], cwd=root, capture_output=True, text=True).stdout.split('\n')
+    return [line[3:].rstrip('/') for line in lines if line.startswith('?? ') and placeholder(os.path.join(root, line[3:]))]
 
 
 def gh_available():
@@ -132,7 +139,8 @@ def start(root, slug, title, prompt):
         behind = subprocess.run(['git', 'merge-base', '--is-ancestor', base, f'origin/{base}'], cwd=root).returncode == 0
         if local and not behind:
             cli.fail(f'your {base} has commits origin/{base} doesn\'t; sort that out first (a clone made before a rename?)')
-        git(root, 'switch', '--quiet', '-C', base, f'origin/{base}')
+        # never write .git/config (no upstream tracking, no push -u): Claude Code's sandbox guards it
+        git(root, 'switch', '--quiet', '--no-track', '-C', base, f'origin/{base}')
     git(root, 'switch', '--quiet', '-c', branch, base)
     shutil.rmtree(run_dir(root, slug), ignore_errors=True)  # an earlier run's under this name, never this one's
     save_state(root, {'slug': slug, 'branch': branch, 'base': base, 'title': title, 'prompt': prompt, 'pr': None,
@@ -191,7 +199,7 @@ def commit(root, action, tags, subject):
     state = load_state(root)
     if git(root, 'rev-parse', '--abbrev-ref', 'HEAD') != state['branch']:
         cli.fail(f'not on the run\'s branch {state["branch"]}; publish.py resume {state["slug"]}')
-    git(root, 'add', '-A', '--', '.', *[f':(exclude){p}' for p in IGNORED])
+    git(root, 'add', '-A', '--', '.', *[f':(exclude){p}' for p in (*IGNORED, *placeholders(root))])
     if action == 'init':  # the add-on's graph.json when init writes it, never Obsidian's later changes to a tracked one
         new = git(root, 'ls-files', '--others', '--exclude-standard', '--', *IGNORED).split('\n')
         if any(new):
@@ -236,7 +244,7 @@ def pr(root, cost=None):
     if not has_remote(root):
         print(f'no remote: the commits stay on {state["branch"]}; the description is in {body_path}')
         return
-    git(root, 'push', '--quiet', '-u', 'origin', state['branch'])
+    git(root, 'push', '--quiet', 'origin', state['branch'])
     if not gh_available():
         remote = git(root, 'config', '--get', 'remote.origin.url')
         repo = github_repo(remote)
@@ -307,7 +315,7 @@ def resume(root, slug):
     if not git(root, 'rev-parse', '--verify', '--quiet', f'refs/heads/{branch}', check=False) and has_remote(root):
         git(root, 'fetch', '--quiet', 'origin', branch, check=False)
         if git(root, 'rev-parse', '--verify', '--quiet', f'refs/remotes/origin/{branch}', check=False):
-            git(root, 'branch', '--quiet', '--track', branch, f'origin/{branch}')
+            git(root, 'branch', '--quiet', '--no-track', branch, f'origin/{branch}')
     if not git(root, 'rev-parse', '--verify', '--quiet', f'refs/heads/{branch}', check=False):
         cli.fail(f'no run branch {branch}')
     git(root, 'switch', '--quiet', branch)
