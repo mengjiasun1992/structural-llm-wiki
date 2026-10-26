@@ -87,7 +87,7 @@ def questions(root):
     """The settings to ask about: [{key, table, value, about}], every one in ASK on a first setup, and on a
     rerun those Config.toml doesn't have yet."""
     template = read_text(os.path.join(WIKI, 'Config.toml'))
-    path = os.path.join(root, layout.CONFIG)
+    path = layout.config_path(root)
     have = toml.loads(read_text(path)) if os.path.isfile(path) else None
     out = []
     for key, (table, line) in settings_of(template).items():
@@ -182,10 +182,21 @@ class Init:
     def layout(self):
         for kind in ('tags', 'sources', 'narratives'):
             self.create(manifest.FILES[kind], manifest.HEADERS[kind])
-        old, new = self.path(layout.OLD_TEMPLATES), self.path(layout.TEMPLATES)
-        if os.path.isdir(old) and not os.path.exists(new):  # the wiki's templates before 1.0, at the root
-            os.rename(old, new)
-            self.done.append(('moved templates/ to', layout.TEMPLATES))
+        self.move_old()
+
+    def move_old(self):
+        """Before 1.0, the settings, the templates and the index were at the root: move them into sllmwiki/."""
+        for old, new in ((layout.OLD_CONFIG, layout.CONFIG), (layout.OLD_TEMPLATES, layout.TEMPLATES)):
+            if os.path.exists(self.path(old)) and not os.path.exists(self.path(new)):
+                os.rename(self.path(old), self.path(new))
+                self.done.append((f'moved {old} to', new))
+        old = self.path(layout.OLD_INDEX)
+        if os.path.isfile(old) and wikiindex.GENERATED in read_text(old):  # pages() writes it in its new place
+            os.remove(old)
+            self.done.append(('removed the old', layout.OLD_INDEX))
+            readme = read_text(self.path('README.md')) if self.exists('README.md') else ''
+            if f']({layout.OLD_INDEX})' in readme:  # the README init wrote links to it; only that link changes
+                self.put('README.md', readme.replace(f']({layout.OLD_INDEX})', f']({layout.INDEX})'), 'pointed the index link in')
 
     def readme(self):
         text = read_text(os.path.join(WIKI, 'README.md')).replace('{{name}}', self.name)
@@ -332,7 +343,7 @@ def main(argv):
     if args.ask:
         found = questions(root)
         if args.json:
-            print(dumps({'first_setup': not os.path.isfile(os.path.join(root, layout.CONFIG)), 'ask': found}))
+            print(dumps({'first_setup': not os.path.isfile(layout.config_path(root)), 'ask': found}))
         else:
             for q in found:
                 print(f'{q["key"]} = {toml_value(q["value"])}: {q["about"]}')

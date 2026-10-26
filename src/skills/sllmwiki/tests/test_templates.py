@@ -85,7 +85,7 @@ class WikiTemplates(helpers.WikiTestCase):
         self.assertEqual(templates.get(self.root, 'concept_brief_overview').source, 'wiki')
 
     def test_config_budgets_win_over_the_header(self):
-        self.write('Config.toml', '[structural-llm-wiki-templates.technical_brief_overview]\nmax_words = 3000\n\n'
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-templates.technical_brief_overview]\nmax_words = 3000\n\n'
                                   '[structural-llm-wiki-templates.concept_brief_overview]\nabstract_words = [100, 300]\n')
         found, problems = templates.available(self.root)
         self.assertEqual(problems, [])
@@ -112,7 +112,7 @@ class WikiTemplates(helpers.WikiTestCase):
                 shutil.rmtree(os.path.join(self.root, 'sllmwiki', 'templates', name))
 
     def test_budgets_for_a_template_that_doesnt_exist(self):
-        self.write('Config.toml', '[structural-llm-wiki-templates.runbook]\nmax_words = 500\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-templates.runbook]\nmax_words = 500\n')
         self.assertIn('there\'s no template runbook', templates.available(self.root)[1][0])
 
     def test_get_an_unknown_template(self):
@@ -208,7 +208,7 @@ class Schema(helpers.WikiTestCase):
         self.problem()
         r = helpers.run('narrative-format.py', ['--templates', '--json'], cwd=self.root)
         self.assertEqual((r.code, json.loads(r.out)['warnings']), (0, []))  # English needs no translation
-        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-settings]\nlanguage = "zh-Hans"\n')
+        helpers.write(self.root, 'sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nlanguage = "zh-Hans"\n')
         r = helpers.run('narrative-format.py', ['--templates'], cwd=self.root)
         self.assertEqual(r.code, 0)  # a warning, not a problem
         self.assertIn('warning: template runbook: zh-Hans keeps "Steps" in English: translate it in sllmwiki/templates/languages/zh-Hans.md', r.out)

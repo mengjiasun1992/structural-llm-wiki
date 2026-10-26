@@ -11,10 +11,10 @@ from lib import compat, manifest, policy, tagpages, wikiindex
 
 class Pages(helpers.WikiTestCase):
     def test_the_index(self):
-        text = self.read('SLLMWIKI_INDICES.md')
+        text = self.read('sllmwiki/SLLMWIKI_INDICES.md')
         self.assertIn('    t0 --> t1\n', text)
-        self.assertIn('    click t1 "sllmwiki/tags/leaf-a.md"\n', text)
-        self.assertIn('  - [leaf-a](sllmwiki/tags/leaf-a.md): First leaf, about alpha systems (1 narrative)\n', text)
+        self.assertIn('    click t1 "tags/leaf-a.md"\n', text)
+        self.assertIn('  - [leaf-a](tags/leaf-a.md): First leaf, about alpha systems (1 narrative)\n', text)
         self.assertEqual(compat.check(text), [])
 
     def test_a_tag_page(self):
@@ -66,19 +66,25 @@ class Check(helpers.WikiTestCase):
         self.assertFalse([f for f in found if ('sources/raw-note' in f[1] or '.obsidian' in f[1]) and f[0] != 'SOURCE_UNRECORDED'])
 
     def test_config_and_yaml(self):
-        self.write('Config.toml', '[structural-llm-wiki-settings]\nmarkers = 1\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nmarkers = 1\n')
         self.assertIn('CONFIG_INVALID', self.codes())
         self.write('sllmwiki/sources/manifest.yaml', 'a: [unclosed\n')
         r = self.wc()
         self.assertEqual(r.code, 1)
         self.assertIn('YAML_INVALID', r.out)
 
+    def test_the_old_root_layout_is_a_warning(self):
+        self.write('Config.toml', '[structural-llm-wiki-settings]\n')
+        self.write('templates/x/template.md', 'x\n')
+        found = {(f['code'], f['file']) for f in json.loads(self.wc('--json').out)['findings']}
+        self.assertTrue({('OLD_LAYOUT', 'Config.toml'), ('OLD_LAYOUT', 'templates')} <= found, found)
+
     def test_the_wikis_own_templates(self):
         self.write('sllmwiki/templates/postmortem/template.md', '---\ndescription: x\n---\n\n## Timeline\n\n<what happened>\n')
-        self.write('Config.toml', '[structural-llm-wiki-templates.runbook]\nmax_words = 900\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-templates.runbook]\nmax_words = 900\n')
         found = {(f['code'], f['file']): f['message'] for f in json.loads(self.wc('--json').out)['findings']}
         self.assertIn('header needs exactly', found[('TEMPLATE_INVALID', 'sllmwiki/templates/postmortem')])
-        self.assertIn('no template runbook', found[('TEMPLATE_INVALID', 'Config.toml')])
+        self.assertIn('no template runbook', found[('TEMPLATE_INVALID', 'sllmwiki/Config.toml')])
         self.assertFalse([f for f in found if f[1].startswith('sllmwiki/templates/postmortem/')])  # a skeleton, not a page to check
         self.assertEqual(self.wc().code, 1)
 
@@ -125,7 +131,7 @@ class Check(helpers.WikiTestCase):
         self.assertEqual([f['file'] for f in findings if f['code'] == 'SOURCE_POLICY'], ['sllmwiki/sources/alpha-doc.md'])
         manifest.put_source(self.root, 'alpha-doc', permission='Jane Doe, 2026-10-21')
         self.assertNotIn('SOURCE_POLICY', [f['code'] for f in json.loads(helpers.run('wiki-check.py', ['--root', self.root, '--visibility', 'public', '--json']).out)['findings']])
-        self.write('Config.toml', '[structural-llm-wiki-settings]\nsource_copies = "links-only"\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nsource_copies = "links-only"\n')
         self.assertEqual(self.codes().count('SOURCE_POLICY'), 2)
 
     def test_visibility_is_asked_only_with_saved_copies(self):

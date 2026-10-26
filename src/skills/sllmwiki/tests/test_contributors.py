@@ -60,7 +60,7 @@ class Contributors(helpers.WikiTestCase):
         self.assertLess(names.index('Bob Roy'), names.index('Cy Wu'))
 
     def test_excluded_and_text(self):
-        self.write('Config.toml', '[structural-llm-wiki-settings]\nsmes_exclude = ["@ann", "Wiki Owner", "bob@example.com", "@team-x"]\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nsmes_exclude = ["@ann", "Wiki Owner", "bob@example.com", "@team-x"]\n')
         out = self.run_it('src', '--limit', '5').out
         for gone in ('Ann Lee', 'Wiki Owner', 'Bob Roy', 'team-x'):
             self.assertNotIn(gone, out)
@@ -75,9 +75,9 @@ class Contributors(helpers.WikiTestCase):
         self.addCleanup(shutil.rmtree, empty)
         self.assertIn('isn\'t a git repository', helpers.run('contributors.py', ['x', '--repo', empty, '--root', self.root]).err)
         shutil.rmtree(os.path.join(self.repo, '.github'))
-        self.write('Config.toml', '[structural-llm-wiki-settings]\nsmes_exclude = ["Ann Lee", "Bob Roy", "Cy Wu", "Wiki Owner", "Dee Fox", "Eve"]\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nsmes_exclude = ["Ann Lee", "Bob Roy", "Cy Wu", "Wiki Owner", "Dee Fox", "Eve"]\n')
         self.assertIn('no one found', self.run_it('src').out)
-        self.write('Config.toml', '[structural-llm-wiki-settings]\nsmes_exclude = 1\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nsmes_exclude = 1\n')
         self.assertIn('Config.toml is invalid', self.run_it('src').err)
 
 

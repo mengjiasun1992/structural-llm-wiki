@@ -1,4 +1,4 @@
-"""A wiki's settings and add-ons: the optional Config.toml at its root (design doc §4.9).
+"""A wiki's settings and add-ons: the optional sllmwiki/Config.toml (design doc §4.9).
 
     [structural-llm-wiki-settings]
     source_copies = "allow"     # or "links-only"
@@ -33,7 +33,7 @@ import difflib
 import os
 import re
 
-from .layout import CONFIG
+from .layout import CONFIG, config_path
 from .toml import TomlError, loads
 from .util import read_text
 
@@ -193,7 +193,7 @@ def parse(text):
 
 def load(root):
     """The wiki's Config (the defaults without a Config.toml); raises ConfigError."""
-    path = os.path.join(root, CONFIG)
+    path = config_path(root)
     return parse(read_text(path)) if os.path.isfile(path) else Config()
 
 

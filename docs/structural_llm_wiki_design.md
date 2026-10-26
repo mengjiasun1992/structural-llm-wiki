@@ -87,14 +87,14 @@ structural-llm-wiki/
 ```text
 <wiki-repo>/
 ├── README.md                 # what this wiki is, how to use it, and its marker convention (§4.10)
-├── SLLMWIKI_INDICES.md       # generated: a clickable map of the tag tree, for GitHub
 ├── AGENTS.md                 # rules for agents working in this repo
 ├── CLAUDE.md                 # imports AGENTS.md for Claude Code
 ├── .gitignore
 ├── .claude/settings.json     # offers the sllmwiki plugin to the group's members
 ├── .github/workflows/        # wiki-checks.yml; review-checklist.yml (red until a run PR's boxes are ticked); release-book.yml (§10)
-├── Config.toml               # optional: the wiki's settings and add-ons (§4.9)
-└── sllmwiki/                 # the knowledge: also the Obsidian vault and a book's source
+└── sllmwiki/                 # everything the skill keeps: the knowledge, also the Obsidian vault and a book's source
+    ├── Config.toml           # optional: the wiki's settings and add-ons (§4.9)
+    ├── SLLMWIKI_INDICES.md   # generated: a clickable map of the tag tree, for GitHub
     ├── .obsidian/graph.json  # with the Obsidian add-on: written once by init
     ├── tags/
     │   ├── tags.yaml         # the tag tree
@@ -108,7 +108,7 @@ structural-llm-wiki/
                               # skeletons, so the checks, the graph and the book leave them out
 ```
 
-The layout is fixed: the scripts know it, and no setting changes it. A repository is a wiki when `sllmwiki/tags/tags.yaml` exists; every workflow but `init` stops and points to `init` otherwise.
+Only what GitHub and agents look for at a repository's root stays there: the README, `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `.claude/` and `.github/`. Everything else is in `sllmwiki/`; what isn't knowledge (the settings, the index, the templates) stays out of the Obsidian graph and the book. Before 1.0 the settings, the index and the templates were at the root; a rerun of `init` moves them, `wiki-check` warns until it does (`OLD_LAYOUT`), and the settings are read there meanwhile. The layout is fixed: the scripts know it, and no setting changes it. A repository is a wiki when `sllmwiki/tags/tags.yaml` exists; every workflow but `init` stops and points to `init` otherwise.
 
 ## 4. Data model
 
@@ -310,13 +310,13 @@ A wiki is read on GitHub page by page, opened in [Obsidian](https://obsidian.md)
 
 **Tag pages, for everyone.** A generated page per tag (description, parent, children, narratives, sources, SMEs) makes each topic browsable on GitHub, and puts the tag tree in Obsidian's graph, which draws every markdown file as a node and every link as an edge. They are plain markdown, written by a script in milliseconds.
 
-**The Obsidian add-on** (`obsidian = true`, §4.9) adds what only Obsidian uses: `init` writes `sllmwiki/.obsidian/graph.json` once (tag pages gold, narratives indigo, sources gray and filtered out of the graph; a reader who wants sources out of search too excludes them in their own `app.json`), and the wiki owns it from then on; `.gitignore` shares only that file from `.obsidian/` (off, it ignores all of `.obsidian/`, so a reader's own graph is never committed), and `publish.py` ignores Obsidian's rewrites of it. Off, nothing Obsidian-specific is written.
+**The Obsidian add-on** (`obsidian = true`, §4.9) adds what only Obsidian uses: `init` writes `sllmwiki/.obsidian/graph.json` once (tag pages gold, narratives indigo, sources gray; sources, the templates and the index filtered out of the graph; a reader who wants sources out of search too excludes them in their own `app.json`), and the wiki owns it from then on; `.gitignore` shares only that file from `.obsidian/` (off, it ignores all of `.obsidian/`, so a reader's own graph is never committed), and `publish.py` ignores Obsidian's rewrites of it. Off, nothing Obsidian-specific is written.
 
-**The index.** `SLLMWIKI_INDICES.md`, at the repository root, outside the vault, is GitHub's map: a mermaid diagram of the tag tree whose nodes open the tag pages, and the same tree as a nested list. Obsidian and a book don't need it, so it stays out of their source.
+**The index.** `sllmwiki/SLLMWIKI_INDICES.md` is GitHub's map: a mermaid diagram of the tag tree whose nodes open the tag pages, and the same tree as a nested list; the wiki's README links to it. Obsidian and a book don't need it: the graph filters it out (it would link to every tag), and a book has its own contents, to which a link to the index points.
 
 ### 4.9 Settings and add-ons: `Config.toml`
 
-A wiki can keep a `Config.toml` at its root. Every setting has a default, so the file is optional; `init` writes it with the defaults and a note on each, and a rerun adds any setting the file lacks, keeping the wiki's values. On a first setup `init` asks the owner about the settings they'd want to choose (language, source policy, the book's formats, title and author, Obsidian, markers, figures, who never to list as an SME), and on a rerun only about those added since (`init.py --ask`, `--set`).
+A wiki can keep a `Config.toml` in `sllmwiki/`. Every setting has a default, so the file is optional; `init` writes it with the defaults and a note on each, and a rerun adds any setting the file lacks, keeping the wiki's values. On a first setup `init` asks the owner about the settings they'd want to choose (language, source policy, the book's formats, title and author, Obsidian, markers, figures, who never to list as an SME), and on a rerun only about those added since (`init.py --ask`, `--set`).
 
 ```toml
 [structural-llm-wiki-settings]

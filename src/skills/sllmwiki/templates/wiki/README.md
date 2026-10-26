@@ -4,7 +4,7 @@ A Structural LLM Wiki: this team's knowledge, kept in git by a coding agent with
 
 - **Ask it:** `/sllmwiki:query "How does the gateway retry failed requests?"` answers from what the wiki already knows, citing it.
 - **Grow it:** `/sllmwiki:build "How does the gateway route requests?"` finds sources, writes an answer whose every claim is cited, and opens one pull request for you to review and merge.
-- **Browse it:** [SLLMWIKI_INDICES.md](SLLMWIKI_INDICES.md) maps the topics; each opens a page of its narratives, sources and who to ask.
+- **Browse it:** [SLLMWIKI_INDICES.md](sllmwiki/SLLMWIKI_INDICES.md) maps the topics; each opens a page of its narratives, sources and who to ask.
 - **Read it as a book:** `/sllmwiki:release` publishes a release with the wiki as a book, in the formats `Config.toml`'s `[structural-llm-wiki-release]` turns on; the latest is on this repository's *Releases* page.
 
 ## What's here
@@ -15,7 +15,7 @@ A Structural LLM Wiki: this team's knowledge, kept in git by a coding agent with
 | `sllmwiki/narratives/` | One narrative per question; `manifest.yaml` records their tags and the source versions they read |
 | `sllmwiki/tags/` | The tag tree, `tags.yaml`, and a generated page per tag |
 | `sllmwiki/templates/` | This wiki's own narrative templates and language packs, if any |
-| `Config.toml` | This wiki's settings |
+| `sllmwiki/Config.toml` | This wiki's settings |
 
 ## Reading a narrative
 

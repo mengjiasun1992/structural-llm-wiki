@@ -297,13 +297,13 @@ class Commands(unittest.TestCase):
         self.assertEqual(list(files), ['pdf'])
         self.assertTrue(files['pdf'].endswith('-preview.pdf'))
         self.assertEqual(helpers.read(out, os.path.basename(files['pdf'])), f'%PDF-1.4 "{{{os.path.basename(self.root)} 📖}}"')  # the running head
-        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-release]\npdf_book = false\nhtml_book = false\n')
+        helpers.write(self.root, 'sllmwiki/Config.toml', '[structural-llm-wiki-release]\npdf_book = false\nhtml_book = false\n')
         out2 = os.path.join(self.tmp, 'out2')
         r = self.book('build', out2, '--vendor', self.vendor, '--chrome', self.chrome, '--sphinx', self.sphinx)
         self.assertEqual(r.code, 0, r.err)  # every format off: the book is staged, and no file is written
         self.assertEqual(json.loads(helpers.read(out2, 'staged/book.json'))['files'], {})
         self.assertEqual([f for f in os.listdir(out2) if f.endswith(('.html', '.pdf'))], [])
-        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-release]\npdf_book = true\nhtml_book = true\n')
+        helpers.write(self.root, 'sllmwiki/Config.toml', '[structural-llm-wiki-release]\npdf_book = true\nhtml_book = true\n')
         out3 = os.path.join(self.tmp, 'out3')
         self.book('build', out3, '--vendor', self.vendor, '--chrome', self.chrome, '--sphinx', self.sphinx)
         self.assertEqual(list(json.loads(helpers.read(out3, 'staged/book.json'))['files']), ['html', 'pdf'])
@@ -358,7 +358,7 @@ class Commands(unittest.TestCase):
         data = json.loads(helpers.read(out2, 'staged/book.json'))
         self.assertEqual(list(data['files']), ['html'])  # one format failing doesn't stop the others
         self.assertIn('epub: broken', data['failed']['epub'])
-        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-release]\npdf_book = false\nepub_book = true\n')
+        helpers.write(self.root, 'sllmwiki/Config.toml', '[structural-llm-wiki-release]\npdf_book = false\nepub_book = true\n')
         out3 = os.path.join(self.tmp, 'out3')
         os.environ.pop('STUB_EPUB_FAIL')
         self.book('build', out3, '--vendor', self.vendor, '--chrome', self.chrome, '--sphinx', self.sphinx)
@@ -371,7 +371,7 @@ class Commands(unittest.TestCase):
                              (None, 'Sphinx wrote no EPUB'))
 
     def test_a_title_and_an_author(self):
-        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-release]\npdf_book = true\nhtml_book = true\n'
+        helpers.write(self.root, 'sllmwiki/Config.toml', '[structural-llm-wiki-release]\npdf_book = true\nhtml_book = true\n'
                                                 'title = "Notes on systems"\nauthor = "Mengjia Sun"\n')
         out = os.path.join(self.tmp, 'out')
         r = self.book('build', out, '--vendor', self.vendor, '--chrome', self.chrome, '--sphinx', self.sphinx, '--version', 'v1')
@@ -386,7 +386,7 @@ class Commands(unittest.TestCase):
         sphinx = helpers.read(out, f'{name}-v1.html')
         for arg in ('project=Notes on systems', 'html_title=Notes on systems v1', 'copyright=Mengjia Sun', 'epub_author=Mengjia Sun'):
             self.assertIn(arg, sphinx)
-        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-release]\ntitle = "Notes on systems"\n')
+        helpers.write(self.root, 'sllmwiki/Config.toml', '[structural-llm-wiki-release]\ntitle = "Notes on systems"\n')
         staged = os.path.join(self.tmp, 'staged')
         self.book('stage', staged)
         self.assertEqual(json.loads(helpers.read(staged, 'book.json'))['author'], 'Notes on systems')  # the title, by default
@@ -441,7 +441,7 @@ class Commands(unittest.TestCase):
         r = self.book('issues', staged)
         self.assertEqual((r.code, r.out), (0, ''))
         helpers.write(staged, 'book.json', json.dumps(data))
-        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-settings]\nlanguage = "zh-Hans"\n')
+        helpers.write(self.root, 'sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nlanguage = "zh-Hans"\n')
         r = self.book('issues', staged, '--root', self.root)
         self.assertTrue(r.out.startswith('### 已知问题\n\n- BOOK_LINK'), r.out)
         self.assertTrue(self.book('issues', staged).out.startswith('### Known issues'))  # without a wiki, English
@@ -449,7 +449,7 @@ class Commands(unittest.TestCase):
         self.assertEqual((r.code, "isn't a staged book" in r.err), (2, True))
 
     def test_build_in_chinese_and_as_json(self):
-        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-settings]\nlanguage = "zh-Hans"\n\n[structural-llm-wiki-release]\nhtml_book = true\n')
+        helpers.write(self.root, 'sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nlanguage = "zh-Hans"\n\n[structural-llm-wiki-release]\nhtml_book = true\n')
         out = os.path.join(self.tmp, 'out')
         r = self.book('build', out, '--vendor', self.vendor, '--chrome', self.chrome, '--sphinx', self.sphinx, '--json')
         self.assertEqual(r.code, 0, r.err)

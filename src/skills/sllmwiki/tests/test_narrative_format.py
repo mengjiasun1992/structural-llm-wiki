@@ -50,7 +50,7 @@ class Checks(helpers.WikiTestCase):
         self.assertIn(('ABSTRACT_LENGTH', 1), self.codes(text.replace(helpers.ABSTRACT, 'Too short.')))
         long = text.replace('Requests fail, and alpha systems send them again.', ' '.join(['word'] * 1900))
         self.assertIn(('BODY_LENGTH', 1), self.codes(long))
-        self.write('Config.toml', '[structural-llm-wiki-templates.technical_brief_overview]\nmax_words = 3000\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-templates.technical_brief_overview]\nmax_words = 3000\n')
         self.assertNotIn(('BODY_LENGTH', 1), self.codes(long))
 
     def test_numbers_and_citations(self):

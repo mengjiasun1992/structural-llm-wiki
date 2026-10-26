@@ -180,8 +180,8 @@ author = ""          # its author; empty: the title
 | Appendix B: Glossary | every Terminology row, A to Z, grouped by term: one definition, or each narrative's, side by side when they differ |
 | Appendix C: Open questions | every statement or section marked `[?]`, with its chapter |
 
-Not in the book: the saved copies of sources, `SLLMWIKI_INDICES.md` and the
-tag pages (the book has its own contents), SMEs (names and handles are
+Not in the book: the saved copies of sources, `SLLMWIKI_INDICES.md`, the
+wiki's settings and templates, and the tag pages (the book has its own contents), SMEs (names and handles are
 personal data in a file that travels), and Metadata sections beyond a
 narrative's version and date.
 

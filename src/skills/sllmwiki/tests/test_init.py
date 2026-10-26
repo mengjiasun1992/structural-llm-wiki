@@ -34,11 +34,11 @@ class Init(unittest.TestCase):
         r = self.init('--name', 'demo-wiki', '--commit', '--prompt', 'Set up a wiki.\nFor the team.', '--json')
         self.assertEqual(r.code, 0, r.err)
         done = {d['file']: d['what'] for d in json.loads(r.out)['done']}
-        for rel in ('sllmwiki/tags/tags.yaml', 'sllmwiki/sources/manifest.yaml', 'sllmwiki/narratives/manifest.yaml', 'Config.toml',
+        for rel in ('sllmwiki/tags/tags.yaml', 'sllmwiki/sources/manifest.yaml', 'sllmwiki/narratives/manifest.yaml', 'sllmwiki/Config.toml',
                     'README.md', 'AGENTS.md', 'CLAUDE.md', '.gitignore', '.claude/settings.json',
                     '.github/workflows/wiki-checks.yml', '.github/workflows/review-checklist.yml', '.github/workflows/release-book.yml'):
             self.assertEqual(done[rel], 'created', rel)
-        self.assertEqual(done['SLLMWIKI_INDICES.md'], 'generated')
+        self.assertEqual(done['sllmwiki/SLLMWIKI_INDICES.md'], 'generated')
         self.assertTrue(self.read('README.md').startswith('# demo-wiki\n'))
         self.assertEqual(self.read('CLAUDE.md'), '@AGENTS.md\n')
         import init
@@ -47,7 +47,7 @@ class Init(unittest.TestCase):
         book = self.read('.github/workflows/release-book.yml')
         self.assertIn(f'src/actions/release-book@{ref}', book)
         self.assertIn('types: [published]', book)
-        self.assertIn('[structural-llm-wiki-release]\npdf_book = true', self.read('Config.toml'))
+        self.assertIn('[structural-llm-wiki-release]\npdf_book = true', self.read('sllmwiki/Config.toml'))
         self.assertEqual(json.loads(self.read('.claude/settings.json'))['enabledPlugins'], {'sllmwiki@structural-llm-wiki': True})
         self.assertEqual(helpers.git(self.root, 'log', '--format=%B').stdout,
                          '[sllmwiki][init] Set up the wiki\n\nPrompt:\n> Set up a wiki.\n> For the team.\n\n')
@@ -60,7 +60,7 @@ class Init(unittest.TestCase):
         helpers.write(self.root, 'sllmwiki/Untitled.canvas', '{}')  # the owner's, made in Obsidian
         self.assertEqual(self.init('--commit', '--prompt', 'p').code, 0)
         tracked = helpers.git(self.root, 'ls-files').stdout.split()
-        self.assertIn('Config.toml', tracked)
+        self.assertIn('sllmwiki/Config.toml', tracked)
         self.assertNotIn('sllmwiki/Untitled.canvas', tracked)
         self.assertTrue(os.path.isfile(os.path.join(self.root, 'sllmwiki', 'Untitled.canvas')))
 
@@ -69,7 +69,7 @@ class Init(unittest.TestCase):
         self.assertEqual(self.init('--name', 'demo-wiki').code, 0)
         self.assertEqual(self.init('--commit', '--prompt', 'p').code, 0)
         tracked = helpers.git(self.root, 'ls-files').stdout.split()
-        self.assertTrue({'Config.toml', 'sllmwiki/tags/tags.yaml', '.claude/settings.json'} <= set(tracked), tracked)
+        self.assertTrue({'sllmwiki/Config.toml', 'sllmwiki/tags/tags.yaml', '.claude/settings.json'} <= set(tracked), tracked)
 
     def test_a_rerun_changes_nothing_and_commits_nothing(self):
         self.init('--commit', '--prompt', 'p')
@@ -84,15 +84,15 @@ class Init(unittest.TestCase):
         helpers.write(self.root, 'AGENTS.md', '# Our rules\n')
         helpers.write(self.root, '.github/workflows/wiki-checks.yml', 'old\n')
         helpers.write(self.root, 'CLAUDE.md', 'old\n')
-        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-settings]\nmarkers = false\n\n# notes on the next table\n[other-tool]\nx = 1\n')
+        helpers.write(self.root, 'sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nmarkers = false\n\n# notes on the next table\n[other-tool]\nx = 1\n')
         helpers.write(self.root, '.claude/settings.json', json.dumps({'permissions': {'allow': ['Bash(ls)']}, 'enabledPlugins': {'other@x': True}}))
         helpers.write(self.root, '.gitignore', 'node_modules/\n')
         r = self.init('--json')
         done = {d['file']: d['what'] for d in json.loads(r.out)['done']}
         self.assertEqual((done['README.md'], done['AGENTS.md']), ('kept', 'kept'))
-        self.assertEqual((done['.github/workflows/wiki-checks.yml'], done['CLAUDE.md'], done['Config.toml']), ('updated', 'updated', 'added settings to'))
+        self.assertEqual((done['.github/workflows/wiki-checks.yml'], done['CLAUDE.md'], done['sllmwiki/Config.toml']), ('updated', 'updated', 'added settings to'))
         self.assertEqual(self.read('README.md'), '# Ours\n\nAbout this wiki.\nMore.\n')
-        cfg = self.read('Config.toml')
+        cfg = self.read('sllmwiki/Config.toml')
         self.assertIn('markers = false\nsource_copies = "allow"     # the source policy', cfg)  # added after the wiki's own line, its value kept
         self.assertIn('\n\n# notes on the next table\n[other-tool]\nx = 1\n', cfg)
         self.assertIn('[structural-llm-wiki-addons]\nobsidian = false', cfg)
@@ -124,13 +124,25 @@ class Init(unittest.TestCase):
                 run.settings()
             self.assertEqual(run.done, [(init.SKIPPED, '.claude/settings.json')])
 
-    def test_the_old_templates_folder_moves_under_sllmwiki(self):
+    def test_the_old_root_layout_moves_under_sllmwiki(self):
+        # before 1.0 the settings, the templates and the index were at the root
         self.assertEqual(self.init('--name', 'demo-wiki').code, 0)
+        os.rename(os.path.join(self.root, 'sllmwiki', 'Config.toml'), os.path.join(self.root, 'Config.toml'))
+        helpers.write(self.root, 'Config.toml', helpers.read(self.root, 'Config.toml').replace('markers = true', 'markers = false'))
+        self.assertFalse(config.load(self.root).settings['markers'])  # read at the root until init moves it
+        os.rename(os.path.join(self.root, 'sllmwiki', 'SLLMWIKI_INDICES.md'), os.path.join(self.root, 'SLLMWIKI_INDICES.md'))
+        helpers.write(self.root, 'README.md', self.read('README.md').replace('](sllmwiki/SLLMWIKI_INDICES.md)', '](SLLMWIKI_INDICES.md)'))
         helpers.write(self.root, 'templates/skim_read/template.md', 'x\n')
-        r = self.init('--json')
-        self.assertIn({'what': 'moved templates/ to', 'file': 'sllmwiki/templates'}, json.loads(r.out)['done'])
+        done = json.loads(self.init('--json').out)['done']
+        for d in ({'what': 'moved Config.toml to', 'file': 'sllmwiki/Config.toml'}, {'what': 'moved templates to', 'file': 'sllmwiki/templates'},
+                  {'what': 'removed the old', 'file': 'SLLMWIKI_INDICES.md'}):
+            self.assertIn(d, done)
         self.assertEqual(self.read('sllmwiki/templates/skim_read/template.md'), 'x\n')
-        self.assertFalse(os.path.exists(os.path.join(self.root, 'templates')))
+        self.assertIn('](sllmwiki/SLLMWIKI_INDICES.md)', self.read('README.md'))
+        self.assertFalse(config.load(self.root).settings['markers'])
+        self.assertTrue(os.path.isfile(os.path.join(self.root, 'sllmwiki', 'SLLMWIKI_INDICES.md')))
+        for old in ('Config.toml', 'templates', 'SLLMWIKI_INDICES.md'):
+            self.assertFalse(os.path.exists(os.path.join(self.root, old)), old)
 
     def test_empty_placeholders_arent_unrelated(self):
         # the eval sandbox on Linux puts empty files and folders over the config files it guards
@@ -159,11 +171,11 @@ class Init(unittest.TestCase):
 
     def test_obsidian_add_on(self):
         self.init()
-        helpers.write(self.root, 'Config.toml', self.read('Config.toml').replace('obsidian = false', 'obsidian = true'))
+        helpers.write(self.root, 'sllmwiki/Config.toml', self.read('sllmwiki/Config.toml').replace('obsidian = false', 'obsidian = true'))
         r = self.init('--json')
         self.assertIn({'what': 'created', 'file': layout.OBSIDIAN_GRAPH}, json.loads(r.out)['done'])
         graph = json.loads(self.read(layout.OBSIDIAN_GRAPH))
-        self.assertEqual(graph['search'], '-path:sources -path:templates')
+        self.assertEqual(graph['search'], '-path:sources -path:templates -file:SLLMWIKI_INDICES')
         helpers.write(self.root, layout.OBSIDIAN_GRAPH, '{"mine": true}')
         self.init()
         self.assertEqual(self.read(layout.OBSIDIAN_GRAPH), '{"mine": true}')  # the wiki's from then on
@@ -173,11 +185,11 @@ class Init(unittest.TestCase):
         off = self.read('.gitignore')
         self.assertIn('sllmwiki/.obsidian/*\n', off)
         self.assertNotIn('graph.json', off)  # off: a person's own graph is never committed
-        on = self.read('Config.toml').replace('obsidian = false', 'obsidian = true')
-        helpers.write(self.root, 'Config.toml', on)
+        on = self.read('sllmwiki/Config.toml').replace('obsidian = false', 'obsidian = true')
+        helpers.write(self.root, 'sllmwiki/Config.toml', on)
         self.init()
         self.assertIn("# with the Obsidian add-on, the graph's settings are shared\n!sllmwiki/.obsidian/graph.json\n", self.read('.gitignore'))
-        helpers.write(self.root, 'Config.toml', on.replace('obsidian = true', 'obsidian = false'))
+        helpers.write(self.root, 'sllmwiki/Config.toml', on.replace('obsidian = true', 'obsidian = false'))
         self.init()
         self.assertEqual(self.read('.gitignore'), off)
 
@@ -188,7 +200,7 @@ class Init(unittest.TestCase):
         self.init()
         self.assertEqual(self.read('.gitignore'), "node_modules/\n\n# Obsidian: each person's settings are their own\nsllmwiki/.obsidian/*\n.DS_Store\n")
         helpers.write(self.root, '.gitignore', earlier)
-        helpers.write(self.root, 'Config.toml', self.read('Config.toml').replace('obsidian = false', 'obsidian = true'))
+        helpers.write(self.root, 'sllmwiki/Config.toml', self.read('sllmwiki/Config.toml').replace('obsidian = false', 'obsidian = true'))
         self.init()
         self.assertEqual(self.read('.gitignore'), "node_modules/\n\n# Obsidian: each person's settings are their own\nsllmwiki/.obsidian/*\n"
                                                   "# with the Obsidian add-on, the graph's settings are shared\n!sllmwiki/.obsidian/graph.json\n.DS_Store\n")
@@ -207,9 +219,9 @@ class Init(unittest.TestCase):
         self.assertEqual(self.init('--commit').code, 2)
         self.assertIn('no such folder', helpers.run('init.py', ['--root', '/nope/nowhere']).err)
         self.init()
-        helpers.write(self.root, 'Config.toml', '[structural-llm-wiki-settings]\nmarkers = 1\n')
+        helpers.write(self.root, 'sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nmarkers = 1\n')
         self.assertIn('Config.toml has problems', self.init().err)
-        helpers.write(self.root, 'Config.toml', '')
+        helpers.write(self.root, 'sllmwiki/Config.toml', '')
         helpers.write(self.root, '.claude/settings.json', '{')
         self.assertIn('isn\'t valid JSON', self.init().err)
 
@@ -238,11 +250,11 @@ class Init(unittest.TestCase):
         q = next(q for q in data['ask'] if q['key'] == 'pdf_book')
         self.assertEqual((q['table'], q['value'], q['about']), ('structural-llm-wiki-release', True, 'a PDF: share, print, read anywhere'))
         self.assertTrue(all(q['about'] for q in data['ask']))
-        self.assertFalse(os.path.exists(os.path.join(self.root, 'Config.toml')))  # --ask writes nothing
+        self.assertFalse(os.path.exists(os.path.join(self.root, 'sllmwiki', 'Config.toml')))  # --ask writes nothing
         r = self.init('--name', 'w', '--set', 'language=zh-Hans', '--set', 'epub_book=TRUE', '--set', 'title=我的 "笔记"',
                       '--set', 'smes_exclude=@me, dependabot', '--set', 'max_quote_words=30', '--set', 'obsidian=true')
         self.assertEqual(r.code, 0, r.err)
-        cfg = self.read('Config.toml')
+        cfg = self.read('sllmwiki/Config.toml')
         for line in ('language = "zh-Hans"        # narratives', 'epub_book = true            # an EPUB',
                      'smes_exclude = ["@me", "dependabot"] # never', 'max_quote_words = 30        # the longest'):
             self.assertIn(line, cfg)
@@ -250,20 +262,20 @@ class Init(unittest.TestCase):
         self.assertTrue(os.path.isfile(os.path.join(self.root, 'sllmwiki', '.obsidian', 'graph.json')))  # the answer took effect in the same run
         self.assertIn('nothing new to ask about', self.init('--ask').out)
         # a rerun asks only about settings the plugin added since; --set changes one in place
-        helpers.write(self.root, 'Config.toml', cfg.replace('author = ""                 # its author; empty: the title\n', ''))
+        helpers.write(self.root, 'sllmwiki/Config.toml', cfg.replace('author = ""                 # its author; empty: the title\n', ''))
         self.assertEqual([q['key'] for q in json.loads(self.init('--ask', '--json').out)['ask']], ['author'])
         self.assertEqual(self.init('--ask').out, 'author = "": its author; empty: the title\ninit: 1 setting(s) to ask about\n')
         r = self.init('--set', 'author=Ann', '--set', 'markers=false')
         self.assertEqual(r.code, 0, r.err)
-        self.assertIn('author = "Ann"', self.read('Config.toml'))
-        self.assertIn('markers = false             # false', self.read('Config.toml'))
+        self.assertIn('author = "Ann"', self.read('sllmwiki/Config.toml'))
+        self.assertIn('markers = false             # false', self.read('sllmwiki/Config.toml'))
 
     def test_set_refusals(self):
         for pair, says in (('markers=maybe', 'true or false'), ('max_quote_words=lots', 'a number'), ('colour=red', 'settings are author'),
                            ('nokey', 'settings are'), ('source_copies=some', 'must be "allow" or "links-only"')):
             r = self.init('--name', 'w', '--set', pair)
             self.assertEqual((r.code, says in r.err), (2, True), (pair, r.err))
-        self.assertFalse(os.path.exists(os.path.join(self.root, 'Config.toml')))
+        self.assertFalse(os.path.exists(os.path.join(self.root, 'sllmwiki', 'Config.toml')))
 
     def test_settings_for_a_missing_table(self):
         mod = helpers.load_script('init.py')

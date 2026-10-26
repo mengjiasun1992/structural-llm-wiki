@@ -70,7 +70,7 @@ class Publish(helpers.WikiTestCase):
                               'Prompt:\n> Build up alpha retries.\n> Keep it short.\n\n')  # git log adds a newline
         committed = helpers.git(self.root, 'show', '--name-only', '--format=').stdout.split()
         self.assertEqual(committed, ['sllmwiki/sources/new.md'])
-        self.write('Config.toml', '[structural-llm-wiki-settings]\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\n')
         self.write('sllmwiki/.obsidian/graph.json', '{}')  # the add-on's, which init writes; .gitignore shares it
         self.write('.gitignore', 'sllmwiki/.obsidian/*\n!sllmwiki/.obsidian/graph.json\n')
         self.pub('commit', 'init', '--subject', 'Bring the wiki up to date')  # init has no tags
@@ -156,10 +156,10 @@ class Publish(helpers.WikiTestCase):
         r = self.pub('start', 'run', '--title', 't', '--prompt', 'p')
         self.assertEqual(r.code, 0, r.err)
         # nor does an init rerun commit it: a tracked graph.json that changed is Obsidian's layout, not init's
-        self.write('Config.toml', '[structural-llm-wiki-settings]\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\n')
         self.summary('init', title='Init', checklist=['Config'], body='Refreshed.')
         self.assertEqual(self.pub('commit', 'init', '--subject', 'Bring the wiki up to date').code, 0)
-        self.assertEqual(helpers.git(self.root, 'show', '--name-only', '--format=').stdout.split(), ['Config.toml'])
+        self.assertEqual(helpers.git(self.root, 'show', '--name-only', '--format=').stdout.split(), ['sllmwiki/Config.toml'])
         self.assertIn('sllmwiki/.obsidian/graph.json', helpers.git(self.root, 'status', '--porcelain').stdout)  # left as it is
 
     def test_a_sandboxs_placeholders_neither_stop_a_run_nor_are_committed(self):

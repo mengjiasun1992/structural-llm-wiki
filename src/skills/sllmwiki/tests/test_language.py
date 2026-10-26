@@ -115,10 +115,10 @@ class Packs(helpers.WikiTestCase):
         self.assertEqual(self.codes(fr), [('LANGUAGE_PACK', 1)])
 
     def test_a_language_with_no_pack_in_config(self):
-        self.write('Config.toml', '[structural-llm-wiki-settings]\nlanguage = "fr"\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nlanguage = "fr"\n')
         r = helpers.run('wiki-check.py', ['--json'], cwd=self.root)
         self.assertIn('LANGUAGE_PACK', r.out)
-        self.write('Config.toml', '[structural-llm-wiki-settings]\nlanguage = "zh_CN"\n')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nlanguage = "zh_CN"\n')
         self.assertTrue(any('language tag' in p for p in config.problems(self.root)))
 
     def test_words_count_cjk_characters(self):
