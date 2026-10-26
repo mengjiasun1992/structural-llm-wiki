@@ -195,6 +195,10 @@ A wiki holds other people's work next to text an LLM wrote, so it's worth knowin
 
 The scripts enforce what they can. This is a cautious default, not legal advice: for anything that matters, ask your own counsel.
 
+## Your data
+
+The plugin runs in your agent, on your machine, and its authors collect nothing: no telemetry, no server. Everything it writes goes into your wiki's repository. Data leaves your machine only to **GitHub**, through `git` and `gh` in your own account (pushes, pull requests, releases, and the wiki's Actions), and to **the sites your sources come from**, which receive only the requests that fetch them. The SMEs step reads git history (commit authors' names and emails) and records each person chosen by a handle or a name, with the evidence; personal data in a source is left out of the saved copy. Details: [Privacy](PRIVACY.md).
+
 ## Design
 
 [docs/structural_llm_wiki_design.md](docs/structural_llm_wiki_design.md) has the architecture and the decisions behind it, and [docs/book_design.md](docs/book_design.md) the book a release attaches. [docs/skill_execution_plan.md](docs/skill_execution_plan.md) and [docs/book_execution_plan.md](docs/book_execution_plan.md) say how each was built.
