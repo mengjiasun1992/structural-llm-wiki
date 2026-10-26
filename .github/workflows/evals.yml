@@ -54,7 +54,7 @@ jobs:
           node-version: 20
 
       - name: Install Claude Code
-        run: npm install --global --no-fund --no-audit @anthropic-ai/claude-code@2.1.310
+        run: npm install --global --no-fund --no-audit @anthropic-ai/claude-code@2.1.305
 
       # Bash runs inside the eval sandbox, which on Linux is bubblewrap with socat
       # (code.claude.com/docs/en/plugin-evals.md, "Grant tools"); without them every run is refused
@@ -90,6 +90,8 @@ jobs:
           THRESHOLD: ${{ inputs.threshold }}
           ABLATION: ${{ inputs.baseline }}
         run: |
+          # the runs' folders off /tmp: under /tmp, the Linux sandbox lets Bash write nothing in them
+          export TMPDIR="$RUNNER_TEMP/evals" && mkdir -p "$TMPDIR"
           if [ -z "$ANTHROPIC_API_KEY" ]; then
             echo "::error::Add an ANTHROPIC_API_KEY secret (Settings → Secrets and variables → Actions) to run the evals."
             exit 1
@@ -108,7 +110,7 @@ jobs:
         if: always()
         run: |
           mkdir -p evals/results/traces
-          for f in /tmp/claude-eval-*/out/trace.jsonl; do
+          for f in "$RUNNER_TEMP"/evals/claude-eval-*/out/trace.jsonl /tmp/claude-eval-*/out/trace.jsonl; do
             [ -f "$f" ] && cp "$f" "evals/results/traces/$(basename "$(dirname "$(dirname "$f")")").jsonl"
           done || true
 
