@@ -11,6 +11,21 @@
   "repository": "https://github.com/mengjiasun1992/structural-llm-wiki",
   "license": "Apache-2.0",
   "privacyPolicyUrl": "https://github.com/mengjiasun1992/structural-llm-wiki/blob/mainline/PRIVACY.md",
+  "supportUrl": "https://github.com/mengjiasun1992/structural-llm-wiki/issues",
+  "keywords": [
+    "wiki",
+    "llmwiki",
+    "knowledge-base",
+    "knowledge-management",
+    "knowledge-graph",
+    "documentation",
+    "research",
+    "citations",
+    "agent-skills",
+    "git",
+    "obsidian",
+    "book"
+  ],
   "skills": [
     "./skills/"
   ],
