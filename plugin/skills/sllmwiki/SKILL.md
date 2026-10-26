@@ -10,6 +10,7 @@ A wiki is a git repository whose knowledge lives in `sllmwiki/`: sources saved v
 | The request | Read |
 |---|---|
 | **A topic named alone, with no question or job** ("look into alpha retries") | nothing yet: ask first (below) |
+| **A question about this plugin** ("what can it do?") | nothing: answer briefly from this table: `/sllmwiki:init` first, then `query`, `build`, `release`; the rest is asked in words |
 | A question to answer from the wiki | `workflows/query.md` |
 | Questions to research and add to the wiki | `workflows/build.md` |
 | Set up a wiki repository | `workflows/init.md` |
