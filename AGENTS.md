@@ -23,6 +23,7 @@ This repository is the `sllmwiki` plugin: one Agent Skill (`src/skills/sllmwiki/
 - **Coverage stays at 95% or above.** CI measures line coverage of `src/skills/sllmwiki/scripts/` and fails below 95% (`fail_under` in `pyproject.toml`). Don't lower the threshold, and don't exclude code from coverage to pass it; test it instead.
 - **Tests are standard library only.** Use `unittest`; don't add test dependencies beyond `coverage` (CI-only, pinned). Tests never use the network: serve fixtures from a local `http.server`. They never write outside a temporary directory.
 - **The scripts stay standard library only** and run on Python 3.9 or later. Run the tests on 3.9 (`/usr/bin/python3` on macOS) as well as the latest 3 before pushing.
+- **Files the plugin directory accepts:** under 5 MiB, plain text or a true image, never a binary or packed file (design doc §11, checked by `test_plugin_files`).
 - **Lint must pass:** ruff (rules in `pyproject.toml`) and shellcheck, as in CI.
 - **Keep the docs in step:** a script's interface lives in its `--help`; when it changes, update the instructions that call it (`test_instructions` checks every script and option they name). When behavior a design decision describes changes, update `docs/structural_llm_wiki_design.md`. A larger change starts as a proposal in `docs/`.
 - **Instructions stay within their word budgets** (design doc §9, checked by `test_instructions`): every run pays for them in tokens. To make room, move a rule to a script or to its one home; raise a budget only with the reason in the pull request.

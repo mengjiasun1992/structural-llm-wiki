@@ -552,6 +552,7 @@ A wiki is written and reviewed on GitHub and explored in Obsidian; neither gives
 - The plugin is installed at **project scope** in each wiki repo, and `init` writes the same `extraKnownMarketplaces` and `enabledPlugins` entries to `.claude/settings.json`, so the group members who clone the wiki are offered it.
 - Other agents install with `npx skills add mengjiasun1992/structural-llm-wiki`; with no commands, users ask for a workflow or step in their own words.
 - A wiki's CI calls this repository's actions at the plugin's release tag; `init` moves the tag when the plugin updates.
+- **What the plugin directory accepts.** Every file is under 5 MiB and is either plain text, which the directory's security scan can read, or an image whose extension matches its format; a binary, bytecode or packed file holds a version for review. `test_plugin_files` checks both on every pull request, so a file that breaks either can't merge. A library too big for one file is kept in plain-text parts that the build joins (mermaid.js: `src/actions/release-book/vendor/split.py`).
 
 ## 12. Not in v1
 
