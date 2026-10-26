@@ -276,14 +276,16 @@ def main(argv):
     p.add_argument('--root')
     args = p.parse_args(argv)
     if args.command == 'parse':
-        if not args.vendor or not all(os.path.isfile(os.path.join(args.vendor, n)) for n in (bookbuild.MERMAID, bookbuild.MATHJAX)):
-            cli.usage(f'parse needs --vendor DIR holding {bookbuild.MERMAID} and {bookbuild.MATHJAX}')
+        args.vendor = bookbuild.unpacked(args.vendor)
+        if not args.vendor:
+            cli.usage(f'parse needs --vendor DIR holding {bookbuild.MERMAID} and {bookbuild.MATHJAX} (either may be gzipped)')
         return parse(cli.wiki(args.root), args.base, args.vendor, args.chrome, args.json)
     if not args.out:
         cli.usage(f'{args.command} needs a folder')
     if args.command in ('render', 'build'):
-        if not args.vendor or not all(os.path.isfile(os.path.join(args.vendor, n)) for n in (bookbuild.MERMAID, bookbuild.MATHJAX)):
-            cli.usage(f'{args.command} needs --vendor DIR holding {bookbuild.MERMAID} and {bookbuild.MATHJAX}')
+        args.vendor = bookbuild.unpacked(args.vendor)
+        if not args.vendor:
+            cli.usage(f'{args.command} needs --vendor DIR holding {bookbuild.MERMAID} and {bookbuild.MATHJAX} (either may be gzipped)')
         unknown = [f for f in args.formats or [] if f not in FORMATS]
         if unknown or args.formats == []:
             cli.usage(f'--formats can be {", ".join(FORMATS)}, not {", ".join(unknown) or "nothing"}')
