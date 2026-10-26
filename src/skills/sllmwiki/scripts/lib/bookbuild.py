@@ -8,6 +8,7 @@ read back from the dumped DOM.
 """
 
 import base64
+import gzip
 import hashlib
 import html
 import json
@@ -17,6 +18,7 @@ import posixpath
 import re
 import shutil
 import subprocess
+import tempfile
 import zipfile
 from xml.etree import ElementTree
 
@@ -71,6 +73,31 @@ def find_chrome(given=None):
         if c and (os.path.isfile(c) or shutil.which(c)):
             return shutil.which(c) or c
     return None
+
+
+def unpacked(vendor):
+    """A folder holding both libraries, or None. A library may be kept gzipped (mermaid.min.js.gz: the plugin
+    directory takes no file over 5 MiB); it is unpacked once into a temporary folder named by its hash."""
+    if not vendor:
+        return None
+    paths = {n: os.path.join(vendor, n) for n in (MERMAID, MATHJAX)}
+    if all(os.path.isfile(p) for p in paths.values()):
+        return vendor
+    if not all(os.path.isfile(p) or os.path.isfile(p + '.gz') for p in paths.values()):
+        return None
+    h = hashlib.md5()
+    for p in paths.values():
+        with open(p if os.path.isfile(p) else p + '.gz', 'rb') as f:
+            h.update(f.read())
+    out = os.path.join(tempfile.gettempdir(), f'sllmwiki-vendor-{h.hexdigest()[:12]}')
+    os.makedirs(out, exist_ok=True)
+    for name, p in paths.items():
+        dest = os.path.join(out, name)
+        if not os.path.isfile(dest):
+            with (open(p, 'rb') if os.path.isfile(p) else gzip.open(p + '.gz', 'rb')) as src, open(dest + '.part', 'wb') as f:
+                shutil.copyfileobj(src, f)
+            os.replace(dest + '.part', dest)
+    return out
 
 
 def libraries(vendor):
