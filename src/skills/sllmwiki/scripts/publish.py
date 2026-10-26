@@ -139,7 +139,8 @@ def start(root, slug, title, prompt):
         behind = subprocess.run(['git', 'merge-base', '--is-ancestor', base, f'origin/{base}'], cwd=root).returncode == 0
         if local and not behind:
             cli.fail(f'your {base} has commits origin/{base} doesn\'t; sort that out first (a clone made before a rename?)')
-        git(root, 'switch', '--quiet', '-C', base, f'origin/{base}')
+        # never write .git/config (no upstream tracking, no push -u): Claude Code's sandbox guards it
+        git(root, 'switch', '--quiet', '--no-track', '-C', base, f'origin/{base}')
     git(root, 'switch', '--quiet', '-c', branch, base)
     shutil.rmtree(run_dir(root, slug), ignore_errors=True)  # an earlier run's under this name, never this one's
     save_state(root, {'slug': slug, 'branch': branch, 'base': base, 'title': title, 'prompt': prompt, 'pr': None,
@@ -243,7 +244,7 @@ def pr(root, cost=None):
     if not has_remote(root):
         print(f'no remote: the commits stay on {state["branch"]}; the description is in {body_path}')
         return
-    git(root, 'push', '--quiet', '-u', 'origin', state['branch'])
+    git(root, 'push', '--quiet', 'origin', state['branch'])
     if not gh_available():
         remote = git(root, 'config', '--get', 'remote.origin.url')
         repo = github_repo(remote)
@@ -314,7 +315,7 @@ def resume(root, slug):
     if not git(root, 'rev-parse', '--verify', '--quiet', f'refs/heads/{branch}', check=False) and has_remote(root):
         git(root, 'fetch', '--quiet', 'origin', branch, check=False)
         if git(root, 'rev-parse', '--verify', '--quiet', f'refs/remotes/origin/{branch}', check=False):
-            git(root, 'branch', '--quiet', '--track', branch, f'origin/{branch}')
+            git(root, 'branch', '--quiet', '--no-track', branch, f'origin/{branch}')
     if not git(root, 'rev-parse', '--verify', '--quiet', f'refs/heads/{branch}', check=False):
         cli.fail(f'no run branch {branch}')
     git(root, 'switch', '--quiet', branch)
