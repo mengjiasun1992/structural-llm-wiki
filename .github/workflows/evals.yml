@@ -54,7 +54,7 @@ jobs:
           node-version: 20
 
       - name: Install Claude Code
-        run: npm install --global --no-fund --no-audit @anthropic-ai/claude-code@2.1.305
+        run: npm install --global --no-fund --no-audit @anthropic-ai/claude-code@2.1.310
 
       # Bash runs inside the eval sandbox, which on Linux is bubblewrap with socat
       # (code.claude.com/docs/en/plugin-evals.md, "Grant tools"); without them every run is refused
