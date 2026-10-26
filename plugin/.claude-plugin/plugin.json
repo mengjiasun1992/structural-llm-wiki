@@ -2,7 +2,7 @@
   "name": "sllmwiki",
   "displayName": "Structural LLM Wiki",
   "version": "1.0.0",
-  "description": "Structural LLM Wiki (sllmwiki) is an agent skill, packaged as a Claude Code plugin, that turns a git repository into a wiki your coding agent researches and keeps current.",
+  "description": "Structural LLM Wiki (sllmwiki) is an agent skill, packaged as a Claude Code plugin, that turns a git repository into a wiki your coding agent researches and keeps current. Start with /sllmwiki:init in an empty repository.",
   "author": {
     "name": "Mengjia Sun",
     "url": "https://github.com/mengjiasun1992"

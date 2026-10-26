@@ -25,7 +25,7 @@ A wiki is a git repository whose knowledge lives in `sllmwiki/`: sources saved v
 
 ## Before anything
 
-Run `bash <skill>/scripts/preflight.sh`, where `<skill>` is this skill's folder; stop if it reports something required missing, except that a request that changes nothing (a query, a lint that only reports) needs only Python. Work from the wiki's root. If `sllmwiki/tags/tags.yaml` doesn't exist, this isn't a wiki: offer `workflows/init.md` and stop.
+Run `bash <skill>/scripts/preflight.sh`, where `<skill>` is this skill's folder; stop if it reports something required missing, except that a request that changes nothing (a query, a lint that only reports) needs only Python. Work from the wiki's root. If `sllmwiki/tags/tags.yaml` doesn't exist, this isn't a wiki: say in two sentences what one is (a git repository of its own where the agent saves sources and writes cited answers, each run one pull request to review), then offer `workflows/init.md`, best in a new, empty repository, and stop.
 
 ## Scripts
 
