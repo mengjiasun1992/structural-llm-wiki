@@ -1,5 +1,7 @@
 # narrative: write or update the narrative answering one question
 
+Inside a run (`build`, a filed query, or a rework), write within it. Alone, the step is a run of its own: `publish.py start <question-slug> --title "<the question>" --prompt "<the user's request, verbatim>"` first, and after the summary, `publish.py commit narrative` and `publish.py pr`. The pull request is how the owner reviews it, so open it without asking.
+
 ## 1. Reuse or expand first
 
 `search.py narratives "<keywords>"`. If a narrative already asks this question, or one close to it, update it rather than writing a second. Write a new narrative only for a genuinely different question, and link it to the closest one. Say which you chose, and why, in the summary.

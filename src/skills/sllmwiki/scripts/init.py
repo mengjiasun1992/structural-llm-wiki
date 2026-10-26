@@ -40,7 +40,7 @@ sys.dont_write_bytecode = True
 
 from lib import config, layout, manifest, toml, wikiindex  # noqa: E402
 from lib.layout import Cli, entry  # noqa: E402
-from lib.util import dumps, read_text, write_text  # noqa: E402
+from lib.util import dumps, placeholder, read_text, write_text  # noqa: E402
 
 cli = Cli('init.py', 'usage: init.py [--name NAME] [--force] [--set KEY=VALUE ...] [--commit --prompt TEXT] | init.py --ask')
 SKILL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -303,20 +303,9 @@ def add_missing_settings(text, template):
     return '\n'.join(lines) + '\n'
 
 
-def _empty(path):
-    """An empty file or folder, or something that isn't a file at all: no code or documents in it.
-    A sandbox puts such placeholders over the config files it guards (.bashrc, .gitconfig, .mcp.json)."""
-    try:
-        if os.path.isdir(path):
-            return not os.listdir(path)
-        return not os.path.isfile(path) or os.path.getsize(path) == 0
-    except OSError:
-        return True
-
-
 def unrelated(root):
     """What in root isn't a new repository's or a wiki's."""
-    return sorted(n for n in os.listdir(root) if n not in EXPECTED and not _empty(os.path.join(root, n)))
+    return sorted(n for n in os.listdir(root) if n not in EXPECTED and not placeholder(os.path.join(root, n)))
 
 
 def main(argv):

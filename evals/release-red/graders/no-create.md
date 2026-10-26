@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'release\.py create|gh release create'
+input_match: 'release\.py[^"]*\bcreate\b|gh release create'
 min: 0
 max: 0
 ---

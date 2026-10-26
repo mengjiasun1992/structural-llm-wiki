@@ -45,6 +45,20 @@ def setup_stdio():
             stream.reconfigure(encoding='utf-8', errors='replace')
 
 
+def placeholder(path):
+    """An empty file or folder, or something that isn't a file at all, such as a device: no code or
+    documents in it. Claude Code's sandbox puts such placeholders over the config files it guards
+    (.bashrc, .gitconfig, .mcp.json, .claude/settings.json)."""
+    try:
+        if os.path.islink(path):
+            return False
+        if os.path.isdir(path):
+            return all(placeholder(os.path.join(path, n)) for n in os.listdir(path))
+        return not os.path.isfile(path) or os.path.getsize(path) == 0
+    except OSError:
+        return True
+
+
 def git_root(cwd=None):
     """The top folder of the git repository around cwd, or None outside one."""
     try:

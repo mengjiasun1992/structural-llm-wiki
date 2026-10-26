@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'release\.py plan'
+input_match: 'release\.py[^"]*\bplan\b'
 min: 1
 ---
 
