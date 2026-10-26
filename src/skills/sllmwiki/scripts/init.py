@@ -366,8 +366,9 @@ def main(argv):
     run.obsidian()
     run.pages()
     if args.commit:
-        written = sorted({rel for verb, rel in run.done if verb not in ('kept', SKIPPED)})
-        if written:  # only what init wrote: the owner's other untracked files stay theirs
+        # init's own files, written now or by a run without --commit; the owner's other files stay theirs
+        written = sorted({rel for verb, rel in run.done if verb != SKIPPED and os.path.exists(run.path(rel))})
+        if written:
             subprocess.run(['git', 'add', '--', *written], cwd=root, check=True)
         msg = '[sllmwiki][init] Set up the wiki\n\nPrompt:\n' + '\n'.join('> ' + line if line else '>' for line in args.prompt.split('\n')) + '\n'
         c = subprocess.run(['git', 'commit', '-q', '-F', '-'], cwd=root, input=msg, capture_output=True, text=True)

@@ -62,6 +62,13 @@ class Init(unittest.TestCase):
         self.assertNotIn('sllmwiki/Untitled.canvas', tracked)
         self.assertTrue(os.path.isfile(os.path.join(self.root, 'sllmwiki', 'Untitled.canvas')))
 
+    def test_commit_after_a_run_without_it(self):
+        # the workflow lays the wiki out, then commits it in a second run, which writes nothing new
+        self.assertEqual(self.init('--name', 'demo-wiki').code, 0)
+        self.assertEqual(self.init('--commit', '--prompt', 'p').code, 0)
+        tracked = helpers.git(self.root, 'ls-files').stdout.split()
+        self.assertTrue({'Config.toml', 'sllmwiki/tags/tags.yaml', '.claude/settings.json'} <= set(tracked), tracked)
+
     def test_a_rerun_changes_nothing_and_commits_nothing(self):
         self.init('--commit', '--prompt', 'p')
         r = self.init('--commit', '--prompt', 'again', '--json')
