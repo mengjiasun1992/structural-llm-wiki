@@ -7,6 +7,7 @@ Unit tests (`tests/`) check the scripts; these evals check the skill's behavior:
 | Case | Checks | Tags |
 |---|---|---|
 | not-a-wiki | outside a wiki, a narrative request offers `init` and writes nothing | smoke, routing |
+| help | in a wiki, "what can the plugin do, and how do I use it?" gets a short answer naming `query`, `build` and `release`, and changes nothing | smoke, routing |
 | init-new | told to keep the defaults, `init.py` lays out an empty repository and commits; no remote is created unasked | smoke, setup |
 | route-query | a "what does the wiki say" question fires the skill, reads `query.md` and starts with `search.py context` | smoke, routing |
 | route-lint | a lint request reads `steps/lint.md` and gets each cited section from `cited-sections.py` | smoke, routing |

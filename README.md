@@ -65,7 +65,7 @@ Under the hood, sources are ranked by relevance, then authority (code, specifica
 
 **Grow it by asking questions.** `/sllmwiki:build` takes the questions you want answered and does the research unattended: it reuses what the wiki already answers, finds and saves the sources the rest need, writes a narrative per question and checks every claim against its source. You come back to one pull request, opening with a checklist and the few decisions it left you. Comment on anything and ask the agent to apply it: it reworks the same pull request.
 
-**It stays true.** `/sllmwiki:ingest` refreshes the sources that changed where they came from, the wiki's checks flag the narratives built on them, and `/sllmwiki:lint` rechecks just those against the new version.
+**It stays true.** Ask the agent to refresh a topic's sources ("refresh the gateway sources"): it re-saves the ones that changed where they came from, the wiki's checks flag the narratives built on them, and a lint ("lint the gateway narratives") rechecks just those against the new version.
 
 **Share it as a book.** `/sllmwiki:release` makes a dated release on GitHub, with notes on what changed, and attaches the book in the formats you turned on.
 
@@ -129,23 +129,32 @@ Codex, Cursor, Copilot and other agents install the skill with the [`skills` CLI
 
 ## Usage
 
+Four commands cover what you do: set up, ask, grow and publish.
+
 | I want to… | Run |
 |---|---|
-| Get an answer from the wiki | `/sllmwiki:query "How does the gateway retry failed backends?"` |
-| Research questions and add the answers | `/sllmwiki:build "How does the gateway route requests?"` |
-| Answer one question from sources already saved | `/sllmwiki:narrative "Why does the gateway retry failed backends?"` |
-| Add a source, or refresh changed ones | `/sllmwiki:ingest gateway "the retry policy design doc"` |
-| Check a narrative, or a whole topic | `/sllmwiki:lint gateway` |
-| Find who to ask | `/sllmwiki:smes gateway` |
-| See which topics a question belongs to | `/sllmwiki:tags "gateway vs load balancer"` |
-| Add a kind of answer of your own | `/sllmwiki:template "postmortems of our incidents"` |
-| Release the wiki, with its book | `/sllmwiki:release` (`--preview` builds the book without releasing) |
+| Set up a wiki (start here, in an empty repository) | `/sllmwiki:init` |
+| Ask the wiki: a cited answer, or a DRAFT and an offer to research it | `/sllmwiki:query "How does the gateway retry failed backends?"` |
+| Research questions unattended: sources saved, a cited answer each, one pull request to review | `/sllmwiki:build "How does the gateway route requests?" "Why does it retry?"` |
+| Publish the wiki as a book (PDF, EPUB, HTML) in a dated release | `/sllmwiki:release` (`--preview` only builds it) |
+
+Everything else, ask for in your own words; the skill runs the step it needs (`build` runs them all for you):
+
+| I want to… | Ask |
+|---|---|
+| Answer one question from sources already saved | "Write a narrative answering: why does the gateway retry failed backends?" |
+| Add a source, or refresh changed ones | "Save the retry policy design doc to the wiki, under gateway" |
+| Check a narrative, or a whole topic | "Lint the gateway narratives" |
+| Find who to ask | "Who knows the gateway?" |
+| See which topics a question belongs to | "Which topics does 'gateway vs load balancer' belong to?" |
+| Add a kind of answer of your own | "Make a template for postmortems of our incidents" |
+| Find out what it can do, or how to do something | "What can sllmwiki do?" |
 
 **Reviewing.** Each run's pull request starts with a checklist (tags, sources, each narrative). Tick each box as you check it; the wiki's "Review checklist" check turns green when all are ticked. Leave comments, and ask the agent to "apply the review comments on PR #12". [The demo's PR #6](https://github.com/mengjiasun1992/sllmwiki-demo/pull/6) is one run's pull request, checklist and all.
 
 **Narrative templates.** Each kind of answer above comes from a template, picked by the question's subject: `concept_brief_overview` ("What is X?", [example](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-is-a-distributed-system.md)), `technical_brief_overview` ("How does X work?", [example](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-is-an-ewma-exponentially-weighted-moving-average-and-how-does-it-work.md)), `comparison` ("X vs Y", [example](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/when-should-software-use-an-ewma-instead-of-other-moving-averages.md)), `survey` ("What are the principles of X?", [example](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-are-the-common-design-tenets-and-principles-for-distributed-systems.md)) or `case_study` ("What happened in this incident, and what does it teach?"). Each comes with a writing guide for a reader new to the topic, and an aim lint grades it on.
 
-**Your own templates.** For a kind of answer the five don't fit, describe it: `/sllmwiki:template "postmortems of our incidents"`. The agent starts from the closest bundled template and shapes its sections, writing guide and aim from your description. It checks the result and opens a pull request. The template lives in your wiki's `sllmwiki/.templates/<name>/` as a `template.md` (a short header and the sections every answer needs) and a `guide.md` (its reader, aim, style and checklist), and you can also write it by hand. From then on the agent picks it for the questions its header says it fits, and lint grades its narratives on its aim. A template named like a bundled one replaces it; to change only a length, set `max_words` in `Config.toml` instead. The demo has one: [`skim_read`](https://github.com/mengjiasun1992/sllmwiki-demo/tree/main/sllmwiki/.templates/skim_read), a ten-minute primer on a long paper for someone deciding whether to read it, and [a narrative made with it](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-does-keeping-calm-argue-and-is-it-worth-reading-in-full.md). How templates work: [the design, §4.5.5](docs/structural_llm_wiki_design.md#455-a-wikis-own-templates).
+**Your own templates.** For a kind of answer the five don't fit, describe it: "make a template for postmortems of our incidents". The agent starts from the closest bundled template and shapes its sections, writing guide and aim from your description. It checks the result and opens a pull request. The template lives in your wiki's `sllmwiki/.templates/<name>/` as a `template.md` (a short header and the sections every answer needs) and a `guide.md` (its reader, aim, style and checklist), and you can also write it by hand. From then on the agent picks it for the questions its header says it fits, and lint grades its narratives on its aim. A template named like a bundled one replaces it; to change only a length, set `max_words` in `Config.toml` instead. The demo has one: [`skim_read`](https://github.com/mengjiasun1992/sllmwiki-demo/tree/main/sllmwiki/.templates/skim_read), a ten-minute primer on a long paper for someone deciding whether to read it, and [a narrative made with it](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-does-keeping-calm-argue-and-is-it-worth-reading-in-full.md). How templates work: [the design, §4.5.5](docs/structural_llm_wiki_design.md#455-a-wikis-own-templates).
 
 **Citations and markers.** As in a paper, a claim's numbered citations sit inside its sentence, before the period, separated by commas: `… exponentially [3], [6].` What no source states is marked `[→]` (our own reasoning), and something the sources don't answer `[?]`, where a citation goes, or once on a heading for a whole section; each narrative defines the ones it uses ([an example](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-is-an-ewma-exponentially-weighted-moving-average-and-how-does-it-work.md)). Turn them off with `markers = false` (see below).
 
@@ -208,7 +217,7 @@ The plugin runs in your agent, on your machine, and its authors collect nothing:
 ```text
 plugin/                the plugin, and only what runs for its users
 ├── skills/sllmwiki/   the skill: SKILL.md, workflows/, steps/, scripts/, templates/
-└── commands/          Claude Code commands, one per workflow and step
+└── commands/          Claude Code commands: init, query, build, release
 tests/                 unit tests for the scripts
 src/actions/           the GitHub actions a wiki's CI calls
 src/tools/             development and CI tools (eval-plugin.sh, check-yaml, check-book)

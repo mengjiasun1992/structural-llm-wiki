@@ -1,6 +1,6 @@
 ---
 name: sllmwiki
-description: Build and use a Structural LLM Wiki, a git repository of topic tags, verbatim sources and narratives where every claim traces to a source section and every change lands as one pull request. Use to answer a question from the wiki in this repository (even "just answer" ones), to research questions and add the answers, to save sources, to write, update or plan a narrative (its template and skeleton), or to set up a wiki repository. Also use for a bare topic named in a wiki repository ("look into X", "dig into X", "X?"), to ask what to do with it. Also use to release the wiki and its book on GitHub. Triggers include "according to the wiki", "what does the wiki say about", "ask the wiki", "look into", "build up", "add to the wiki", "ingest", "write a narrative", "narratives for these questions", "which template", "set up a wiki", "release the wiki", "make a book".
+description: Build and use a Structural LLM Wiki, a git repository of topic tags, verbatim sources and narratives where every claim traces to a source section and every change lands as one pull request. Use to answer a question from the wiki in this repository (even "just answer" ones), research questions and add the answers, save sources, write, update, plan or lint narratives, find who knows a topic, make a narrative template, set up a wiki, or release it with its book. Also for a bare topic in a wiki ("look into X", "X?"), to ask what to do, and for questions about this plugin itself. Triggers include "what can sllmwiki do", "according to the wiki", "what does the wiki say about", "look into", "add to the wiki", "ingest", "write a narrative", "lint", "who knows", "which template", "set up a wiki", "release the wiki".
 ---
 
 # sllmwiki
@@ -10,6 +10,7 @@ A wiki is a git repository whose knowledge lives in `sllmwiki/`: sources saved v
 | The request | Read |
 |---|---|
 | **A topic named alone, with no question or job** ("look into alpha retries") | nothing yet: ask first (below) |
+| **A question about this plugin** ("what can it do?") | nothing: answer briefly from this table: `/sllmwiki:init` first, then `query`, `build`, `release`; the rest is asked in words |
 | A question to answer from the wiki | `workflows/query.md` |
 | Questions to research and add to the wiki | `workflows/build.md` |
 | Set up a wiki repository | `workflows/init.md` |
@@ -25,7 +26,7 @@ A wiki is a git repository whose knowledge lives in `sllmwiki/`: sources saved v
 
 ## Before anything
 
-Run `bash <skill>/scripts/preflight.sh`, where `<skill>` is this skill's folder; stop if it reports something required missing, except that a request that changes nothing (a query, a lint that only reports) needs only Python. Work from the wiki's root. If `sllmwiki/tags/tags.yaml` doesn't exist, this isn't a wiki: offer `workflows/init.md` and stop.
+Run `bash <skill>/scripts/preflight.sh`, where `<skill>` is this skill's folder; stop if it reports something required missing, except that a request that changes nothing (a query, a lint that only reports) needs only Python. Work from the wiki's root. If `sllmwiki/tags/tags.yaml` doesn't exist, this isn't a wiki: say in two sentences what one is (a git repository of its own where the agent saves sources and writes cited answers, each run one pull request to review), then offer `workflows/init.md`, best in a new, empty repository, and stop.
 
 ## Scripts
 

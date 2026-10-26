@@ -4,7 +4,7 @@ This repository is the `sllmwiki` plugin: one Agent Skill (`plugin/skills/sllmwi
 
 ## Layout
 
-- `plugin/`: the plugin, and only what runs for its users: `.claude-plugin/plugin.json` (and the icon), `skills/sllmwiki/` (the skill: `SKILL.md`; `workflows/` and `steps/`, instructions read when they run; `scripts/`, the deterministic scripts, Python standard library only, one copy; `templates/`, narrative templates and what `init` installs: `wiki/` and the CI workflows) and `commands/` (Claude Code commands, one per workflow and step). The marketplace manifest at the root (`.claude-plugin/marketplace.json`) points to it.
+- `plugin/`: the plugin, and only what runs for its users: `.claude-plugin/plugin.json` (and the icon), `skills/sllmwiki/` (the skill: `SKILL.md`; `workflows/` and `steps/`, instructions read when they run; `scripts/`, the deterministic scripts, Python standard library only, one copy; `templates/`, narrative templates and what `init` installs: `wiki/` and the CI workflows) and `commands/` (Claude Code commands, one per workflow: init, query, build, release; steps run when asked for in words). The marketplace manifest at the root (`.claude-plugin/marketplace.json`) points to it.
 - `tests/`: unit tests for the scripts, with a parallel runner.
 - `evals/`: behavior evals for the skill (see `evals/README.md`), run through `src/tools/eval-plugin.sh`.
 - `src/actions/`: the GitHub actions a wiki's CI calls; GitHub fetches them from this repository at the release tag, so they aren't part of the plugin.

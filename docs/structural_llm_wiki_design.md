@@ -68,7 +68,7 @@ structural-llm-wiki/
 │   │   │   └── lib/                       # shared modules
 │   │   └── templates/                     # narratives/ (templates and guides); languages/ (language packs); book/ (Sphinx's conf.py and stylesheets);
 │   │                                      # wiki/ and the *.yml workflows (what init installs)
-│   └── commands/                          # Claude Code commands, one per workflow and step
+│   └── commands/                          # Claude Code commands, one per workflow: init, query, build, release
 ├── tests/                                 # unit tests for the scripts, and the instruction budgets
 ├── src/
 │   ├── actions/                           # GitHub actions a wiki's CI calls, fetched from this repository at the tag:
@@ -277,7 +277,7 @@ Lint grades each narrative on each axis of its template's aim, met, partly or mi
 The five bundled templates cover the common kinds of questions; a group adds its own for the kinds they don't fit, such as a postmortem of its incidents, a runbook, or a ten-minute primer on one paper.
 
 - **What it is.** A folder in the wiki's `sllmwiki/.templates/` with a `template.md` and a `guide.md`, the same two files as a bundled template. It is offered next to the bundled ones, and the narrative step picks it by its `use_when` like any other. One with a bundled template's name replaces that template in this wiki.
-- **How it's made.** `/sllmwiki:template "<what it's for>"` runs the `template` step: it starts from the closest template (`narrative-format.py --new-template <name> --from <closest>`), shapes the header, the sections and the guide from the owner's description, checks the result, and lands it as one pull request. It can also be written by hand.
+- **How it's made.** Asking for one ("make a template for <what it's for>") runs the `template` step: it starts from the closest template (`narrative-format.py --new-template <name> --from <closest>`), shapes the header, the sections and the guide from the owner's description, checks the result, and lands it as one pull request. It can also be written by hand.
 - **How it's checked.** By `lib/templates.py`, the same way as a bundled one: the header's four keys; the guide's six sections, with the **Takeaway** and the **Aim** whose axes lint grades every narrative on; and a body of `##` sections, each with its `<…>` line, repeating none of the shared ones. `narrative-format.py --templates` lists every template with its aim and any problem; one that doesn't load is a problem, not a template, and `wiki-check` reports it (`TEMPLATE_INVALID`), as it does a `Config.toml` budget for a template there isn't, so the wiki's CI fails on it.
 - **The same bar as the bundled ones.** Its narratives get the shared top and appendices, citations, markers and finishing, and lint grades them against its aim.
 - **Only a different length?** Set the budget in `Config.toml` (§4.9) instead of copying the template.
@@ -549,7 +549,7 @@ A wiki is written and reviewed on GitHub and explored in Obsidian; neither gives
 ## 11. Distribution
 
 - The skill uses the [Agent Skills](https://agentskills.io) format, so any compatible agent can load it.
-- For Claude Code, this repo is both a plugin (`sllmwiki`) and a marketplace (`structural-llm-wiki`) that lists itself; each workflow and step is also a command, `/sllmwiki:<name>`.
+- For Claude Code, this repo is both a plugin (`sllmwiki`) and a marketplace (`structural-llm-wiki`) that lists itself; each workflow is also a command (`/sllmwiki:init`, `query`, `build`, `release`), so a newcomer meets four, not ten; a step runs when asked for in words, and the skill routes the request (`SKILL.md`'s table).
 - The plugin is installed at **project scope** in each wiki repo, and `init` writes the same `extraKnownMarketplaces` and `enabledPlugins` entries to `.claude/settings.json`, so the group members who clone the wiki are offered it.
 - Other agents install with `npx skills add mengjiasun1992/structural-llm-wiki`; with no commands, users ask for a workflow or step in their own words.
 - A wiki's CI calls this repository's actions at the plugin's release tag; `init` moves the tag when the plugin updates.

@@ -1,5 +1,5 @@
 ---
-description: "Release the wiki on GitHub, with its book attached; --preview builds the book without releasing"
+description: "Publish the whole wiki as a book (PDF, EPUB, HTML) in a dated GitHub release; --preview only builds it"
 argument-hint: "[--preview] [anything to say about it]"
 ---
 

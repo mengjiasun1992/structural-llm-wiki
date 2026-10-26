@@ -1,5 +1,5 @@
 ---
-description: "Set up this repository as a Structural LLM Wiki, or refresh it"
+description: "Start here: set up an empty repository as a Structural LLM Wiki, or bring one up to date"
 argument-hint: "[repository name]"
 ---
 

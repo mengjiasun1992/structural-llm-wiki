@@ -38,6 +38,6 @@ Read in that order, each source once, and only what the plan says: whole sources
 - `checklist`: `"<the question>: answers it, every claim cited or marked, reads well"`;
 - `body`:
   - reuse, expand or new, and why;
-  - the template, and why it fits the subject; or, when none fits, that none does, the closest taken, and what it leaves out;
+  - the template, and why it fits the subject; or, when none fits, that none does, the closest taken, what it leaves out, and how to add one: ask `make a template for <this kind of answer>`;
   - the reading plan's table;
   - the narrative's outline, with a link to it.

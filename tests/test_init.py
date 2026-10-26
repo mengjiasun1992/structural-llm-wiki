@@ -69,7 +69,7 @@ class Init(unittest.TestCase):
         self.assertEqual(self.init('--name', 'demo-wiki').code, 0)
         self.assertEqual(self.init('--commit', '--prompt', 'p').code, 0)
         tracked = helpers.git(self.root, 'ls-files').stdout.split()
-        self.assertTrue({'sllmwiki/Config.toml', 'sllmwiki/tags/tags.yaml', '.claude/settings.json'} <= set(tracked), tracked)
+        self.assertTrue({'sllmwiki/Config.toml', 'sllmwiki/tags/tags.yaml', '.claude/settings.json', 'sllmwiki/.SLLMWIKI_INDICES.md'} <= set(tracked), tracked)
 
     def test_a_rerun_changes_nothing_and_commits_nothing(self):
         self.init('--commit', '--prompt', 'p')
