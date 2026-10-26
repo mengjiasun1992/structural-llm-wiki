@@ -220,6 +220,10 @@ class Release(helpers.WikiTestCase):
         self.assertIn('no release workflow run started', r.err)
         self.respond(**{'run list': [{'databaseId': 1, 'status': 'queued', 'headBranch': TODAY, 'url': 'https://run/1'}]})
         self.assertIn('follow it at https://run/1', self.rel('wait', '--timeout', '0', '--interval', '0').err)
+        # a release made again under the same name: the earlier release's run, at another commit, isn't this one's
+        self.respond(**{'run list': [{'databaseId': 9, 'status': 'completed', 'conclusion': 'success', 'headBranch': TODAY,
+                                      'headSha': 'f' * 40, 'url': 'https://run/9'}]})
+        self.assertIn('no release workflow run started', self.rel('wait', '--timeout', '0', '--interval', '0').err)
 
     def test_a_preview(self):
         helpers.git(self.root, 'checkout', '-q', '-b', 'draft')
