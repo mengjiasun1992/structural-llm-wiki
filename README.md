@@ -134,9 +134,9 @@ Four commands cover what you do: set up, ask, grow and publish.
 | I want to… | Run |
 |---|---|
 | Set up a wiki (start here, in an empty repository) | `/sllmwiki:init` |
-| Get an answer from the wiki | `/sllmwiki:query "How does the gateway retry failed backends?"` |
-| Research questions and add the answers | `/sllmwiki:build "How does the gateway route requests?"` |
-| Release the wiki, with its book | `/sllmwiki:release` (`--preview` builds the book without releasing) |
+| Ask the wiki: a cited answer, or a DRAFT and an offer to research it | `/sllmwiki:query "How does the gateway retry failed backends?"` |
+| Research questions unattended: sources saved, a cited answer each, one pull request to review | `/sllmwiki:build "How does the gateway route requests?" "Why does it retry?"` |
+| Publish the wiki as a book (PDF, EPUB, HTML) in a dated release | `/sllmwiki:release` (`--preview` only builds it) |
 
 Everything else, ask for in your own words; the skill runs the step it needs (`build` runs them all for you):
 
@@ -148,6 +148,7 @@ Everything else, ask for in your own words; the skill runs the step it needs (`b
 | Find who to ask | "Who knows the gateway?" |
 | See which topics a question belongs to | "Which topics does 'gateway vs load balancer' belong to?" |
 | Add a kind of answer of your own | "Make a template for postmortems of our incidents" |
+| Find out what it can do, or how to do something | "What can sllmwiki do?" |
 
 **Reviewing.** Each run's pull request starts with a checklist (tags, sources, each narrative). Tick each box as you check it; the wiki's "Review checklist" check turns green when all are ticked. Leave comments, and ask the agent to "apply the review comments on PR #12". [The demo's PR #6](https://github.com/mengjiasun1992/sllmwiki-demo/pull/6) is one run's pull request, checklist and all.
 
