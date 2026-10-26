@@ -41,9 +41,11 @@ class Init(unittest.TestCase):
         self.assertEqual(done['SLLMWIKI_INDICES.md'], 'generated')
         self.assertTrue(self.read('README.md').startswith('# demo-wiki\n'))
         self.assertEqual(self.read('CLAUDE.md'), '@AGENTS.md\n')
-        self.assertIn('src/actions/wiki-checks@mainline', self.read('.github/workflows/wiki-checks.yml'))
+        import init
+        ref = init.action_ref()  # the plugin's release tag, or mainline without a version
+        self.assertIn(f'src/actions/wiki-checks@{ref}', self.read('.github/workflows/wiki-checks.yml'))
         book = self.read('.github/workflows/release-book.yml')
-        self.assertIn('src/actions/release-book@mainline', book)
+        self.assertIn(f'src/actions/release-book@{ref}', book)
         self.assertIn('types: [published]', book)
         self.assertIn('[structural-llm-wiki-release]\npdf_book = true', self.read('Config.toml'))
         self.assertEqual(json.loads(self.read('.claude/settings.json'))['enabledPlugins'], {'sllmwiki@structural-llm-wiki': True})

@@ -4,7 +4,7 @@
 # In the wiki's .github/workflows/wiki-checks.yml (init installs it):
 #   steps:
 #     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
-#     - uses: mengjiasun1992/structural-llm-wiki/src/actions/wiki-checks@mainline
+#     - uses: mengjiasun1992/structural-llm-wiki/src/actions/wiki-checks@v1.0.0
 #
 # The working directory is the wiki's checkout; the scripts are found from
 # $GITHUB_ACTION_PATH (src/actions/wiki-checks/). Each step runs even when an
