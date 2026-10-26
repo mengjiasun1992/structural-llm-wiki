@@ -6,7 +6,7 @@ The input is one or more questions. When the request names only a topic, propose
 
 For each question, `search.py narratives "<keywords>"`. Decide, without asking:
 
-- **reuse:** an existing narrative answers it; write nothing for it, and say so in the summary;
+- **reuse:** an existing narrative asks this question, not just touches it in passing (`steps/narrative.md` §1); write nothing for it, and say so in the summary;
 - **expand:** one answers part of it, or has newer sources to take in; update that narrative;
 - **new:** no narrative asks this question; write one.
 

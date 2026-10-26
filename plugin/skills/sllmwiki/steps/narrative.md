@@ -4,13 +4,13 @@ Inside a run (`build`, a filed query, or a rework), write within it. Alone, the 
 
 ## 1. Reuse or expand first
 
-`search.py narratives "<keywords>"`. If a narrative already asks this question, or one close to it, update it rather than writing a second. Write a new narrative only for a genuinely different question, and link it to the closest one. Say which you chose, and why, in the summary.
+`search.py narratives "<keywords>"`. If a narrative already asks this question, or one close to it, update it rather than writing a second. Write a new narrative only for a genuinely different question, and link it to the closest one. A narrower question that a narrative only touches in passing, such as how a mechanism works where "What is X?" defines it, is different: it gets its own narrative, since "What is X?" stays at definition level. Say which you chose, and why, in the summary.
 
 ## 2. Plan the reading
 
 1. `reading-plan.py list --primary <tags> --supporting <tags>` lists the candidates.
 2. Grade each saved source in a JSON file outside the wiki, in a temporary folder: `{"<slug>": {"relevance": "high|medium|low", "authority": "A|B|C"}}`. A source that defines the subject is high relevance even when the rest of it is about something else. Grade each existing narrative by relevance only, `{"<slug>": {"relevance": "high"}}`: high when this narrative builds on it, relying on its definition or linking to what it explains.
-3. `reading-plan.py order --primary <tags> --supporting <tags> --grades <file>` prints the plan.
+3. `reading-plan.py order --primary <tags> --supporting <tags> --grades <file>` prints the plan, even for one source: its table goes in the summary.
 
 Read in that order, each source once, and only what the plan says: whole sources for high and medium relevance (or the sections that matter, with `search.py section`), and abstracts only for low. Keep the plan's table for the summary.
 
