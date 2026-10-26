@@ -286,9 +286,14 @@ class Init:
             self.create(layout.OBSIDIAN_GRAPH, read_text(os.path.join(WIKI, 'sllmwiki', '.obsidian', 'graph.json')))
 
     def pages(self):
+        """The index and tag pages: every one is init's, so --commit stages it even when a run without
+        --commit already wrote it."""
         _, changed = wikiindex.sync(self.root, write=True)
         for rel in changed:
             self.done.append(('generated', rel))
+        for rel in wikiindex.pages(self.root):
+            if rel not in changed:
+                self.done.append(('kept', rel))
 
 
 def add_missing_settings(text, template):
