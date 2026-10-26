@@ -278,14 +278,14 @@ def main(argv):
     if args.command == 'parse':
         args.vendor = bookbuild.unpacked(args.vendor)
         if not args.vendor:
-            cli.usage(f'parse needs --vendor DIR holding {bookbuild.MERMAID} and {bookbuild.MATHJAX} (either may be gzipped)')
+            cli.usage(f'parse needs --vendor DIR holding {bookbuild.MERMAID} and {bookbuild.MATHJAX} (either may be kept in numbered parts)')
         return parse(cli.wiki(args.root), args.base, args.vendor, args.chrome, args.json)
     if not args.out:
         cli.usage(f'{args.command} needs a folder')
     if args.command in ('render', 'build'):
         args.vendor = bookbuild.unpacked(args.vendor)
         if not args.vendor:
-            cli.usage(f'{args.command} needs --vendor DIR holding {bookbuild.MERMAID} and {bookbuild.MATHJAX} (either may be gzipped)')
+            cli.usage(f'{args.command} needs --vendor DIR holding {bookbuild.MERMAID} and {bookbuild.MATHJAX} (either may be kept in numbered parts)')
         unknown = [f for f in args.formats or [] if f not in FORMATS]
         if unknown or args.formats == []:
             cli.usage(f'--formats can be {", ".join(FORMATS)}, not {", ".join(unknown) or "nothing"}')
