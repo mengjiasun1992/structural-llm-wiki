@@ -1,6 +1,6 @@
 # Behavior evals
 
-Unit tests (`src/skills/sllmwiki/tests/`) check the scripts; these evals check the skill's behavior: does a request reach the right workflow or step, and does a run follow the rules that matter most. They run with `claude plugin eval`, each run a real Claude session on the operator's account, so they cost money and CI doesn't run them on its own. On macOS, cases that need git can't run in the eval sandbox; the manual **Evals** workflow runs them on Linux (`AGENTS.md`, "Running evals"). How to run and write them: "Running evals" and "Writing evals" in the repository's `AGENTS.md`.
+Unit tests (`tests/`) check the scripts; these evals check the skill's behavior: does a request reach the right workflow or step, and does a run follow the rules that matter most. They run with `claude plugin eval`, each run a real Claude session on the operator's account, so they cost money and CI doesn't run them on its own. On macOS, cases that need git can't run in the eval sandbox; the manual **Evals** workflow runs them on Linux (`AGENTS.md`, "Running evals"). How to run and write them: "Running evals" and "Writing evals" in the repository's `AGENTS.md`.
 
 ## Cases
 
@@ -38,7 +38,7 @@ Fixture variants in `_fixture/`: `plain-repo.sh` (no wiki: `new` or `project`), 
 
 ## The fixture
 
-A wiki case's `scaffold.sh` calls `_fixture/wiki.sh`, which builds the unit tests' fixture wiki (`make_wiki` in `src/skills/sllmwiki/tests/helpers.py`) in the run's working directory: three tags, two saved sources and a link, and one narrative, committed on `mainline` with a repository-local identity, and a local bare `origin` beside it so a run can push without the network. A case then changes only what it needs. `test_eval_fixture` checks the script.
+A wiki case's `scaffold.sh` calls `_fixture/wiki.sh`, which builds the unit tests' fixture wiki (`make_wiki` in `tests/helpers.py`) in the run's working directory: three tags, two saved sources and a link, and one narrative, committed on `mainline` with a repository-local identity, and a local bare `origin` beside it so a run can push without the network. A case then changes only what it needs. `test_eval_fixture` checks the script.
 
 ## Known limits
 

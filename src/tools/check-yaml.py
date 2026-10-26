@@ -40,7 +40,7 @@ import re  # noqa: E402
 import subprocess  # noqa: E402
 
 # the skill's library: the wiki's fixed layout and the shared helpers
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'skills', 'sllmwiki', 'scripts'))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'plugin', 'skills', 'sllmwiki', 'scripts'))
 from lib.layout import SOURCES, SOURCES_MANIFEST  # noqa: E402
 from lib.util import dumps, read_text, setup_stdio  # noqa: E402
 

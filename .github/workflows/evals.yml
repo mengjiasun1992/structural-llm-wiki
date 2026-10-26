@@ -101,7 +101,7 @@ jobs:
           elif [ "$TAG" != "all" ]; then select=(--tag "$TAG"); fi
           # exit 0: every case reached the threshold; 1: a case fell short or a run failed;
           # 2: a partial run (the cost ceiling was hit)
-          claude plugin eval . --trust-plugin "${select[@]}" --scaffold --allow-tools Bash Write Edit \
+          src/tools/eval-plugin.sh --trust-plugin "${select[@]}" --scaffold --allow-tools Bash Write Edit \
             --runs "$RUNS" --ablation "$ABLATION" --model "$MODEL" --max-cost-usd "$MAX_COST" -j 8 \
             --threshold "$THRESHOLD" --json evals/results/results.json --no-publish --keep-temp < /dev/null
 

@@ -1,15 +1,17 @@
 # AGENTS.md
 
-This repository is the `sllmwiki` plugin: one Agent Skill (`src/skills/sllmwiki/`) with two workflows made of steps, and the deterministic scripts they run. These rules apply to any agent or person changing it. (The rules for working *in a wiki* are in each wiki's own `AGENTS.md`, which `init` writes.)
+This repository is the `sllmwiki` plugin: one Agent Skill (`plugin/skills/sllmwiki/`) with two workflows made of steps, and the deterministic scripts they run. These rules apply to any agent or person changing it. (The rules for working *in a wiki* are in each wiki's own `AGENTS.md`, which `init` writes.)
 
 ## Layout
 
-- `src/skills/sllmwiki/`: the skill. `SKILL.md`; `workflows/` and `steps/` (instructions, read when they run); `scripts/` (the deterministic scripts, Python standard library only, one copy); `templates/` (narrative templates and what `init` installs: `wiki/` (the wiki's files) and the CI workflows); `tests/` (unit tests for the scripts, with a parallel runner).
-- `evals/`: behavior evals for the skill, run with `claude plugin eval`; outside the skill, so they never ship with it (see `evals/README.md`).
-- `src/commands/`: Claude Code commands, one per workflow and step.
-- `src/actions/`: the GitHub actions a wiki's CI calls.
-- `src/tools/`: development and CI tools outside the skill.
+- `plugin/`: the plugin, and only what runs for its users: `.claude-plugin/plugin.json` (and the icon), `skills/sllmwiki/` (the skill: `SKILL.md`; `workflows/` and `steps/`, instructions read when they run; `scripts/`, the deterministic scripts, Python standard library only, one copy; `templates/`, narrative templates and what `init` installs: `wiki/` and the CI workflows) and `commands/` (Claude Code commands, one per workflow and step). The marketplace manifest at the root (`.claude-plugin/marketplace.json`) points to it.
+- `tests/`: unit tests for the scripts, with a parallel runner.
+- `evals/`: behavior evals for the skill (see `evals/README.md`), run through `src/tools/eval-plugin.sh`.
+- `src/actions/`: the GitHub actions a wiki's CI calls; GitHub fetches them from this repository at the release tag, so they aren't part of the plugin.
+- `src/tools/`: development and CI tools.
 - `docs/`: the design doc, and proposals for larger changes.
+
+Nothing outside `plugin/` ships with the plugin, so tests, CI, evals and docs never reach a user's machine or the plugin directory's review.
 
 `docs/structural_llm_wiki_design.md` describes the architecture and the decisions behind it. Read it before a change that touches the data model, the workflows or the review model.
 
@@ -19,8 +21,8 @@ This repository is the `sllmwiki` plugin: one Agent Skill (`src/skills/sllmwiki/
 - **Markdown renders the same on GitHub, in Obsidian, in mdBook and in Sphinx.** Everything the skill writes or checks (narratives, tag pages, the index, templates, the wiki's README) uses only the syntax the four render alike, as `lib/compat.py` defines it; see "Markdown compatibility" below.
 - **Respect licenses and copyright.** Every source belongs to its authors. Never add behavior that copies, saves, shares or publishes content beyond what its license or terms allow, that gets around logins, paywalls, registration walls or anti-bot protection, or that otherwise exposes the owner or a wiki's users to legal risk. The source policy ("Source policy" in `SKILL.md`, design doc §4.7) is the minimum. When a change touches what the skill fetches, saves, quotes or publishes, say in the pull request how it stays within the policy; when in doubt, keep a link instead of a copy and ask the owner.
 - **Say each thing once.** Every rule, expectation and fact has one home, and other places point to it rather than restate it: `SKILL.md` for what all workflows and steps share, `templates/narratives/shared.md` for what all narratives share, a template's `guide.md` for its own style, the design doc for decisions and their reasons, this file for development. Before adding a rule, look for where it already lives. When you find the same expectation in several places, move it to the shared place and replace the copies with a pointer. Together with scripts over lectures, this keeps the skill concise, simple and easy to follow: an agent should get each instruction from one place, in as few words as do the job.
-- **Every logic change comes with unit tests.** Any change to a script's behavior (in `src/skills/sllmwiki/scripts/` or `src/tools/`), whether a new feature, a bug fix or a changed rule, adds or updates tests in `src/skills/sllmwiki/tests/` in the same pull request. A bug fix adds a test that fails without the fix. A change to instructions only (`SKILL.md`, `workflows/`, `steps/`, templates' prose) needs no unit test, but behavior the instructions rely on does.
-- **Coverage stays at 95% or above.** CI measures line coverage of `src/skills/sllmwiki/scripts/` and fails below 95% (`fail_under` in `pyproject.toml`). Don't lower the threshold, and don't exclude code from coverage to pass it; test it instead.
+- **Every logic change comes with unit tests.** Any change to a script's behavior (in `plugin/skills/sllmwiki/scripts/` or `src/tools/`), whether a new feature, a bug fix or a changed rule, adds or updates tests in `tests/` in the same pull request. A bug fix adds a test that fails without the fix. A change to instructions only (`SKILL.md`, `workflows/`, `steps/`, templates' prose) needs no unit test, but behavior the instructions rely on does.
+- **Coverage stays at 95% or above.** CI measures line coverage of `plugin/skills/sllmwiki/scripts/` and fails below 95% (`fail_under` in `pyproject.toml`). Don't lower the threshold, and don't exclude code from coverage to pass it; test it instead.
 - **Tests are standard library only.** Use `unittest`; don't add test dependencies beyond `coverage` (CI-only, pinned). Tests never use the network: serve fixtures from a local `http.server`. They never write outside a temporary directory.
 - **The scripts stay standard library only** and run on Python 3.9 or later. Run the tests on 3.9 (`/usr/bin/python3` on macOS) as well as the latest 3 before pushing.
 - **Files the plugin directory accepts:** under 5 MiB, plain text or a true image, never a binary or packed file (design doc §11, checked by `test_plugin_files`).
@@ -32,7 +34,7 @@ This repository is the `sllmwiki` plugin: one Agent Skill (`src/skills/sllmwiki/
 - **Don't weaken a grader to make a case pass.** When a case fails, read the trace (`--keep-temp`) to find out whether the skill or the grader is wrong. Fix the skill if it misbehaved; change a grader only when it checks the wrong thing, and say why in the pull request.
 - **One pull request per change,** against `mainline`, from a branch made from the up-to-date `mainline`; the owner merges. Describe what changed, why, and how it was tested.
 - **Commit messages** start with a short imperative subject, and their body quotes the owner's request that started the change, verbatim, in a `Prompt:` block. Check the staged files before committing; never commit eval results or other tool output.
-- **A release bumps two places together:** `version` in `.claude-plugin/plugin.json` and the `@v<version>` the wiki CI templates (`src/skills/sllmwiki/templates/*.yml`) call the actions at, so wikis that rerun `init` after updating the plugin move to it. Merge that, then tag the merge commit `v<version>` and publish the release. Bump only when the owner asks for a release.
+- **A release bumps two places together:** `version` in `plugin/.claude-plugin/plugin.json` and the `@v<version>` the wiki CI templates (`plugin/skills/sllmwiki/templates/*.yml`) call the actions at, so wikis that rerun `init` after updating the plugin move to it. Merge that, then tag the merge commit `v<version>` and publish the release. Bump only when the owner asks for a release.
 
 ## Markdown compatibility
 
@@ -55,13 +57,13 @@ A wiki is read on GitHub, opened as an Obsidian vault, and built as a book with 
 ```bash
 # unit tests with coverage (CI fails below 95%)
 python3 -m pip install "coverage[toml]==7.6.10"
-python3 src/skills/sllmwiki/tests/run.py --coverage    # one process per test module, in parallel
-/usr/bin/python3 src/skills/sllmwiki/tests/run.py      # the same on Python 3.9
+python3 tests/run.py --coverage    # one process per test module, in parallel
+/usr/bin/python3 tests/run.py      # the same on Python 3.9
 
 # lint
 python3 -m pip install ruff==0.8.4 shellcheck-py==0.10.0.1
-ruff check src/skills/sllmwiki/scripts src/skills/sllmwiki/tests src/tools
-shellcheck src/skills/sllmwiki/scripts/*.sh evals/_fixture/*.sh evals/*/scaffold.sh
+ruff check plugin/skills/sllmwiki/scripts tests src/tools
+shellcheck plugin/skills/sllmwiki/scripts/*.sh evals/_fixture/*.sh evals/*/scaffold.sh
 
 # docs and plugin
 npx --yes markdownlint-cli2@0.13.0 "**/*.md"
@@ -70,19 +72,19 @@ claude plugin validate .
 
 ## Running evals
 
-The cases are in `evals/` at the repository's root, where `claude plugin eval` looks: outside the skill, so they never ship with it. `evals/README.md` lists them. Typical commands, from the repository root:
+The cases are in `evals/` at the repository's root, outside the plugin, so they never ship with it. `claude plugin eval` looks for them inside the plugin's root, so `src/tools/eval-plugin.sh` assembles a copy (`plugin/`'s contents, `evals/` and `tests/`), runs it there with its arguments, and copies the results back to `evals/results/`. `evals/README.md` lists the cases. Typical commands, from the repository root:
 
 ```bash
 # smoke cases (routing, query, safety, not-a-wiki): about $1 with Sonnet
-claude plugin eval . --tag smoke --scaffold --allow-tools Bash \
+src/tools/eval-plugin.sh --tag smoke --scaffold --allow-tools Bash \
   --runs 1 --ablation none --model sonnet --max-cost-usd 5 -j 8
 
 # one case, keeping its sandbox and trace to see what the agent did
-claude plugin eval . --case <name> --scaffold --allow-tools Bash Write Edit \
+src/tools/eval-plugin.sh --case <name> --scaffold --allow-tools Bash Write Edit \
   --runs 1 --ablation none --max-cost-usd 3 -j 8 --keep-temp
 
 # before a release: every case, 3 runs each, with the no-plugin baseline
-claude plugin eval . --scaffold --allow-tools Bash Write Edit --max-cost-usd 20 -j 8
+src/tools/eval-plugin.sh --scaffold --allow-tools Bash Write Edit --max-cost-usd 20 -j 8
 ```
 
 - `--scaffold` is required: every case builds its fixture wiki with a scaffold script.
@@ -92,7 +94,7 @@ claude plugin eval . --scaffold --allow-tools Bash Write Edit --max-cost-usd 20 
 ## Writing evals
 
 - **One folder per case** in `evals/`: `prompt.md` (settings in the frontmatter: `max_turns`, `runs`, `tags`, `allowed_tools`), `case.yaml` (`context.scaffold_script`), `scaffold.sh`, and `graders/*.md`, one grader per file. Grader fields must match the CLI's schema; `claude plugin eval` refuses a case file it can't load and names the bad key.
-- **Fixture:** `scaffold.sh` calls `../_fixture/wiki.sh`, which builds the unit tests' fixture wiki (`src/skills/sllmwiki/tests/helpers.py`) as a git repo with a local `origin` in the run's working directory, then changes only what the case needs. When a case needs new fixture content, add it to `src/skills/sllmwiki/tests/helpers.py`, so unit tests and evals keep sharing one fixture.
+- **Fixture:** `scaffold.sh` calls `../_fixture/wiki.sh`, which builds the unit tests' fixture wiki (`tests/helpers.py`) as a git repo with a local `origin` in the run's working directory, then changes only what the case needs. When a case needs new fixture content, add it to `tests/helpers.py`, so unit tests and evals keep sharing one fixture.
 - **Prefer graders that check behavior over wording:**
   - which file was read, or which command ran (`tool_used` with `input_match`);
   - what must never happen (`tool_used` with `min: 0, max: 0`, for example no Write, no `git push`);
@@ -107,12 +109,12 @@ The scripts take over mechanical work that, given the same files, must always gi
 
 - **Scripts report; the agent decides.** A check lists findings and exits non-zero. It never rewrites content on its own, except through an explicit `--fix-*` flag for purely mechanical bookkeeping.
 - **No runtime dependencies:** Python 3.9 or later, standard library only. YAML is read with a reader in `scripts/lib/` that covers the subset the wiki files use and fails loudly on anything else, so a file is never misread silently. YAML is written with targeted line edits, never re-serialized, so comments and ordering survive.
-- **One copy, inside the skill** (`src/skills/sllmwiki/scripts/`): every installer copies whole skill folders, and a skill can rely only on files inside its own folder.
+- **One copy, inside the skill** (`plugin/skills/sllmwiki/scripts/`): every installer copies whole skill folders, and a skill can rely only on files inside its own folder.
 - **Machine-readable output:** human-readable findings by default, JSON with `--json`.
 
 ## Writing tests
 
-- The tests live in `src/skills/sllmwiki/tests/`, one file per script or module: `test_<module>.py`.
+- The tests live in `tests/`, one file per script or module: `test_<module>.py`.
 - `run.py` runs each test module in its own process, in parallel, so a module must not depend on another's state or on running alone: use a fresh temporary directory and a free port, never fixed paths or ports.
 - A shared `helpers.py` puts the scripts on the import path, loads a command script as a module so its `main()` runs in-process and counts toward coverage, captures its output and exit code, and builds small fixture wikis in a temporary directory.
 - Test behavior through the public functions and the commands' output and exit codes, not private details, so refactors don't break tests needlessly.

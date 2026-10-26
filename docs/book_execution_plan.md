@@ -148,7 +148,7 @@ the HTML book attached.
 | B3.2 | `templates/release-book.yml`, `init.py` | The release workflow (`release: published`, `workflow_dispatch`), installed and refreshed by `init` |
 | B3.3 | The action | Build each format that's on, `gh release upload` it, append warnings and failures to the release notes; a failing format doesn't stop the others |
 | B3.4 | `scripts/release.py plan, create, wait` | Check the default branch and its checks; pick the version; draft notes from the manifests at the last release's tag and now; create the release; follow the run and report |
-| B3.5 | `workflows/release.md`, `src/commands/release.md`, `SKILL.md` | The workflow and its routing row, within the instruction budgets |
+| B3.5 | `workflows/release.md`, `plugin/commands/release.md`, `SKILL.md` | The workflow and its routing row, within the instruction budgets |
 | B3.6 | The README and the wiki's README template | How to release, and a "Read the book" link to `/releases/latest` |
 
 **Test.** `release.py` against a fixture repository with tags and a stub `gh`:

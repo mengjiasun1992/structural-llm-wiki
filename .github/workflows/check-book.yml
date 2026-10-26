@@ -6,23 +6,23 @@ name: Check book
 on:
   pull_request:
     paths:
-      - src/skills/sllmwiki/scripts/book.py
-      - src/skills/sllmwiki/scripts/lib/book.py
-      - src/skills/sllmwiki/scripts/lib/bookbuild.py
-      - src/skills/sllmwiki/scripts/lib/compat.py
-      - src/skills/sllmwiki/templates/book/**
-      - src/skills/sllmwiki/templates/languages/**
-      - src/skills/sllmwiki/tests/helpers.py
+      - plugin/skills/sllmwiki/scripts/book.py
+      - plugin/skills/sllmwiki/scripts/lib/book.py
+      - plugin/skills/sllmwiki/scripts/lib/bookbuild.py
+      - plugin/skills/sllmwiki/scripts/lib/compat.py
+      - plugin/skills/sllmwiki/templates/book/**
+      - plugin/skills/sllmwiki/templates/languages/**
+      - tests/helpers.py
       - src/actions/release-book/**
       - src/tools/check-book.py
       - .github/workflows/check-book.yml
   push:
     branches: [mainline]
     paths:
-      - src/skills/sllmwiki/scripts/book.py
-      - src/skills/sllmwiki/scripts/lib/book.py
-      - src/skills/sllmwiki/scripts/lib/bookbuild.py
-      - src/skills/sllmwiki/templates/book/**
+      - plugin/skills/sllmwiki/scripts/book.py
+      - plugin/skills/sllmwiki/scripts/lib/book.py
+      - plugin/skills/sllmwiki/scripts/lib/bookbuild.py
+      - plugin/skills/sllmwiki/templates/book/**
       - src/actions/release-book/**
       - src/tools/check-book.py
       - .github/workflows/check-book.yml
@@ -45,7 +45,7 @@ jobs:
       # a diagram, inline and display math, gaps, and a Chinese chapter
       - name: The fixture wiki
         run: |
-          python3 -c "import sys; sys.path.insert(0, 'src/skills/sllmwiki/tests'); import helpers; helpers.make_book_wiki(sys.argv[1])" \
+          python3 -c "import sys; sys.path.insert(0, 'tests'); import helpers; helpers.make_book_wiki(sys.argv[1])" \
             "$RUNNER_TEMP/fixture-wiki"
 
       - name: Build it with the release action
@@ -69,7 +69,7 @@ jobs:
         run: |
           wiki="$RUNNER_TEMP/fixture-wiki"
           vendor=src/actions/release-book/vendor
-          python3 src/skills/sllmwiki/scripts/book.py parse --root "$wiki" --vendor "$vendor"
+          python3 plugin/skills/sllmwiki/scripts/book.py parse --root "$wiki" --vendor "$vendor"
           python3 - "$wiki/sllmwiki/narratives/what-is-alpha.md" <<'PY'
           import sys
           path = sys.argv[1]
@@ -77,7 +77,7 @@ jobs:
           open(path, 'w').write(text)
           PY
           set +e
-          out=$(cd "$wiki" && python3 "$GITHUB_WORKSPACE/src/skills/sllmwiki/scripts/book.py" parse --base HEAD --vendor "$GITHUB_WORKSPACE/$vendor")
+          out=$(cd "$wiki" && python3 "$GITHUB_WORKSPACE/plugin/skills/sllmwiki/scripts/book.py" parse --base HEAD --vendor "$GITHUB_WORKSPACE/$vendor")
           code=$?
           set -e
           echo "$out"

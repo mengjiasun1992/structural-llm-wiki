@@ -32,13 +32,13 @@ runs:
       shell: bash
       env:
         PRIVATE: ${{ github.event.repository.private }}
-      run: python3 "$GITHUB_ACTION_PATH/../../skills/sllmwiki/scripts/wiki-check.py" --visibility "$([ "$PRIVATE" = true ] && echo private || echo public)"
+      run: python3 "$GITHUB_ACTION_PATH/../../../plugin/skills/sllmwiki/scripts/wiki-check.py" --visibility "$([ "$PRIVATE" = true ] && echo private || echo public)"
 
     # narrative-format.py: each narrative against its template and the rules every narrative shares.
     - name: Narratives follow their template
       if: success() || failure()
       shell: bash
-      run: python3 "$GITHUB_ACTION_PATH/../../skills/sllmwiki/scripts/narrative-format.py"
+      run: python3 "$GITHUB_ACTION_PATH/../../../plugin/skills/sllmwiki/scripts/narrative-format.py"
 
     # book.py parse: each diagram and formula a pull request brings parses as GitHub draws it, with
     # the same mermaid.js and MathJax as the book (src/actions/release-book/vendor/), in the runner's
@@ -50,7 +50,7 @@ runs:
         BASE: ${{ github.event.pull_request.base.sha }}
       run: |
         git fetch --quiet --depth=1 origin "$BASE"
-        python3 "$GITHUB_ACTION_PATH/../../skills/sllmwiki/scripts/book.py" parse --base "$BASE" \
+        python3 "$GITHUB_ACTION_PATH/../../../plugin/skills/sllmwiki/scripts/book.py" parse --base "$BASE" \
           --vendor "$GITHUB_ACTION_PATH/../release-book/vendor"
 
     # check-yaml.py (src/tools/): every YAML file but the sources parses by the spec.

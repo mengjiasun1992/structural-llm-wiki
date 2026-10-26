@@ -18,7 +18,7 @@ printf 'name: Book\n' > .github/workflows/release-book.yml
 printf '[structural-llm-wiki-release]\nhtml_book = true\n' > sllmwiki/Config.toml
 git add -A && git commit -q -m "install the release workflow"
 git tag v2026.10.01
-tests="$(cd "$here/../../src/skills/sllmwiki/tests" && pwd)"
+tests="$(cd "$here/../../tests" && pwd)"
 PYTHONDONTWRITEBYTECODE=1 python3 -c 'import os, sys; sys.path.insert(0, sys.argv[1]); import helpers
 helpers.add_narrative(os.getcwd(), "how-does-beta-work", "How does beta work?", primary=("leaf-b",))' "$tests"
 git add -A && git commit -q -m "a narrative on beta"

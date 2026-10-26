@@ -75,7 +75,7 @@ runs:
       run: |
         if [ -z "$FORMATS" ]; then
           FORMATS=$(python3 -c 'import sys; sys.path.insert(0, sys.argv[1]); from lib import config; print(",".join(config.get(sys.argv[2]).book_formats()))' \
-            "$GITHUB_ACTION_PATH/../../skills/sllmwiki/scripts" "$WIKI")
+            "$GITHUB_ACTION_PATH/../../../plugin/skills/sllmwiki/scripts" "$WIKI")
         fi
         echo "formats=$FORMATS" >> "$GITHUB_OUTPUT"
 
@@ -111,7 +111,7 @@ runs:
         source="${SOURCE:-$GITHUB_SERVER_URL/$GITHUB_REPOSITORY}"
         start=$(date +%s)
         status=0
-        python3 "$GITHUB_ACTION_PATH/../../skills/sllmwiki/scripts/book.py" build "$OUT" --root "$WIKI" \
+        python3 "$GITHUB_ACTION_PATH/../../../plugin/skills/sllmwiki/scripts/book.py" build "$OUT" --root "$WIKI" \
           --formats "$FORMATS" --vendor "$GITHUB_ACTION_PATH/vendor" --cache "$RUNNER_TEMP/book-svgs" \
           --sphinx "python3 -m sphinx" --version "$VERSION" --name "$NAME" --source "$source" || status=$?
         echo "seconds=$(( $(date +%s) - start ))" >> "$GITHUB_OUTPUT"
@@ -133,7 +133,7 @@ runs:
       run: |
         python3 -c "import json, sys; print('\n'.join(json.load(open(sys.argv[1])).get('files', {}).values()))" "$BOOK_JSON" |
           while read -r file; do [ -n "$file" ] && gh release upload "$TAG" "$file" --clobber; done
-        issues=$(python3 "$GITHUB_ACTION_PATH/../../skills/sllmwiki/scripts/book.py" issues "$(dirname "$BOOK_JSON")" --root "$WIKI")
+        issues=$(python3 "$GITHUB_ACTION_PATH/../../../plugin/skills/sllmwiki/scripts/book.py" issues "$(dirname "$BOOK_JSON")" --root "$WIKI")
         if [ -n "$issues" ]; then
           { gh release view "$TAG" --json body -q .body; printf '\n\n%s\n' "$issues"; } > "$RUNNER_TEMP/notes.md"
           gh release edit "$TAG" --notes-file "$RUNNER_TEMP/notes.md"
