@@ -72,83 +72,15 @@ It's all plain Markdown and YAML in git: browse it on GitHub, open it in Obsidia
 | Set up a wiki (start here, in an empty repository) | `/sllmwiki:init` |
 | Ask the wiki: a cited answer in seconds, or a DRAFT and an offer to research it | `/sllmwiki:query "How does the gateway retry failed backends?"` |
 | Research questions unattended: sources saved, a cited answer each, one pull request to review | `/sllmwiki:build "How does the gateway route requests?" "Why does it retry?"` |
-| Publish the wiki as a book (PDF, EPUB, HTML) in a dated release | `/sllmwiki:release` (`--preview` only builds it) |
+| Publish the wiki as a book (PDF, EPUB, HTML) in a dated release | `/sllmwiki:release` |
 
-Everything else, ask for in your own words:
+Everything else, ask in your own words: "Lint the gateway narratives", "Who knows the gateway?", "Make a template for postmortems of our incidents", or "What can sllmwiki do?".
 
-| I want to… | Ask |
-|---|---|
-| Answer one question from sources already saved | "Write a narrative answering: why does the gateway retry failed backends?" |
-| Add a source, or refresh changed ones | "Save the retry policy design doc to the wiki, under gateway" |
-| Check a narrative, or a whole topic | "Lint the gateway narratives" |
-| Find who to ask | "Who knows the gateway?" |
-| Add a kind of answer of your own | "Make a template for postmortems of our incidents" |
-| Find out what it can do | "What can sllmwiki do?" |
+**[The manual](docs/manual.md)** has the rest: reviewing a run, what's in your wiki, templates, citations, books, settings, languages, Obsidian, teams, and an FAQ.
 
-**Reviewing.** Each pull request starts with a checklist; the wiki's "Review checklist" check turns green when every box is ticked. Comment, then ask the agent to "apply the review comments on PR #12". [The demo's PR #6](https://github.com/mengjiasun1992/sllmwiki-demo/pull/6) shows one.
+## Licenses and your data
 
-**Templates.** Each kind of answer comes from a template picked by the question: `concept_brief_overview` ("What is X?"), `technical_brief_overview` ("How does X work?"), `comparison` ("X vs Y"), `survey` ("What are the principles of X?") and `case_study` ("What happened, and what does it teach?"). Ask for your own and it lands in `sllmwiki/.templates/<name>/`, like the demo's [`skim_read`](https://github.com/mengjiasun1992/sllmwiki-demo/tree/main/sllmwiki/.templates/skim_read), a ten-minute primer on a paper ([a narrative made with it](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-does-keeping-calm-argue-and-is-it-worth-reading-in-full.md)). How they work: [the design, §4.5.5](docs/structural_llm_wiki_design.md#455-a-wikis-own-templates).
-
-**Books.** `/sllmwiki:release` publishes a dated release (`v2026.10.24`) with notes on what changed, and the wiki's workflow attaches the book: a part per topic, the narratives in teaching order, and appendices of sources, a glossary and open questions. It carries each source's abstract, license and link, never its saved copy. How it works: [docs/book_design.md](docs/book_design.md).
-
-**Languages.** Narratives are written in the wiki's `language`, or one you ask for; sources stay in their own. The skill ships English and Simplified Chinese (`zh-Hans`); for another, copy [the English pack](plugin/skills/sllmwiki/templates/languages/en.md) into `sllmwiki/.templates/languages/` and translate it.
-
-**Obsidian.** With `obsidian = true` and `/sllmwiki:init` rerun, open `sllmwiki/` as a vault: its graph shows tag pages in gold and narratives in indigo, with sources hidden.
-
-<details>
-<summary>Settings (sllmwiki/Config.toml, which init writes with the defaults)</summary>
-
-```toml
-[structural-llm-wiki-settings]
-source_copies = "allow"     # or "links-only": keep no copies, only links
-max_quote_words = 50        # the longest quotation a narrative may take
-smes_exclude = []           # never listed as SMEs, such as the wiki's owner or bots
-markers = true              # false: no reasoning or gap markers
-images = true               # false: diagrams in mermaid only, no generated figures
-language = "en"             # the language narratives are written in, such as "zh-Hans"
-
-[structural-llm-wiki-templates.technical_brief_overview]
-max_words = 3000            # a template's word budget, over its own
-
-[structural-llm-wiki-addons]
-obsidian = false            # true: set the wiki up to open as an Obsidian vault
-
-[structural-llm-wiki-release]
-pdf_book = true             # a release attaches the wiki as a PDF
-epub_book = false           # true: as an EPUB too, for e-readers
-html_book = false           # true: as one HTML file, for a browser
-title = ""                  # the book's title; empty: the repository's name
-author = ""                 # its author; empty: the title
-```
-
-</details>
-
-## What's in your wiki
-
-| Content | Where | What it is |
-|---|---|---|
-| **Sources** | `sllmwiki/sources/` | Verbatim copies, never edited, each with its URL, date, license and a short abstract |
-| **Narratives** | `sllmwiki/narratives/` | One per question, opening with an abstract, every claim cited; their figures in `figures/` |
-| **Tags** | `sllmwiki/tags/` | A tree of topics, each with a page listing its narratives, sources and the people who know it |
-| **Index** | `sllmwiki/.SLLMWIKI_INDICES.md` | A clickable map of the topics |
-| **Templates** | `sllmwiki/.templates/` | Optional: your own kinds of narratives, and language packs |
-| **Settings** | `sllmwiki/Config.toml` | The source policy, markers, language and the book |
-| **Books** | the repository's Releases | Attached to each release; never committed |
-
-## Licenses, sources and your responsibility
-
-- **The skill** is open source under the [Apache License 2.0](LICENSE) ([NOTICE](NOTICE)). It covers the skill, not what you put in your wiki.
-- **Your wiki is yours**, under whatever license you or your company choose.
-- **Sources stay their authors'.** Each keeps its URL and license, and narratives quote at most `max_quote_words` words. A private wiki keeps reference copies unless a source's terms forbid it; a public one keeps only openly licensed ones, and its CI fails on any other. Review `sllmwiki/sources/` before making a private wiki public.
-- **Fair access only.** It never gets around a login, paywall or anti-bot protection; when it may not keep a copy, it keeps a link.
-- **No personal data or secrets** go into the wiki, even when a source contains them.
-- **Narratives are written by an LLM.** Every claim is cited and what no source states is marked, but review each pull request before you merge it.
-
-This is a cautious default, not legal advice.
-
-## Your data
-
-The plugin runs in your agent, on your machine, and its authors collect nothing. Data leaves your machine only to **GitHub**, through `git` and `gh` in your own account, to **the sites your sources come from**, and, as with any work in your agent, to **your agent's model provider**. Details: [Privacy](PRIVACY.md).
+The skill is open source under the [Apache License 2.0](LICENSE); your wiki is yours, and each source stays its authors', kept with its URL and license, quoted briefly, never fetched past a login or paywall. Narratives are written by an LLM: every claim is cited, but review each pull request before you merge it. The plugin runs on your machine and its authors collect nothing ([Privacy](PRIVACY.md)). The details: [the manual, §12](docs/manual.md#12-licenses-sources-and-your-responsibility).
 
 ## Design
 
@@ -164,7 +96,7 @@ tests/                 unit tests for the scripts
 src/actions/           the GitHub actions a wiki's CI calls
 src/tools/             development and CI tools (eval-plugin.sh, check-yaml, check-book)
 evals/                 behavior evals, run through src/tools/eval-plugin.sh
-docs/                  the designs, their plans, and their figures
+docs/                  the manual, the designs, their plans, and their figures
 ```
 
 `AGENTS.md` has the rules for changing this repository: tests with every logic change and coverage at 95% or above, instruction word budgets, evals for behavior changes. Run the tests, and try the plugin from a checkout:
