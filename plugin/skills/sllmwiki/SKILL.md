@@ -1,6 +1,6 @@
 ---
 name: sllmwiki
-description: Build and use a Structural LLM Wiki, a git repository of topic tags, verbatim sources and narratives where every claim traces to a source section and every change lands as one pull request. Use to answer a question from the wiki in this repository (even "just answer" ones), research questions and add the answers, save sources, write, update, plan or lint narratives, find who knows a topic, make a narrative template, set up a wiki, or release it with its book. Also for a bare topic in a wiki ("look into X", "X?"), to ask what to do, and for questions about this plugin itself. Triggers include "what can sllmwiki do", "according to the wiki", "what does the wiki say about", "look into", "add to the wiki", "ingest", "write a narrative", "lint", "who knows", "which template", "set up a wiki", "release the wiki".
+description: Build and use a Structural LLM Wiki, a git repository of topic tags, verbatim sources and narratives where every claim traces to a source section and every change lands as one pull request. Use to answer a question from the wiki in this repository (even "just answer" ones), research questions and add the answers, save sources, write, update, plan or lint narratives, find who knows a topic, make a narrative template, set up a wiki, or release it with its book. Also for a bare topic in a wiki ("look into X", "X?"), to ask what to do, and for questions about this plugin itself. Triggers include "what can sllmwiki do", "according to the wiki", "add to the wiki", "ingest", "write a narrative", "lint", "who knows", "set up a wiki", "release the wiki".
 ---
 
 # sllmwiki
@@ -26,7 +26,7 @@ A wiki is a git repository whose knowledge lives in `sllmwiki/`: sources saved v
 
 ## Before anything
 
-Run `bash <skill>/scripts/preflight.sh`, where `<skill>` is this skill's folder; stop if it reports something required missing, except that a request that changes nothing (a query, a lint that only reports) needs only Python. Work from the wiki's root. If `sllmwiki/tags/tags.yaml` doesn't exist, this isn't a wiki: say in two sentences what one is (a git repository of its own where the agent saves sources and writes cited answers, each run one pull request to review), then offer `workflows/init.md`, best in a new, empty repository, and stop.
+Run `bash <skill>/scripts/preflight.sh`, where `<skill>` is this skill's folder. For any tool it reports missing, `gh` included, run its install command unasked (the owner runs one with `sudo` or a sign-in as `! <command>`), then rerun. Stop if something required is still missing, except that a request that changes nothing (a query, a lint that only reports) needs only Python. Work from the wiki's root. If `sllmwiki/tags/tags.yaml` doesn't exist, this isn't a wiki: say in two sentences what one is (a git repository of its own where the agent saves sources and writes cited answers, each run one pull request to review), then offer `workflows/init.md`, best in a new, empty repository, and stop.
 
 ## Scripts
 

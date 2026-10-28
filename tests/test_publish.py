@@ -342,8 +342,9 @@ class Preflight(unittest.TestCase):
         """Run preflight with only the named tools on PATH (bash and the basics stay)."""
         bin_dir = tempfile.mkdtemp(prefix='preflight-')
         try:
-            for name in ('uname', 'awk', 'env', 'dirname', 'grep'):
-                os.symlink(shutil.which(name), os.path.join(bin_dir, name))
+            for name in ('uname', 'awk', 'env', 'dirname', 'grep', 'id'):
+                if name not in tools:  # a fake replaces the real one
+                    os.symlink(shutil.which(name), os.path.join(bin_dir, name))
             for name, body in tools.items():
                 helpers.write(bin_dir, name, f'#!/bin/sh\n{body}\n')
                 os.chmod(os.path.join(bin_dir, name), 0o755)
@@ -383,6 +384,29 @@ class Preflight(unittest.TestCase):
         p = self.run_with({'python3': 'exit 1'})  # too old
         self.assertIn('missing  Python 3.9', p.stdout)
         self.assertIn('warning  gh (recommended', p.stdout)
+
+    def test_the_install_command_fits_the_machine(self):
+        def hints(system, *managers, uid=1000):
+            tools = {'uname': f'echo {system}', 'id': f'echo {uid}'}
+            tools.update({m: 'exit 0' for m in managers})
+            return self.run_with(tools).stdout
+        out = hints('Linux', 'apt-get')
+        self.assertIn('missing  git (required): sudo apt-get install -y git', out)
+        self.assertIn('missing  Python 3.9 or later (required): sudo apt-get install -y python3', out)
+        self.assertIn('warning  gh (recommended, to open pull requests): sudo apt-get install -y gh', out)
+        self.assertIn(': dnf install -y python3', hints('Linux', 'dnf', uid=0))  # root needs no sudo
+        out = hints('Linux', 'pacman')
+        self.assertIn('sudo pacman -S --noconfirm python\n', out)
+        self.assertIn('sudo pacman -S --noconfirm github-cli', out)
+        self.assertIn('Python 3.9 or later (required): https://www.python.org/downloads/', hints('Linux'))
+        self.assertIn('git (required): brew install git', hints('Darwin', 'brew'))
+        out = hints('Darwin')
+        self.assertIn('git (required): xcode-select --install', out)
+        self.assertIn('install Homebrew (https://brew.sh), then: brew install gh', out)
+        out = hints('MINGW64_NT-10.0')
+        self.assertIn('git (required): winget install -e --id Git.Git', out)
+        self.assertIn('gh (recommended, to open pull requests): winget install -e --id GitHub.cli', out)
+        self.assertIn('git (required): https://git-scm.com/downloads', hints('Plan9'))
 
 
 if __name__ == '__main__':
