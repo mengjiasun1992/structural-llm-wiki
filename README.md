@@ -16,6 +16,46 @@
 
 **See one!** [sllmwiki-demo](https://github.com/mengjiasun1992/sllmwiki-demo) is a wiki built with this skill, on distributed systems and moving averages: start at [its index](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/.SLLMWIKI_INDICES.md), read [What is a distributed system?](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-is-a-distributed-system.md), see [the pull request](https://github.com/mengjiasun1992/sllmwiki-demo/pull/6) that wrote its narratives, look at [its own template](https://github.com/mengjiasun1992/sllmwiki-demo/tree/main/sllmwiki/.templates/skim_read), a ten-minute primer on one paper, with [the narrative made with it](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-does-keeping-calm-argue-and-is-it-worth-reading-in-full.md), and download its book, as a PDF, an EPUB or an HTML file, from [its latest release](https://github.com/mengjiasun1992/sllmwiki-demo/releases/latest).
 
+## Setup
+
+### Requirements
+
+| Tool | Needed for | |
+|---|---|---|
+| An agent that runs [Agent Skills](https://agentskills.io), such as [Claude Code](https://docs.claude.com/en/docs/claude-code) | running the skill | required |
+| git | history, branches and commits | required |
+| Python 3.9 or later | the skill's scripts (standard library only) | required |
+| [`gh`](https://cli.github.com), signed in | creating the wiki's remote and opening pull requests; without it, the skill prints the link to open each one yourself | recommended |
+| The wiki hosted on GitHub | its CI checks, and the book, which GitHub Actions builds at each release | for the checks and the book |
+
+```bash
+brew install git python gh                                   # macOS
+winget install Git.Git Python.Python.3.13 GitHub.cli         # Windows
+sudo apt-get install -y git python3 gh                       # Debian / Ubuntu
+gh auth login && gh auth setup-git                           # then, everywhere
+```
+
+### Start a wiki (once, by one person)
+
+1. Create an empty repository (for example `project-foobar-sllmwiki`), clone it and start Claude Code in it.
+2. Install the plugin into it:
+
+   ```bash
+   claude plugin marketplace add mengjiasun1992/structural-llm-wiki --scope project
+   claude plugin install sllmwiki@structural-llm-wiki --scope project
+   ```
+
+3. Run `/sllmwiki:init`. It asks a few preferences (the narratives' language, the source policy, the book's formats, title and author), lays out the wiki, installs its CI checks and release workflow, and makes the first commit. Rerun it after a plugin update: it brings the wiki up to date in a pull request.
+4. Ask your first questions: `/sllmwiki:build "How does our gateway route requests? Why does it retry?"`
+
+### Join a wiki
+
+Clone it and start Claude Code inside. Trust the folder, and accept the `sllmwiki` plugin the repository offers.
+
+### Other agents
+
+Codex, Cursor, Copilot and other agents install the skill with the [`skills` CLI](https://skills.sh): `npx skills add mengjiasun1992/structural-llm-wiki -g`. There are no commands there; ask for what you want in your own words ("lint the gateway narratives").
+
 ## Who it's for, and what it fixes
 
 ### Builders: you need to understand a system before you change it
@@ -69,7 +109,7 @@ Under the hood, sources are ranked by relevance, then authority (code, specifica
 
 **Share it as a book.** `/sllmwiki:release` makes a dated release on GitHub, with notes on what changed, and attaches the book in the formats you turned on.
 
-### What's in your wiki
+## What's in your wiki
 
 Your wiki is its own git repository, plain files you can read anywhere:
 
@@ -86,46 +126,6 @@ Your wiki is its own git repository, plain files you can read anywhere:
 The demo wiki has each: [sources](https://github.com/mengjiasun1992/sllmwiki-demo/tree/main/sllmwiki/sources), [narratives](https://github.com/mengjiasun1992/sllmwiki-demo/tree/main/sllmwiki/narratives), [tags](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/tags/tags.yaml) and [the index](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/.SLLMWIKI_INDICES.md).
 
 How it's built, and why: [the design](docs/structural_llm_wiki_design.md).
-
-## Setup
-
-### Requirements
-
-| Tool | Needed for | |
-|---|---|---|
-| An agent that runs [Agent Skills](https://agentskills.io), such as [Claude Code](https://docs.claude.com/en/docs/claude-code) | running the skill | required |
-| git | history, branches and commits | required |
-| Python 3.9 or later | the skill's scripts (standard library only) | required |
-| [`gh`](https://cli.github.com), signed in | creating the wiki's remote and opening pull requests; without it, the skill prints the link to open each one yourself | recommended |
-| The wiki hosted on GitHub | its CI checks, and the book, which GitHub Actions builds at each release | for the checks and the book |
-
-```bash
-brew install git python gh                                   # macOS
-winget install Git.Git Python.Python.3.13 GitHub.cli         # Windows
-sudo apt-get install -y git python3 gh                       # Debian / Ubuntu
-gh auth login && gh auth setup-git                           # then, everywhere
-```
-
-### Start a wiki (once, by one person)
-
-1. Create an empty repository (for example `project-foobar-sllmwiki`), clone it and start Claude Code in it.
-2. Install the plugin into it:
-
-   ```bash
-   claude plugin marketplace add mengjiasun1992/structural-llm-wiki --scope project
-   claude plugin install sllmwiki@structural-llm-wiki --scope project
-   ```
-
-3. Run `/sllmwiki:init`. It asks a few preferences (the narratives' language, the source policy, the book's formats, title and author), lays out the wiki, installs its CI checks and release workflow, and makes the first commit. Rerun it after a plugin update: it brings the wiki up to date in a pull request.
-4. Ask your first questions: `/sllmwiki:build "How does our gateway route requests? Why does it retry?"`
-
-### Join a wiki
-
-Clone it and start Claude Code inside. Trust the folder, and accept the `sllmwiki` plugin the repository offers.
-
-### Other agents
-
-Codex, Cursor, Copilot and other agents install the skill with the [`skills` CLI](https://skills.sh): `npx skills add mengjiasun1992/structural-llm-wiki -g`. There are no commands there; ask for what you want in your own words ("lint the gateway narratives").
 
 ## Usage
 
