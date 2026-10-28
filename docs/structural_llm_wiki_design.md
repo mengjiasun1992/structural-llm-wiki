@@ -77,6 +77,7 @@ structural-llm-wiki/
 ├── evals/                                 # behavior evals, run through src/tools/eval-plugin.sh
 └── docs/
     ├── images/                            # this document's and the README's figures
+    ├── manual.md                          # using the plugin, after the README's setup; an FAQ
     ├── structural_llm_wiki_design.md      # this file
     ├── skill_execution_plan.md            # how it is built
     ├── book_design.md                     # the book a release attaches (§10)
