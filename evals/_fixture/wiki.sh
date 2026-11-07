@@ -8,7 +8,6 @@
 set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 tests="$(cd "$here/../../tests" && pwd)"
-"$(dirname "${BASH_SOURCE[0]}")/package.sh"
 PYTHONDONTWRITEBYTECODE=1 python3 -c 'import os, sys; sys.path.insert(0, sys.argv[1]); import helpers; helpers.make_wiki(os.getcwd(), git=False)' "$tests"
 git init -q -b mainline
 git config user.name "Eval Agent"
