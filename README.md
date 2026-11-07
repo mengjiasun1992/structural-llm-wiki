@@ -3,7 +3,7 @@
 ![Structural LLM Wiki. You ask your agent one question, "How does the gateway retry?", and your agent does the rest: 1, it finds and saves the sources, a paper, code, a web page, a design doc; 2, it writes the answer, an open book in braces, every claim tied by a thread to its source; 3, it opens one pull request on project-foobar-sllmwiki.git; 4, you review and merge; 5, each release attaches the wiki as a book, in PDF, EPUB and HTML. The repository is git, which your group and their agents clone, share and grow. Answers you can check; written to teach; knowledge that compounds; stays true as sources change; reviewed like code; kept in git, shared as a book.](docs/images/hero.svg)
 
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757.svg)](#setup)
-[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![License: GPL v3+](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](#setup)
 [![Scripts](https://github.com/mengjiasun1992/structural-llm-wiki/actions/workflows/check-scripts.yml/badge.svg?branch=mainline)](https://github.com/mengjiasun1992/structural-llm-wiki/actions/workflows/check-scripts.yml?query=branch%3Amainline)
 [![Book](https://github.com/mengjiasun1992/structural-llm-wiki/actions/workflows/check-book.yml/badge.svg?branch=mainline)](https://github.com/mengjiasun1992/structural-llm-wiki/actions/workflows/check-book.yml?query=branch%3Amainline)
@@ -88,7 +88,7 @@ Everything else, ask in your own words: "Lint the gateway narratives", "Who know
 
 ## Licenses and your data
 
-The skill is open source under the [Apache License 2.0](LICENSE); your wiki is yours, and each source stays its authors', kept with its URL and license, quoted briefly, never fetched past a login or paywall. Narratives are written by an LLM: every claim is cited, but review each pull request before you merge it. The plugin runs on your machine and its authors collect nothing ([Privacy](PRIVACY.md)). The details: [the manual, §12](docs/manual.md#12-licenses-sources-and-your-responsibility).
+The skill is open source under the [GPL 3.0 or later](LICENSE), and the templates it puts in your wiki and book under [MIT-0](src/sllmwiki/templates/LICENSE), with no conditions; your wiki is yours, and each source stays its authors', kept with its URL and license, quoted briefly, never fetched past a login or paywall. Narratives are written by an LLM: every claim is cited, but review each pull request before you merge it. The plugin runs on your machine and its authors collect nothing ([Privacy](PRIVACY.md)). The details: [the manual, §12](docs/manual.md#12-licenses-sources-and-your-responsibility).
 
 ## Design
 
@@ -119,4 +119,4 @@ claude --plugin-dir plugin             # runs the sllmwiki on PATH: this checkou
 
 ## License
 
-Copyright 2026 Mengjia Sun. Licensed under the [Apache License, Version 2.0](LICENSE); see [NOTICE](NOTICE).
+Copyright 2026 Mengjia Sun. The code is licensed under the [GNU General Public License, version 3 or later](LICENSE); the templates in `src/sllmwiki/templates/` under [MIT-0](src/sllmwiki/templates/LICENSE). Versions up to 1.2.0 were released under Apache 2.0. See [NOTICE](NOTICE).
