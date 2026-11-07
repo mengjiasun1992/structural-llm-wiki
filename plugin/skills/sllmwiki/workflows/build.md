@@ -1,6 +1,6 @@
 # build: research questions and add the answers
 
-The input is one or more questions. When the request names only a topic, propose two or three questions in one message and wait for the choice; after that, don't pause.
+The input is one or more questions; a request that names only a topic is asked about first (`SKILL.md`). After that, don't pause.
 
 ## 1. What already answers them
 
@@ -26,11 +26,11 @@ Follow `steps/ingest.md` for the questions and their tags. Then `sllmwiki publis
 
 ## 5. SMEs
 
-When the topic has code or authored docs in a local clone, follow `steps/smes.md` for its tags.
+Follow `steps/smes.md` for the questions' tags; it says when there's nothing to rank.
 
 ## 6. Narratives
 
-For each question that isn't a reuse, follow `steps/narrative.md`. After each, `sllmwiki publish commit narrative --tags <its primary tags> --subject "<the question>"` and `sllmwiki publish pr` to update the description.
+For each question that isn't a reuse, follow `steps/narrative.md`. After each, `sllmwiki publish commit narrative --tags <its primary tags>`.
 
 ## 7. Lint
 
@@ -38,4 +38,4 @@ Follow `steps/lint.md` for the narratives this run wrote or updated, inside this
 
 ## 8. Hand off
 
-Run `sllmwiki wiki-check`; fix what it reports, committing again if anything changed, then `sllmwiki publish pr`. Reply with the pull request's link, the questions answered and reused, and the decisions left for the owner.
+Run `sllmwiki wiki-check --fix` and fix what it still reports; if anything changed, `sllmwiki publish commit lint --subject "wiki-check fixes"`. Then `sllmwiki publish pr`. Reply with the pull request's link, the questions answered and reused, and the decisions left for the owner.

@@ -3,11 +3,13 @@
 ## 1. Find
 
 - Look for 3-5 good sources per question; fewer good ones beat many weak ones.
-- First list what the question's narrative can't miss, by its template's subject (design doc §4.5):
+- First list what the question's narrative can't miss, by its likely template:
   - concept: the standard definition;
   - technical: the specification or paper the method comes from, and how it's used;
   - comparison: each common candidate, and every dimension the choice turns on;
-  - survey: every main area of the field, and its official or classic lists.
+  - survey: every main area of the field, and its official or classic lists;
+  - case study: the primary accounts (the postmortem, the report) and the timeline they give;
+  - a wiki's own template: what its guide's Evidence section asks for.
 - Search for each, the source of record first, then widen, until a source covers it or the searches show none does. Keep the searches you ran.
 - Rank candidates by, in order:
   1. **Relevance:** the most relevant to the question and its tags first.
@@ -16,15 +18,14 @@
      - B: textbooks and references;
      - C: practitioner write-ups and encyclopedias; use an encyclopedia to get oriented and to find the sources it cites.
   3. **Recency:** among equally relevant and authoritative sources, the newest, for the latest understanding of the topic.
-- Skip any source already saved (`sllmwiki search sources "<keywords>"`); refresh one `sllmwiki wiki-check` reports as SOURCE_UPSTREAM_CHANGED. To find those, `sllmwiki check-upstream [<slugs>] [--tags <tags>]` fetches saved sources again and marks the changed ones.
+- Skip any source already saved (`sllmwiki search sources "<keywords>"`). To refresh, `sllmwiki check-upstream --tags <tags>`, then save each it marks changed again with `fetch-source … --refresh`.
 
 ## 2. Judge before saving
 
 - **Read the source's license or terms.** Record what you find: an SPDX id such as CC-BY-4.0, or "proprietary", or "unknown".
   - An RFC: `LicenseRef-IETF-Trust`, with `--license-url https://trustee.ietf.org/license-info`.
   - A work of the US federal government, made by its employees: `public-domain`. Not a contractor's, a state's or another country's work, nor anything the page quotes or credits to others; record those by their own terms.
-- **Behind a login, a paywall or anti-bot protection:** don't fetch it any other way. Record it as a link.
-- **Personal data or secrets:** save only the parts without them, and mark where you left text out.
+- **Personal data or secrets** (the source policy, `SKILL.md`): save only the parts without them, and mark where you left text out.
 
 ## 3. Save
 
@@ -37,7 +38,7 @@
 
 ## 4. Abstract
 
-A saved source stays in the language it was written in: never translate it. Read each saved source once, and write its abstract, in the wiki's language: 150-250 words on what it says and covers, using the source's own abstract when it has one. Save it with `sllmwiki manifest set-abstract <slug> --abstract "<abstract>"`. Note what each source says that the questions need: the narrative step reads that note instead of the whole source again.
+A saved source stays in the language it was written in: never translate it. Read each saved source once, and write its abstract, in the wiki's language: 150-250 words on what it says and covers, using the source's own abstract when it has one. Save it with `sllmwiki manifest set-abstract <slug> --abstract "<abstract>"`.
 
 ## 5. Summary
 

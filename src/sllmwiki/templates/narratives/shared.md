@@ -36,4 +36,4 @@ Explain in your own words and the narrative's language. Quote only a definition 
 
 ## Formatting
 
-Write plain markdown, without heading numbers or Obsidian-only syntax (wikilinks, highlights): `sllmwiki finish-narrative` numbers, escapes and records the narrative, and `sllmwiki narrative-format` reports the rest.
+Write plain markdown without Obsidian-only syntax (wikilinks, highlights); `sllmwiki finish-narrative` adds the heading numbers and escapes and records the narrative, and `sllmwiki narrative-format` reports the rest.

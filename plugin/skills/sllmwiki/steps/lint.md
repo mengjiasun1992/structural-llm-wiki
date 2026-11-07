@@ -3,7 +3,7 @@
 ## 1. Scope
 
 - **A narrative:** its slug. **A tag:** the narratives `sllmwiki reading-plan list --primary <tag>` lists. **A description:** `sllmwiki search narratives "<keywords>"`.
-- Inside a run (`build`, or a rework of an open pull request), lint that run's narratives. Alone, a narrative in an open pull request is linted on it (`sllmwiki publish resume <slug>`); otherwise start a run (`sllmwiki publish start lint-<slug>`).
+- Inside a run (`build`, or a rework of an open pull request), lint that run's narratives. Alone, a narrative in an open pull request is linted on it (`sllmwiki publish resume <slug>`); otherwise it's a run of its own (`SKILL.md`).
 
 ## 2. Read each section once
 
@@ -19,7 +19,7 @@ For consistency, read the Abstract and Terminology of each narrative sharing its
 | Code | a symbol, file or line that isn't there; design intent presented as current behavior |
 | Consistency | a contradiction or a different term across narratives sharing tags; a concept another narrative covers, explained again, described in a way that contradicts it, or mentioned without a link to it |
 | Language | grammar, spelling and wording wrong for the narrative's language (its Metadata's `Language`); a sentence left in another language, other than a quotation |
-| Reader | the template's guide and `shared-guide.md` (`sllmwiki narrative-format --guide <template>`): a term used before it's defined, notation that changes, a section, scenario or formula without its context first, the same context said twice across the Abstract, the orientation and a scene, more than two key examples in the body or one whose scene isn't set, prose that tallies sources instead of stating the idea, a long list not grouped, a slot filled with filler, detail the Appendix should hold, content that doesn't serve the question; a picture that decorates rather than teaches, crowds more than one idea, or carries meaning by color alone |
+| Reader | anything that breaks the template's guide or `shared-guide.md` (`sllmwiki narrative-format --guide <template>`, already loaded when this run wrote the narrative), and content that doesn't serve the question |
 
 Formatting, links and numbering, figure captions included, are `sllmwiki narrative-format`'s and `sllmwiki wiki-check`'s: run them, don't check by hand. A figure's caption and alt text say what it shows; open its file only to check its numbers against the source.
 
@@ -41,4 +41,4 @@ Each template's guide names its aim, a few axes, and says what each axis means; 
 - `decisions`: each big finding, with its number;
 - `body`: the aim grades, a table of narrative and each axis of its aim, met, partly or missed, with the evidence; then a table of number, narrative and line, finding, and fixed or left as a decision.
 
-Then one commit, `sllmwiki publish commit lint --tags <tags> --subject "Lint: <narratives>"`, and `sllmwiki publish pr`.
+Then one commit, `sllmwiki publish commit lint --tags <tags>`, and `sllmwiki publish pr`.

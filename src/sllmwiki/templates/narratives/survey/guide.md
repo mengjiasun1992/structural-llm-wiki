@@ -10,7 +10,7 @@ A reader facing a domain or an umbrella term for the first time, who needs the l
 
 ## Voice and tone
 
-Plain words, short sentences, present tense. Even-handed across items and schools of thought; where sources disagree, give each view, cited.
+Plain words, short sentences, present tense. Even-handed across items and schools of thought.
 
 ## Structure
 

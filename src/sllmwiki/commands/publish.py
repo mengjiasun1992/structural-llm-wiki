@@ -8,7 +8,8 @@
       Records a step's summary: its review checklist items, the decisions it
       leaves to the owner, and its report. (Or --file SUMMARY.json.) A
       narrative's is one per question and a lint's one per scope, by title; the others, one per step.
-  sllmwiki publish commit <action> [--tags a,b] --subject TEXT
+  sllmwiki publish commit <action> [--tags a,b] [--subject TEXT]
+      (the subject defaults to the title of the step's summary)
       Commits everything the run changed with the message
       [sllmwiki][<action>][<tags>] <subject>, the step's report, and the
       request that started the run, verbatim, in a Prompt: block.
@@ -195,8 +196,11 @@ def commit(root, action, tags, subject):
             git(root, 'add', '--', *[n for n in new if n])
     if not git(root, 'diff', '--cached', '--name-only'):
         cli.fail('nothing to commit')
-    report = latest(summaries(root), action).get('body', '')
-    msg = message(state, action, tags, subject, report)
+    summary = latest(summaries(root), action)
+    subject = subject or summary.get('title')
+    if not subject:
+        cli.fail(f'no --subject, and no {action} summary to take one from: record it first (sllmwiki publish summary {action})')
+    msg = message(state, action, tags, subject, summary.get('body', ''))
     p = subprocess.run(['git', 'commit', '--quiet', '-F', '-'], cwd=root, input=msg, capture_output=True, text=True)
     if p.returncode:
         cli.fail(f'git commit: {(p.stderr or p.stdout).strip()}')
@@ -361,7 +365,7 @@ def main(argv):
     c = sub.add_parser('commit')
     c.add_argument('action', choices=ACTIONS)
     c.add_argument('--tags', default=[], type=comma_list)
-    c.add_argument('--subject', required=True)
+    c.add_argument('--subject', help='the commit\'s subject; default: the title of the step\'s summary')
     o = sub.add_parser('pr')
     o.add_argument('--cost', type=float, help='what the run cost so far, in US dollars, when the caller knows it')
     r = sub.add_parser('resume')
