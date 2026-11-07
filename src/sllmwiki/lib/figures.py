@@ -5,11 +5,13 @@ numbered caption under every diagram and image.
 check(root, rel, text, on) -> findings for one narrative's images:
   IMAGE_OFF         an image while Config.toml's images setting is false
   IMAGE_PLACE       an image that isn't an .svg or .png in figures/<slug>/
+  IMAGE_KIND        an .svg or .png that Config.toml's image_formats doesn't allow
   IMAGE_FORMAT      a file whose content isn't the SVG or PNG its name says
   IMAGE_ALT         an image without alt text
   IMAGE_UNSAFE      an SVG with a script, an event handler, a link or an embedded image
   IMAGE_BACKGROUND  an SVG with no opaque background, so dark themes hide its dark text (warning)
-  IMAGE_SIZE        an SVG over MAX_SVG_BYTES, or a PNG over MAX_PNG_BYTES or MAX_PNG_WIDTH (warning)
+  IMAGE_SIZE        an SVG over max_svg_kb, or a PNG over max_png_kb or MAX_PNG_WIDTH (warning)
+check_count(text, most) -> PICTURES_MAX: more diagrams and images than Config.toml's max_pictures
 check_captions(text) -> findings for captions:
   FIGURE_CAPTION    a diagram or image without its caption line, *Figure 5-1: what it shows.*
   FIGURE_NUMBER     a caption numbered out of place (renumber() fixes it)
@@ -28,8 +30,6 @@ from .util import read_bytes, read_text
 
 FOLDER = 'figures'
 KINDS = ('.svg', '.png')  # what GitHub, Obsidian, mdBook and Sphinx's HTML builder all show
-MAX_SVG_BYTES = 40_000    # an SVG is text an agent may read: keep it to a few thousand tokens
-MAX_PNG_BYTES = 150_000
 MAX_PNG_WIDTH = 1600      # pixels: wider only costs bytes and tokens, no page shows more
 IMAGE = re.compile(r'!\[([^\]]*)\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)')
 PNG = b'\x89PNG\r\n\x1a\n'
@@ -61,8 +61,9 @@ def images(text):
             for m in IMAGE.finditer(mask_code_spans(line))]
 
 
-def check(root, rel, text, on=True):
-    """Findings (severity, code, line, message) for the narrative at rel."""
+def check(root, rel, text, on=True, formats=('svg', 'png'), max_svg_kb=40, max_png_kb=150):
+    """Findings (severity, code, line, message) for the narrative at rel; on, formats and the
+    sizes are Config.toml's images, image_formats, max_svg_kb and max_png_kb."""
     slug = os.path.splitext(os.path.basename(rel))[0]
     out = []
     for i, alt, path in images(text):
@@ -74,24 +75,29 @@ def check(root, rel, text, on=True):
         if len(parts) != 3 or parts[:2] != [FOLDER, slug] or os.path.splitext(path)[1].lower() not in KINDS:
             out.append(('error', 'IMAGE_PLACE', n, f'{path}: a figure is an .svg or .png in {FOLDER}/{slug}/, generated for this narrative'))
             continue
+        kind = os.path.splitext(path)[1].lower()[1:]
+        if kind not in formats:
+            allowed = ', '.join(formats) or 'none'
+            out.append(('error', 'IMAGE_KIND', n, f'{path}: Config.toml\'s image_formats allows {allowed}; draw it as one of those, or as mermaid'))
+            continue
         if not alt.strip():
             out.append(('error', 'IMAGE_ALT', n, f'{path}: give it alt text saying what it shows'))
         full = os.path.join(root, os.path.dirname(rel), path)
         if not os.path.isfile(full):
             continue  # compat.check_links reports it as LINK_PATH
-        out += _check_file(full, path, n)
+        out += _check_file(full, path, n, max_svg_kb * 1000, max_png_kb * 1000)
     return out
 
 
-def _check_file(full, path, n):
+def _check_file(full, path, n, max_svg, max_png):
     data = read_bytes(full)
     if path.lower().endswith('.png'):
         if not data.startswith(PNG) or len(data) < 24:
             return [('error', 'IMAGE_FORMAT', n, f'{path} isn\'t a PNG')]
         width = int.from_bytes(data[16:20], 'big')
-        if len(data) > MAX_PNG_BYTES or width > MAX_PNG_WIDTH:
+        if len(data) > max_png or width > MAX_PNG_WIDTH:
             return [('warning', 'IMAGE_SIZE', n, f'{path} is {len(data) // 1000} KB and {width} px wide; keep a PNG under '
-                                                 f'{MAX_PNG_BYTES // 1000} KB and {MAX_PNG_WIDTH} px, or draw it as an SVG')]
+                                                 f'{max_png // 1000} KB and {MAX_PNG_WIDTH} px, or draw it as an SVG')]
         return []
     svg = data.decode('utf-8', 'replace')
     if not re.match(r'\s*(?:<\?xml[^>]*\?>\s*)?(?:<!--.*?-->\s*)*<svg\b', svg, re.S):
@@ -102,10 +108,19 @@ def _check_file(full, path, n):
     elif not _BACKGROUND.search(svg):
         out.append(('warning', 'IMAGE_BACKGROUND', n, f'{path} has no opaque background, so dark themes hide its dark text; '
                                                      'start it with a light <rect> the size of the figure'))
-    if len(data) > MAX_SVG_BYTES:
-        out.append(('warning', 'IMAGE_SIZE', n, f'{path} is {len(data) // 1000} KB; keep an SVG under {MAX_SVG_BYTES // 1000} KB: '
+    if len(data) > max_svg:
+        out.append(('warning', 'IMAGE_SIZE', n, f'{path} is {len(data) // 1000} KB; keep an SVG under {max_svg // 1000} KB: '
                                                'fewer points, rounded coordinates, shared styles, no metadata'))
     return out
+
+
+def check_count(text, most):
+    """PICTURES_MAX when the narrative has more diagrams and images than most (Config.toml's max_pictures)."""
+    found = pictures(text)
+    if len(found) <= most:
+        return []
+    return [('error', 'PICTURES_MAX', found[most][0] + 1,
+             f'{len(found)} pictures, over Config.toml\'s max_pictures of {most}: keep the ones that teach the most')]
 
 
 def pictures(text):

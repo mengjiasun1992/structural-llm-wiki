@@ -49,9 +49,14 @@ DEFAULTS = {
     'smes_exclude': [],        # people and bots never listed as SMEs
     'markers': True,           # the [→] and [?] markers (design doc §4.10)
     'images': True,            # generated figures in narratives/figures/, where mermaid can't show an idea well (design doc §4.5)
+    'image_formats': ['svg', 'png'],  # the kinds of image a narrative may embed, when images is on
+    'max_pictures': 5,         # diagrams and images in one narrative, at most; 0: none
+    'max_svg_kb': 40,          # an SVG figure's size, at most: an agent may read it, so a few thousand tokens
+    'max_png_kb': 150,         # a PNG figure's size, at most
     'language': 'en',          # the language narratives are written in, a BCP 47 tag; sources keep their own (lib/language.py)
 }
 SOURCE_COPIES = ('allow', 'links-only')
+IMAGE_FORMATS = ('svg', 'png')  # what GitHub, Obsidian, mdBook and Sphinx's HTML builder all show (lib/figures.py)
 TEMPLATE_KEYS = ('max_words', 'abstract_words')
 ADDON_DEFAULTS = {
     'obsidian': False,  # init writes sllmwiki/.obsidian/graph.json (design doc §4.8)
@@ -108,8 +113,12 @@ def _settings(table, problems):
             problems.append(f'{where} must be {_kind(DEFAULTS[key])}')
         elif key == 'source_copies' and value not in SOURCE_COPIES:
             problems.append(f'{where} must be "allow" or "links-only", not {value!r}')
-        elif key == 'max_quote_words' and value < 1:
+        elif key in ('max_quote_words', 'max_svg_kb', 'max_png_kb') and value < 1:
             problems.append(f'{where} must be a positive whole number')
+        elif key == 'max_pictures' and value < 0:
+            problems.append(f'{where} must be a whole number, 0 or more')
+        elif key == 'image_formats' and not all(v in IMAGE_FORMATS for v in value):
+            problems.append(f'{where} must list some of {", ".join(repr(f) for f in IMAGE_FORMATS)}, not {value!r}')
         elif key == 'language' and not _LANGUAGE.match(value):
             problems.append(f'{where} must be a language tag, such as "en" or "zh-Hans", not {value!r}')
         elif key == 'smes_exclude' and not all(isinstance(v, str) and v.strip() for v in value):

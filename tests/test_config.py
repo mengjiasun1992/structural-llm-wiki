@@ -16,7 +16,7 @@ def problems(text):
 class Defaults(helpers.WikiTestCase):
     def test_no_file_means_the_defaults(self):
         c = config.load(self.root)
-        self.assertEqual(c.settings, {'source_copies': 'allow', 'max_quote_words': 50, 'smes_exclude': [], 'markers': True, 'images': True, 'language': 'en'})
+        self.assertEqual(c.settings, {'source_copies': 'allow', 'max_quote_words': 50, 'smes_exclude': [], 'markers': True, 'images': True, 'image_formats': ['svg', 'png'], 'max_pictures': 5, 'max_svg_kb': 40, 'max_png_kb': 150, 'language': 'en'})
         self.assertEqual((c.templates, c.addons), ({}, {'obsidian': False}))
         self.assertEqual(config.problems(self.root), [])
 
@@ -38,7 +38,8 @@ class Settings(unittest.TestCase):
         c = parse('[structural-llm-wiki-settings]\nsource_copies = "links-only"\nmax_quote_words = 25\n'
                   'smes_exclude = ["@owner", "dependabot"]\nmarkers = false\n')
         self.assertEqual(c.settings, {'source_copies': 'links-only', 'max_quote_words': 25,
-                                      'smes_exclude': ['@owner', 'dependabot'], 'markers': False, 'images': True, 'language': 'en'})
+                                      'smes_exclude': ['@owner', 'dependabot'], 'markers': False, 'images': True,
+                                      'image_formats': ['svg', 'png'], 'max_pictures': 5, 'max_svg_kb': 40, 'max_png_kb': 150, 'language': 'en'})
 
     def test_bad_values(self):
         cases = [
@@ -51,6 +52,10 @@ class Settings(unittest.TestCase):
             ('smes_exclude = ["@a", ""]', 'smes_exclude must list names'),
             ('smes_exclude = [1]', 'smes_exclude must list names'),
             ('markers = 1', 'markers must be true or false'),
+            ('max_pictures = -1', 'max_pictures must be a whole number, 0 or more'),
+            ('max_svg_kb = 0', 'max_svg_kb must be a positive whole number'),
+            ('image_formats = ["gif"]', "image_formats must list some of 'svg', 'png'"),
+            ('image_formats = "svg"', 'image_formats must be a list'),
             ('marker = true', 'unknown setting structural-llm-wiki-settings.marker (did you mean markers?)'),
             ('zzz = true', 'unknown setting structural-llm-wiki-settings.zzz (known: source_copies, max_quote_words'),
         ]

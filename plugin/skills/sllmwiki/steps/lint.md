@@ -15,11 +15,11 @@ For consistency, read the Abstract and Terminology of each narrative sharing its
 
 | Category | Look for |
 |---|---|
-| Accuracy | a claim its section doesn't support, overstates or gets a number wrong; a quotation not word for word; a number computed from a cited formula marked `[→]` instead of cited |
+| Accuracy | a claim its section doesn't support, overstates or gets a number wrong; a picture showing what its caption's citations don't support; a quotation not word for word; a number computed from a cited formula marked `[→]` instead of cited |
 | Code | a symbol, file or line that isn't there; design intent presented as current behavior |
 | Consistency | a contradiction or a different term across narratives sharing tags; a concept another narrative covers, explained again, described in a way that contradicts it, or mentioned without a link to it |
 | Language | grammar, spelling and wording wrong for the narrative's language (its Metadata's `Language`); a sentence left in another language, other than a quotation |
-| Reader | the template's guide and `shared-guide.md` (`sllmwiki narrative-format --guide <template>`): a term used before it's defined, notation that changes, a section, scenario or formula without its context first, the same context said twice across the Abstract, the orientation and a scene, more than two key examples in the body or one whose scene isn't set, prose that tallies sources instead of stating the idea, a long list not grouped, a slot filled with filler, detail the Appendix should hold, content that doesn't serve the question |
+| Reader | the template's guide and `shared-guide.md` (`sllmwiki narrative-format --guide <template>`): a term used before it's defined, notation that changes, a section, scenario or formula without its context first, the same context said twice across the Abstract, the orientation and a scene, more than two key examples in the body or one whose scene isn't set, prose that tallies sources instead of stating the idea, a long list not grouped, a slot filled with filler, detail the Appendix should hold, content that doesn't serve the question; a picture that decorates rather than teaches, crowds more than one idea, or carries meaning by color alone |
 
 Formatting, links and numbering, figure captions included, are `sllmwiki narrative-format`'s and `sllmwiki wiki-check`'s: run them, don't check by hand. A figure's caption and alt text say what it shows; open its file only to check its numbers against the source.
 
