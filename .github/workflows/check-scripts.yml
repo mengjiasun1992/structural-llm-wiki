@@ -12,7 +12,8 @@ permissions:
 
 jobs:
   check-scripts:
-    runs-on: ubuntu-latest
+    # 24.04: setup-python has no 3.9 for ubuntu-latest (26.04)
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         # the latest Python 3, and the oldest the scripts support
@@ -27,8 +28,8 @@ jobs:
       # every Python and shell script compiles on this Python (find, so a folder with none is fine)
       - name: Scripts parse
         run: |
-          find plugin/skills/sllmwiki/scripts src/tools -name '*.py' -print0 | xargs -0 -r python3 -m py_compile
-          find plugin/skills/sllmwiki/scripts src/tools -name '*.sh' -print0 | xargs -0 -r -n1 bash -n
+          find plugin/skills/sllmwiki/scripts src/actions/scripts src/tools -name '*.py' -print0 | xargs -0 -r python3 -m py_compile
+          find plugin/skills/sllmwiki/scripts src/actions/scripts src/tools -name '*.sh' -print0 | xargs -0 -r -n1 bash -n
 
       # tests/run.py runs each test module in its own process; coverage fails below
       # fail_under in pyproject.toml (95%). It runs once the test runner exists.
@@ -52,9 +53,9 @@ jobs:
 
       - name: Python (ruff; rules in pyproject.toml)
         if: success() || failure()
-        run: ruff check plugin/skills/sllmwiki/scripts tests src/tools
+        run: ruff check plugin/skills/sllmwiki/scripts src/actions/scripts tests src/tools
 
       # the skill's scripts and the evals' scaffolds (find, so a folder with none is fine)
       - name: Shell (shellcheck)
         if: success() || failure()
-        run: find plugin/skills/sllmwiki/scripts src/tools evals -name '*.sh' -print0 | xargs -0 -r shellcheck
+        run: find plugin/skills/sllmwiki/scripts src/actions/scripts src/tools evals -name '*.sh' -print0 | xargs -0 -r shellcheck

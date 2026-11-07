@@ -21,16 +21,21 @@ SKILL_DIR = os.path.join(REPO, 'plugin', 'skills', 'sllmwiki')
 if not os.path.isdir(SKILL_DIR):  # the copy src/tools/eval-plugin.sh assembles for the evals: the plugin's contents at its root
     SKILL_DIR = os.path.join(REPO, 'skills', 'sllmwiki')
 SCRIPTS = os.path.join(SKILL_DIR, 'scripts')
-if SCRIPTS not in sys.path:
-    sys.path.insert(0, SCRIPTS)
+CI_SCRIPTS = os.path.join(REPO, 'src', 'actions', 'scripts')  # what only the wiki's CI runs: book.py, review-checklist.py
+for _path in (CI_SCRIPTS, SCRIPTS):  # SCRIPTS first, for lib/
+    if _path not in sys.path:
+        sys.path.insert(0, _path)
 sys.dont_write_bytecode = True
 
 
 @functools.lru_cache(maxsize=None)
 def load_script(path):
     """A command script imported as a module, so its main() runs in-process and
-    counts toward coverage. path is relative to scripts/ (wiki-check.py) or absolute."""
+    counts toward coverage. path is relative to scripts/ (wiki-check.py) or to
+    CI_SCRIPTS (book.py), or absolute."""
     full = path if os.path.isabs(path) else os.path.join(SCRIPTS, path)
+    if not os.path.exists(full):
+        full = os.path.join(CI_SCRIPTS, path)
     name = os.path.splitext(os.path.basename(full))[0].replace('-', '_')
     spec = importlib.util.spec_from_file_location(name, full)
     module = importlib.util.module_from_spec(spec)

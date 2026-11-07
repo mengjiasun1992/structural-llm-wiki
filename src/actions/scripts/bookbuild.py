@@ -21,7 +21,7 @@ import tempfile
 import zipfile
 from xml.etree import ElementTree
 
-from . import compat
+from lib import compat
 
 MERMAID, MATHJAX = 'mermaid.min.js', 'tex-svg-full.js'  # the vendored libraries' file names
 FONT = '"Noto Sans", "Noto Sans CJK SC", "Noto Sans Math", sans-serif'
