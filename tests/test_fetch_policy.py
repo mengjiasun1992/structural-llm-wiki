@@ -156,6 +156,8 @@ class MayCopy(unittest.TestCase):
         for gnu in ('GPL-3.0-or-later', 'GPL-2.0-only', 'LGPL-2.1', 'AGPL-3.0-or-later', 'gpl-3.0'):  # #122
             self.assertTrue(policy.may_copy('allow', 'public', gnu)[0], gnu)
         self.assertFalse(policy.may_copy('allow', 'public', 'GFDL-1.3-only')[0])  # not on the list: a link
+        self.assertTrue(policy.may_copy('allow', 'public', 'LicenseRef-IETF-Trust')[0])  # an RFC
+        self.assertTrue(policy.may_copy('allow', 'public', 'public-domain')[0])  # a US federal government work, among others
         ok, why = policy.may_copy('allow', 'public', 'unknown')
         self.assertFalse(ok)
         self.assertIn('--allow-restricted', why)
