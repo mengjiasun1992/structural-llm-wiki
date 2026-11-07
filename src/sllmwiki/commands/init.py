@@ -35,7 +35,7 @@ import re
 import subprocess
 
 from sllmwiki import TEMPLATES, __version__
-from sllmwiki.lib import config, layout, manifest, toml, wikiindex
+from sllmwiki.lib import config, language, layout, manifest, toml, wikiindex
 from sllmwiki.lib.layout import Cli
 from sllmwiki.lib.util import comma_list, dumps, placeholder, quote, read_text, write_text
 
@@ -72,9 +72,22 @@ def settings_of(text):
     return out
 
 
+def choices(root, key):
+    """[(value, label)] a setting takes, for the owner to pick from; None for a free value. The languages are the
+    packs there are, the skill's (each evaluated) and the wiki's own."""
+    if key == 'language':
+        language.use(root)
+        return sorted(((p.tag, p.name) for p in language.loaded().values()), key=lambda c: (c[0] != language.DEFAULT, c[0]))
+    if key == 'source_copies':
+        return [(v, v) for v in config.SOURCE_COPIES]
+    if key == 'picture_formats':
+        return [(v, v) for v in config.PICTURE_FORMATS]
+    return None
+
+
 def questions(root):
-    """The settings to ask about: [{key, table, value, about}], every one in ASK on a first setup, and on a
-    rerun those Config.toml doesn't have yet."""
+    """The settings to ask about: [{key, table, value, about, choices}], every one in ASK on a first setup, and on a
+    rerun those Config.toml doesn't have yet; choices is [{value, label}] or None."""
     template = read_text(os.path.join(WIKI, 'Config.toml'))
     path = os.path.join(root, layout.CONFIG)
     have = toml.loads(read_text(path)) if os.path.isfile(path) else None
@@ -83,7 +96,9 @@ def questions(root):
         if key not in ASK or (have is not None and key in have.get(table, {})):
             continue
         value, _, about = line.split(' = ', 1)[1].partition('#')
-        out.append({'key': key, 'table': table, 'value': toml.loads(f'v = {value.strip()}')['v'], 'about': about.strip()})
+        found = choices(root, key)
+        out.append({'key': key, 'table': table, 'value': toml.loads(f'v = {value.strip()}')['v'], 'about': about.strip(),
+                    'choices': [{'value': v, 'label': label} for v, label in found] if found else None})
     return out
 
 
@@ -310,7 +325,9 @@ def main(argv):
             print(dumps({'first_setup': not os.path.isfile(os.path.join(root, layout.CONFIG)), 'ask': found}))
         else:
             for q in found:
-                print(f'{q["key"]} = {toml.dumps_value(q["value"])}: {q["about"]}')
+                listed = '; choose from ' + ', '.join(c['value'] if c['value'] == c['label'] else f"{c['value']} ({c['label']})"
+                                                      for c in q['choices']) if q['choices'] else ''
+                print(f'{q["key"]} = {toml.dumps_value(q["value"])}: {q["about"]}{listed}')
             print(f'init: {len(found)} setting(s) to ask about' if found else 'init: nothing new to ask about')
         return 0
     others = unrelated(root)
