@@ -132,7 +132,7 @@ author = ""                 # its author; empty: the title
 
 Narratives are written in the wiki's `language`, and one can name its own (`- **Language:** zh-Hans` in its Metadata, or ask for a language when you ask the question). Sources stay in the language they were written in, and a quotation keeps its source's words, translated after it.
 
-Headings come from a language pack, `languages/<tag>.md` in the package's or your wiki's templates: the skill ships English and Simplified Chinese (`zh-Hans`), each one it has evaluated, and a pack can carry its language's writing rules. For another language, copy [the English pack](../src/sllmwiki/templates/languages/en.md) into your wiki's `sllmwiki/.templates/languages/` and fill in the translations; the skill writes in it, and says it hasn't evaluated it. Without a pack, headings stay English around prose in your language. Word budgets stay in words; Chinese and Japanese text counts its characters at 1.6 to a word.
+Headings come from a language pack, `languages/<tag>.md` in the package's or your wiki's templates: the skill ships English, Simplified Chinese (`zh-Hans`) and Traditional Chinese (`zh-Hant`, in Taiwan usage; `zh-TW` and `zh-HK` find it too), each one it has evaluated, and a pack can carry its language's writing rules. For another language, copy [the English pack](../src/sllmwiki/templates/languages/en.md) into your wiki's `sllmwiki/.templates/languages/` and fill in the translations; the skill writes in it, and says it hasn't evaluated it. Without a pack, headings stay English around prose in your language. Word budgets stay in words; Chinese and Japanese text counts its characters at 1.6 to a word.
 
 ## 10. Obsidian
 

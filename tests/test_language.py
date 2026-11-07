@@ -179,6 +179,16 @@ class Bundled(helpers.WikiTestCase):
         self.assertIn('follow the Writing section of', r.err)
         self.assertNotIn('evaluated', r.err)
 
+    def test_traditional_chinese(self):
+        self.assertIn('zh-Hant', language.bundled())
+        r = helpers.run('narrative-format.py', ['--skeleton', 'technical_brief_overview', '--language', 'zh-Hant'], cwd=self.root)
+        self.assertEqual(r.code, 0, r)
+        self.assertIn('## 1. 摘要', r.out)
+        self.assertIn('它是如何運作的？', r.out)  # Traditional characters, Taiwan usage
+        self.assertNotIn('evaluated', r.err)
+        for region, script in (('zh-TW', 'zh-Hant'), ('zh-HK', 'zh-Hant'), ('zh-CN', 'zh-Hans'), ('zh-Hant-TW', 'zh-Hant')):
+            self.assertEqual(language.pack(region).tag, script, region)
+
     def test_a_wiki_pack_for_a_language_the_skill_does_not_ship(self):
         self.write('sllmwiki/.templates/languages/fr.md', '# Français\n\n| English | Translation |\n|---|---|\n| Abstract | Résumé |\n')
         r = helpers.run('narrative-format.py', ['--skeleton', 'concept_brief_overview', '--language', 'fr'], cwd=self.root)

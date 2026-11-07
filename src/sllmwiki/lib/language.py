@@ -124,10 +124,18 @@ def loaded():
     return _loaded
 
 
+# a Chinese tag that names a region, not a script: the script its region writes
+SCRIPT_OF = {'zh-tw': 'zh-hant', 'zh-hk': 'zh-hant', 'zh-mo': 'zh-hant', 'zh-cn': 'zh-hans', 'zh-sg': 'zh-hans'}
+
+
 def pack(tag):
-    """The pack for a language tag: its own, else its base language's (zh-Hans-CN, zh-Hans, zh); None when there's none."""
+    """The pack for a language tag: its own, else its base language's (zh-Hans-CN, zh-Hans, zh); None when there's none.
+    A Chinese region's tag reads as its script's (zh-TW as zh-Hant, zh-CN as zh-Hans)."""
     packs = loaded()
-    parts = (tag or DEFAULT).lower().split('-')
+    low = (tag or DEFAULT).lower()
+    if low not in packs and low in SCRIPT_OF:
+        low = SCRIPT_OF[low]
+    parts = low.split('-')
     for i in range(len(parts), 0, -1):
         if '-'.join(parts[:i]) in packs:
             return packs['-'.join(parts[:i])]

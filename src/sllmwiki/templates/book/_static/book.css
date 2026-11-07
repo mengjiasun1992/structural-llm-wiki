@@ -13,6 +13,11 @@ body { margin: 0 auto; max-width: 42rem; padding: 2.5rem 1.4rem 5rem;
 p, li { hyphens: auto; }
 h1, h2, h3, h4, h5, h6, .headnote, .endmark, table, figcaption {
   font-family: "Noto Sans", "Inter", system-ui, -apple-system, "Segoe UI", "Noto Sans CJK SC", "PingFang SC", sans-serif; }
+/* Traditional Chinese (Sphinx's zh_TW): its glyph forms, not the Simplified ones above */
+body:lang(zh-TW) { font-family: "Noto Serif", "Source Serif 4", Charter, Georgia, "Noto Serif CJK TC", "Songti TC", serif; }
+h1:lang(zh-TW), h2:lang(zh-TW), h3:lang(zh-TW), h4:lang(zh-TW), h5:lang(zh-TW), h6:lang(zh-TW), .headnote:lang(zh-TW),
+.endmark:lang(zh-TW), table:lang(zh-TW), figcaption:lang(zh-TW) {
+  font-family: "Noto Sans", "Inter", system-ui, -apple-system, "Segoe UI", "Noto Sans CJK TC", "PingFang TC", sans-serif; }
 h1, h2, h3, h4, h5, h6 { line-height: 1.28; margin: 1.8em 0 .55em; font-weight: 650; letter-spacing: -.005em; }
 h2 { font-size: 1.6rem; } h3 { font-size: 1.4rem; } h4 { font-size: 1.25rem; } h5 { font-size: 1.12rem; } h6 { font-size: 1.05rem; }
 #book-cover > h1:first-child { font-size: 2.8rem; margin-bottom: .2em; }
