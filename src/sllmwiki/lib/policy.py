@@ -19,6 +19,11 @@ OPEN_LICENSES = {
     'cc0-1.0', 'cc-pdm-1.0', 'public-domain', 'unlicense',
     'cc-by-2.0', 'cc-by-2.5', 'cc-by-3.0', 'cc-by-4.0', 'cc-by-sa-2.0', 'cc-by-sa-2.5', 'cc-by-sa-3.0', 'cc-by-sa-4.0',
     'mit', 'apache-2.0', 'bsd-2-clause', 'bsd-3-clause', 'isc', 'mpl-2.0',
+    # the GNU family, which lets anyone share verbatim copies that keep their notice (issue #122);
+    # the bare ids are the deprecated SPDX forms GitHub's license API still reports
+    'gpl-2.0', 'gpl-2.0-only', 'gpl-2.0-or-later', 'gpl-3.0', 'gpl-3.0-only', 'gpl-3.0-or-later',
+    'lgpl-2.1', 'lgpl-2.1-only', 'lgpl-2.1-or-later', 'lgpl-3.0', 'lgpl-3.0-only', 'lgpl-3.0-or-later',
+    'agpl-3.0', 'agpl-3.0-only', 'agpl-3.0-or-later',
 }
 
 
