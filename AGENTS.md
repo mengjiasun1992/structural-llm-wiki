@@ -73,7 +73,7 @@ claude plugin validate .
 
 ## Running evals
 
-The cases are in `evals/` at the repository's root, outside the plugin, so they never ship with it. `claude plugin eval` looks for them inside the plugin's root, so `src/tools/eval-plugin.sh` assembles a copy (`plugin/`'s contents, `evals/` and `tests/`), runs it there with its arguments, and copies the results back to `evals/results/`. `evals/README.md` lists the cases. Typical commands, from the repository root:
+The cases are in `evals/` at the repository's root, outside the plugin, so they never ship with it. `claude plugin eval` looks for them inside the plugin's root, so `src/tools/eval-plugin.sh` assembles a copy (`plugin/`'s contents, `evals/`, `tests/` and the package), runs it there with its arguments, and copies the results back to `evals/results/`. A run's sandbox has no network, so it can't install the package from PyPI: `eval-plugin.sh` installs this checkout's into a venv and puts it on PATH, which runs inherit and the skill uses when its version matches, so the evals test the branch. `evals/README.md` lists the cases. Typical commands, from the repository root:
 
 ```bash
 # smoke cases (routing, query, safety, not-a-wiki): about $1 with Sonnet
