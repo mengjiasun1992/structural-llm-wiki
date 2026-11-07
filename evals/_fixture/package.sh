@@ -14,3 +14,5 @@ version="${version%%-*}"
 venv="$HOME/../config/plugins/data/sllmwiki-inline/venv-$version"
 python3 -m venv "$venv"
 "$venv/bin/python" -m pip install --quiet --disable-pip-version-check --no-index --no-deps "$wheel"
+# for the Evals workflow, which keeps it beside the run's trace
+echo "installed $("$venv/bin/sllmwiki" --version) in $venv" >> "$HOME/../out/package.log"

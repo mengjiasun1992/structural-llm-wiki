@@ -114,6 +114,12 @@ jobs:
           for f in "$RUNNER_TEMP"/evals/claude-eval-*/out/trace.jsonl /tmp/claude-eval-*/out/trace.jsonl; do
             [ -f "$f" ] && cp "$f" "evals/results/traces/$(basename "$(dirname "$(dirname "$f")")").jsonl"
           done || true
+          # what each scaffold installed (evals/_fixture/package.sh), and what the run's plugin data folder holds
+          for run in "$RUNNER_TEMP"/evals/claude-eval-*/; do
+            name=$(basename "$run")
+            { cat "$run/out/package.log" 2>/dev/null || echo "no package.log"
+              ls -la "$run/config/plugins/data/"*/ 2>&1; } > "evals/results/traces/$name.package.txt"
+          done || true
 
       - name: Keep the report
         if: always()
