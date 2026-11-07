@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'search\.py (section|outline)'
+input_match: '(?:sllmwiki|\$\{?\w+\}?)"? search (section|outline)'
 min: 0
 max: 0
 ---

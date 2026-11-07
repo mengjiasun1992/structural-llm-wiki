@@ -1,4 +1,4 @@
-"""What a run cost (design doc §5.3): its time since publish.py start, and the
+"""What a run cost (design doc §5.3): its time since sllmwiki publish start, and the
 turns and tokens of this session's API requests since then, read from the
 session's own transcript. A session knows its tokens, not its price, so dollars
 come only from the caller.

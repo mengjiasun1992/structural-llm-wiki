@@ -1,5 +1,5 @@
 """The wiki's git repository: its remote and default branch, for the scripts that
-publish (publish.py) and release (release.py)."""
+publish (sllmwiki publish) and release (sllmwiki release)."""
 
 import subprocess
 

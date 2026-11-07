@@ -2,7 +2,7 @@
 """contributors: the people behind some code or docs, ranked with their evidence
 (design doc §5.1, the smes step).
 
-  contributors.py <path> [<path> ...] [--repo DIR] [--limit N] [--json] [--root <wiki>]
+  sllmwiki contributors <path> [<path> ...] [--repo DIR] [--limit N] [--json] [--root <wiki>]
 
 <path>s are files or folders in the repository at --repo (default: the wiki's
 own). Each person is ranked by:
@@ -31,7 +31,7 @@ from sllmwiki.lib import config, runstats  # noqa: E402
 from sllmwiki.lib.layout import Cli, entry  # noqa: E402
 from sllmwiki.lib.util import dumps, read_text  # noqa: E402
 
-cli = Cli('contributors.py', 'usage: contributors.py <path> [<path> ...] [--repo DIR] [--limit N] [--json]')
+cli = Cli('sllmwiki contributors', 'usage: sllmwiki contributors <path> [<path> ...] [--repo DIR] [--limit N] [--json]')
 HALF_LIFE_DAYS = 365
 MAX_BLAME_FILES = 200
 BOT = re.compile(r'\[bot\]|(?:^|[-_.])bot(?:$|[-_.@])|dependabot|renovate|github-actions|^noreply@', re.I)  # tools, not people
@@ -168,7 +168,7 @@ def rank(repo, paths, exclude, now=None):
 
 
 def main(argv):
-    p = argparse.ArgumentParser(prog='contributors.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(prog='sllmwiki contributors', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('paths', nargs='+')
     p.add_argument('--repo')
     p.add_argument('--limit', type=int, default=10)

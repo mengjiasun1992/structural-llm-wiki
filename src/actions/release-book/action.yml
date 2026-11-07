@@ -1,5 +1,5 @@
 # Builds a Structural LLM Wiki as a book (docs/book_design.md §6.6): the skill's
-# book.py stages it, draws its diagrams and math in headless Chrome with the
+# sllmwiki book stages it, draws its diagrams and math in headless Chrome with the
 # libraries in vendor/, and runs Sphinx. Chrome is already on GitHub's
 # runners; Sphinx and MyST-Parser are installed at their pinned versions.
 #

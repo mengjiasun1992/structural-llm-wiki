@@ -77,7 +77,7 @@ class Command(helpers.WikiTestCase):
 
     def test_failures(self):
         self.assertIn('no such file: nope.md', self.s('section', 'nope.md#x').err)
-        self.assertIn('has no section #nope; see search.py outline', self.s('section', 'alpha-doc#nope').err)
+        self.assertIn('has no section #nope; see sllmwiki search outline', self.s('section', 'alpha-doc#nope').err)
         self.assertIn('section needs a #anchor', self.s('section', 'alpha-doc').err)
 
 

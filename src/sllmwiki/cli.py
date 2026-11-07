@@ -10,7 +10,7 @@ import sys
 from sllmwiki import __version__
 from sllmwiki.lib.util import setup_stdio
 
-COMMANDS = ('book', 'check-upstream', 'cited-sections', 'contributors', 'fetch-source', 'finish-narrative', 'init', 'manifest',
+COMMANDS = ('book', 'check-upstream', 'cited-sections', 'contributors', 'doctor', 'fetch-source', 'finish-narrative', 'init', 'manifest',
             'narrative-format', 'publish', 'reading-plan', 'release', 'review-checklist', 'search', 'tag-tree', 'wiki-check')
 
 

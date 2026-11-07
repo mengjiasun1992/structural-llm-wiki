@@ -124,6 +124,11 @@ class Init(unittest.TestCase):
             with mock.patch('builtins.open', refuse):
                 run.settings()
             self.assertEqual(run.done, [(init.SKIPPED, '.claude/settings.json')])
+        with mock.patch('builtins.open', refuse):
+            r = self.init('--name', 'demo-wiki')
+        self.assertEqual(r.code, 0, r.err)
+        self.assertIn(f'{init.SKIPPED} .claude/settings.json\n{{\n  "extraKnownMarketplaces"', r.out)  # the keys to merge in
+        self.assertIn('"sllmwiki@structural-llm-wiki": true', r.out)
 
     def test_the_old_root_layout_moves_under_sllmwiki(self):
         # before 1.0 the settings, the templates and the index were at the root

@@ -16,7 +16,7 @@
      - B: textbooks and references;
      - C: practitioner write-ups and encyclopedias; use an encyclopedia to get oriented and to find the sources it cites.
   3. **Recency:** among equally relevant and authoritative sources, the newest, for the latest understanding of the topic.
-- Skip any source already saved (`search.py sources "<keywords>"`); refresh one `wiki-check.py` reports as SOURCE_UPSTREAM_CHANGED. To find those, `check-upstream.py [<slugs>] [--tags <tags>]` fetches saved sources again and marks the changed ones.
+- Skip any source already saved (`sllmwiki search sources "<keywords>"`); refresh one `sllmwiki wiki-check` reports as SOURCE_UPSTREAM_CHANGED. To find those, `sllmwiki check-upstream [<slugs>] [--tags <tags>]` fetches saved sources again and marks the changed ones.
 
 ## 2. Judge before saving
 
@@ -26,20 +26,20 @@
 
 ## 3. Save
 
-- **A copy:** `fetch-source.py <topic>-<source-name> --url <url> --tags <tags> --license <id> [--license-url <url>] [--published YYYY-MM-DD]`.
+- **A copy:** `sllmwiki fetch-source <topic>-<source-name> --url <url> --tags <tags> --license <id> [--license-url <url>] [--published YYYY-MM-DD]`.
   - Add `--file <path>` for a copy you already have, or `--refresh` to save a changed source again.
   - PDFs, EPUBs and LaTeX are converted; an EPUB whose chapters are encrypted (DRM) is refused, so record a link. A LaTeX source in several files: put them in one folder and pass the main one with `--file`.
   - A table or figure a page only links to ("Full size table"): when a question needs it, save the linked page too, as its own source.
   - When it refuses (the source policy, a login, a format it can't read), record a link instead.
-- **A link:** `manifest.py put-source <slug> --kind link --url <url> --license <id> --tags <tags> --abstract "<abstract>"`. A saved copy the wiki may not keep (`wiki-check` reports `SOURCE_POLICY`) becomes one in place with `put-source <slug> --kind link --drop-copy`; then fix the narratives citing it.
+- **A link:** `sllmwiki manifest put-source <slug> --kind link --url <url> --license <id> --tags <tags> --abstract "<abstract>"`. A saved copy the wiki may not keep (`wiki-check` reports `SOURCE_POLICY`) becomes one in place with `put-source <slug> --kind link --drop-copy`; then fix the narratives citing it.
 
 ## 4. Abstract
 
-A saved source stays in the language it was written in: never translate it. Read each saved source once, and write its abstract, in the wiki's language: 150-250 words on what it says and covers, using the source's own abstract when it has one. Save it with `manifest.py set-abstract <slug> --abstract "<abstract>"`. Note what each source says that the questions need: the narrative step reads that note instead of the whole source again.
+A saved source stays in the language it was written in: never translate it. Read each saved source once, and write its abstract, in the wiki's language: 150-250 words on what it says and covers, using the source's own abstract when it has one. Save it with `sllmwiki manifest set-abstract <slug> --abstract "<abstract>"`. Note what each source says that the questions need: the narrative step reads that note instead of the whole source again.
 
 ## 5. Summary
 
-`publish.py summary ingest --json '{...}'` with:
+`sllmwiki publish summary ingest --json '{...}'` with:
 - `title`: "Sources";
 - `checklist`: "Sources: each is one you'd trust";
 - `decisions`: anything the owner must decide, such as permission to keep a copy, and each A source you couldn't use or save, with its link and why;

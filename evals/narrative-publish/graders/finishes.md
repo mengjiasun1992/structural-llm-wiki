@@ -1,8 +1,8 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'finish-narrative\.py'
+input_match: '(?:sllmwiki|\$\{?\w+\}?)"? finish-narrative'
 min: 1
 ---
 
-finish-narrative.py does the mechanical part.
+sllmwiki finish-narrative does the mechanical part.

@@ -1,32 +1,32 @@
 #!/usr/bin/env python3
 """publish: a run's branch, commits and one pull request (design doc §5.2-§5.3).
 
-  publish.py start <slug> --title TEXT --prompt TEXT
+  sllmwiki publish start <slug> --title TEXT --prompt TEXT
       Checks the working tree is clean (Obsidian's settings aside), brings the
       default branch up to date and stops if it has diverged from the remote's,
       then starts the run's branch, sllmwiki/<slug>, from it.
-  publish.py summary <step> --json '{"title": ..., "checklist": [...], "decisions": [...], "body": "..."}'
+  sllmwiki publish summary <step> --json '{"title": ..., "checklist": [...], "decisions": [...], "body": "..."}'
       Records a step's summary: its review checklist items, the decisions it
       leaves to the owner, and its report. (Or --file SUMMARY.json.) A
       narrative's is one per question and a lint's one per scope, by title; the others, one per step.
-  publish.py commit <action> [--tags a,b] --subject TEXT
+  sllmwiki publish commit <action> [--tags a,b] --subject TEXT
       Commits everything the run changed with the message
       [sllmwiki][<action>][<tags>] <subject>, the step's report, and the
       request that started the run, verbatim, in a Prompt: block.
-  publish.py pr
+  sllmwiki publish pr
       Pushes the branch and opens its pull request, or updates it, with a
       description built from the summaries: the review checklist first, then
       the decisions, then each step's report, then what the run cost: its
       time, and its turns and tokens from the session's transcript (--cost USD
       adds dollars, when the caller knows them). Without gh, prints the link
       to open it; without a remote, keeps the commits on the branch.
-  publish.py resume <slug>
+  sllmwiki publish resume <slug>
       Back to a run's branch, to rework it: any run started here, or one whose
       state is elsewhere (another clone, or cleared), rebuilt from its branch
       and pull request: the prompt from its commits, the title, checklist,
       decisions and step reports from the pull request's description. A
       reworked step's summary replaces the section with its title.
-  publish.py status            the run, its summaries and its pull request
+  sllmwiki publish status            the run, its summaries and its pull request
 
 A run never merges its pull request: the owner does. Each run's state lives in
 .git/sllmwiki/runs/<slug>/, never committed. Options: --root <wiki>.
@@ -49,7 +49,7 @@ from sllmwiki.lib.layout import Cli, entry  # noqa: E402
 from sllmwiki.lib.policy import github_repo  # noqa: E402
 from sllmwiki.lib.util import placeholder, read_text, write_text  # noqa: E402
 
-cli = Cli('publish.py', 'usage: publish.py start|summary|commit|pr|resume|status ...; see --help')
+cli = Cli('sllmwiki publish', 'usage: sllmwiki publish start|summary|commit|pr|resume|status ...; see --help')
 ACTIONS = ('init', 'template', 'tags', 'ingest', 'smes', 'narrative', 'lint')
 STEP_ORDER = ('template', 'tags', 'ingest', 'smes', 'narrative', 'lint')
 IGNORED = ('sllmwiki/.obsidian/',)  # Obsidian rewrites its settings whenever the graph moves; only an init commit takes graph.json
@@ -79,7 +79,7 @@ def current(root):
                 shutil.move(os.path.join(base, name), os.path.join(folder, name))
         write_text(os.path.join(base, 'current'), slug)
     if not os.path.isfile(os.path.join(base, 'current')):
-        cli.fail('no run in progress here; start one with publish.py start')
+        cli.fail('no run in progress here; start one with sllmwiki publish start')
     return read_text(os.path.join(base, 'current')).strip()
 
 
@@ -91,7 +91,7 @@ def run_dir(root, slug=None):
 def load_state(root):
     path = os.path.join(run_dir(root), 'run.json')
     if not os.path.isfile(path):
-        cli.fail('no run in progress here; start one with publish.py start')
+        cli.fail('no run in progress here; start one with sllmwiki publish start')
     with open(path, encoding='utf-8') as f:
         return json.load(f)
 
@@ -132,7 +132,7 @@ def start(root, slug, title, prompt):
     base = default_branch(root)
     branch = f'sllmwiki/{slug}'
     if git(root, 'rev-parse', '--verify', '--quiet', f'refs/heads/{branch}', check=False):
-        cli.fail(f'{branch} exists; continue it with publish.py resume {slug}, or pick another slug')
+        cli.fail(f'{branch} exists; continue it with sllmwiki publish resume {slug}, or pick another slug')
     if has_remote(root):
         git(root, 'fetch', '--quiet', 'origin', base)
         local = git(root, 'rev-parse', '--verify', '--quiet', f'refs/heads/{base}', check=False)
@@ -198,7 +198,7 @@ def message(state, action, tags, subject, report):
 def commit(root, action, tags, subject):
     state = load_state(root)
     if git(root, 'rev-parse', '--abbrev-ref', 'HEAD') != state['branch']:
-        cli.fail(f'not on the run\'s branch {state["branch"]}; publish.py resume {state["slug"]}')
+        cli.fail(f'not on the run\'s branch {state["branch"]}; sllmwiki publish resume {state["slug"]}')
     git(root, 'add', '-A', '--', '.', *[f':(exclude){p}' for p in (*IGNORED, *placeholders(root))])
     if action == 'init':  # the add-on's graph.json when init writes it, never Obsidian's later changes to a tracked one
         new = git(root, 'ls-files', '--others', '--exclude-standard', '--', *IGNORED).split('\n')
@@ -331,7 +331,7 @@ def resume(root, slug):
 
 
 def main(argv):
-    p = argparse.ArgumentParser(prog='publish.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(prog='sllmwiki publish', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--root')
     sub = p.add_subparsers(dest='command', required=True)
     s = sub.add_parser('start')

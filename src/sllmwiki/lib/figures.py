@@ -165,7 +165,7 @@ def check_captions(text):
             continue
         carried.add(f'{m.group(1)}-{m.group(2)}')
         if f'{m.group(1)}-{m.group(2)}' != label:
-            out.append(('error', 'FIGURE_NUMBER', line + 1, f'this is Figure {label} (finish-narrative.py renumbers)'))
+            out.append(('error', 'FIGURE_NUMBER', line + 1, f'this is Figure {label} (sllmwiki finish-narrative renumbers)'))
     kinds, _ = scan(lines)
     for i, line in enumerate(lines):
         if kinds[i] == 'text' and i not in want:

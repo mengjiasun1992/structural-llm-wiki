@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """review-checklist: are all of a run's review boxes ticked? (design doc §5.2)
 
-  review-checklist.py [--file PR_BODY.md]   (default: the PR_BODY environment variable)
+  sllmwiki review-checklist [--file PR_BODY.md]   (default: the PR_BODY environment variable)
 
 Reads a pull request's description, finds its "## Review checklist" section
-(publish.py writes it first), and fails while any box there is unticked. A
+(sllmwiki publish writes it first), and fails while any box there is unticked. A
 description without the section isn't a run's, and passes.
 Exit code: 0 all ticked or no checklist, 1 boxes left, 2 usage error.
 """
@@ -18,7 +18,7 @@ sys.dont_write_bytecode = True
 from sllmwiki.lib.layout import Cli, entry  # noqa: E402
 from sllmwiki.lib.util import read_text  # noqa: E402
 
-cli = Cli('review-checklist.py', 'usage: review-checklist.py [--file PR_BODY.md]')
+cli = Cli('sllmwiki review-checklist', 'usage: sllmwiki review-checklist [--file PR_BODY.md]')
 BOX = re.compile(r'\s*[-*] \[( |x|X)\] (.*)')
 
 

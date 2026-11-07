@@ -2,7 +2,7 @@
 """cited-sections: each section a narrative cites, once, with the claims that cite it
 (design doc §7.3), so lint reads those sections and not whole sources.
 
-  cited-sections.py <narrative> [--claims-only] [--json] [--root <wiki>]
+  sllmwiki cited-sections <narrative> [--claims-only] [--json] [--root <wiki>]
 
 <narrative> is its slug or its path. For each cited target, in order of first
 citation: the target, the claims citing it (the sentence before each citation,
@@ -24,7 +24,7 @@ from sllmwiki.lib import citations, layout, search  # noqa: E402
 from sllmwiki.lib.layout import Cli, entry  # noqa: E402
 from sllmwiki.lib.util import dumps, read_text  # noqa: E402
 
-cli = Cli('cited-sections.py', 'usage: cited-sections.py <narrative> [--claims-only] [--json]')
+cli = Cli('sllmwiki cited-sections', 'usage: sllmwiki cited-sections <narrative> [--claims-only] [--json]')
 _LINKS = re.compile(r'\[\\\[[0-9]+\\\]\]\([^)\s]*\)')
 _SENTENCE_END = re.compile(r'(?<=[.!?:;])[*_]*\s+(?=\S)|(?<=[。！？；：])[*_]*\s*(?=\S)')
 
@@ -51,7 +51,7 @@ def collect(text):
 
 
 def main(argv):
-    p = argparse.ArgumentParser(prog='cited-sections.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(prog='sllmwiki cited-sections', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('narrative')
     p.add_argument('--claims-only', action='store_true')
     p.add_argument('--json', action='store_true')

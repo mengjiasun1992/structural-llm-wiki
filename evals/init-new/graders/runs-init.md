@@ -1,8 +1,8 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'init\.py'
+input_match: '(?:sllmwiki|\$\{?\w+\}?)"? init'
 min: 1
 ---
 
-init.py lays the wiki out.
+sllmwiki init lays the wiki out.

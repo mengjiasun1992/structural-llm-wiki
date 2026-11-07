@@ -14,7 +14,7 @@ import os
 
 from . import epub, fetch, html2md, pdf, plaintext, tex
 
-LINK = 'record it as a link (manifest.py put-source --kind link)'
+LINK = 'record it as a link (sllmwiki manifest put-source --kind link)'
 
 
 class ConvertError(Exception):

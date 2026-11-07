@@ -74,9 +74,9 @@ def check(text, on=True):
     """Findings (severity, code, line, message) about markers; on is Config.toml's markers setting."""
     lines = text.split('\n')
     kinds, _ = scan(lines)
-    out = [('error', 'MARKER_OLD', i + 1, f'{m.group(0)} is the old marker: write {OLD[m.group(0)]} after the statement (finish-narrative.py converts it)')
+    out = [('error', 'MARKER_OLD', i + 1, f'{m.group(0)} is the old marker: write {OLD[m.group(0)]} after the statement (sllmwiki finish-narrative converts it)')
            for i, line in enumerate(lines) if kinds[i] == 'text' for m in _OLD.finditer(_masked(line))]
-    out += [('error', 'MARKER_OLD', i + 1, '[->] is written [→] (finish-narrative.py converts it)')
+    out += [('error', 'MARKER_OLD', i + 1, '[->] is written [→] (sllmwiki finish-narrative converts it)')
             for i, line in enumerate(lines) if kinds[i] == 'text' for _ in _ASCII.finditer(_masked(line))]
     used = uses(text)
     if not on:
@@ -97,7 +97,7 @@ def check(text, on=True):
             if re.search(CITE.pattern + r'[ \t]*\Z', before) or re.match(r'\s*' + CITE.pattern, after):  # a citation sits where the marker does
                 out.append(('error', 'MARKER_AND_CITATION', i + 1, f'a statement is cited or marked {m}, never both'))
         if m not in have:
-            out.append(('error', 'MARKER_UNDEFINED', i + 1, f'{m} isn\'t defined in Terminology (finish-narrative.py adds it)'))
+            out.append(('error', 'MARKER_UNDEFINED', i + 1, f'{m} isn\'t defined in Terminology (sllmwiki finish-narrative adds it)'))
     return out + _level_hints(text, lines, statements)
 
 

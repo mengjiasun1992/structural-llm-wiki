@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """check-upstream: has a saved source changed where it came from? (design doc §7.2)
 
-  check-upstream.py [<slug> ...] [--tags a,b] [--json] [--root <wiki>]
+  sllmwiki check-upstream [<slug> ...] [--tags a,b] [--json] [--root <wiki>]
 
 Fetches each saved source again (all of them, the given slugs, or those under
 the given tags), converts it the way fetch-source saved it, and compares it
 with the saved copy. A changed one is marked upstream_changed: <today> in the
 sources manifest, which wiki-check then reports (SOURCE_UPSTREAM_CHANGED: re-ingest
-it with fetch-source.py --refresh, and narratives pinned to it get rechecked).
+it with sllmwiki fetch-source --refresh, and narratives pinned to it get rechecked).
 An unchanged one loses any earlier mark. A source that can't be fetched or
 converted is reported and left as it is. A long PDF saved in slices is fetched
 once and each slice compared with the new slice at the same place: the same
@@ -31,7 +31,7 @@ from sllmwiki.lib import convert, fetch, layout, manifest, wikiindex  # noqa: E4
 from sllmwiki.lib.layout import Cli, entry  # noqa: E402
 from sllmwiki.lib.util import dumps, read_bytes, split_footer, today  # noqa: E402
 
-cli = Cli('check-upstream.py', 'usage: check-upstream.py [<slug> ...] [--tags a,b] [--json]')
+cli = Cli('sllmwiki check-upstream', 'usage: sllmwiki check-upstream [<slug> ...] [--tags a,b] [--json]')
 
 
 def fetch_converted(url):
@@ -72,7 +72,7 @@ def compare(root, entry, fetched):
 
 
 def main(argv):
-    p = argparse.ArgumentParser(prog='check-upstream.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(prog='sllmwiki check-upstream', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('slugs', nargs='*')
     p.add_argument('--tags', type=lambda v: [t.strip() for t in v.split(',') if t.strip()], default=[])
     p.add_argument('--json', action='store_true')
@@ -104,7 +104,7 @@ def main(argv):
     for r in results:
         print(f'{r["status"]:<12} {r["slug"]}' + (f': {r["detail"]}' if r['detail'] else ''))
     changed = [r['slug'] for r in results if r['status'] == 'changed']
-    print(f'{len(results)} checked, {len(changed)} changed' + (f': re-ingest with fetch-source.py --refresh ({", ".join(changed)})' if changed else ''))
+    print(f'{len(results)} checked, {len(changed)} changed' + (f': re-ingest with sllmwiki fetch-source --refresh ({", ".join(changed)})' if changed else ''))
     return 0
 
 

@@ -2,7 +2,7 @@
 """finish-narrative: everything mechanical after a narrative is written or edited,
 in one command (design doc §7.5).
 
-  finish-narrative.py <slug> [--primary a,b] [--supporting c] [--read s1,s2]
+  sllmwiki finish-narrative <slug> [--primary a,b] [--supporting c] [--read s1,s2]
                       [--grades GRADES.json] [--model NAME]
                       [--bump minor|major --note TEXT] [--json] [--root <wiki>]
 
@@ -13,7 +13,7 @@ and adds a Terminology row for each marker the narrative uses (when markers are 
 Metadata's dates and, for a new narrative, version 1.0 and its first history
 entry, or with --bump, the next version and --note as its history entry;
 records the narrative with its template, tags, the current pins of the sources
-it read, the reading plan's grades (--grades, the file given to reading-plan.py
+it read, the reading plan's grades (--grades, the file given to sllmwiki reading-plan
 order, which must have run on it since it last changed)
 and the model that wrote a new version (this session's, or --model); writes the
 model and the reading plan into the Metadata; regenerates the index and tag
@@ -37,7 +37,7 @@ from sllmwiki.lib.narrativecheck import check as check_narrative  # noqa: E402
 from sllmwiki.lib.layout import Cli, entry  # noqa: E402
 from sllmwiki.lib.util import dumps, read_text, today, write_text  # noqa: E402
 
-cli = Cli('finish-narrative.py', 'usage: finish-narrative.py <slug> [--primary a,b] [--supporting c] [--read s1,s2] [--grades FILE] [--model NAME] '
+cli = Cli('sllmwiki finish-narrative', 'usage: sllmwiki finish-narrative <slug> [--primary a,b] [--supporting c] [--read s1,s2] [--grades FILE] [--model NAME] '
           '[--bump minor|major --note TEXT]')
 
 
@@ -46,7 +46,7 @@ def tag_list(value):
 
 
 def main(argv):
-    p = argparse.ArgumentParser(prog='finish-narrative.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(prog='sllmwiki finish-narrative', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('slug')
     p.add_argument('--primary', type=tag_list)
     p.add_argument('--supporting', type=tag_list)
@@ -90,10 +90,10 @@ def main(argv):
             cli.fail('grade every saved source first: ' + '; '.join(problems))
         saved = readingplan.plan_path(args.grades)
         if not os.path.isfile(saved):
-            cli.fail(f'no reading plan for {args.grades}: run reading-plan.py order --grades {args.grades} first; its plan '
+            cli.fail(f'no reading plan for {args.grades}: run sllmwiki reading-plan order --grades {args.grades} first; its plan '
                      'is the order the narrative is read in, and its table goes in the summary')
         if os.path.getmtime(args.grades) > os.path.getmtime(saved):
-            cli.fail(f'{args.grades} changed after its reading plan: run reading-plan.py order --grades {args.grades} again')
+            cli.fail(f'{args.grades} changed after its reading plan: run sllmwiki reading-plan order --grades {args.grades} again')
         plan = readingplan.metadata_lines(rows)
         grades = {s['slug']: {k: given[s['slug']][k] for k in ('relevance', 'authority')} for s in found['sources'] if s['kind'] != 'link'}
         built_on = [n['slug'] for n in found['narratives'] if (given.get(n['slug']) or {}).get('relevance') == 'high']

@@ -2,18 +2,18 @@
 """manifest: write tags.yaml and the manifests, one checked entry at a time,
 so they're never edited by hand (design doc §4.2-§4.4).
 
-  manifest.py add-tag <tag> --description TEXT [--parent TAG]
-  manifest.py put-tag <tag> [--description TEXT] [--smes "@a: why" "@b: why" | --no-smes]
-  manifest.py put-source <slug> [--kind link [--drop-copy]] [--url URL] [--published DATE] [--license ID]
+  sllmwiki manifest add-tag <tag> --description TEXT [--parent TAG]
+  sllmwiki manifest put-tag <tag> [--description TEXT] [--smes "@a: why" "@b: why" | --no-smes]
+  sllmwiki manifest put-source <slug> [--kind link [--drop-copy]] [--url URL] [--published DATE] [--license ID]
                          [--license-url URL] [--tags a,b] [--abstract TEXT]
       Records a link, or changes the fields of an existing source; saved copies
-      come from fetch-source.py. --kind link --drop-copy turns a saved copy into
+      come from sllmwiki fetch-source. --kind link --drop-copy turns a saved copy into
       a link in place, deleting its file: for a copy the wiki may not keep.
-  manifest.py set-abstract <slug> --abstract TEXT
+  sllmwiki manifest set-abstract <slug> --abstract TEXT
       The agent's abstract for a source, replacing a draft.
-  manifest.py put-narrative <slug> --template NAME --primary a,b [--supporting c] [--read s1,s2]
-      Usually through finish-narrative.py, which also pins the sources read.
-  manifest.py remove <tags|sources|narratives> <key>
+  sllmwiki manifest put-narrative <slug> --template NAME --primary a,b [--supporting c] [--read s1,s2]
+      Usually through sllmwiki finish-narrative, which also pins the sources read.
+  sllmwiki manifest remove <tags|sources|narratives> <key>
 
 Every command takes --root <wiki> (default: the repository around the working
 directory), and rewrites the index and tag pages after it writes. Exit code: 0 done, 1 refused (the reason is printed), 2 usage error.
@@ -28,7 +28,7 @@ from sllmwiki.lib import config, manifest, wikiindex  # noqa: E402
 from sllmwiki.lib.layout import Cli, entry  # noqa: E402
 from sllmwiki.lib.util import today  # noqa: E402
 
-cli = Cli('manifest.py', 'usage: manifest.py <command> ...; see --help')
+cli = Cli('sllmwiki manifest', 'usage: sllmwiki manifest <command> ...; see --help')
 
 
 def tags_arg(value):
@@ -36,7 +36,7 @@ def tags_arg(value):
 
 
 def parser():
-    p = argparse.ArgumentParser(prog='manifest.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(prog='sllmwiki manifest', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--root')
     sub = p.add_subparsers(dest='command', required=True)
     a = sub.add_parser('add-tag')

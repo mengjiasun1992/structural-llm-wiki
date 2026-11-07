@@ -1,6 +1,6 @@
 # What every narrative shares
 
-A narrative answers one question, for the reader its template's guide names. It starts from `narrative-format.py --skeleton <template>`, which joins this skeleton to the template's sections, and keeps them in that order.
+A narrative answers one question, for its template's reader. It starts from `sllmwiki narrative-format --skeleton <template>`, which joins this skeleton to the template's sections, and keeps them in that order.
 
 ## The top and the appendices
 
@@ -10,7 +10,7 @@ A narrative answers one question, for the reader its template's guide names. It 
 - **Appendix** (when needed): what a reader may want but doesn't need to follow the answer: the Glossary, a derivation, an example beyond the key ones, a table of values, a lesser variant. Each item is a ### subsection that still serves the question, and the body links to it where it's relevant.
 - **SMEs** (when known): who to ask, the evidence, and one specific question each.
 - **References:** the sources read in full, then the Citations list, which gives each citation number its target once.
-- **Metadata:** version, template, model, dates, history and the reading plan. `finish-narrative.py` keeps it.
+- **Metadata:** version, template, model, dates, history and the reading plan. `sllmwiki finish-narrative` keeps it.
 
 ## Other narratives
 
@@ -36,4 +36,4 @@ Explain in your own words and the narrative's language. Quote only a definition 
 
 ## Formatting
 
-Write plain markdown, with no heading numbers and no Obsidian-only syntax (wikilinks, highlights): `finish-narrative.py` numbers, escapes and records the narrative, and `narrative-format.py` reports the rest.
+Write plain markdown, without heading numbers or Obsidian-only syntax (wikilinks, highlights): `sllmwiki finish-narrative` numbers, escapes and records the narrative, and `sllmwiki narrative-format` reports the rest.

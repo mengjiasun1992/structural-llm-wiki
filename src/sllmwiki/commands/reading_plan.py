@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """reading-plan: what a narrative reads, and in what order (design doc §7.1).
 
-  reading-plan.py list --primary a,b [--supporting c]
+  sllmwiki reading-plan list --primary a,b [--supporting c]
       The candidates for a question's tags: the narratives filed under them
       (background) and their sources, each with its kind, size, date and
       abstract, for you to grade.
-  reading-plan.py order --primary a,b [--supporting c] --grades GRADES.json
+  sllmwiki reading-plan order --primary a,b [--supporting c] --grades GRADES.json
       GRADES.json gives each source its relevance and authority, and each
       existing narrative its relevance (high when this narrative builds on it):
         {"<source>": {"relevance": "high|medium|low", "authority": "A|B|C"},
@@ -38,9 +38,9 @@ from sllmwiki.lib import readingplan  # noqa: E402
 from sllmwiki.lib.layout import Cli, entry  # noqa: E402
 from sllmwiki.lib.util import dumps  # noqa: E402
 
-cli = Cli('reading-plan.py', 'usage: reading-plan.py list|order --primary a,b [--supporting c] [--grades FILE]')
+cli = Cli('sllmwiki reading-plan', 'usage: sllmwiki reading-plan list|order --primary a,b [--supporting c] [--grades FILE]')
 def main(argv):
-    p = argparse.ArgumentParser(prog='reading-plan.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(prog='sllmwiki reading-plan', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('command', choices=['list', 'order'])
     p.add_argument('--primary', required=True, type=lambda v: [t.strip() for t in v.split(',') if t.strip()])
     p.add_argument('--supporting', default=[], type=lambda v: [t.strip() for t in v.split(',') if t.strip()])

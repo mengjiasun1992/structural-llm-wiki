@@ -104,9 +104,9 @@ def check_placement(text):
         masked = _masked(lines[i])
         for _ in _AFTER.finditer(masked):
             out.append(('error', 'REFERENCE_PLACEMENT', i + 1, 'a reference goes inside its sentence, before the closing punctuation: '
-                                                               '"… exponentially [3]." (finish-narrative.py moves it)'))
+                                                               '"… exponentially [3]." (sllmwiki finish-narrative moves it)'))
         for _ in _SIDE.finditer(masked):
-            out.append(('error', 'REFERENCE_COMMA', i + 1, 'separate references with a comma: "[3], [6]" (finish-narrative.py adds it)'))
+            out.append(('error', 'REFERENCE_COMMA', i + 1, 'separate references with a comma: "[3], [6]" (sllmwiki finish-narrative adds it)'))
     return out
 
 

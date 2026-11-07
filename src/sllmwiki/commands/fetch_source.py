@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """fetch-source: save a source in the wiki, verbatim, and record it (design doc §4.3, §4.7).
 
-  fetch-source.py <slug> --url URL --tags a,b --license ID [--license-url URL]
+  sllmwiki fetch-source <slug> --url URL --tags a,b --license ID [--license-url URL]
                   [--published YYYY-MM-DD] [--file PATH] [--refresh]
                   [--allow-restricted "<who, when>"] [--json] [--root <wiki>]
 
@@ -14,7 +14,7 @@ encrypted), a LaTeX source's sections as headings and its math kept as TeX (its
 numbered sections as headings, a code file in one fenced block so citations
 can name its lines (#L10-L20), with the "Original source" footer. The source is recorded with a
 starter abstract (its opening words, marked abstract_draft); read the source
-and replace it with `manifest.py set-abstract <slug> --abstract "..."`.
+and replace it with `sllmwiki manifest set-abstract <slug> --abstract "..."`.
 
 A PDF over 100 pages with an outline, or an EPUB over 40,000 words whose table
 of contents has two or more top-level entries, is saved as one source per
@@ -28,7 +28,7 @@ whether a copy may be kept: never with source_copies = "links-only"; in a
 public wiki, only openly licensed sources, unless the owner gave permission
 (--allow-restricted records who and when). A page behind a login or paywall
 is never worked around. When a copy isn't allowed, record a link instead:
-manifest.py put-source <slug> --kind link ...
+sllmwiki manifest put-source <slug> --kind link ...
 
 --refresh saves a source again (for example when check-upstream says it
 changed); narratives pinned to its old version are then reported by
@@ -48,7 +48,7 @@ from sllmwiki.lib import config, convert, fetch, footer, layout, manifest, polic
 from sllmwiki.lib.layout import Cli, entry  # noqa: E402
 from sllmwiki.lib.util import dumps, read_bytes, today  # noqa: E402
 
-cli = Cli('fetch-source.py', 'usage: fetch-source.py <slug> --url URL --tags a,b --license ID [...]; see --help')
+cli = Cli('sllmwiki fetch-source', 'usage: sllmwiki fetch-source <slug> --url URL --tags a,b --license ID [...]; see --help')
 DRAFT_WORDS = 60
 
 
@@ -107,7 +107,7 @@ def slice_slug(slug, n, title):
 
 
 def main(argv):
-    p = argparse.ArgumentParser(prog='fetch-source.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(prog='sllmwiki fetch-source', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('slug')
     p.add_argument('--url', required=True)
     p.add_argument('--tags', required=True, type=lambda v: [t.strip() for t in v.split(',') if t.strip()])
@@ -133,10 +133,10 @@ def main(argv):
     if args.refresh and not existing:
         cli.fail(f'no source {args.slug} to refresh')
     if existing and existing.get('kind') == 'link':
-        cli.fail(f'{args.slug} is a link; save a copy under a new slug, or change the link with manifest.py put-source')
+        cli.fail(f'{args.slug} is a link; save a copy under a new slug, or change the link with sllmwiki manifest put-source')
     unknown = [t for t in args.tags if t not in manifest.load(root, 'tags')]
     if unknown:
-        cli.fail(f'no such tag(s): {", ".join(unknown)}; add them first (manifest.py add-tag)')
+        cli.fail(f'no such tag(s): {", ".join(unknown)}; add them first (sllmwiki manifest add-tag)')
 
     seen_by = policy.visibility(root)
     ok, why = policy.may_copy(settings['source_copies'], seen_by, args.license, args.allow_restricted)
@@ -187,7 +187,7 @@ def main(argv):
         print(f'{"refreshed" if existing else "saved"} {r["file"]} ({kind}, {r["bytes"]:,} bytes)' + ('' if slices else f': {why}'))
     if not keep_abstract:
         print('next: write the abstract of each slice a question reads' if slices else
-              f'next: read it and write its abstract: manifest.py set-abstract {args.slug} --abstract "..."')
+              f'next: read it and write its abstract: sllmwiki manifest set-abstract {args.slug} --abstract "..."')
     return 0
 
 
