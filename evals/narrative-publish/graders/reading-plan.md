@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'reading-plan\.py[^"]*order'
+input_match: '(?:sllmwiki|\$\{?\w+\}?)"? reading-plan[^"]*order'
 min: 1
 ---
 

@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: '(?=[\s\S]*publish\.py)[\s\S]*(publish\.py|\$\w+)"? pr\b'
+input_match: '(?:sllmwiki|\$\{?\w+\}?)"? publish pr\b'
 min: 1
 ---
 

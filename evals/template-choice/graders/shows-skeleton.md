@@ -1,8 +1,8 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'narrative-format\.py[^"]*--skeleton'
+input_match: '(?:sllmwiki|\$\{?\w+\}?)"? narrative-format[^"]*--skeleton'
 min: 1
 ---
 
-Skeletons come from narrative-format.py, not from memory.
+Skeletons come from sllmwiki narrative-format, not from memory.

@@ -10,10 +10,6 @@ cp -R "$repo/plugin/." "$work/"
 cp -R "$repo/evals" "$work/evals"
 cp -R "$repo/tests" "$work/tests"
 mkdir -p "$work/src" && cp -R "$repo/src/sllmwiki" "$work/src/sllmwiki"
-# The skill installs sllmwiki==<version> from PyPI; in the evals, pip finds this checkout's build instead,
-# so a run tests the branch, not what was published.
-python3 -m pip wheel --quiet --disable-pip-version-check --no-deps --wheel-dir "$work/dist" "$repo"
-export PIP_FIND_LINKS="$work/dist" PIP_NO_INDEX=1
 rm -rf "$work/evals/results"
 status=0
 (cd "$work" && claude plugin eval . "$@") || status=$?

@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'release\.py[^"]*\bplan\b[^"]*--anyway'
+input_match: '(?:sllmwiki|\$\{?\w+\}?)"? release[^"]*\bplan\b[^"]*--anyway'
 min: 1
 ---
 
