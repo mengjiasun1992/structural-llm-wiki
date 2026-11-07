@@ -38,15 +38,13 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import config, layout, manifest, toml, wikiindex  # noqa: E402
-from lib.layout import Cli, entry  # noqa: E402
-from lib.util import dumps, placeholder, read_text, write_text  # noqa: E402
+from sllmwiki import TEMPLATES, __version__  # noqa: E402
+from sllmwiki.lib import config, layout, manifest, toml, wikiindex  # noqa: E402
+from sllmwiki.lib.layout import Cli, entry  # noqa: E402
+from sllmwiki.lib.util import dumps, placeholder, read_text, write_text  # noqa: E402
 
 cli = Cli('init.py', 'usage: init.py [--name NAME] [--force] [--set KEY=VALUE ...] [--commit --prompt TEXT] | init.py --ask')
-SKILL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TEMPLATES = os.path.join(SKILL, 'templates')
 WIKI = os.path.join(TEMPLATES, 'wiki')
-PLUGIN_JSON = os.path.normpath(os.path.join(SKILL, '..', '..', '.claude-plugin', 'plugin.json'))  # plugin/skills/sllmwiki -> plugin/
 WORKFLOWS = ('wiki-checks.yml', 'review-checklist.yml', 'release-book.yml')
 # What may already be in a folder that becomes a wiki: a new repository's files
 EXPECTED = {'.git', 'README.md', 'LICENSE', 'LICENSE.md', '.gitignore', '.github', '.claude', 'CLAUDE.md', 'AGENTS.md', '.DS_Store',
@@ -58,13 +56,8 @@ SKIPPED = "couldn't write (blocked); add the plugin to it by hand:"
 
 
 def action_ref():
-    """The ref the wiki's CI calls the actions at: this plugin's release tag, or mainline without a version."""
-    try:
-        with open(PLUGIN_JSON, encoding='utf-8') as f:
-            version = json.load(f).get('version')
-    except (OSError, ValueError):
-        version = None
-    return f'v{version}' if version else 'mainline'
+    """The ref the wiki's CI calls the actions at: this package's release tag (the plugin's, as they share a version)."""
+    return f'v{__version__}'
 
 
 # The settings init asks the owner about: the rest keep their defaults until edited

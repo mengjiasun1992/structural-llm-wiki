@@ -27,9 +27,9 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import convert, fetch, layout, manifest, wikiindex  # noqa: E402
-from lib.layout import Cli, entry  # noqa: E402
-from lib.util import dumps, read_bytes, split_footer, today  # noqa: E402
+from sllmwiki.lib import convert, fetch, layout, manifest, wikiindex  # noqa: E402
+from sllmwiki.lib.layout import Cli, entry  # noqa: E402
+from sllmwiki.lib.util import dumps, read_bytes, split_footer, today  # noqa: E402
 
 cli = Cli('check-upstream.py', 'usage: check-upstream.py [<slug> ...] [--tags a,b] [--json]')
 

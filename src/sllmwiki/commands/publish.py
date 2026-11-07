@@ -43,11 +43,11 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import runstats  # noqa: E402
-from lib.gitrepo import default_branch, has_remote  # noqa: E402
-from lib.layout import Cli, entry  # noqa: E402
-from lib.policy import github_repo  # noqa: E402
-from lib.util import placeholder, read_text, write_text  # noqa: E402
+from sllmwiki.lib import runstats  # noqa: E402
+from sllmwiki.lib.gitrepo import default_branch, has_remote  # noqa: E402
+from sllmwiki.lib.layout import Cli, entry  # noqa: E402
+from sllmwiki.lib.policy import github_repo  # noqa: E402
+from sllmwiki.lib.util import placeholder, read_text, write_text  # noqa: E402
 
 cli = Cli('publish.py', 'usage: publish.py start|summary|commit|pr|resume|status ...; see --help')
 ACTIONS = ('init', 'template', 'tags', 'ingest', 'smes', 'narrative', 'lint')

@@ -52,9 +52,9 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import book, compat, config, figures, footer, language, layout, manifest, policy, schema, tagtree, templates, wikiindex, wikiyaml, xrefs  # noqa: E402
-from lib.layout import Cli, entry  # noqa: E402
-from lib.util import dumps, read_bytes, read_text, source_hash  # noqa: E402
+from sllmwiki.lib import book, compat, config, figures, footer, language, layout, manifest, policy, schema, tagtree, templates, wikiindex, wikiyaml, xrefs  # noqa: E402
+from sllmwiki.lib.layout import Cli, entry  # noqa: E402
+from sllmwiki.lib.util import dumps, read_bytes, read_text, source_hash  # noqa: E402
 
 cli = Cli('wiki-check.py', 'usage: wiki-check.py [--fix] [--json] [--visibility public|private]')
 

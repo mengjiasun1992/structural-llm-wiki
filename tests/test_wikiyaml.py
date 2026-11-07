@@ -4,8 +4,8 @@ everything else refused with its line."""
 import unittest
 
 import helpers
-from lib import wikiyaml as y
-from lib.wikiyaml import YamlError
+from sllmwiki.lib import wikiyaml as y
+from sllmwiki.lib.wikiyaml import YamlError
 
 try:
     import yaml

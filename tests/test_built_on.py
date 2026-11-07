@@ -5,7 +5,7 @@ import os
 import unittest
 
 import helpers
-from lib import manifest
+from sllmwiki.lib import manifest
 
 BETA = 'sllmwiki/narratives/how-does-beta-work.md'
 

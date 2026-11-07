@@ -38,11 +38,11 @@ import time
 
 sys.dont_write_bytecode = True
 
-from lib import config, language, release  # noqa: E402
-from lib.gitrepo import default_branch, git, has_remote  # noqa: E402
-from lib.layout import Cli, entry  # noqa: E402
-from lib.policy import github_repo  # noqa: E402
-from lib.util import dumps, write_text  # noqa: E402
+from sllmwiki.lib import config, language, release  # noqa: E402
+from sllmwiki.lib.gitrepo import default_branch, git, has_remote  # noqa: E402
+from sllmwiki.lib.layout import Cli, entry  # noqa: E402
+from sllmwiki.lib.policy import github_repo  # noqa: E402
+from sllmwiki.lib.util import dumps, write_text  # noqa: E402
 
 cli = Cli('release.py', 'usage: release.py plan|create|wait|preview ...; see --help')
 

@@ -44,9 +44,9 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import config, convert, fetch, footer, layout, manifest, policy, wikiindex  # noqa: E402
-from lib.layout import Cli, entry  # noqa: E402
-from lib.util import dumps, read_bytes, today  # noqa: E402
+from sllmwiki.lib import config, convert, fetch, footer, layout, manifest, policy, wikiindex  # noqa: E402
+from sllmwiki.lib.layout import Cli, entry  # noqa: E402
+from sllmwiki.lib.util import dumps, read_bytes, today  # noqa: E402
 
 cli = Cli('fetch-source.py', 'usage: fetch-source.py <slug> --url URL --tags a,b --license ID [...]; see --help')
 DRAFT_WORDS = 60

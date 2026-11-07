@@ -4,8 +4,8 @@ import os
 import unittest
 
 import helpers
-from lib import manifest, wikiyaml
-from lib.manifest import ManifestError
+from sllmwiki.lib import manifest, wikiyaml
+from sllmwiki.lib.manifest import ManifestError
 
 
 def run(root, *argv):

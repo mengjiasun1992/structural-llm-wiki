@@ -9,8 +9,8 @@ from unittest import mock
 import epubmaker
 import helpers
 import pdfmaker
-from lib import epub, footer, manifest, pdf, policy
-from lib.util import read_bytes, source_hash
+from sllmwiki.lib import epub, footer, manifest, pdf, policy
+from sllmwiki.lib.util import read_bytes, source_hash
 
 MD = b'# Retry budgets\n\nA retry budget caps retries at a share of requests.\n\n## How\n\nTen percent.\n'
 HTML = (b'<html><head><title>Backoff</title></head><body><nav>Menu</nav><main><h1>Backoff</h1>'

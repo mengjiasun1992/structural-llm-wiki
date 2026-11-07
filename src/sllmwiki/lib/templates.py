@@ -17,10 +17,11 @@ import os
 import re
 import shutil
 
+from .. import TEMPLATES
 from . import config, language, layout, numbering, wikiyaml
 from .util import read_text
 
-BUNDLED = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'templates', 'narratives'))
+BUNDLED = os.path.join(TEMPLATES, 'narratives')
 SHARED_SKELETON = os.path.join(BUNDLED, 'shared-skeleton.md')
 BODY_MARK = '<!-- sllmwiki:body -->'
 GUIDE_SECTIONS = ('Audience and purpose', 'Voice and tone', 'Structure', 'Evidence', 'Length', 'Checklist')

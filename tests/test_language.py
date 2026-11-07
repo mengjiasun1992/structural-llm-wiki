@@ -6,7 +6,7 @@ import re
 import unittest
 
 import helpers
-from lib import config, figures, language, markers, metadata, narrativecheck, numbering, search, templates
+from sllmwiki.lib import config, figures, language, markers, metadata, narrativecheck, numbering, search, templates
 
 NARRATIVE = 'sllmwiki/narratives/what-is-alpha.md'
 ZH = {

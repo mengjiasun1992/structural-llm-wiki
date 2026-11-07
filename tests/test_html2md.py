@@ -3,7 +3,7 @@
 import unittest
 
 import helpers  # noqa: F401  (puts the scripts on the path)
-from lib.html2md import convert
+from sllmwiki.lib.html2md import convert
 
 PAGE = '''<html><head><title>Retry policy | Docs</title><script>track()</script><style>p{}</style></head><body>
 <nav><a href="/">Home</a></nav><header>Site header</header>

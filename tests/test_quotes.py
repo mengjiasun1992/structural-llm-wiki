@@ -3,7 +3,7 @@
 import unittest
 
 import helpers
-from lib import quotes
+from sllmwiki.lib import quotes
 
 CITE = '[\\[1\\]](../sources/alpha-doc.md#details)'
 

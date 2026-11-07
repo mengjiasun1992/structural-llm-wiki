@@ -32,10 +32,10 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import citations, compat, config, figures, language, layout, manifest, markers, metadata, numbering, readingplan, runstats, templates, wikiindex, xrefs  # noqa: E402
-from lib.narrativecheck import check as check_narrative  # noqa: E402
-from lib.layout import Cli, entry  # noqa: E402
-from lib.util import dumps, read_text, today, write_text  # noqa: E402
+from sllmwiki.lib import citations, compat, config, figures, language, layout, manifest, markers, metadata, numbering, readingplan, runstats, templates, wikiindex, xrefs  # noqa: E402
+from sllmwiki.lib.narrativecheck import check as check_narrative  # noqa: E402
+from sllmwiki.lib.layout import Cli, entry  # noqa: E402
+from sllmwiki.lib.util import dumps, read_text, today, write_text  # noqa: E402
 
 cli = Cli('finish-narrative.py', 'usage: finish-narrative.py <slug> [--primary a,b] [--supporting c] [--read s1,s2] [--grades FILE] [--model NAME] '
           '[--bump minor|major --note TEXT]')

@@ -26,10 +26,11 @@ what holds a narrative to its own pack.
 import os
 import re
 
+from .. import TEMPLATES as PACKAGE_TEMPLATES
 from .layout import TEMPLATES
 from .util import read_text
 
-BUNDLED = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'templates', 'languages'))
+BUNDLED = os.path.join(PACKAGE_TEMPLATES, 'languages')
 FOLDER = 'languages'  # under the wiki's sllmwiki/.templates/
 DEFAULT = 'en'
 TAG = re.compile(r'[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*\Z')

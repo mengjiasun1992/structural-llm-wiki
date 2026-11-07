@@ -6,7 +6,7 @@ import zipfile
 
 import epubmaker
 import helpers  # noqa: F401 (puts the scripts on the path)
-from lib import epub
+from sllmwiki.lib import epub
 
 CH1 = '<h1>Retries</h1><p>A retry costs a <a href="ch2.xhtml#budget">budget</a>, see <a href="https://example.com/x">the paper</a>.</p>'
 CH2 = '<section><h2 id="budget">Budgets</h2><h3>Why</h3><p>Ten percent.</p><img src="img/cap.png" alt="the cap"/><pre><code># not a heading</code></pre></section>'

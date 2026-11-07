@@ -14,11 +14,9 @@ import re
 import sys
 
 sys.dont_write_bytecode = True
-# The skill's lib/ (plugin/skills/sllmwiki/scripts/lib/), shared with the scripts Claude runs
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'plugin', 'skills', 'sllmwiki', 'scripts'))
 
-from lib.layout import Cli, entry  # noqa: E402
-from lib.util import read_text  # noqa: E402
+from sllmwiki.lib.layout import Cli, entry  # noqa: E402
+from sllmwiki.lib.util import read_text  # noqa: E402
 
 cli = Cli('review-checklist.py', 'usage: review-checklist.py [--file PR_BODY.md]')
 BOX = re.compile(r'\s*[-*] \[( |x|X)\] (.*)')

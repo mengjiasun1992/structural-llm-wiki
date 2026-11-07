@@ -4,8 +4,8 @@ import copy
 import unittest
 
 import helpers
-from lib import wikiyaml
-from lib.schema import validate
+from sllmwiki.lib import wikiyaml
+from sllmwiki.lib.schema import validate
 
 
 def codes(findings):

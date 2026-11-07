@@ -20,9 +20,9 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import search  # noqa: E402
-from lib.layout import Cli, entry  # noqa: E402
-from lib.util import dumps  # noqa: E402
+from sllmwiki.lib import search  # noqa: E402
+from sllmwiki.lib.layout import Cli, entry  # noqa: E402
+from sllmwiki.lib.util import dumps  # noqa: E402
 
 cli = Cli('search.py', 'usage: search.py context|narratives|sources "<keywords>" | outline <file> | section "<link>"')
 

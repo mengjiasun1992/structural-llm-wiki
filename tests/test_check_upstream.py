@@ -7,7 +7,7 @@ from unittest import mock
 import epubmaker
 import helpers
 import pdfmaker
-from lib import epub, manifest, pdf, policy
+from sllmwiki.lib import epub, manifest, pdf, policy
 
 ROUTES = {
     '/budget.md': (200, {'Content-Type': 'text/markdown'}, b'# Budgets\n\nTen percent.\n'),

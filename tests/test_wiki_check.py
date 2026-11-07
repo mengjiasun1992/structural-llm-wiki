@@ -6,7 +6,7 @@ import unittest
 from unittest import mock
 
 import helpers
-from lib import compat, manifest, policy, tagpages, wikiindex
+from sllmwiki.lib import compat, manifest, policy, tagpages, wikiindex
 
 
 class Pages(helpers.WikiTestCase):
@@ -38,7 +38,7 @@ class Pages(helpers.WikiTestCase):
         self.assertIn('(abstract not written yet): ' + ' '.join(['long'] * 30) + '…', text)
 
     def test_an_empty_wiki(self):
-        from lib.tagtree import Tree
+        from sllmwiki.lib.tagtree import Tree
         self.assertIn('No topics yet.', wikiindex.render(Tree({}, {}, {}), {}))
 
 

@@ -4,8 +4,8 @@ import json
 import unittest
 
 import helpers
-from lib import tagtree
-from lib.tagtree import Tree
+from sllmwiki.lib import tagtree
+from sllmwiki.lib.tagtree import Tree
 
 TAGS = {
     'root': {'description': 'Root', 'parent': None},

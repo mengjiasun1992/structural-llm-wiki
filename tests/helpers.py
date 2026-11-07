@@ -20,27 +20,27 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # tests/ is 
 SKILL_DIR = os.path.join(REPO, 'plugin', 'skills', 'sllmwiki')
 if not os.path.isdir(SKILL_DIR):  # the copy src/tools/eval-plugin.sh assembles for the evals: the plugin's contents at its root
     SKILL_DIR = os.path.join(REPO, 'skills', 'sllmwiki')
-SCRIPTS = os.path.join(SKILL_DIR, 'scripts')
-CI_SCRIPTS = os.path.join(REPO, 'src', 'actions', 'scripts')  # what only the wiki's CI runs: book.py, review-checklist.py
-for _path in (CI_SCRIPTS, SCRIPTS):  # SCRIPTS first, for lib/
-    if _path not in sys.path:
-        sys.path.insert(0, _path)
+SCRIPTS = os.path.join(SKILL_DIR, 'scripts')  # preflight.sh
+PACKAGE_SRC = os.path.join(REPO, 'src')  # the sllmwiki package, imported from the checkout
+if PACKAGE_SRC not in sys.path:
+    sys.path.insert(0, PACKAGE_SRC)
+import sllmwiki  # noqa: E402
+PACKAGE = os.path.dirname(sllmwiki.__file__)
+TEMPLATES = sllmwiki.TEMPLATES
 sys.dont_write_bytecode = True
 
 
 @functools.lru_cache(maxsize=None)
-def load_script(path):
-    """A command script imported as a module, so its main() runs in-process and
-    counts toward coverage. path is relative to scripts/ (wiki-check.py) or to
-    CI_SCRIPTS (book.py), or absolute."""
-    full = path if os.path.isabs(path) else os.path.join(SCRIPTS, path)
-    if not os.path.exists(full):
-        full = os.path.join(CI_SCRIPTS, path)
-    name = os.path.splitext(os.path.basename(full))[0].replace('-', '_')
-    spec = importlib.util.spec_from_file_location(name, full)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+def load_script(name):
+    """A command's module (wiki-check.py or wiki-check: sllmwiki.commands.wiki_check),
+    or a script's by its absolute path, so its main() runs in-process and counts toward coverage."""
+    if os.path.isabs(name):  # a tool (src/tools/) or a test's own script, by its path
+        spec = importlib.util.spec_from_file_location(os.path.splitext(os.path.basename(name))[0].replace('-', '_'), name)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+    command = os.path.splitext(name)[0] if name.endswith('.py') else name
+    return importlib.import_module('sllmwiki.commands.' + command.replace('-', '_'))
 
 
 class Result:
@@ -51,10 +51,10 @@ class Result:
         return f'Result(code={self.code}, out={self.out[:300]!r}, err={self.err[:300]!r})'
 
 
-def run(path, argv, cwd=None):
+def run(name, argv, cwd=None):
     """Run a command script's main(argv) in-process, from cwd; a Result. A
     SystemExit becomes the exit code."""
-    module = load_script(path)
+    module = load_script(name)
     out, err = io.StringIO(), io.StringIO()
     old = os.getcwd()
     try:
@@ -245,7 +245,7 @@ what-is-alpha:
   read:
     alpha-doc: {md5(ALPHA.encode())}
 ''')
-    from lib import wikiindex
+    from sllmwiki.lib import wikiindex
     wikiindex.sync(root, write=True)  # the index and tag pages, as wiki-check.py --fix writes them
     if git:
         git_init(root)
