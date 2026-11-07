@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """release: a release of the wiki, with its book attached (docs/book_design.md §2.2, §6.7).
 
   sllmwiki release plan [--anyway]
@@ -33,16 +32,13 @@ import argparse
 import json
 import os
 import subprocess
-import sys
 import time
 
-sys.dont_write_bytecode = True
-
-from sllmwiki.lib import config, language, release  # noqa: E402
-from sllmwiki.lib.gitrepo import default_branch, git, has_remote  # noqa: E402
-from sllmwiki.lib.layout import Cli, entry  # noqa: E402
-from sllmwiki.lib.policy import github_repo  # noqa: E402
-from sllmwiki.lib.util import dumps, write_text  # noqa: E402
+from sllmwiki.lib import config, language, release
+from sllmwiki.lib.gitrepo import default_branch, git, has_remote
+from sllmwiki.lib.layout import Cli
+from sllmwiki.lib.policy import github_repo
+from sllmwiki.lib.util import dumps, write_text
 
 cli = Cli('sllmwiki release', 'usage: sllmwiki release plan|create|wait|preview ...; see --help')
 
@@ -96,7 +92,7 @@ def plan(root, repo, anyway):
            'checks': checks, 'failing': names if checks == 'failing' else [], 'formats': cfg.book_formats(),
            'changes': found}
     text = release.notes(found, previous, out['formats'], pack, out['failing'])
-    write_text(os.path.join(state(root), 'plan.json'), json.dumps(out, indent=2, ensure_ascii=False) + '\n')
+    write_text(os.path.join(state(root), 'plan.json'), dumps(out) + '\n')
     write_text(os.path.join(state(root), 'notes.md'), text)
     out['notes'] = os.path.join(state(root), 'notes.md')
     return out, text
@@ -111,7 +107,7 @@ def create(root, notes_file):
     url = gh(root, 'release', 'create', p['version'], '-R', p['repo'], '--target', p['commit'],
              '--title', f'{name} {p["version"]}', '--notes-file', notes).strip()
     p['url'] = url
-    write_text(os.path.join(state(root), 'plan.json'), json.dumps(p, indent=2, ensure_ascii=False) + '\n')
+    write_text(os.path.join(state(root), 'plan.json'), dumps(p) + '\n')
     return p
 
 
@@ -213,7 +209,3 @@ def main(argv):
         if out['issues']:
             print(f'Known issues:\n{out["issues"]}')
     return 0 if out['conclusion'] == 'success' else 1
-
-
-if __name__ == '__main__':  # pragma: no cover
-    entry(main)

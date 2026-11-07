@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """check-upstream: has a saved source changed where it came from? (design doc §7.2)
 
   sllmwiki check-upstream [<slug> ...] [--tags a,b] [--json] [--root <wiki>]
@@ -23,13 +22,10 @@ Exit code: 0, 1 on a refusal (no such slug or tag), 2 on a usage error.
 import argparse
 import os
 import re
-import sys
 
-sys.dont_write_bytecode = True
-
-from sllmwiki.lib import convert, fetch, layout, manifest, wikiindex  # noqa: E402
-from sllmwiki.lib.layout import Cli, entry  # noqa: E402
-from sllmwiki.lib.util import dumps, read_bytes, split_footer, today  # noqa: E402
+from sllmwiki.lib import convert, fetch, layout, manifest, wikiindex
+from sllmwiki.lib.layout import Cli
+from sllmwiki.lib.util import comma_list, dumps, read_bytes, split_footer, today
 
 cli = Cli('sllmwiki check-upstream', 'usage: sllmwiki check-upstream [<slug> ...] [--tags a,b] [--json]')
 
@@ -74,7 +70,7 @@ def compare(root, entry, fetched):
 def main(argv):
     p = argparse.ArgumentParser(prog='sllmwiki check-upstream', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('slugs', nargs='*')
-    p.add_argument('--tags', type=lambda v: [t.strip() for t in v.split(',') if t.strip()], default=[])
+    p.add_argument('--tags', type=comma_list, default=[])
     p.add_argument('--json', action='store_true')
     p.add_argument('--root')
     args = p.parse_args(argv)
@@ -106,7 +102,3 @@ def main(argv):
     changed = [r['slug'] for r in results if r['status'] == 'changed']
     print(f'{len(results)} checked, {len(changed)} changed' + (f': re-ingest with sllmwiki fetch-source --refresh ({", ".join(changed)})' if changed else ''))
     return 0
-
-
-if __name__ == '__main__':  # pragma: no cover
-    entry(main)

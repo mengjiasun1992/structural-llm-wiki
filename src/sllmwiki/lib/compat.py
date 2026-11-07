@@ -362,6 +362,17 @@ _TITLE = re.compile(r'(\S+)[ \t]+("[^"]*"|\'[^\']*\')[ \t]*\Z')
 _SCHEME = re.compile(r'[A-Za-z][A-Za-z0-9+.-]*:')
 
 
+
+def _files_by_name(root):
+    """{file name: [folders holding one]} under root, hidden folders (.git, .templates) left out: built once per
+    check, for the fix a link that doesn't resolve suggests."""
+    found = {}
+    for folder, dirs, files in os.walk(root):
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        for name in files:
+            found.setdefault(name, []).append(folder)
+    return found
+
 def check_links(text, file_dir, root):
     """Findings for links the renderers resolve differently, in a file in file_dir
     of the repository at root: LINK_SPACES (a space in a path, which GitHub doesn't
@@ -370,7 +381,7 @@ def check_links(text, file_dir, root):
     which only GitHub lists)."""
     lines = text.split('\n')
     kinds, _ = scan(lines)
-    out = []
+    out, index = [], None
     for i, line in enumerate(lines):
         if kinds[i] != 'text':
             continue
@@ -394,8 +405,8 @@ def check_links(text, file_dir, root):
             if os.path.isdir(target):
                 out.append(('warning', 'LINK_FOLDER', i + 1, f'"{path}" is a folder: only GitHub lists it; link to a file in it'))
             elif not os.path.exists(target):
-                named = [os.path.join(d, os.path.basename(file)) for d, _, files in os.walk(root)
-                         if os.path.basename(file) in files and '/.' not in d.replace(os.sep, '/') + '/']
+                index = index if index is not None else _files_by_name(root)
+                named = [os.path.join(d, os.path.basename(file)) for d in index.get(os.path.basename(file), ())]
                 found = os.path.join(root, file.lstrip('/')) if os.path.exists(os.path.join(root, file.lstrip('/'))) else (named[0] if len(named) == 1 else None)
                 hint = f'; write {os.path.relpath(found, file_dir).replace(os.sep, "/")}' if found else ''
                 out.append(('error', 'LINK_PATH', i + 1, f'"{path}" doesn\'t resolve from this file\'s folder, which is all GitHub tries{hint}'))

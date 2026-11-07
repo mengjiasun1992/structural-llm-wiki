@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """cited-sections: each section a narrative cites, once, with the claims that cite it
 (design doc §7.3), so lint reads those sections and not whole sources.
 
@@ -16,13 +15,10 @@ Exit code: 0, 1 when the narrative isn't found, 2 on a usage error.
 import argparse
 import os
 import re
-import sys
 
-sys.dont_write_bytecode = True
-
-from sllmwiki.lib import citations, layout, search  # noqa: E402
-from sllmwiki.lib.layout import Cli, entry  # noqa: E402
-from sllmwiki.lib.util import dumps, read_text  # noqa: E402
+from sllmwiki.lib import citations, layout, search
+from sllmwiki.lib.layout import Cli
+from sllmwiki.lib.util import dumps, read_text
 
 cli = Cli('sllmwiki cited-sections', 'usage: sllmwiki cited-sections <narrative> [--claims-only] [--json]')
 _LINKS = re.compile(r'\[\\\[[0-9]+\\\]\]\([^)\s]*\)')
@@ -90,7 +86,3 @@ def main(argv):
     if not out:
         print(f'{rel} cites nothing')
     return 0
-
-
-if __name__ == '__main__':  # pragma: no cover
-    entry(main)

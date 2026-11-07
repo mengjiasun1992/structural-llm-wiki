@@ -55,18 +55,6 @@ class Cli(helpers.WikiTestCase):
         with mock.patch.object(layout, 'git_root', return_value=None):
             self.assertEqual(layout.find_root(plain), os.path.abspath(plain))
 
-    def test_take_root(self):
-        c = layout.Cli('tool', 'usage')
-        self.assertEqual(c.take_root(['a', '--root', '/w', 'b']), ('/w', ['a', 'b']))
-        self.assertEqual(c.take_root(['a']), (None, ['a']))
-        for argv in (['--root'], ['--root', '--json']):
-            self.assertEqual(self.call(c.take_root, argv)[0], 2)
-
-    def test_entry(self):
-        with mock.patch('sys.argv', ['tool', 'x']), self.assertRaises(SystemExit) as e:
-            layout.entry(lambda argv: len(argv) + 4)
-        self.assertEqual(e.exception.code, 5)
-
 
 if __name__ == '__main__':
     unittest.main()

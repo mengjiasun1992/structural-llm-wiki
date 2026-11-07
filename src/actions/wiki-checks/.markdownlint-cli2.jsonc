@@ -4,7 +4,7 @@
   "config": {
     "extends": "../../../.markdownlint.jsonc"
   },
-  // sources are verbatim copies, never edited; templates/ holds the wiki's own
+  // sources are verbatim copies, never edited; .templates/ holds the wiki's own
   // narrative templates, full of <placeholder> text (narrative-format checks them)
-  "ignores": ["sllmwiki/sources/**", "templates/**", "**/node_modules/**"]
+  "ignores": ["sllmwiki/sources/**", "sllmwiki/.templates/**", "**/node_modules/**"]
 }

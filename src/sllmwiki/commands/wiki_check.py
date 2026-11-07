@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """wiki-check: is the wiki consistent? (design doc §4, §7.2)
 
   sllmwiki wiki-check [--fix] [--json] [--visibility public|private] [--root <wiki>]
@@ -47,13 +46,10 @@ errors, 1 with errors, 2 on a usage error.
 
 import argparse
 import os
-import sys
 
-sys.dont_write_bytecode = True
-
-from sllmwiki.lib import book, compat, config, figures, footer, language, layout, manifest, policy, schema, tagtree, templates, wikiindex, wikiyaml, xrefs  # noqa: E402
-from sllmwiki.lib.layout import Cli, entry  # noqa: E402
-from sllmwiki.lib.util import dumps, read_bytes, read_text, source_hash  # noqa: E402
+from sllmwiki.lib import book, compat, config, figures, footer, language, layout, manifest, policy, schema, tagtree, templates, wikiindex, wikiyaml, xrefs
+from sllmwiki.lib.layout import Cli
+from sllmwiki.lib.util import dumps, read_bytes, read_text, source_hash
 
 cli = Cli('sllmwiki wiki-check', 'usage: sllmwiki wiki-check [--fix] [--json] [--visibility public|private]')
 
@@ -181,7 +177,3 @@ def main(argv):
             print(f'{sev:<8} {code:<26} {rel}: {msg}')
         print(f'wiki-check: {errors} error(s), {len(found) - errors} warning(s)')
     return 1 if errors else 0
-
-
-if __name__ == '__main__':  # pragma: no cover
-    entry(main)

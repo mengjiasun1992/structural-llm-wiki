@@ -15,6 +15,16 @@ FOOTER_MARKER = '<!-- sllmwiki:original-source -->'
 FOOTER_SEPARATOR = '\n\n'
 
 
+def comma_list(value):
+    """"a, b,c" as ['a', 'b', 'c']: a command's list option, such as --tags."""
+    return [v.strip() for v in value.split(',') if v.strip()]
+
+
+def quote(text):
+    """text as a markdown quotation, "> " on each line: how a commit or pull request quotes the prompt."""
+    return '\n'.join('> ' + line if line else '>' for line in text.split('\n'))
+
+
 def read_text(path):
     """A UTF-8 text file, its line endings kept."""
     with open(path, encoding='utf-8', newline='') as f:

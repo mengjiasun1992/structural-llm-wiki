@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """fetch-source: save a source in the wiki, verbatim, and record it (design doc §4.3, §4.7).
 
   sllmwiki fetch-source <slug> --url URL --tags a,b --license ID [--license-url URL]
@@ -40,13 +39,10 @@ Exit code: 0 saved, 1 refused or failed (the reason is printed), 2 usage error.
 import argparse
 import os
 import re
-import sys
 
-sys.dont_write_bytecode = True
-
-from sllmwiki.lib import config, convert, fetch, footer, layout, manifest, policy, wikiindex  # noqa: E402
-from sllmwiki.lib.layout import Cli, entry  # noqa: E402
-from sllmwiki.lib.util import dumps, read_bytes, today  # noqa: E402
+from sllmwiki.lib import convert, fetch, footer, layout, manifest, policy, wikiindex
+from sllmwiki.lib.layout import Cli
+from sllmwiki.lib.util import comma_list, dumps, read_bytes, today
 
 cli = Cli('sllmwiki fetch-source', 'usage: sllmwiki fetch-source <slug> --url URL --tags a,b --license ID [...]; see --help')
 DRAFT_WORDS = 60
@@ -110,7 +106,7 @@ def main(argv):
     p = argparse.ArgumentParser(prog='sllmwiki fetch-source', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('slug')
     p.add_argument('--url', required=True)
-    p.add_argument('--tags', required=True, type=lambda v: [t.strip() for t in v.split(',') if t.strip()])
+    p.add_argument('--tags', required=True, type=comma_list)
     p.add_argument('--license', required=True)
     p.add_argument('--license-url')
     p.add_argument('--published')
@@ -122,10 +118,7 @@ def main(argv):
     args = p.parse_args(argv)
 
     root = cli.wiki(args.root)
-    try:
-        settings = config.load(root).settings
-    except config.ConfigError as e:
-        cli.fail('Config.toml is invalid, fix it first: ' + '; '.join(e.problems))
+    settings = cli.config(root).settings
     sources = manifest.load(root, 'sources')
     existing = sources.get(args.slug)
     if existing and not args.refresh:
@@ -189,7 +182,3 @@ def main(argv):
         print('next: write the abstract of each slice a question reads' if slices else
               f'next: read it and write its abstract: sllmwiki manifest set-abstract {args.slug} --abstract "..."')
     return 0
-
-
-if __name__ == '__main__':  # pragma: no cover
-    entry(main)

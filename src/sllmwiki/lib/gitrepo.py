@@ -5,8 +5,11 @@ import subprocess
 
 
 def git(root, *args):
-    """git's output in root, stripped; '' when it fails."""
-    p = subprocess.run(['git', *args], cwd=root, capture_output=True, text=True)
+    """git's output in root, stripped; '' when it fails, or when there's no git to run."""
+    try:
+        p = subprocess.run(['git', *args], cwd=root, capture_output=True, text=True)
+    except OSError:  # pragma: no cover (no git)
+        return ''
     return p.stdout.strip() if p.returncode == 0 else ''
 
 

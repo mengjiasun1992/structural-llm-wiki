@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """init: make this repository a Structural LLM Wiki, or bring one up to date (design doc §3, §8).
 
   sllmwiki init [--name NAME] [--force] [--set KEY=VALUE ...] [--commit --prompt TEXT] [--json] [--root <dir>]
@@ -34,14 +33,11 @@ import json
 import os
 import re
 import subprocess
-import sys
 
-sys.dont_write_bytecode = True
-
-from sllmwiki import TEMPLATES, __version__  # noqa: E402
-from sllmwiki.lib import config, layout, manifest, toml, wikiindex  # noqa: E402
-from sllmwiki.lib.layout import Cli, entry  # noqa: E402
-from sllmwiki.lib.util import dumps, placeholder, read_text, write_text  # noqa: E402
+from sllmwiki import TEMPLATES, __version__
+from sllmwiki.lib import config, layout, manifest, toml, wikiindex
+from sllmwiki.lib.layout import Cli
+from sllmwiki.lib.util import comma_list, dumps, placeholder, quote, read_text, write_text
 
 cli = Cli('sllmwiki init', 'usage: sllmwiki init [--name NAME] [--force] [--set KEY=VALUE ...] [--commit --prompt TEXT] | sllmwiki init --ask')
 WIKI = os.path.join(TEMPLATES, 'wiki')
@@ -121,7 +117,7 @@ def parse_sets(pairs):
                 cli.usage(f'--set {key}: a number')
             out[key] = int(raw)
         elif isinstance(default, list):
-            out[key] = [v.strip() for v in raw.split(',') if v.strip()]
+            out[key] = comma_list(raw)
         else:
             out[key] = raw
     return out
@@ -342,7 +338,7 @@ def main(argv):
         written = sorted({rel for verb, rel in run.done if verb != SKIPPED and os.path.exists(run.path(rel))})
         if written:
             subprocess.run(['git', 'add', '--', *written], cwd=root, check=True)
-        msg = '[sllmwiki][init] Set up the wiki\n\nPrompt:\n' + '\n'.join('> ' + line if line else '>' for line in args.prompt.split('\n')) + '\n'
+        msg = '[sllmwiki][init] Set up the wiki\n\nPrompt:\n' + quote(args.prompt) + '\n'
         c = subprocess.run(['git', 'commit', '-q', '-F', '-'], cwd=root, input=msg, capture_output=True, text=True)
         if c.returncode and 'nothing to commit' not in c.stdout + c.stderr:
             cli.fail(f'git commit: {(c.stderr or c.stdout).strip()}')
@@ -359,7 +355,3 @@ def main(argv):
                 print(f'{verb} {rel}')
         print(f'init: a wiki at {root}; its CI calls the skill\'s actions at {action_ref()}')
     return 0
-
-
-if __name__ == '__main__':  # pragma: no cover
-    entry(main)
