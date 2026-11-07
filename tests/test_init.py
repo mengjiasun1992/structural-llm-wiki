@@ -236,6 +236,12 @@ class Init(unittest.TestCase):
         q = next(q for q in data['ask'] if q['key'] == 'pdf_book')
         self.assertEqual((q['table'], q['value'], q['about']), ('structural-llm-wiki-release', True, 'a PDF: share, print, read anywhere'))
         self.assertTrue(all(q['about'] for q in data['ask']))
+        options = {q['key']: q['choices'] for q in data['ask']}
+        self.assertEqual(options['language'][:2], [{'value': 'en', 'label': 'English'}, {'value': 'zh-Hans', 'label': '简体中文'}])
+        self.assertEqual([c['value'] for c in options['source_copies']], ['allow', 'links-only'])
+        self.assertEqual([c['value'] for c in options['picture_formats']], ['mermaid', 'svg', 'png'])
+        self.assertIsNone(options['title'])  # a free value
+        self.assertIn('choose from en (English), zh-Hans (简体中文)', self.init('--ask').out)
         self.assertFalse(os.path.exists(os.path.join(self.root, 'sllmwiki', 'Config.toml')))  # --ask writes nothing
         r = self.init('--name', 'w', '--set', 'language=zh-Hans', '--set', 'epub_book=TRUE', '--set', 'title=我的 "笔记"',
                       '--set', 'smes_exclude=@me, dependabot', '--set', 'max_quote_words=30', '--set', 'obsidian=true')
@@ -255,6 +261,12 @@ class Init(unittest.TestCase):
         self.assertEqual(r.code, 0, r.err)
         self.assertIn('author = "Ann"', self.read('sllmwiki/Config.toml'))
         self.assertIn('markers = false             # false', self.read('sllmwiki/Config.toml'))
+
+    def test_a_wikis_own_language_pack_is_a_choice(self):
+        helpers.write(self.root, 'sllmwiki/.templates/languages/de.md', '# Deutsch\n\n## Strings\n\n| English | Deutsch |\n|---|---|\n| Abstract | Zusammenfassung |\n')
+        q = next(q for q in json.loads(self.init('--ask', '--json').out)['ask'] if q['key'] == 'language')
+        self.assertIn({'value': 'de', 'label': 'Deutsch'}, q['choices'])
+        self.assertEqual(q['choices'][0]['value'], 'en')  # the default first
 
     def test_set_refusals(self):
         for pair, says in (('markers=maybe', 'true or false'), ('max_quote_words=lots', 'a number'), ('colour=red', 'settings are author'),
