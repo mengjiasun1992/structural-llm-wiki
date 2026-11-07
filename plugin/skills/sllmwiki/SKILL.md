@@ -26,9 +26,15 @@ A wiki is a git repository whose knowledge lives in `sllmwiki/`: sources saved v
 
 ## Before anything
 
-The code is the `sllmwiki` package, version 1.2.1. First run `sllmwiki --version` alone: if it prints 1.2.1 (as after `pipx install sllmwiki==1.2.1`, which other agents use), `sllmwiki` in every command means that one. Otherwise it means `${CLAUDE_PLUGIN_DATA}/venv-1.2.1/bin/sllmwiki` (`Scripts` for `bin` on Windows), and if that doesn't print 1.2.1 either, install it unasked: `python3 -m venv ${CLAUDE_PLUGIN_DATA}/venv-1.2.1 && ${CLAUDE_PLUGIN_DATA}/venv-1.2.1/bin/python -m pip install --quiet sllmwiki==1.2.1`; first Python 3.9 or later, if missing (`brew install python`, `sudo apt-get install -y python3 python3-venv` or `winget install -e --id Python.Python.3.13`).
+The code is the `sllmwiki` package, version 1.3.0. Run this first, as one command: it uses an `sllmwiki` 1.3.0 on PATH (as after `pipx install sllmwiki==1.3.0`, which another agent installs first), else the plugin's own, installing it unasked, then runs `doctor`.
 
-Then run `sllmwiki doctor`, and for any tool it reports missing, `gh` included, its install command, unasked (the owner runs one with `sudo` or a sign-in as `! <command>`); rerun it. Stop if something required is still missing, except that a request that changes nothing (a query, a lint that only reports) needs only the package. Work from the wiki's root. If `sllmwiki/tags/tags.yaml` doesn't exist, this isn't a wiki: say in two sentences what one is (a git repository of its own where the agent saves sources and writes cited answers, each run one pull request to review), then offer `workflows/init.md`, best in a new, empty repository, and stop.
+```bash
+V="${CLAUDE_PLUGIN_DATA}/venv-1.3.0"; S=sllmwiki; sllmwiki --version 2>/dev/null | grep -qx 'sllmwiki 1.3.0' || { S="$V/bin/sllmwiki"; "$S" --version >/dev/null 2>&1 || { python3 -m venv "$V" && "$V/bin/python" -m pip install --quiet --disable-pip-version-check sllmwiki==1.3.0; }; }; echo "sllmwiki is $S"; "$S" doctor
+```
+
+In every command after, `sllmwiki` means the path it prints (`Scripts` for `bin` on Windows). Without Python 3.9 or later, install that first (`brew install python`, `sudo apt-get install -y python3 python3-venv` or `winget install -e --id Python.Python.3.13`).
+
+For any tool `doctor` reports missing, `gh` included, run its install command, unasked (the owner runs one with `sudo` or a sign-in as `! <command>`); rerun it. Stop if something required is still missing, except that a request that changes nothing (a query, a lint that only reports) needs only the package. Work from the wiki's root. If `sllmwiki/tags/tags.yaml` doesn't exist, this isn't a wiki: say in two sentences what one is (a git repository of its own where the agent saves sources and writes cited answers, each run one pull request to review), then offer `workflows/init.md`, best in a new, empty repository, and stop.
 
 ## Commands
 
