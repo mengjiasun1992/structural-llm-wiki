@@ -2,7 +2,7 @@
 
 Answer a question from what the wiki already knows, reading as little as possible. Never change the wiki. A request that names only a topic isn't a question yet: ask first (`SKILL.md`).
 
-1. **Find.** Turn the question into keywords with synonyms, then `sllmwiki search context "<keywords>"`: the matching tags and the top narratives' abstracts.
+1. **Find.** Turn the question into keywords with synonyms, then `sllmwiki search context "<keywords>"`: the matching tags with their SMEs, and the top narratives' abstracts, each marked when a source it read has changed since.
 2. **Answer from the smallest thing that answers,** stopping as soon as you can:
    1. a narrative's abstract;
    2. one section: `sllmwiki search outline <narrative>`, then `sllmwiki search section "<narrative>#<anchor>"`;
@@ -10,9 +10,9 @@ Answer a question from what the wiki already knows, reading as little as possibl
    4. sources no narrative covers yet: `sllmwiki search sources "<keywords>"`, then one section of the best.
 3. **Reply** with:
    - the answer, citing each narrative or source section it rests on, as links;
-   - a warning when a narrative was built on a source that has changed since (`sllmwiki wiki-check` reports it as NARRATIVE_SOURCE_CHANGED);
+   - a warning when a narrative it rests on was built on a source that has changed since;
    - what the wiki doesn't cover;
-   - who to ask: the tags' SMEs (`sllmwiki tag-tree show <tag>`);
+   - who to ask: the tags' SMEs;
    - what you read: which tiers, roughly how much.
 4. **Offer, don't do.**
    - When the answer stitched together several narratives, or used sources no narrative covers, offer to file it as a narrative (`steps/narrative.md`).

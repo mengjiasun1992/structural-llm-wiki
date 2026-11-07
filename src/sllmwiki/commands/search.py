@@ -1,7 +1,8 @@
 """search: find what to read, and read only that (design doc §6.1).
 
-  sllmwiki search context "<keywords>"         the matching tags and the top narratives, each
-                                          with its abstract: query's first tier, in one call
+  sllmwiki search context "<keywords>"         the matching tags, each with its SMEs, and the top
+                                          narratives, each with its abstract and the sources it
+                                          read that have changed since: query's first tier, in one call
   sllmwiki search narratives "<keywords>"      the top narratives: question, abstract, path
   sllmwiki search sources "<keywords>" [--tags a,b]
                                           the top sources by abstract (only those tags')
@@ -25,7 +26,8 @@ cli = Cli('sllmwiki search', 'usage: sllmwiki search context|narratives|sources 
 
 def show_narratives(found):
     for n in found:
-        print(f'## {n["question"]}  ({n["path"]}, version {n["version"]}, score {n["score"]})\n\n{n["abstract"]}\n')
+        stale = f'\n\nBuilt on an older version of {", ".join(n["changed"])}: say so with the answer.' if n.get('changed') else ''
+        print(f'## {n["question"]}  ({n["path"]}, version {n["version"]}, score {n["score"]})\n\n{n["abstract"]}{stale}\n')
 
 
 def main(argv):
@@ -44,7 +46,10 @@ def main(argv):
         if args.json:
             print(dumps(result))
             return 0
-        print('Tags: ' + (', '.join(f'{t["tag"]} ({t["description"]})' for t in result['tags']) or 'none match') + '\n')
+        print('Tags:' + ('' if result['tags'] else ' none match'))
+        for t in result['tags']:
+            print(f'- {t["tag"]}: {t["description"]}' + ''.join(f'\n  - SME {s}' for s in t['smes']))
+        print()
         show_narratives(result['narratives']) if result['narratives'] else print('No narrative matches.')
         return 0
     if args.command == 'narratives':

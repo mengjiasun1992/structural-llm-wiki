@@ -10,7 +10,7 @@ import os
 import re
 
 from . import language, layout, manifest, metadata, numbering, plaintext
-from .util import read_bytes, read_text, split_footer
+from .util import read_bytes, read_text, source_hash, split_footer
 
 STOP = set('a an and are as at be but by can do does for from how i in is it its of on or that the their this to was what when '
            'where which who why will with you your'.split())
@@ -68,13 +68,26 @@ def narratives(root):
 def find_tags(root, query, limit=5):
     tags = manifest.load(root, 'tags')
     ranked = bm25(query, {t: f'{t.replace("-", " ")} {e.get("description", "")}' for t, e in tags.items()})
-    return [{'tag': t, 'score': s, 'description': tags[t].get('description')} for s, t in ranked[:limit]]
+    return [{'tag': t, 'score': s, 'description': tags[t].get('description'), 'smes': tags[t].get('smes') or []} for s, t in ranked[:limit]]
+
+
+def changed_since(root, slug):
+    """The saved sources the narrative was built on that have changed since it read them (wiki-check's
+    NARRATIVE_SOURCE_CHANGED): an answer resting on them may be out of date."""
+    sources = manifest.load(root, 'sources')
+    out = []
+    for src, pin in ((manifest.load(root, 'narratives').get(slug) or {}).get('read') or {}).items():
+        path = os.path.join(root, layout.in_content((sources.get(src) or {}).get('file') or '')) if (sources.get(src) or {}).get('file') else None
+        if path and os.path.isfile(path) and source_hash(read_bytes(path)) != pin:
+            out.append(src)
+    return out
 
 
 def find_narratives(root, query, limit=5):
+    """The best matches, each with the sources it read that have changed since (changed_since)."""
     found = narratives(root)
     ranked = bm25(query, {k: f'{v["question"]} {v["question"]} {v["abstract"]}' for k, v in found.items()})
-    return [dict(found[k], slug=k, score=s) for s, k in ranked[:limit]]
+    return [dict(found[k], slug=k, score=s, changed=changed_since(root, k)) for s, k in ranked[:limit]]
 
 
 def find_sources(root, query, tags=None, limit=5):
