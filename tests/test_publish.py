@@ -148,6 +148,16 @@ class Publish(helpers.WikiTestCase):
         helpers.git(self.root, 'switch', '-q', 'mainline')
         self.assertIn('sllmwiki publish resume run', self.pub('start', 'run', '--title', 't', '--prompt', 'p').err)
 
+    def test_a_commit_takes_its_subject_from_the_summary(self):
+        self.pub('start', 'subject', '--title', 'T', '--prompt', 'p')
+        self.write('sllmwiki/sources/new.md', '# New\n')
+        r = self.pub('commit', 'ingest')
+        self.assertEqual(r.code, 1)
+        self.assertIn('no --subject, and no ingest summary', r.err)
+        self.summary('ingest', title='Sources for subjects', body='Saved new.')
+        self.assertEqual(self.pub('commit', 'ingest', '--tags', 'leaf-a').code, 0)
+        self.assertEqual(helpers.git(self.root, 'log', '-1', '--format=%s').stdout.strip(), '[sllmwiki][ingest][leaf-a] Sources for subjects')
+
     def test_what_a_run_saved(self):
         publish = helpers.load_script('publish.py')
         self.assertEqual(publish.saved(self.root, 'no-such-branch'), [])

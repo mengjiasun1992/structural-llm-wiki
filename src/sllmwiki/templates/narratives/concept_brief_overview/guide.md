@@ -10,7 +10,7 @@ A reader meeting the idea for the first time, who needs to know what it means, w
 
 ## Voice and tone
 
-Plain words, short sentences, present tense. Neutral where sources disagree: present each view, cited.
+Plain words, short sentences, present tense.
 
 ## Structure
 

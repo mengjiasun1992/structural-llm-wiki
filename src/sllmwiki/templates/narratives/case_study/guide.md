@@ -34,7 +34,7 @@ The case is the one key example, and every section stays inside it. Another case
 
 ## Evidence
 
-Prefer the people who built or ran the system: postmortems, design docs, papers and code; then independent analyses. When accounts differ, give each, cited.
+Prefer the people who built or ran the system: postmortems, design docs, papers and code; then independent analyses.
 
 ## Length
 

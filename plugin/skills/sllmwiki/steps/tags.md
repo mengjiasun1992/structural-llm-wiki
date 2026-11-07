@@ -9,8 +9,7 @@
    - kebab-case, as specific as the question needs;
    - under the closest existing parent;
    - a new root only for a new field.
-4. **Report stale sources:** `sllmwiki wiki-check` lists SOURCE_UPSTREAM_CHANGED for the chosen tags' sources.
-5. **Summary:** `sllmwiki publish summary tags --json '{...}'` with:
+4. **Summary:** `sllmwiki publish summary tags --json '{...}'` with:
    - `title`: "Tags";
    - `checklist`: one item per question, naming its tags, for the owner to confirm;
    - `body`: a table of question, primary and supporting tags, with the new tags marked new.

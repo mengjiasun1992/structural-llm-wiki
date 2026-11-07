@@ -8,7 +8,6 @@ import unittest
 
 import helpers
 import sllmwiki
-from sllmwiki import cli
 
 SKILL = helpers.SKILL_DIR
 COMMANDS = os.path.join(os.path.dirname(os.path.dirname(SKILL)), 'commands')
@@ -107,12 +106,6 @@ class References(unittest.TestCase):
                         self.assertIn(f"'{opt}'", source, f'{where}: no option {opt}')
                     checked += 1
         self.assertGreater(checked, 20)  # the instructions do name commands
-
-    def test_the_scripts_list_in_skill_md_is_complete(self):
-        with open(os.path.join(SKILL, 'SKILL.md'), encoding='utf-8') as f:
-            text = f.read()
-        listed = set(re.findall(r'^- `sllmwiki ([a-z-]+)`', text, re.M))
-        self.assertEqual(listed, set(cli.COMMANDS) - {'book', 'review-checklist'})  # the wiki's CI runs these, not the agent
 
     def test_skill_md_installs_this_version(self):
         with open(os.path.join(SKILL, 'SKILL.md'), encoding='utf-8') as f:

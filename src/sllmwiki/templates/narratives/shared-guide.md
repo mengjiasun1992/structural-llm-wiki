@@ -15,7 +15,7 @@ Each term is defined before its first use. Depth comes after context, never inst
 
 ## Ideas first, sources second
 
-Say each idea in your own words, then cite it. Name a source in the prose only when who said it matters: a definition, a landmark paper, a disagreement, a measurement. Never tally who agrees ("X says …, Y agrees"): give the idea once, with its citations after it.
+Say each idea in your own words, then cite it. Name a source in the prose only when who said it matters: a definition, a landmark paper, a disagreement, a measurement. Never tally who agrees ("X says …, Y agrees"): give the idea once, cited. Where sources disagree, cite each view.
 
 ## Map before details
 
@@ -43,7 +43,7 @@ A picture earns its place when it saves the reader from building something in th
   - **An SVG** you draw controls every position: a curve, measured data, geometry, a layout to scale, or a diagram mermaid would crowd.
   - **A PNG**, only for what's raster by nature, like a heatmap.
   - Draw an image from the narrative's own formulas, numbers or structure, never traced from a source's figure: `sllmwiki/narratives/figures/<slug>/<name>.svg` or `.png`, light background, dark text, a generic font; an SVG keeps the formula and inputs it was drawn from in its `<desc>`.
-- **Easy to read:** one idea per picture, about a dozen elements at most, short plain-text labels in the narrative's names (`s_t`: not every renderer draws math in a diagram). Keep each thing's color and place the same across pictures. Color only what carries meaning, with light `classDef` fills and dark text, and never by color alone: a label, a shape or a dashed line says it too.
+- **Easy to read:** one idea per picture, about a dozen elements at most, short plain-text labels in the narrative's names (`s_t`, as not every renderer draws math). Keep each thing's color and place the same across pictures. Color only what carries meaning, with light `classDef` fills and dark text, and never by color alone: a label, a shape or a dashed line says it too.
 - **A picture makes claims:** it shows nothing its caption's citations don't support.
 
 Each picture is followed by its caption, on a line of its own: `*Figure 5-1: <its point, not just its subject; what each color means> [3].*`. Say it once, in the caption, not again before it; the text names it by its label where the reader should look. An image's alt text says what it shows. `sllmwiki narrative-format` checks the rest, the wiki's limits included.
