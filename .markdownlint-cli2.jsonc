@@ -1,4 +1,4 @@
 // markdownlint-cli2's settings for this repository; the rules are in .markdownlint.jsonc.
 {
-  "ignores": ["**/node_modules/**"]
+  "ignores": ["**/node_modules/**", "build/**", "dist/**", ".venv/**"]
 }

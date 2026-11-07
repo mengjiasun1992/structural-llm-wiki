@@ -12,11 +12,19 @@
 
 An agent skill, packaged as a Claude Code plugin, that turns a git repository into a wiki your coding agent researches and keeps current. You ask a question. It saves the *sources* that answer it, verbatim copies of code, design docs, specifications, papers or web pages, and writes a *narrative*: an account, told in order, of what happened or how something works, every claim linked to the section of a source that supports it. Each run arrives as one pull request you review. It builds on Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) and adds what a group needs: claims you can check, review before anything lands, and a book at each release.
 
-**See one.** In [the demo wiki](https://github.com/mengjiasun1992/sllmwiki-demo), one unattended run wrote four cited narratives from 29 sources in 21 minutes ([PR #6](https://github.com/mengjiasun1992/sllmwiki-demo/pull/6)). Start at [its index](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/.SLLMWIKI_INDICES.md), read [What is a distributed system?](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-is-a-distributed-system.md), or download its book as a PDF, EPUB or HTML file from [its latest release](https://github.com/mengjiasun1992/sllmwiki-demo/releases/latest).
+**See one.** Every narrative in [the demo wiki](https://github.com/mengjiasun1992/sllmwiki-demo) was researched and written by an unattended run, and arrived as a pull request to review. Three recent runs, one question each:
+
+| Question | Model | Kind | Sources saved | Narrative | Time | Tokens | Pull request |
+|---|---|---|---|---|---|---|---|
+| [How does Raft elect a leader and keep every server's log consistent?](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/how-does-raft-elect-a-leader-and-keep-every-servers-log-consistent.md) | Opus 5.5 | how it works | 3 (99 KB): two dissertation chapters, etcd's README | 1,799 words | 10 min | 6.0M in, 51K out | [#22](https://github.com/mengjiasun1992/sllmwiki-demo/pull/22) |
+| [What are the classic failure modes of large distributed systems, and their mitigations?](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-are-the-classic-failure-modes-of-large-scale-distributed-systems-and-their-mitigations.md) | Opus 5.5 | survey | 4 (43 KB), and 2 papers as links | 1,937 words | 8 min | 8.7M in, 42K out | [#23](https://github.com/mengjiasun1992/sllmwiki-demo/pull/23) |
+| [How does classic attention compare with paged attention?](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/how-does-classic-attention-compare-with-paged-attention-in-transformers.md) | Haiku 5.5 | comparison | 4 (290 KB), and 1 paper as a link | 982 words | 7 min | 4.6M in, 57K out | [#24](https://github.com/mengjiasun1992/sllmwiki-demo/pull/24) |
+
+Each run reports its own time and tokens in its pull request. The tokens count the main session only, and about 98% of the input is cached. Start at [the demo's index](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/.SLLMWIKI_INDICES.md), or download its book as a PDF, EPUB or HTML file from [its latest release](https://github.com/mengjiasun1992/sllmwiki-demo/releases/latest).
 
 ## Setup
 
-You need an agent that runs [Agent Skills](https://agentskills.io), such as [Claude Code](https://docs.claude.com/en/docs/claude-code), plus git and Python 3.9 or later. [`gh`](https://cli.github.com), signed in, is recommended: it opens the pull requests (without it, the skill prints a link to open each one yourself). The wiki's CI checks and its book need the wiki hosted on GitHub.
+You need an agent that runs [Agent Skills](https://agentskills.io), such as [Claude Code](https://docs.claude.com/en/docs/claude-code), plus git and Python 3.9 or later; the first run installs the rest, the plugin's code (the [`sllmwiki` package](https://pypi.org/project/sllmwiki/), into the plugin's own folder) and anything missing, with your package manager. [`gh`](https://cli.github.com), signed in, is recommended: it opens the pull requests (without it, the skill prints a link to open each one yourself). The wiki's CI checks and its book need the wiki hosted on GitHub.
 
 1. Create an empty repository (for example `project-foobar-sllmwiki`), clone it and start Claude Code in it.
 2. Install the plugin into it:
@@ -29,7 +37,7 @@ You need an agent that runs [Agent Skills](https://agentskills.io), such as [Cla
 3. Run `/sllmwiki:init`. It asks a few preferences (language, source policy, the book), lays out the wiki, installs its CI checks and makes the first commit. Rerun it after a plugin update.
 4. Ask your first questions: `/sllmwiki:build "How does our gateway route requests?" "Why does it retry?"`
 
-**Join a wiki:** clone it, start Claude Code inside, trust the folder and accept the `sllmwiki` plugin it offers. **Other agents** (Codex, Cursor, Copilot): `npx skills add mengjiasun1992/structural-llm-wiki -g` with the [`skills` CLI](https://skills.sh), then ask in your own words ("lint the gateway narratives").
+**Join a wiki:** clone it, start Claude Code inside, trust the folder and accept the `sllmwiki` plugin it offers. **Other agents** (Codex, Cursor, Copilot): `npx skills add mengjiasun1992/structural-llm-wiki -g` with the [`skills` CLI](https://skills.sh) and `pipx install sllmwiki` (the version the skill's `SKILL.md` names), then ask in your own words ("lint the gateway narratives").
 
 <details>
 <summary>Installing git, Python and gh</summary>
@@ -103,9 +111,10 @@ docs/                  the manual, the designs, their plans, and their figures
 `AGENTS.md` has the rules for changing this repository: tests with every logic change and coverage at 95% or above, instruction word budgets, evals for behavior changes. Run the tests, and try the plugin from a checkout:
 
 ```bash
-python3 -m pip install "coverage[toml]==7.6.10"
+python3 -m venv .venv && . .venv/bin/activate
+python3 -m pip install -e . "coverage[toml]==7.6.10"
 python3 tests/run.py --coverage
-claude --plugin-dir plugin
+claude --plugin-dir plugin             # runs the sllmwiki on PATH: this checkout's
 ```
 
 ## License
