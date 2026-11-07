@@ -9,7 +9,7 @@
    - kebab-case, as specific as the question needs;
    - under the closest existing parent;
    - a new root only for a new field.
-4. **Summary:** `sllmwiki publish summary tags --json '{...}'` with:
+4. **Summary:** `sllmwiki publish commit tags --json '{...}'`, which commits any new tags, with:
    - `title`: "Tags";
    - `checklist`: one item per question, naming its tags, for the owner to confirm;
    - `body`: a table of question, primary and supporting tags, with the new tags marked new.

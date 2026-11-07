@@ -8,8 +8,9 @@
       Records a step's summary: its review checklist items, the decisions it
       leaves to the owner, and its report. (Or --file SUMMARY.json.) A
       narrative's is one per question and a lint's one per scope, by title; the others, one per step.
-  sllmwiki publish commit <action> [--tags a,b] [--subject TEXT]
-      (the subject defaults to the title of the step's summary)
+  sllmwiki publish commit <action> [--tags a,b] [--subject TEXT] [--json JSON | --file F] [--pr]
+      (the subject defaults to the title of the step's summary; --json/--file records
+      that summary first, as publish summary does; --pr then runs publish pr)
       Commits everything the run changed with the message
       [sllmwiki][<action>][<tags>] <subject>, the step's report, and the
       request that started the run, verbatim, in a Prompt: block.
@@ -185,7 +186,11 @@ def message(state, action, tags, subject, report):
     return '\n\n'.join(parts) + '\n'
 
 
-def commit(root, action, tags, subject):
+def commit(root, action, tags, subject, summary=None):
+    """Record the step's summary when given, then commit what the run changed. With a summary and nothing
+    changed (a tags step that added no tag), the summary is still recorded."""
+    if summary is not None:
+        record_summary(root, action, summary)
     state = load_state(root)
     if git(root, 'rev-parse', '--abbrev-ref', 'HEAD') != state['branch']:
         cli.fail(f'not on the run\'s branch {state["branch"]}; sllmwiki publish resume {state["slug"]}')
@@ -195,6 +200,9 @@ def commit(root, action, tags, subject):
         if any(new):
             git(root, 'add', '--', *[n for n in new if n])
     if not git(root, 'diff', '--cached', '--name-only'):
+        if summary is not None:
+            print('nothing changed to commit; the summary is recorded')
+            return
         cli.fail('nothing to commit')
     summary = latest(summaries(root), action)
     subject = subject or summary.get('title')
@@ -349,6 +357,17 @@ def resume(root, slug):
     print(f'on {branch}{how}; pull request: {state.get("pr") or "not opened yet"}')
 
 
+def read_summary(args):
+    """The summary --json or --file gives."""
+    try:
+        if args.json:
+            return json.loads(args.json)
+        with open(args.file, encoding='utf-8') as f:
+            return json.load(f)
+    except (OSError, ValueError) as e:
+        cli.fail(f'can\'t read the summary: {e}')
+
+
 def main(argv):
     p = argparse.ArgumentParser(prog='sllmwiki publish', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--root')
@@ -366,6 +385,10 @@ def main(argv):
     c.add_argument('action', choices=ACTIONS)
     c.add_argument('--tags', default=[], type=comma_list)
     c.add_argument('--subject', help='the commit\'s subject; default: the title of the step\'s summary')
+    cg = c.add_mutually_exclusive_group()
+    cg.add_argument('--json', help='the step\'s summary, recorded first: the same as publish summary <action> --json')
+    cg.add_argument('--file', help='the step\'s summary from a JSON file')
+    c.add_argument('--pr', action='store_true', help='then push and open or update the pull request, as publish pr')
     o = sub.add_parser('pr')
     o.add_argument('--cost', type=float, help='what the run cost so far, in US dollars, when the caller knows it')
     r = sub.add_parser('resume')
@@ -379,17 +402,11 @@ def main(argv):
     if args.command == 'start':
         start(root, args.slug, args.title, args.prompt)
     elif args.command == 'summary':
-        try:
-            if args.json:
-                data = json.loads(args.json)
-            else:
-                with open(args.file, encoding='utf-8') as f:
-                    data = json.load(f)
-        except (OSError, ValueError) as e:
-            cli.fail(f'can\'t read the summary: {e}')
-        record_summary(root, args.step, data)
+        record_summary(root, args.step, read_summary(args))
     elif args.command == 'commit':
-        commit(root, args.action, args.tags, args.subject)
+        commit(root, args.action, args.tags, args.subject, read_summary(args) if args.json or args.file else None)
+        if args.pr:
+            pr(root)
     elif args.command == 'pr':
         pr(root, args.cost)
     elif args.command == 'resume':

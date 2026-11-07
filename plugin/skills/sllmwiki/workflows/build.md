@@ -22,7 +22,7 @@ Follow `steps/tags.md` for the questions. Its summary goes into the run as `tags
 
 ## 4. Sources
 
-Follow `steps/ingest.md` for the questions and their tags. Then `sllmwiki publish commit ingest --tags <tags> --subject "ingest sources for: <topic>"` and `sllmwiki publish pr` to open the pull request.
+Follow `steps/ingest.md` for the questions and their tags; its commit takes `--pr`, which opens the pull request.
 
 ## 5. SMEs
 
@@ -30,7 +30,7 @@ Follow `steps/smes.md` for the questions' tags; it says when there's nothing to 
 
 ## 6. Narratives
 
-For each question that isn't a reuse, follow `steps/narrative.md`. After each, `sllmwiki publish commit narrative --tags <its primary tags>`.
+For each question that isn't a reuse, follow `steps/narrative.md`.
 
 ## 7. Lint
 

@@ -11,7 +11,7 @@ A wiki is a git repository of its own. Run this in the repository that will hold
 7. If it has a remote, check that the local default branch matches the remote's (`git fetch` and compare); stop and tell the owner if it has diverged.
 8. Commit:
    - **First setup:** `sllmwiki init --commit --prompt "<the user's request, verbatim>"`, which stages only what it wrote, then push the default branch if there's a remote.
-   - **A rerun:** `sllmwiki publish summary init --json '{...}'` with what changed, `sllmwiki publish commit init --subject "Bring the wiki up to date"` and `sllmwiki publish pr`. Never push the default branch.
+   - **A rerun:** `sllmwiki publish commit init --json '{"title": "Bring the wiki up to date", ...}' --pr`, with what changed. Never push the default branch.
 9. Reply with what was created or updated, then a short tour of what comes next: ask with `/sllmwiki:query "<a question>"`; grow the wiki with `/sllmwiki:build "<a first question>"`, which opens a pull request to review and merge; publish it as a book with `/sllmwiki:release`. Say that `sllmwiki/Config.toml` holds the answers and the other settings, to change any time. If `sllmwiki init` couldn't write `.claude/settings.json` (a sandbox guards it), give the owner the keys it printed to merge in by hand, so the team's agents load the plugin.
 
 Rerun after a plugin update: it refreshes the files it owns and keeps the wiki's own.
