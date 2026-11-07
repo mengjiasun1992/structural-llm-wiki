@@ -7,7 +7,7 @@
 
 ## 2. Read each section once
 
-For each narrative, `sllmwiki cited-sections <slug>` prints every section it cites, once, with the claims citing it; a code source's lines come numbered. Read those, not whole sources. A target it lists as missing or as a whole file is a finding.
+For each narrative, `sllmwiki cited-sections <slug>` prints every section it cites, once, with the claims citing it; a code source's lines come numbered. Read those, not whole sources. A target it lists as missing, as a whole file or as the page's title is a finding.
 
 For consistency, read the Abstract and Terminology of each narrative sharing its tags (`sllmwiki reading-plan list --primary <its tags>`), and the paragraphs on the terms they share.
 
