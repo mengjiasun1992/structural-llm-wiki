@@ -109,7 +109,9 @@ source_copies = "allow"     # or "links-only": keep no copies, only links
 max_quote_words = 50        # the longest quotation a narrative may take
 smes_exclude = []           # never listed as SMEs, such as the wiki's owner or bots
 markers = true              # false: no reasoning or gap markers
-images = true               # false: diagrams in mermaid only, no generated figures
+picture_formats = ["mermaid", "svg", "png"]  # the kinds of picture a narrative may use
+max_pictures = 5            # pictures in one narrative, at most; 0: none
+max_image_kb = 100          # an SVG or PNG figure's size, at most
 language = "en"             # the language narratives are written in, such as "zh-Hans"
 
 [structural-llm-wiki-templates.technical_brief_overview]

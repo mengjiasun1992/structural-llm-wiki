@@ -5,7 +5,7 @@
     max_quote_words = 50
     smes_exclude = []
     markers = true
-    images = true
+    picture_formats = ["mermaid", "svg", "png"]
     language = "en"
 
     [structural-llm-wiki-templates.technical_brief_overview]
@@ -48,10 +48,14 @@ DEFAULTS = {
     'max_quote_words': 50,     # the longest quotation a narrative may take from a source
     'smes_exclude': [],        # people and bots never listed as SMEs
     'markers': True,           # the [→] and [?] markers (design doc §4.10)
-    'images': True,            # generated figures in narratives/figures/, where mermaid can't show an idea well (design doc §4.5)
+    'picture_formats': ['mermaid', 'svg', 'png'],  # the kinds of picture a narrative may use (design doc §4.5.3)
+    'max_pictures': 5,         # pictures in one narrative, at most; 0: none
+    'max_image_kb': 100,       # an SVG or PNG figure's size, at most
     'language': 'en',          # the language narratives are written in, a BCP 47 tag; sources keep their own (lib/language.py)
 }
 SOURCE_COPIES = ('allow', 'links-only')
+PICTURE_FORMATS = ('mermaid', 'svg', 'png')  # mermaid diagrams, and the figures GitHub, Obsidian and the books all show
+LEGACY = {'images'}  # replaced by picture_formats: images = false reads as ["mermaid"] (init rewrites the line)
 TEMPLATE_KEYS = ('max_words', 'abstract_words')
 ADDON_DEFAULTS = {
     'obsidian': False,  # init writes sllmwiki/.obsidian/graph.json (design doc §4.8)
@@ -102,14 +106,23 @@ def _settings(table, problems):
     out = {}
     for key, value in table.items():
         where = f'{SETTINGS}.{key}'
-        if key not in DEFAULTS:
+        if key in LEGACY:
+            if type(value) is not bool:
+                problems.append(f'{where} must be true or false')
+            elif not value and 'picture_formats' not in table:
+                out['picture_formats'] = ['mermaid']
+        elif key not in DEFAULTS:
             problems.append(f'unknown setting {where}{_hint(key, list(DEFAULTS))}')
         elif type(value) is not type(DEFAULTS[key]):
             problems.append(f'{where} must be {_kind(DEFAULTS[key])}')
         elif key == 'source_copies' and value not in SOURCE_COPIES:
             problems.append(f'{where} must be "allow" or "links-only", not {value!r}')
-        elif key == 'max_quote_words' and value < 1:
+        elif key in ('max_quote_words', 'max_image_kb') and value < 1:
             problems.append(f'{where} must be a positive whole number')
+        elif key == 'max_pictures' and value < 0:
+            problems.append(f'{where} must be a whole number, 0 or more')
+        elif key == 'picture_formats' and not all(v in PICTURE_FORMATS for v in value):
+            problems.append(f'{where} must list some of {", ".join(repr(f) for f in PICTURE_FORMATS)}, not {value!r}')
         elif key == 'language' and not _LANGUAGE.match(value):
             problems.append(f'{where} must be a language tag, such as "en" or "zh-Hans", not {value!r}')
         elif key == 'smes_exclude' and not all(isinstance(v, str) and v.strip() for v in value):

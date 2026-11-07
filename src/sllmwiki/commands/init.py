@@ -61,7 +61,7 @@ def action_ref():
 
 
 # The settings init asks the owner about: the rest keep their defaults until edited
-ASK = ('language', 'source_copies', 'pdf_book', 'epub_book', 'html_book', 'title', 'author', 'obsidian', 'markers', 'images', 'smes_exclude')
+ASK = ('language', 'source_copies', 'pdf_book', 'epub_book', 'html_book', 'title', 'author', 'obsidian', 'markers', 'picture_formats', 'smes_exclude')
 
 
 def settings_of(text):
@@ -84,7 +84,8 @@ def questions(root):
     have = toml.loads(read_text(path)) if os.path.isfile(path) else None
     out = []
     for key, (table, line) in settings_of(template).items():
-        if key not in ASK or (have is not None and key in have.get(table, {})):
+        had = have.get(table, {}) if have is not None else {}
+        if key not in ASK or key in had or (key == 'picture_formats' and 'images' in had):  # images: the setting it replaced
             continue
         value, _, about = line.split(' = ', 1)[1].partition('#')
         out.append({'key': key, 'table': table, 'value': toml.loads(f'v = {value.strip()}')['v'], 'about': about.strip()})
@@ -255,7 +256,7 @@ class Init:
             config.parse(text)
         except config.ConfigError as e:
             cli.fail('Config.toml has problems; fix them, then rerun init: ' + '; '.join(e.problems))
-        added = set_values(add_missing_settings(text, template), self.sets)
+        added = set_values(add_missing_settings(migrate_settings(text, template), template), self.sets)
         self.check(added)
         if added != text:
             self.put(rel, added, 'added settings to')
@@ -287,6 +288,22 @@ class Init:
         for rel in wikiindex.pages(self.root):
             if rel not in changed:
                 self.done.append(('kept', rel))
+
+
+def migrate_settings(text, template):
+    """text with a setting the template replaced rewritten as its successor: images = false, before
+    picture_formats, becomes picture_formats = ["mermaid"], and images = true the template's line."""
+    lines = text.split('\n')
+    old = next((i for i, line in enumerate(lines) if re.match(r'images = (true|false)\b', line)), None)
+    if old is None:
+        return text
+    off = lines[old].startswith('images = false')
+    if 'picture_formats' in toml.loads(text).get(config.SETTINGS, {}):
+        del lines[old]
+        return '\n'.join(lines)
+    lines[old] = next(line for line in template.split('\n') if line.startswith('picture_formats = '))
+    migrated = '\n'.join(lines)
+    return set_values(migrated, {'picture_formats': ['mermaid']}) if off else migrated
 
 
 def add_missing_settings(text, template):

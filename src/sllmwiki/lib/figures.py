@@ -2,14 +2,17 @@
 a mermaid diagram can't show well, kept in narratives/figures/<slug>/, and the
 numbered caption under every diagram and image.
 
-check(root, rel, text, on) -> findings for one narrative's images:
-  IMAGE_OFF         an image while Config.toml's images setting is false
+check(root, rel, text, formats, max_kb) -> findings for one narrative's images:
   IMAGE_PLACE       an image that isn't an .svg or .png in figures/<slug>/
+  PICTURE_KIND      an .svg or .png that Config.toml's picture_formats doesn't allow
   IMAGE_FORMAT      a file whose content isn't the SVG or PNG its name says
   IMAGE_ALT         an image without alt text
   IMAGE_UNSAFE      an SVG with a script, an event handler, a link or an embedded image
   IMAGE_BACKGROUND  an SVG with no opaque background, so dark themes hide its dark text (warning)
-  IMAGE_SIZE        an SVG over MAX_SVG_BYTES, or a PNG over MAX_PNG_BYTES or MAX_PNG_WIDTH (warning)
+  IMAGE_SIZE        an SVG or a PNG over max_kb (Config.toml's max_image_kb), or a PNG over MAX_PNG_WIDTH (warning)
+check_pictures(text, formats, most) -> findings for the narrative's pictures, its diagrams and images:
+  PICTURE_KIND      a mermaid diagram that Config.toml's picture_formats doesn't allow
+  PICTURES_MAX      more pictures than Config.toml's max_pictures
 check_captions(text) -> findings for captions:
   FIGURE_CAPTION    a diagram or image without its caption line, *Figure 5-1: what it shows.*
   FIGURE_NUMBER     a caption numbered out of place (renumber() fixes it)
@@ -28,8 +31,6 @@ from .util import read_bytes, read_text
 
 FOLDER = 'figures'
 KINDS = ('.svg', '.png')  # what GitHub, Obsidian, mdBook and Sphinx's HTML builder all show
-MAX_SVG_BYTES = 40_000    # an SVG is text an agent may read: keep it to a few thousand tokens
-MAX_PNG_BYTES = 150_000
 MAX_PNG_WIDTH = 1600      # pixels: wider only costs bytes and tokens, no page shows more
 IMAGE = re.compile(r'!\[([^\]]*)\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)')
 PNG = b'\x89PNG\r\n\x1a\n'
@@ -61,37 +62,40 @@ def images(text):
             for m in IMAGE.finditer(mask_code_spans(line))]
 
 
-def check(root, rel, text, on=True):
-    """Findings (severity, code, line, message) for the narrative at rel."""
+def check(root, rel, text, formats=('mermaid', 'svg', 'png'), max_kb=100):
+    """Findings (severity, code, line, message) for the narrative at rel's images; formats and max_kb are
+    Config.toml's picture_formats and max_image_kb."""
     slug = os.path.splitext(os.path.basename(rel))[0]
     out = []
     for i, alt, path in images(text):
         n = i + 1
-        if not on:
-            out.append(('error', 'IMAGE_OFF', n, f'{path}: Config.toml turns images off; draw it as a mermaid diagram'))
-            continue
         parts = path.split('/')
         if len(parts) != 3 or parts[:2] != [FOLDER, slug] or os.path.splitext(path)[1].lower() not in KINDS:
             out.append(('error', 'IMAGE_PLACE', n, f'{path}: a figure is an .svg or .png in {FOLDER}/{slug}/, generated for this narrative'))
+            continue
+        kind = os.path.splitext(path)[1].lower()[1:]
+        if kind not in formats:
+            out.append(('error', 'PICTURE_KIND', n, f'{path}: Config.toml\'s picture_formats allows {", ".join(formats) or "none"}; '
+                                                    'draw it in one of those'))
             continue
         if not alt.strip():
             out.append(('error', 'IMAGE_ALT', n, f'{path}: give it alt text saying what it shows'))
         full = os.path.join(root, os.path.dirname(rel), path)
         if not os.path.isfile(full):
             continue  # compat.check_links reports it as LINK_PATH
-        out += _check_file(full, path, n)
+        out += _check_file(full, path, n, max_kb * 1000)
     return out
 
 
-def _check_file(full, path, n):
+def _check_file(full, path, n, most):
     data = read_bytes(full)
     if path.lower().endswith('.png'):
         if not data.startswith(PNG) or len(data) < 24:
             return [('error', 'IMAGE_FORMAT', n, f'{path} isn\'t a PNG')]
         width = int.from_bytes(data[16:20], 'big')
-        if len(data) > MAX_PNG_BYTES or width > MAX_PNG_WIDTH:
+        if len(data) > most or width > MAX_PNG_WIDTH:
             return [('warning', 'IMAGE_SIZE', n, f'{path} is {len(data) // 1000} KB and {width} px wide; keep a PNG under '
-                                                 f'{MAX_PNG_BYTES // 1000} KB and {MAX_PNG_WIDTH} px, or draw it as an SVG')]
+                                                 f'{most // 1000} KB and {MAX_PNG_WIDTH} px, or draw it as an SVG')]
         return []
     svg = data.decode('utf-8', 'replace')
     if not re.match(r'\s*(?:<\?xml[^>]*\?>\s*)?(?:<!--.*?-->\s*)*<svg\b', svg, re.S):
@@ -102,9 +106,24 @@ def _check_file(full, path, n):
     elif not _BACKGROUND.search(svg):
         out.append(('warning', 'IMAGE_BACKGROUND', n, f'{path} has no opaque background, so dark themes hide its dark text; '
                                                      'start it with a light <rect> the size of the figure'))
-    if len(data) > MAX_SVG_BYTES:
-        out.append(('warning', 'IMAGE_SIZE', n, f'{path} is {len(data) // 1000} KB; keep an SVG under {MAX_SVG_BYTES // 1000} KB: '
+    if len(data) > most:
+        out.append(('warning', 'IMAGE_SIZE', n, f'{path} is {len(data) // 1000} KB; keep an SVG under {most // 1000} KB: '
                                                'fewer points, rounded coordinates, shared styles, no metadata'))
+    return out
+
+
+def check_pictures(text, formats=('mermaid', 'svg', 'png'), most=5):
+    """Findings for the narrative's pictures: a mermaid diagram picture_formats doesn't allow, and more
+    pictures than most (Config.toml's max_pictures)."""
+    lines = text.split('\n')
+    found = pictures(text)
+    out = []
+    if 'mermaid' not in formats:
+        out += [('error', 'PICTURE_KIND', first + 1, f'a mermaid diagram: Config.toml\'s picture_formats allows {", ".join(formats) or "none"}; '
+                                                    'draw it in one of those') for first, _, _ in found if _MERMAID.match(lines[first])]
+    if len(found) > most:
+        out.append(('error', 'PICTURES_MAX', found[most][0] + 1,
+                    f'{len(found)} pictures, over Config.toml\'s max_pictures of {most}: keep the ones that teach the most'))
     return out
 
 
