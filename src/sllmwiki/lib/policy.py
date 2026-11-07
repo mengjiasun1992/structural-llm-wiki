@@ -24,6 +24,9 @@ OPEN_LICENSES = {
     'gpl-2.0', 'gpl-2.0-only', 'gpl-2.0-or-later', 'gpl-3.0', 'gpl-3.0-only', 'gpl-3.0-or-later',
     'lgpl-2.1', 'lgpl-2.1-only', 'lgpl-2.1-or-later', 'lgpl-3.0', 'lgpl-3.0-only', 'lgpl-3.0-or-later',
     'agpl-3.0', 'agpl-3.0-only', 'agpl-3.0-or-later',
+    # an RFC (no SPDX id): the IETF Trust lets anyone copy one in full and without modification, and a
+    # saved RFC keeps every word, leaving out only the page breaks and page headers and footers (#122)
+    'licenseref-ietf-trust',
 }
 
 

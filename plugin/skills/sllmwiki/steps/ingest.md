@@ -21,6 +21,8 @@
 ## 2. Judge before saving
 
 - **Read the source's license or terms.** Record what you find: an SPDX id such as CC-BY-4.0, or "proprietary", or "unknown".
+  - An RFC: `LicenseRef-IETF-Trust`, with `--license-url https://trustee.ietf.org/license-info`.
+  - A work of the US federal government, made by its employees: `public-domain`. Not a contractor's, a state's or another country's work, nor anything the page quotes or credits to others; record those by their own terms.
 - **Behind a login, a paywall or anti-bot protection:** don't fetch it any other way. Record it as a link.
 - **Personal data or secrets:** save only the parts without them, and mark where you left text out.
 
