@@ -12,7 +12,8 @@ permissions:
 
 jobs:
   check-scripts:
-    runs-on: ubuntu-latest
+    # 24.04: setup-python has no 3.9 for ubuntu-latest (26.04)
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         # the latest Python 3, and the oldest the scripts support
