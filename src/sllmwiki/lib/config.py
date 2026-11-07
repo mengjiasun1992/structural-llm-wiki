@@ -33,7 +33,7 @@ import difflib
 import os
 import re
 
-from .layout import CONFIG, config_path
+from .layout import CONFIG
 from .toml import TomlError, loads
 from .util import read_text
 
@@ -55,7 +55,6 @@ DEFAULTS = {
 }
 SOURCE_COPIES = ('allow', 'links-only')
 PICTURE_FORMATS = ('mermaid', 'svg', 'png')  # mermaid diagrams, and the figures GitHub, Obsidian and the books all show
-LEGACY = {'images'}  # replaced by picture_formats: images = false reads as ["mermaid"] (init rewrites the line)
 TEMPLATE_KEYS = ('max_words', 'abstract_words')
 ADDON_DEFAULTS = {
     'obsidian': False,  # init writes sllmwiki/.obsidian/graph.json (design doc §4.8)
@@ -106,12 +105,7 @@ def _settings(table, problems):
     out = {}
     for key, value in table.items():
         where = f'{SETTINGS}.{key}'
-        if key in LEGACY:
-            if type(value) is not bool:
-                problems.append(f'{where} must be true or false')
-            elif not value and 'picture_formats' not in table:
-                out['picture_formats'] = ['mermaid']
-        elif key not in DEFAULTS:
+        if key not in DEFAULTS:
             problems.append(f'unknown setting {where}{_hint(key, list(DEFAULTS))}')
         elif type(value) is not type(DEFAULTS[key]):
             problems.append(f'{where} must be {_kind(DEFAULTS[key])}')
@@ -206,7 +200,7 @@ def parse(text):
 
 def load(root):
     """The wiki's Config (the defaults without a Config.toml); raises ConfigError."""
-    path = config_path(root)
+    path = os.path.join(root, CONFIG)
     return parse(read_text(path)) if os.path.isfile(path) else Config()
 
 

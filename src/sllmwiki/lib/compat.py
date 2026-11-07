@@ -52,7 +52,7 @@ _LINK_OR_AUTO = re.compile(r'!?\[[^\]\n]*\]\([^)\n]*\)|<[^>\n]+>')
 
 _WIKILINK = re.compile(r'(?<![!\[\\])\[\[([^\[\]\n]+)\]\](?!\()')
 _EMBED = re.compile(r'!\[\[([^\[\]\n]+)\]\]')
-_OLD_CITE = re.compile(r'(?<![\\\[])\[\[([0-9]+)\]\]\(')
+_BRACKET_CITE = re.compile(r'(?<![\\\[])\[\[([0-9]+)\]\]\(')
 _HIGHLIGHT = re.compile(r'(?<![=\w])==(?=\S)([^=\n]*?\S)==(?![=\w])')
 _CALLOUT = re.compile(r' {0,3}>[ \t]*\[!([^\]\n]+)\]([-+]?)(.*)\Z')
 _TAG = re.compile(r'(?:(?<=\s)|^)#([A-Za-z_][\w/-]*)')
@@ -273,7 +273,7 @@ def check(text):
             add('error', 'HEADING_ATTRS', i, f'"{m.group(2)}}}" ending a heading is read by mdBook as its id and classes; write \\}}')
         if _MYST_LINE.match(line) or [r for r in _MYST_ROLE.finditer(raw) if line[r.start()] == '{']:
             add('warning', 'MYST_SYNTAX', i, 'a MyST target "(label)=", break "+++" or role "{name}`x`", which the other renderers show as text')
-        for m in _OLD_CITE.finditer(line):
+        for m in _BRACKET_CITE.finditer(line):
             add('error', 'CITATION_BRACKETS', i, f'"[[{m.group(1)}]](" reads as a wikilink in Obsidian; write [\\[{m.group(1)}\\]]( (escape() does)')
         for m in _EMBED.finditer(line):
             add('error', 'EMBED', i, f'"![[{m.group(1)}]]" is an Obsidian embed, text elsewhere; use ![alt](path)')
@@ -319,7 +319,7 @@ def _escape_prose(line):
     for at, ins in sorted(edits, reverse=True):
         line = line[:at] + ins + line[at:]
     n += len(edits)
-    cites = list(_OLD_CITE.finditer(mask_code_spans(line)))
+    cites = list(_BRACKET_CITE.finditer(mask_code_spans(line)))
     for m in reversed(cites):
         line = line[:m.start()] + f'[\\[{m.group(1)}\\]](' + line[m.end():]
     return line, n + len(cites)

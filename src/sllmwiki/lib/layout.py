@@ -24,21 +24,11 @@ OBSIDIAN_GRAPH = f'{CONTENT}/.obsidian/graph.json'
 INDEX = f'{CONTENT}/.SLLMWIKI_INDICES.md'
 TEMPLATES = f'{CONTENT}/.templates'  # the wiki's own narrative templates and language packs
 CONFIG = f'{CONTENT}/Config.toml'
-# where these were before 1.0: init moves them, and the settings are read at the root until it does
-OLD_CONFIG = 'Config.toml'
-OLD_TEMPLATES = ('templates', f'{CONTENT}/templates')
-OLD_INDEX = ('SLLMWIKI_INDICES.md', f'{CONTENT}/SLLMWIKI_INDICES.md')
 
 
 def in_content(rel):
     """A path a manifest records (from the content folder) as a path from the repository root."""
     return f'{CONTENT}/{rel}'
-
-
-def config_path(root):
-    """The wiki's Config.toml: in the content folder, or at the root while init hasn't moved it there."""
-    new, old = os.path.join(root, CONFIG), os.path.join(root, OLD_CONFIG)
-    return old if not os.path.isfile(new) and os.path.isfile(old) else new
 
 
 def find_root(start=None):

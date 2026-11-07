@@ -67,17 +67,8 @@ def state_dir(root):
 
 
 def current(root):
-    """The current run's slug. A state from before runs/ (one run.json) is moved into it first."""
+    """The current run's slug."""
     base = state_dir(root)
-    if os.path.isfile(os.path.join(base, 'run.json')):
-        with open(os.path.join(base, 'run.json'), encoding='utf-8') as f:
-            slug = json.load(f)['slug']
-        folder = os.path.join(base, 'runs', slug)
-        os.makedirs(folder, exist_ok=True)
-        for name in ('run.json', 'summaries', 'pr.md'):
-            if os.path.exists(os.path.join(base, name)):
-                shutil.move(os.path.join(base, name), os.path.join(folder, name))
-        write_text(os.path.join(base, 'current'), slug)
     if not os.path.isfile(os.path.join(base, 'current')):
         cli.fail('no run in progress here; start one with sllmwiki publish start')
     return read_text(os.path.join(base, 'current')).strip()

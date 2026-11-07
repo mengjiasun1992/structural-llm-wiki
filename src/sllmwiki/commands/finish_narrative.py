@@ -107,9 +107,9 @@ def main(argv):
     text, n = xrefs.repair(root, rel, text)
     done += [f'repaired {n} link(s) to a renumbered section of another narrative'] if n else []
     if settings['markers']:
-        text, n = markers.migrate(text)
-        done += [f'converted {n} old marker(s)'] if n else []
-    text, n = citations.place(text)  # after the old markers become new ones, so they move inside too
+        text, n = markers.arrows(text)
+        done += [f'wrote {n} [->] as [→]'] if n else []
+    text, n = citations.place(text)
     done += [f'moved {n} reference(s) inside their sentence'] if n else []
     text, n = compat.escape(text)
     done += [f'wrote {n} renderer escape(s)'] if n else []

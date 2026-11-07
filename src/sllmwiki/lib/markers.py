@@ -1,5 +1,5 @@
 """The two markers a narrative puts after what its sources don't say (design doc
-§4.10): where they may go, their Terminology rows, and the move from the old ones.
+§4.10): where they may go, their Terminology rows, and [->] written as [→].
 
 A marker sits where a citation would: at the end of the statement it covers,
 before its closing punctuation ("… opposite directions [→]."), or at the end of
@@ -16,12 +16,10 @@ MARKERS = {
     '[→]': 'Our own reasoning, after a statement or on a section\'s heading: a conclusion, comparison or example no cited source states.',
     '[?]': 'A gap, after a statement or on a heading: something the question needs that the sources don\'t answer.',
 }
-OLD = {'[sllmwiki_reasoning]': '[→]', '[sllmwiki_gap]': '[?]'}
 ASCII = {'[->]': '[→]'}  # the reasoning marker as typed without the arrow; finish-narrative writes the arrow
 LEVEL_HINT = 4  # this many statement markers of a kind in one uncited section: mark its heading instead
 _ANY = re.compile(r'\[→\](?!\()|\[\?\](?!\()')
 _ASCII = re.compile(r'\[->\](?!\()')
-_OLD = re.compile('|'.join(re.escape(m) for m in OLD))
 _SENTENCE_END = re.compile(r'[.!?][)"”’*]*(?=\s|\Z)|[。！？][)"”’*）」]*')
 _HEADING = re.compile(r' {0,3}#{1,6}[ \t]')
 
@@ -74,10 +72,8 @@ def check(text, on=True):
     """Findings (severity, code, line, message) about markers; on is Config.toml's markers setting."""
     lines = text.split('\n')
     kinds, _ = scan(lines)
-    out = [('error', 'MARKER_OLD', i + 1, f'{m.group(0)} is the old marker: write {OLD[m.group(0)]} after the statement (sllmwiki finish-narrative converts it)')
-           for i, line in enumerate(lines) if kinds[i] == 'text' for m in _OLD.finditer(_masked(line))]
-    out += [('error', 'MARKER_OLD', i + 1, '[->] is written [→] (sllmwiki finish-narrative converts it)')
-            for i, line in enumerate(lines) if kinds[i] == 'text' for _ in _ASCII.finditer(_masked(line))]
+    out = [('error', 'MARKER_ASCII', i + 1, '[->] is written [→] (sllmwiki finish-narrative converts it)')
+           for i, line in enumerate(lines) if kinds[i] == 'text' for _ in _ASCII.finditer(_masked(line))]
     used = uses(text)
     if not on:
         return out + [('error', 'MARKER_OFF', i + 1, f'{m}: Config.toml turns markers off; say it in words instead') for i, _, m in used]
@@ -116,39 +112,19 @@ def _level_hints(text, lines, statements):
     return out
 
 
-def migrate(text):
-    """(text, markers converted): each old marker at a sentence's start becomes the new one after that sentence,
-    [->] becomes [→], and old Terminology rows go, for add_rows to write the new ones."""
+def arrows(text):
+    """(text, markers converted): each [->], the reasoning marker typed without its arrow, written [→]."""
     lines = text.split('\n')
     kinds, _ = scan(lines)
-    out, moved = [], 0
+    converted = 0
     for i, line in enumerate(lines):
-        if kinds[i] == 'text' and _ASCII.search(_masked(line)):
-            masked = _masked(line)
-            spans = [m.span() for m in _ASCII.finditer(masked)]
-            for a, b in reversed(spans):
-                line = line[:a] + ASCII['[->]'] + line[b:]
-            moved += len(spans)
-        if kinds[i] != 'text' or not _OLD.search(line):
-            out.append(line)
+        if kinds[i] != 'text':
             continue
-        if re.match(r'\s*\|\s*\*\*\[sllmwiki_', line):
-            moved += 1
-            continue
-        while True:
-            m = _OLD.search(_masked(line))
-            if not m:
-                break
-            head, rest = line[:m.start()], line[m.end():].lstrip(' ')
-            cell = re.search(r'(?<!\\)\|', rest) if line.lstrip().startswith('|') else None
-            scope = rest[:cell.start()] if cell else rest
-            end = _SENTENCE_END.search(_masked(scope))
-            stop = end.end() if end else len(scope.rstrip())
-            tail = rest[stop:]
-            line = head + rest[:stop] + ' ' + OLD[m.group(0)] + (tail if not tail or tail[0] in ' |' else ' ' + tail)
-            moved += 1
-        out.append(line)
-    return '\n'.join(out), moved
+        spans = [m.span() for m in _ASCII.finditer(_masked(line))]
+        for a, b in reversed(spans):
+            line = line[:a] + ASCII['[->]'] + line[b:]
+        lines[i], converted = line, converted + len(spans)
+    return '\n'.join(lines), converted
 
 
 def add_rows(text, pack=None):

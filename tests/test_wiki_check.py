@@ -73,12 +73,6 @@ class Check(helpers.WikiTestCase):
         self.assertEqual(r.code, 1)
         self.assertIn('YAML_INVALID', r.out)
 
-    def test_the_old_root_layout_is_a_warning(self):
-        self.write('Config.toml', '[structural-llm-wiki-settings]\n')
-        self.write('templates/x/template.md', 'x\n')
-        found = {(f['code'], f['file']) for f in json.loads(self.wc('--json').out)['findings']}
-        self.assertTrue({('OLD_LAYOUT', 'Config.toml'), ('OLD_LAYOUT', 'templates')} <= found, found)
-
     def test_the_wikis_own_templates(self):
         self.write('sllmwiki/.templates/postmortem/template.md', '---\ndescription: x\n---\n\n## Timeline\n\n<what happened>\n')
         self.write('sllmwiki/Config.toml', '[structural-llm-wiki-templates.runbook]\nmax_words = 900\n')

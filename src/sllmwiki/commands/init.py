@@ -80,12 +80,11 @@ def questions(root):
     """The settings to ask about: [{key, table, value, about}], every one in ASK on a first setup, and on a
     rerun those Config.toml doesn't have yet."""
     template = read_text(os.path.join(WIKI, 'Config.toml'))
-    path = layout.config_path(root)
+    path = os.path.join(root, layout.CONFIG)
     have = toml.loads(read_text(path)) if os.path.isfile(path) else None
     out = []
     for key, (table, line) in settings_of(template).items():
-        had = have.get(table, {}) if have is not None else {}
-        if key not in ASK or key in had or (key == 'picture_formats' and 'images' in had):  # images: the setting it replaced
+        if key not in ASK or (have is not None and key in have.get(table, {})):
             continue
         value, _, about = line.split(' = ', 1)[1].partition('#')
         out.append({'key': key, 'table': table, 'value': toml.loads(f'v = {value.strip()}')['v'], 'about': about.strip()})
@@ -139,7 +138,6 @@ def parse_sets(pairs):
 
 
 GRAPH_LINES = ('# with the Obsidian add-on, the graph\'s settings are shared', '!sllmwiki/.obsidian/graph.json')
-OLD_GITIGNORE = {'# Obsidian: share only the graph settings, not each person\'s workspace': '# Obsidian: each person\'s settings are their own'}
 
 
 class Init:
@@ -176,22 +174,6 @@ class Init:
     def layout(self):
         for kind in ('tags', 'sources', 'narratives'):
             self.create(manifest.FILES[kind], manifest.HEADERS[kind])
-        self.move_old()
-
-    def move_old(self):
-        """Before 1.0, the settings, the templates and the index were at the root: move them into sllmwiki/."""
-        for old, new in ((layout.OLD_CONFIG, layout.CONFIG), *((t, layout.TEMPLATES) for t in layout.OLD_TEMPLATES)):
-            if os.path.exists(self.path(old)) and not os.path.exists(self.path(new)):
-                os.rename(self.path(old), self.path(new))
-                self.done.append((f'moved {old} to', new))
-        readme = read_text(self.path('README.md')) if self.exists('README.md') else ''
-        for old in layout.OLD_INDEX:
-            if os.path.isfile(self.path(old)) and wikiindex.GENERATED in read_text(self.path(old)):  # pages() writes it in its new place
-                os.remove(self.path(old))
-                self.done.append(('removed the old', old))
-            readme = readme.replace(f']({old})', f']({layout.INDEX})')  # the README init wrote links to it; only that link changes
-        if self.exists('README.md') and readme != read_text(self.path('README.md')):
-            self.put('README.md', readme, 'pointed the index link in')
 
     def readme(self):
         text = read_text(os.path.join(WIKI, 'README.md')).replace('{{name}}', self.name)
@@ -212,11 +194,7 @@ class Init:
         want = [line for line in read_text(os.path.join(WIKI, 'gitignore')).splitlines() if line.strip() and (on or line not in GRAPH_LINES)]
         rel = '.gitignore'
         have = read_text(self.path(rel)) if self.exists(rel) else ''
-        lines = [OLD_GITIGNORE.get(line, line) for line in have.splitlines()]
-        if not on:
-            lines = [line for line in lines if line not in GRAPH_LINES]
-        elif GRAPH_LINES[1] in lines and GRAPH_LINES[0] not in lines:
-            lines.insert(lines.index(GRAPH_LINES[1]), GRAPH_LINES[0])
+        lines = [line for line in have.splitlines() if on or line not in GRAPH_LINES]
         missing = [line for line in want if line not in lines]
         body = '\n'.join(lines).rstrip('\n')
         text = (body + '\n\n' if body and missing else body + '\n' if body else '') + ('\n'.join(missing) + '\n' if missing else '')
@@ -256,7 +234,7 @@ class Init:
             config.parse(text)
         except config.ConfigError as e:
             cli.fail('Config.toml has problems; fix them, then rerun init: ' + '; '.join(e.problems))
-        added = set_values(add_missing_settings(migrate_settings(text, template), template), self.sets)
+        added = set_values(add_missing_settings(text, template), self.sets)
         self.check(added)
         if added != text:
             self.put(rel, added, 'added settings to')
@@ -288,22 +266,6 @@ class Init:
         for rel in wikiindex.pages(self.root):
             if rel not in changed:
                 self.done.append(('kept', rel))
-
-
-def migrate_settings(text, template):
-    """text with a setting the template replaced rewritten as its successor: images = false, before
-    picture_formats, becomes picture_formats = ["mermaid"], and images = true the template's line."""
-    lines = text.split('\n')
-    old = next((i for i, line in enumerate(lines) if re.match(r'images = (true|false)\b', line)), None)
-    if old is None:
-        return text
-    off = lines[old].startswith('images = false')
-    if 'picture_formats' in toml.loads(text).get(config.SETTINGS, {}):
-        del lines[old]
-        return '\n'.join(lines)
-    lines[old] = next(line for line in template.split('\n') if line.startswith('picture_formats = '))
-    migrated = '\n'.join(lines)
-    return set_values(migrated, {'picture_formats': ['mermaid']}) if off else migrated
 
 
 def add_missing_settings(text, template):
@@ -359,7 +321,7 @@ def main(argv):
     if args.ask:
         found = questions(root)
         if args.json:
-            print(dumps({'first_setup': not os.path.isfile(layout.config_path(root)), 'ask': found}))
+            print(dumps({'first_setup': not os.path.isfile(os.path.join(root, layout.CONFIG)), 'ask': found}))
         else:
             for q in found:
                 print(f'{q["key"]} = {toml_value(q["value"])}: {q["about"]}')
