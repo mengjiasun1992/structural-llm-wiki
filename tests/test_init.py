@@ -8,7 +8,8 @@ import unittest
 from unittest import mock
 
 import helpers
-from lib import config, layout
+import sllmwiki
+from sllmwiki.lib import config, layout
 
 GIT_ENV = {'GIT_AUTHOR_NAME': 't', 'GIT_AUTHOR_EMAIL': 't@example.com', 'GIT_COMMITTER_NAME': 't',
            'GIT_COMMITTER_EMAIL': 't@example.com', 'GIT_CONFIG_GLOBAL': os.devnull, 'GIT_CONFIG_NOSYSTEM': '1'}
@@ -41,8 +42,8 @@ class Init(unittest.TestCase):
         self.assertEqual(done['sllmwiki/.SLLMWIKI_INDICES.md'], 'generated')
         self.assertTrue(self.read('README.md').startswith('# demo-wiki\n'))
         self.assertEqual(self.read('CLAUDE.md'), '@AGENTS.md\n')
-        import init
-        ref = init.action_ref()  # the plugin's release tag, or mainline without a version
+        from sllmwiki.commands import init
+        ref = init.action_ref()  # the release tag of this version
         self.assertIn(f'src/actions/wiki-checks@{ref}', self.read('.github/workflows/wiki-checks.yml'))
         book = self.read('.github/workflows/release-book.yml')
         self.assertIn(f'src/actions/release-book@{ref}', book)
@@ -109,7 +110,7 @@ class Init(unittest.TestCase):
 
     def test_a_guarded_settings_file_is_reported_not_fatal(self):
         # a sandbox guards .claude/settings.json from scripts: init reports it, and writes the rest
-        import init
+        from sllmwiki.commands import init
         guarded, real = os.path.join(self.root, '.claude', 'settings.json'), open
 
         def refuse(path, *a, **k):
@@ -123,6 +124,11 @@ class Init(unittest.TestCase):
             with mock.patch('builtins.open', refuse):
                 run.settings()
             self.assertEqual(run.done, [(init.SKIPPED, '.claude/settings.json')])
+        with mock.patch('builtins.open', refuse):
+            r = self.init('--name', 'demo-wiki')
+        self.assertEqual(r.code, 0, r.err)
+        self.assertIn(f'{init.SKIPPED} .claude/settings.json\n{{\n  "extraKnownMarketplaces"', r.out)  # the keys to merge in
+        self.assertIn('"sllmwiki@structural-llm-wiki": true', r.out)
 
     def test_the_old_root_layout_moves_under_sllmwiki(self):
         # before 1.0 the settings, the templates and the index were at the root
@@ -219,15 +225,14 @@ class Init(unittest.TestCase):
         self.assertEqual(self.read('.gitignore'), "node_modules/\n\n# Obsidian: each person's settings are their own\nsllmwiki/.obsidian/*\n"
                                                   "# with the Obsidian add-on, the graph's settings are shared\n!sllmwiki/.obsidian/graph.json\n.DS_Store\n")
 
-    def test_the_action_ref_follows_the_plugin_version(self):
+    def test_the_action_ref_follows_the_version(self):
         mod = helpers.load_script('init.py')
-        plugin = helpers.write(self.root, 'plugin.json', json.dumps({'name': 'sllmwiki', 'version': '1.2.0'}))
-        with mock.patch.object(mod, 'PLUGIN_JSON', plugin):
+        with mock.patch.object(mod, '__version__', '1.2.0'):
             self.assertEqual(mod.action_ref(), 'v1.2.0')
-            helpers.write(self.root, 'plugin.json', '{')
-            self.assertEqual(mod.action_ref(), 'mainline')
-        with mock.patch.object(mod, 'PLUGIN_JSON', '/nope.json'):
-            self.assertEqual(mod.action_ref(), 'mainline')
+
+    def test_the_package_and_the_plugin_share_a_version(self):
+        with open(os.path.join(helpers.REPO, 'plugin', '.claude-plugin', 'plugin.json'), encoding='utf-8') as f:
+            self.assertEqual(json.load(f)['version'], sllmwiki.__version__)
 
     def test_refusals(self):
         self.assertEqual(self.init('--commit').code, 2)
@@ -326,7 +331,7 @@ class ReviewChecklist(unittest.TestCase):
 
 class Templates(unittest.TestCase):
     def test_the_wiki_config_template_is_valid_and_complete(self):
-        text = helpers.read(os.path.join(helpers.SKILL_DIR, 'templates', 'wiki'), 'Config.toml')
+        text = helpers.read(os.path.join(helpers.TEMPLATES, 'wiki'), 'Config.toml')
         c = config.parse(text)
         self.assertEqual((c.settings, c.addons), (config.DEFAULTS, config.ADDON_DEFAULTS))
         for key in list(config.DEFAULTS) + list(config.ADDON_DEFAULTS):

@@ -11,7 +11,7 @@ import unittest
 from unittest import mock
 
 import helpers
-from lib import util
+from sllmwiki.lib import util
 
 
 class Files(unittest.TestCase):

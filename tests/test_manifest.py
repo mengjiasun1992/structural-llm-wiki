@@ -4,8 +4,8 @@ import os
 import unittest
 
 import helpers
-from lib import manifest, wikiyaml
-from lib.manifest import ManifestError
+from sllmwiki.lib import manifest, wikiyaml
+from sllmwiki.lib.manifest import ManifestError
 
 
 def run(root, *argv):
@@ -42,10 +42,10 @@ class Library(helpers.WikiTestCase):
         self.assertEqual((sources['alpha-doc']['tags'], sources['alpha-doc']['file']), (['leaf-a', 'leaf-b'], 'sources/alpha-doc.md'))
         with self.assertRaises(ManifestError) as e:
             manifest.put_source(self.root, 'new-copy', kind=None, url='https://e.com')
-        self.assertIn('save a copy with fetch-source.py', str(e.exception))
+        self.assertIn('save a copy with sllmwiki fetch-source', str(e.exception))
         with self.assertRaises(ManifestError) as e:
             manifest.put_source(self.root, 'alpha-doc', kind='link')
-        self.assertIn('fetch-source.py --refresh', str(e.exception))
+        self.assertIn('sllmwiki fetch-source --refresh', str(e.exception))
         manifest.put_source(self.root, 'gamma-link', url='https://e.com/g2')  # a link's fields can all change
 
     def test_drop_copy_turns_a_saved_copy_into_a_link_in_place(self):
@@ -135,7 +135,7 @@ class Command(helpers.WikiTestCase):
 
     def test_refusals(self):
         r = run(self.root, 'add-tag', 'leaf-a', '--description', 'x')
-        self.assertEqual((r.code, r.err), (1, 'manifest.py: tag leaf-a exists; change it with put-tag\n'))
+        self.assertEqual((r.code, r.err), (1, 'sllmwiki manifest: tag leaf-a exists; change it with put-tag\n'))
         self.assertEqual(run(self.root, 'put-tag').code, 2)
         self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nmarkers = 1\n')
         r = run(self.root, 'add-tag', 'x', '--description', 'x')

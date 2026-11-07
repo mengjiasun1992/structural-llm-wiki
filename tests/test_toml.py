@@ -3,7 +3,7 @@
 import unittest
 
 import helpers  # noqa: F401  (puts the scripts on the path)
-from lib.toml import TomlError, dumps_value, loads
+from sllmwiki.lib.toml import TomlError, dumps_value, loads
 
 
 class Subset(unittest.TestCase):

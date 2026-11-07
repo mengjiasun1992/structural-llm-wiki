@@ -22,6 +22,7 @@ Delete anything by deleting it from the repository; the git history keeps it unt
 
 - **GitHub, through `git` and `gh`, in your own account:** pushing branches, opening pull requests, creating releases, and the wiki's GitHub Actions (its checks, and building the book at each release). GitHub's own terms and privacy statement apply.
 - **The sites a source comes from**, which receive only the requests that fetch it.
+- **PyPI, once per plugin version:** the first run downloads the plugin's code, the `sllmwiki` package, with pip, which sends PyPI the usual request details (such as your IP address and pip's version). PyPI's own terms and privacy notice apply.
 - **Your coding agent and its model provider**, which see what the agent reads and writes, as with any work in your agent; their own terms apply. The plugin sends nothing to them itself.
 
 Nothing goes anywhere else, and nothing is retained by the plugin's authors.

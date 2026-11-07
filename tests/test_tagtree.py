@@ -4,8 +4,8 @@ import json
 import unittest
 
 import helpers
-from lib import tagtree
-from lib.tagtree import Tree
+from sllmwiki.lib import tagtree
+from sllmwiki.lib.tagtree import Tree
 
 TAGS = {
     'root': {'description': 'Root', 'parent': None},
@@ -63,7 +63,7 @@ class Command(helpers.WikiTestCase):
         d = json.loads(self.tree('--json', 'show', 'leaf-b').out)
         self.assertEqual((d['sources'], d['smes']), (['beta-doc'], []))
         r = self.tree('show', 'nope')
-        self.assertEqual((r.code, r.err), (1, 'tag-tree.py: no tag nope\n'))
+        self.assertEqual((r.code, r.err), (1, 'sllmwiki tag-tree: no tag nope\n'))
 
     def test_load(self):
         self.assertIn('leaf-a', tagtree.load(self.root).tags)

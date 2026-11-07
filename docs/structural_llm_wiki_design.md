@@ -38,7 +38,7 @@ This document covers the architecture and the decisions behind it. The skill's f
 - **The question drives the run.** Tags, sources and the reading plan are chosen for the questions asked, not for a topic in general, so nothing is collected that no answer uses.
 - **Runs are unattended; review happens on one pull request.** A run takes its questions at the start and doesn't pause; what it can't decide goes to the top of its pull request. The owner reviews, ticks the review checklist and merges.
 - **Build on what exists.** One narrative per question. Before writing, look for a narrative that already covers it, and reuse or expand it (§7.4).
-- **Store facts, derive the rest.** Manifests hold only what no file can tell: where a source came from, when, its license, its tags and abstract, which source versions a narrative was built from, and which narratives it builds on. Sizes, hashes, titles, versions and dates are read from the files when needed, and generated pages (the index, tag pages) are rewritten by every script that writes a manifest, and by `wiki-check.py --fix`. Nothing derived is stored, so nothing derived can drift.
+- **Store facts, derive the rest.** Manifests hold only what no file can tell: where a source came from, when, its license, its tags and abstract, which source versions a narrative was built from, and which narratives it builds on. Sizes, hashes, titles, versions and dates are read from the files when needed, and generated pages (the index, tag pages) are rewritten by every script that writes a manifest, and by `sllmwiki wiki-check --fix`. Nothing derived is stored, so nothing derived can drift.
 - **Spend tokens on judgment, and keep attention on what matters.** The agent never does the same work twice and never reads more than the task needs:
   - **Repetitive work is a script's.** Counting, hashing, numbering, formatting, assembling commit messages and PR descriptions, and checking structure run as scripts, which cost no tokens and give the same answer every time.
   - **Read the smallest thing that answers.** Abstracts before sections, a section before a whole file, search results instead of browsing. Scripts print compact findings, not file contents.
@@ -58,23 +58,24 @@ This document covers the architecture and the decisions behind it. The skill's f
 ```text
 structural-llm-wiki/
 ├── .claude-plugin/marketplace.json        # makes this repo a plugin marketplace; lists plugin/
-├── plugin/                                # the plugin: only what runs for its users
+├── plugin/                                # the plugin: instructions only (issue #145)
 │   ├── .claude-plugin/                    # plugin.json (the manifest) and icon.png
 │   ├── skills/sllmwiki/                   # the one skill
 │   │   ├── SKILL.md                       # routing and the rules every run shares
 │   │   ├── workflows/                     # build, query, release, init: read when the workflow runs
-│   │   ├── steps/                         # tags, ingest, smes, narrative, lint, template: read when the step runs
-│   │   ├── scripts/                       # the deterministic scripts, each documented by its --help
-│   │   │   └── lib/                       # shared modules
+│   │   └── steps/                         # tags, ingest, smes, narrative, lint, template: read when the step runs
+│   └── commands/                          # Claude Code commands, one per workflow: init, query, build, release
+├── pyproject.toml                         # builds the sllmwiki package; lint and coverage settings
+├── tests/                                 # unit tests for the package, and the instruction budgets
+├── src/
+│   ├── sllmwiki/                          # the package: `sllmwiki <command>`, each documented by its --help
+│   │   ├── cli.py                         # the one command, dispatching to commands/
+│   │   ├── commands/                      # one module per command (wiki-check, publish, book, …)
+│   │   ├── lib/                           # shared modules
 │   │   └── templates/                     # narratives/ (templates and guides); languages/ (language packs); book/ (Sphinx's conf.py and stylesheets);
 │   │                                      # wiki/ and the *.yml workflows (what init installs)
-│   └── commands/                          # Claude Code commands, one per workflow: init, query, build, release
-├── tests/                                 # unit tests for the scripts, and the instruction budgets
-├── src/
 │   ├── actions/                           # GitHub actions a wiki's CI calls, fetched from this repository at the tag:
-│   │   │                                  # wiki-checks, review-checklist, release-book
-│   │   └── scripts/                       # what only they run: book.py, review-checklist.py, bookbuild.py and
-│   │                                      # book-template/ (Sphinx's conf.py and stylesheets); they import the skill's lib/
+│   │                                      # wiki-checks, review-checklist, release-book; they run the package from there
 │   └── tools/                             # development and CI tools (eval-plugin.sh, check-yaml, check-book)
 ├── evals/                                 # behavior evals, run through src/tools/eval-plugin.sh
 └── docs/
@@ -163,7 +164,7 @@ gateway:
     - "@bob: 30 commits in the last 3 months"
 ```
 
-A tag stores only its description, its parent and its SMEs. Its children, sources and narratives are derived: children from `parent`, sources and narratives from the manifests' `tags` fields. `tag-tree` answers questions about the tree, and `manifest.py add-tag` / `put-tag` write it, so the YAML is never edited by hand.
+A tag stores only its description, its parent and its SMEs. Its children, sources and narratives are derived: children from `parent`, sources and narratives from the manifests' `tags` fields. `tag-tree` answers questions about the tree, and `sllmwiki manifest add-tag` / `put-tag` write it, so the YAML is never edited by hand.
 
 **Schema.** `tags.yaml` and both manifests have a schema (`lib/schema.py`): each field's kind, whether it is required, and rules across fields. `wiki-check` reports missing, unknown (with a did-you-mean hint), mistyped and invalid fields as errors, so the wiki's CI fails the pull request.
 
@@ -179,7 +180,7 @@ A source is a verbatim copy of existing material, kept so that every claim built
 | `epub` | the book's chapters in its reading order (its spine), each converted like an HTML page, its headings set at the depth its table of contents gives it; links within the book keep only their text, images their alt text. A book whose chapters are encrypted (DRM) is refused, never decrypted |
 | `tex` | a LaTeX source's body: its sections as headings, its math kept as TeX (`$…$`, `$$…$$`), its formatting as markdown, the rest of its markup dropped; `\input` files read from beside it |
 | `code` | a code file verbatim in one fenced block, so a citation names its lines as the file numbers them: `#L10-L20` |
-| `link` | nothing: a pointer (live code, dashboards, a source that may not be copied); `manifest.py put-source --kind link --drop-copy` turns a saved copy into one in place |
+| `link` | nothing: a pointer (live code, dashboards, a source that may not be copied); `sllmwiki manifest put-source --kind link --drop-copy` turns a saved copy into one in place |
 
 Each saved file ends with a generated "Original source" footer (its URL and license), which is left out of its hash. One entry per source, keyed by slug (`<topic>-<source-name>`):
 
@@ -273,15 +274,15 @@ Four are shown in the [demo wiki](https://github.com/mengjiasun1992/sllmwiki-dem
 | `comparison` | precise, breadth and depth in balance: every common candidate, depth only where it decides the choice |
 | `case_study` | faithful, causal, transferable; deep on one case: every event cited, the chain from trigger to impact explained, each lesson with when it holds |
 
-Lint grades each narrative on each axis of its template's aim, met, partly or missed, with the evidence, helped by `narrative-format.py --stats` (the body against its budget; words, citations and markers per section; citations by the authority of what they cite).
+Lint grades each narrative on each axis of its template's aim, met, partly or missed, with the evidence, helped by `sllmwiki narrative-format --stats` (the body against its budget; words, citations and markers per section; citations by the authority of what they cite).
 
 #### 4.5.5 A wiki's own templates
 
 The five bundled templates cover the common kinds of questions; a group adds its own for the kinds they don't fit, such as a postmortem of its incidents, a runbook, or a ten-minute primer on one paper.
 
 - **What it is.** A folder in the wiki's `sllmwiki/.templates/` with a `template.md` and a `guide.md`, the same two files as a bundled template. It is offered next to the bundled ones, and the narrative step picks it by its `use_when` like any other. One with a bundled template's name replaces that template in this wiki.
-- **How it's made.** Asking for one ("make a template for <what it's for>") runs the `template` step: it starts from the closest template (`narrative-format.py --new-template <name> --from <closest>`), shapes the header, the sections and the guide from the owner's description, checks the result, and lands it as one pull request. It can also be written by hand.
-- **How it's checked.** By `lib/templates.py`, the same way as a bundled one: the header's four keys; the guide's six sections, with the **Takeaway** and the **Aim** whose axes lint grades every narrative on; and a body of `##` sections, each with its `<…>` line, repeating none of the shared ones. `narrative-format.py --templates` lists every template with its aim and any problem; one that doesn't load is a problem, not a template, and `wiki-check` reports it (`TEMPLATE_INVALID`), as it does a `Config.toml` budget for a template there isn't, so the wiki's CI fails on it.
+- **How it's made.** Asking for one ("make a template for <what it's for>") runs the `template` step: it starts from the closest template (`sllmwiki narrative-format --new-template <name> --from <closest>`), shapes the header, the sections and the guide from the owner's description, checks the result, and lands it as one pull request. It can also be written by hand.
+- **How it's checked.** By `lib/templates.py`, the same way as a bundled one: the header's four keys; the guide's six sections, with the **Takeaway** and the **Aim** whose axes lint grades every narrative on; and a body of `##` sections, each with its `<…>` line, repeating none of the shared ones. `sllmwiki narrative-format --templates` lists every template with its aim and any problem; one that doesn't load is a problem, not a template, and `wiki-check` reports it (`TEMPLATE_INVALID`), as it does a `Config.toml` budget for a template there isn't, so the wiki's CI fails on it.
 - **The same bar as the bundled ones.** Its narratives get the shared top and appendices, citations, markers and finishing, and lint grades them against its aim.
 - **Only a different length?** Set the budget in `Config.toml` (§4.9) instead of copying the template.
 
@@ -313,13 +314,13 @@ A wiki is read on GitHub page by page, opened in [Obsidian](https://obsidian.md)
 
 **Tag pages, for everyone.** A generated page per tag (description, parent, children, narratives, sources, SMEs) makes each topic browsable on GitHub, and puts the tag tree in Obsidian's graph, which draws every markdown file as a node and every link as an edge. They are plain markdown, written by a script in milliseconds.
 
-**The Obsidian add-on** (`obsidian = true`, §4.9) adds what only Obsidian uses: `init` writes `sllmwiki/.obsidian/graph.json` once (tag pages gold, narratives indigo, sources gray and filtered out of the graph; a reader who wants sources out of search too excludes them in their own `app.json`), and the wiki owns it from then on; `.gitignore` shares only that file from `.obsidian/` (off, it ignores all of `.obsidian/`, so a reader's own graph is never committed), and `publish.py` ignores Obsidian's rewrites of it. Off, nothing Obsidian-specific is written.
+**The Obsidian add-on** (`obsidian = true`, §4.9) adds what only Obsidian uses: `init` writes `sllmwiki/.obsidian/graph.json` once (tag pages gold, narratives indigo, sources gray and filtered out of the graph; a reader who wants sources out of search too excludes them in their own `app.json`), and the wiki owns it from then on; `.gitignore` shares only that file from `.obsidian/` (off, it ignores all of `.obsidian/`, so a reader's own graph is never committed), and `sllmwiki publish` ignores Obsidian's rewrites of it. Off, nothing Obsidian-specific is written.
 
 **The index.** `sllmwiki/.SLLMWIKI_INDICES.md` is GitHub's map: a mermaid diagram of the tag tree whose nodes open the tag pages, and the same tree as a nested list; the wiki's README links to it. Obsidian and a book don't need it: its dot name keeps it out of Obsidian (it would link to every tag), and a book has its own contents, to which a link to the index points.
 
 ### 4.9 Settings and add-ons: `Config.toml`
 
-A wiki can keep a `Config.toml` in `sllmwiki/`. Every setting has a default, so the file is optional; `init` writes it with the defaults and a note on each, and a rerun adds any setting the file lacks, keeping the wiki's values. On a first setup `init` asks the owner about the settings they'd want to choose (language, source policy, the book's formats, title and author, Obsidian, markers, figures, who never to list as an SME), and on a rerun only about those added since (`init.py --ask`, `--set`).
+A wiki can keep a `Config.toml` in `sllmwiki/`. Every setting has a default, so the file is optional; `init` writes it with the defaults and a note on each, and a rerun adds any setting the file lacks, keeping the wiki's values. On a first setup `init` asks the owner about the settings they'd want to choose (language, source policy, the book's formats, title and author, Obsidian, markers, figures, who never to list as an SME), and on a rerun only about those added since (`sllmwiki init --ask`, `--set`).
 
 ```toml
 [structural-llm-wiki-settings]
@@ -413,12 +414,12 @@ sequenceDiagram
 
 *Figure 5-1: One `build` run. Purple: the questions mapped to what exists; green: sources saved and the pull request opened; blue: narratives written and recorded; amber: lint.*
 
-The questions and the user's words are passed to every step. A request that names only a topic, with no question or job ("look into alpha retries"), gets one prompt before anything runs: what the wiki already holds on it (narrative questions, from `search.py context`), whether to answer from the wiki or research it, with a recommendation, and two or three questions a narrative could answer. Nothing is read beyond the abstracts, and nothing changes, until the user says. After that, a run doesn't pause.
+The questions and the user's words are passed to every step. A request that names only a topic, with no question or job ("look into alpha retries"), gets one prompt before anything runs: what the wiki already holds on it (narrative questions, from `sllmwiki search context`), whether to answer from the wiki or research it, with a recommendation, and two or three questions a narrative could answer. Nothing is read beyond the abstracts, and nothing changes, until the user says. After that, a run doesn't pause.
 
 ### 5.2 Review model
 
 - Each run works on its own branch (`sllmwiki/<slug>`), from the up-to-date default branch, never from another run's branch; it stops if the local default branch doesn't match the remote's.
-- Steps only commit. `publish.py` opens one pull request after Step 3 and updates its description after each later step. It assembles the description from the steps' summaries (each step writes its summary as JSON): the review checklist at the top (tags, sources, each narrative), anything the run couldn't decide, then the summaries. Its last section records what the run cost: the time since `publish.py start`, and the turns and tokens read from the session's own transcript, so runs can be compared and a regression in cost shows on the pull request. A session knows its tokens, not its price, so dollars appear only when the caller passes them (`publish.py pr --cost`), as an eval or a scripted run can; with no transcript, the section says so. The wiki's `review-checklist` check stays red until every box is ticked, so a change is reviewed even when its owner can merge without a required review.
+- Steps only commit. `sllmwiki publish` opens one pull request after Step 3 and updates its description after each later step. It assembles the description from the steps' summaries (each step writes its summary as JSON): the review checklist at the top (tags, sources, each narrative), anything the run couldn't decide, then the summaries. Its last section records what the run cost: the time since `sllmwiki publish start`, and the turns and tokens read from the session's own transcript, so runs can be compared and a regression in cost shows on the pull request. A session knows its tokens, not its price, so dollars appear only when the caller passes them (`sllmwiki publish pr --cost`), as an eval or a scripted run can; with no transcript, the section says so. The wiki's `review-checklist` check stays red until every box is ticked, so a change is reviewed even when its owner can merge without a required review.
 - A step run on its own opens its own pull request; lint started by `ingest` or `narrative` shares its caller's.
 - **The owner merges.** Runs never merge. Feedback is applied by rerunning on the same branch; the pull request is updated, never replaced.
 - If the user asks for a different flow ("merge it for me", "use branch X"), that request wins.
@@ -426,20 +427,20 @@ The questions and the user's words are passed to every step. A request that name
 
 ### 5.3 Commit messages
 
-`publish.py commit` writes every commit message: `[sllmwiki][<action>][<tags>] <summary>`, then the step's summary, then the request that started the run, verbatim, in a `Prompt:` block. Actions: `init`, `template`, `tags`, `ingest`, `smes`, `narrative`, `lint`. A release isn't a commit: it changes no file (§10).
+`sllmwiki publish commit` writes every commit message: `[sllmwiki][<action>][<tags>] <summary>`, then the step's summary, then the request that started the run, verbatim, in a `Prompt:` block. Actions: `init`, `template`, `tags`, `ingest`, `smes`, `narrative`, `lint`. A release isn't a commit: it changes no file (§10).
 
 ## 6. Using knowledge: `query`
 
 ### 6.1 Answering from the smallest thing that answers
 
-An agent, possibly in another repository (`--root` points the scripts at a wiki clone), asks a question. `search.py context "<keywords>"` returns, in one call, the matching tags and the top narratives' abstracts. `query` then works down, **stopping at the first that answers**:
+An agent, possibly in another repository (`--root` points the scripts at a wiki clone), asks a question. `sllmwiki search context "<keywords>"` returns, in one call, the matching tags and the top narratives' abstracts. `query` then works down, **stopping at the first that answers**:
 
 | Tier | Reads | Tool |
 |---|---|---|
-| 1 | narrative abstracts; most questions stop here | `search.py context` |
-| 2 | one section of a narrative | `search.py section` |
-| 3 | the cited source section, by passing the citation link as is | `search.py section "<link>"` |
-| 4 | sources no narrative covers yet, by abstract, then one section | `search.py sources`, `section` |
+| 1 | narrative abstracts; most questions stop here | `sllmwiki search context` |
+| 2 | one section of a narrative | `sllmwiki search section` |
+| 3 | the cited source section, by passing the citation link as is | `sllmwiki search section "<link>"` |
+| 4 | sources no narrative covers yet, by abstract, then one section | `sllmwiki search sources`, `section` |
 
 ![The query funnel: narrative abstracts, then one narrative section, then the cited source section, then sources no narrative covers; most questions stop at the first tier, and a question nothing covers gets a DRAFT answer and an offer to build it](images/query-funnel.svg)
 
@@ -451,13 +452,13 @@ The answer cites what it read, flags a narrative built on a source that changed 
 
 ### 6.2 Retrieval
 
-`search.py` ranks with BM25 over short fields: tag names and descriptions, narrative questions and abstracts, source abstracts. It is deterministic, standard library only, and needs no index, because the abstracts the wiki already keeps make ranking cheap. It matches words, not meanings, so the agent passes keywords with synonyms and judges the top results itself.
+`sllmwiki search` ranks with BM25 over short fields: tag names and descriptions, narrative questions and abstracts, source abstracts. It is deterministic, standard library only, and needs no index, because the abstracts the wiki already keeps make ranking cheap. It matches words, not meanings, so the agent passes keywords with synonyms and judges the top results itself.
 
 ## 7. Key mechanisms
 
 ### 7.1 Reading once, in the right order
 
-`reading-plan.py <question-slug>` builds the narrative step's reading plan: the existing narratives on overlapping tags, then the primary and supporting tags' sources, each with its abstract and size. The agent grades each source's relevance (high, medium, low) and authority (A: the code, specs and standards, original papers or creators, official docs; B: textbooks and references; C: practitioner write-ups and encyclopedias), and each existing narrative's relevance (high when the new narrative builds on it, relying on its definition or linking to what it explains). The script orders the plan: ungraded and medium-relevance narratives first, as background; then medium-relevance sources; then high-relevance sources, within each least to most authoritative, then oldest to newest by publication date (an undated source counts as oldest); and last the narratives it builds on, so their wording is the freshest when it's relied on, where attention is strongest. A source that defines the subject is graded high even when the rest of it is about something else. Low-relevance sources and narratives are read by abstract only; ancestor and adjacent tags aren't read. The plan goes to the pull request, so reviewers see what was read and what was skipped, and into the narrative's Metadata, with its grades in the manifest (§4.4), so readers see it too and a later run starts from the grades. Each source in it is read once.
+`sllmwiki reading-plan <question-slug>` builds the narrative step's reading plan: the existing narratives on overlapping tags, then the primary and supporting tags' sources, each with its abstract and size. The agent grades each source's relevance (high, medium, low) and authority (A: the code, specs and standards, original papers or creators, official docs; B: textbooks and references; C: practitioner write-ups and encyclopedias), and each existing narrative's relevance (high when the new narrative builds on it, relying on its definition or linking to what it explains). The script orders the plan: ungraded and medium-relevance narratives first, as background; then medium-relevance sources; then high-relevance sources, within each least to most authoritative, then oldest to newest by publication date (an undated source counts as oldest); and last the narratives it builds on, so their wording is the freshest when it's relied on, where attention is strongest. A source that defines the subject is graded high even when the rest of it is about something else. Low-relevance sources and narratives are read by abstract only; ancestor and adjacent tags aren't read. The plan goes to the pull request, so reviewers see what was read and what was skipped, and into the narrative's Metadata, with its grades in the manifest (§4.4), so readers see it too and a later run starts from the grades. Each source in it is read once.
 
 ![A reading plan in order: related narratives as background; medium-relevance sources; high-relevance sources, least to most authoritative and oldest to newest within each; and last the narratives it builds on; attention grows toward the end](images/reading-order.svg)
 
@@ -506,7 +507,7 @@ Everything mechanical is `narrative-format`'s and `wiki-check`'s, not lint's. Li
 
 ### 7.4 Reuse before writing
 
-Before writing, `search.py narratives` finds narratives that answer the same or an overlapping question. The narrative step **reuses** one (records it in the pull request, writes nothing), **expands** one (a new version: wider scope or new sources), or writes a **new** one only for a genuinely different question, linked to the closest existing one. It decides without pausing and says why on the pull request; the owner can ask there for a different choice.
+Before writing, `sllmwiki search narratives` finds narratives that answer the same or an overlapping question. The narrative step **reuses** one (records it in the pull request, writes nothing), **expands** one (a new version: wider scope or new sources), or writes a **new** one only for a genuinely different question, linked to the closest existing one. It decides without pausing and says why on the pull request; the owner can ask there for a different choice.
 
 ### 7.5 One finishing command
 
@@ -525,16 +526,16 @@ Before writing, `search.py narratives` finds narratives that answer the same or 
 |---|---|---|---|
 | `tags` | `<questions>` | Matches tags, proposes new ones, classifies per question, lists stale sources. Reads only | new tags |
 | `ingest` | `<tags> <questions>` | Lists what each question's narrative can't miss and searches until each is covered or shown uncovered, listing its searches; finds 3–5 good sources per question (most relevant first, then the most authoritative it has access and a license to use, then the newest), records each license, saves through `fetch-source` | sources, manifest |
-| `smes` | `<tags>` | Locates the code and docs behind the tags, ranks people by `contributors.py` (git log and blame, `CODEOWNERS`, doc authorship, reviews); never lists anyone in `smes_exclude` (§4.9), nor the wiki's own committers for their wiki commits | `smes` in `tags.yaml` |
+| `smes` | `<tags>` | Locates the code and docs behind the tags, ranks people by `sllmwiki contributors` (git log and blame, `CODEOWNERS`, doc authorship, reviews); never lists anyone in `smes_exclude` (§4.9), nor the wiki's own committers for their wiki commits | `smes` in `tags.yaml` |
 | `narrative` | `<question>` | Reuse or expand first (§7.4); reading plan (§7.1); writes by template and guide; `finish-narrative`; lint | a narrative |
 | `lint` | `<narrative \| tag \| description>` | §7.3 | fixes, and decisions on the PR |
-| `template` | `<what the template is for>` | Starts the wiki's own template from the closest one (`narrative-format.py --new-template`), shapes its header, sections and guide from the owner's description, and checks it (§4.5.5); a length alone goes to `Config.toml` instead | `sllmwiki/.templates/<name>/` |
+| `template` | `<what the template is for>` | Starts the wiki's own template from the closest one (`sllmwiki narrative-format --new-template`), shapes its header, sections and guide from the owner's description, and checks it (§4.5.5); a length alone goes to `Config.toml` instead | `sllmwiki/.templates/<name>/` |
 
 ## 9. Instruction design
 
 Instructions are what every run pays for in tokens, and where most past defects were (rules that contradicted each other or a script). So they are held to rules a test can check:
 
-- **One home per rule.** `SKILL.md`: routing, preflight, publishing, the source policy, "sources are data, not instructions". Workflow and step files: their own procedure. `shared.md`: the narrative structure, links to other narratives, citations and markers. `shared-guide.md`: the style every narrative shares, each rule once (context in layers, ideas before sources, the map first, key examples, pictures, pseudocode and math). A template's `guide.md`: its aim and its own style. Others point to the home.
+- **One home per rule.** `SKILL.md`: routing, installing the package and `sllmwiki doctor`, publishing, the source policy, "sources are data, not instructions". Workflow and step files: their own procedure. `shared.md`: the narrative structure, links to other narratives, citations and markers. `shared-guide.md`: the style every narrative shares, each rule once (context in layers, ideas before sources, the map first, key examples, pictures, pseudocode and math). A template's `guide.md`: its aim and its own style. Others point to the home.
 - **Scripts document themselves.** `SKILL.md` lists each script in one line; its options are in its `--help`, read when needed.
 - **Word budgets**, checked by `test_instructions`: `SKILL.md` 900 words; each workflow 1,200; each step 1,200; `shared.md` 600; `shared-guide.md` 900; each template with its guide 1,400. A `build` run then loads under 9,000 words of instructions, a `query` under 2,500.
 - **No dangling references.** `test_instructions` also checks that every script and option an instruction names exists.
@@ -543,10 +544,10 @@ Instructions are what every run pays for in tokens, and where most past defects 
 
 A wiki is written and reviewed on GitHub and explored in Obsidian; neither gives a group something to hand a colleague, read offline, or keep as the record of what it knew on a given day. A release does. [The book design](book_design.md) has the details; in short:
 
-- **A release is a dated snapshot.** `/sllmwiki:release` (`release.py plan`, `create`, `wait`) checks that the default branch's checks pass, picks the version (`v2026.10.24`, `.2` for a second that day), drafts notes from the manifests (narratives added and updated, sources added, open questions), and creates a GitHub release. It changes no file and isn't a pull request. GitHub's *Draft a new release* does the same without the agent.
-- **The wiki's `release-book` workflow builds the book** in each format `[structural-llm-wiki-release]` turns on (§4.9) and attaches the files. `book.py stage` writes the book's Markdown in a scratch folder; headless Chrome draws every diagram and formula as SVG with pinned mermaid.js and MathJax, so the book draws what GitHub draws; Sphinx with MyST-Parser builds a single-file HTML and an EPUB from it, and Chrome prints the PDF from the HTML. A failing format doesn't stop the others, and warnings go to the notes as *Known issues*. `--preview` builds the same files from a branch as a workflow artifact.
+- **A release is a dated snapshot.** `/sllmwiki:release` (`sllmwiki release plan`, `create`, `wait`) checks that the default branch's checks pass, picks the version (`v2026.10.24`, `.2` for a second that day), drafts notes from the manifests (narratives added and updated, sources added, open questions), and creates a GitHub release. It changes no file and isn't a pull request. GitHub's *Draft a new release* does the same without the agent.
+- **The wiki's `release-book` workflow builds the book** in each format `[structural-llm-wiki-release]` turns on (§4.9) and attaches the files. `sllmwiki book stage` writes the book's Markdown in a scratch folder; headless Chrome draws every diagram and formula as SVG with pinned mermaid.js and MathJax, so the book draws what GitHub draws; Sphinx with MyST-Parser builds a single-file HTML and an EPUB from it, and Chrome prints the PDF from the HTML. A failing format doesn't stop the others, and warnings go to the notes as *Known issues*. `--preview` builds the same files from a branch as a workflow artifact.
 - **What's in it.** A cover, a front page saying whose work is whose, contents, a part per top-level tag with a map of its chapters and their reading times, the narratives as chapters in teaching order (what they build on first, then concept, survey, technical, comparison, case study), and appendices of the sources (abstract, license, link), a glossary and the open questions. Never the saved copies of sources, and never SMEs: the file travels.
-- **Problems surface on the pull request, not at release.** `wiki-check` runs staging's model on every pull request and reports a link the book couldn't follow, and `book.py parse --base` parses the diagrams and formulas a pull request brings (`DIAGRAM_SYNTAX`, `MATH_SYNTAX`).
+- **Problems surface on the pull request, not at release.** `wiki-check` runs staging's model on every pull request and reports a link the book couldn't follow, and `sllmwiki book parse --base` parses the diagrams and formulas a pull request brings (`DIAGRAM_SYNTAX`, `MATH_SYNTAX`).
 - **Nothing to install.** GitHub's runners build it; the files need no network, JavaScript or fonts. This repository's `check-book` workflow builds the fixture wiki's book on every change to the book's code and checks it (`tools/check-book.py`, `epubcheck`).
 
 ## 11. Distribution
@@ -556,7 +557,7 @@ A wiki is written and reviewed on GitHub and explored in Obsidian; neither gives
 - The plugin is installed at **project scope** in each wiki repo, and `init` writes the same `extraKnownMarketplaces` and `enabledPlugins` entries to `.claude/settings.json`, so the group members who clone the wiki are offered it.
 - Other agents install with `npx skills add mengjiasun1992/structural-llm-wiki`; with no commands, users ask for a workflow or step in their own words.
 - A wiki's CI calls this repository's actions at the plugin's release tag; `init` moves the tag when the plugin updates.
-- **The plugin is `plugin/`, and only what runs for its users.** Tests, CI, evals and docs stay outside it, so they never install on a user's machine or enter the plugin directory's review; the actions stay outside too, since a wiki's CI fetches them from this repository at the tag.
+- **The plugin is `plugin/`, instructions only; the code is the `sllmwiki` package** (issue #145). The plugin directory takes scripts only from Verified organizations, and from others only Markdown, text, JSON, YAML and images, so the plugin carries `SKILL.md`, the workflows, steps and commands, and its first run installs `sllmwiki==<the plugin's version>` from PyPI into a venv in the plugin's data folder (`${CLAUDE_PLUGIN_DATA}/venv-<version>`), unless an `sllmwiki` of that version is already on PATH, as after `pipx install`. One venv per version keeps two wikis on different versions apart, needs nothing global, and works where a system Python refuses `pip install`. The package and the plugin share a version, which a test keeps equal; a `v<version>` tag publishes the package (`publish-package.yml`, trusted publishing) and pins wikis' CI. Tests, CI, evals and docs stay outside both; the actions run the package from this repository at the tag, not from PyPI.
 - **What the plugin directory accepts.** Every file is under 5 MiB and is either plain text, which the directory's security scan can read, or an image whose extension matches its format; a binary, bytecode or packed file holds a version for review. `test_plugin_files` checks both on every pull request, so a file that breaks either can't merge. A library too big for one file is kept in plain-text parts that the build joins (mermaid.js: `src/actions/release-book/vendor/split.py`).
 
 ## 12. Not in v1

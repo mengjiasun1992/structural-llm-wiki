@@ -3,8 +3,8 @@
 import unittest
 
 import helpers
-from lib import config
-from lib.config import ConfigError, parse
+from sllmwiki.lib import config
+from sllmwiki.lib.config import ConfigError, parse
 
 
 def problems(text):

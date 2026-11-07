@@ -3,7 +3,7 @@
 import unittest
 
 import helpers
-from lib import mdlinks, plaintext, search
+from sllmwiki.lib import mdlinks, plaintext, search
 
 RFC = '''Network Working Group                                         A. Author
 Request for Comments: 9999                                     June 2026
@@ -69,7 +69,7 @@ class Rst(unittest.TestCase):
         self.assertIsNone(plaintext.rst('A long title\n---\n'))  # an underline shorter than its title isn't one
 
     def test_convert_uses_it_for_rst(self):
-        from lib import convert
+        from sllmwiki.lib import convert
         data = b'Title\n=====\n\nBody.\n'
         self.assertEqual(convert.convert('text', data, 'https://e.com/a.rst', 'text/plain', name='a.rst')[0], b'# Title\n\nBody.\n')
         self.assertEqual(convert.convert('text', b'No titles.\n', 'https://e.com/a.rst', 'text/x-rst', name='a')[0], b'No titles.\n')

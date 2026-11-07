@@ -3,7 +3,7 @@
 import unittest
 
 import helpers  # noqa: F401  (puts the scripts on the path)
-from lib import numbering as nb
+from sllmwiki.lib import numbering as nb
 
 DOC = '''# What is X?
 

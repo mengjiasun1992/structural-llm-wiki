@@ -6,7 +6,7 @@ import unittest
 from unittest import mock
 
 import helpers
-from lib import compat, manifest, policy, tagpages, wikiindex
+from sllmwiki.lib import compat, manifest, policy, tagpages, wikiindex
 
 
 class Pages(helpers.WikiTestCase):
@@ -38,7 +38,7 @@ class Pages(helpers.WikiTestCase):
         self.assertIn('(abstract not written yet): ' + ' '.join(['long'] * 30) + '…', text)
 
     def test_an_empty_wiki(self):
-        from lib.tagtree import Tree
+        from sllmwiki.lib.tagtree import Tree
         self.assertIn('No topics yet.', wikiindex.render(Tree({}, {}, {}), {}))
 
 
@@ -117,7 +117,7 @@ class Check(helpers.WikiTestCase):
     def test_pins_upstream_and_drafts(self):
         self.write('sllmwiki/sources/alpha-doc.md', helpers.ALPHA + 'A new line.\n' + helpers.FOOTER.format(url='https://example.com/alpha', license='CC-BY-4.0'))
         manifest.put_source(self.root, 'beta-doc', upstream_changed='2026-10-20', abstract_draft=True)
-        wikiindex.sync(self.root, write=True)  # as manifest.py does after writing
+        wikiindex.sync(self.root, write=True)  # as sllmwiki manifest does after writing
         r = self.wc()
         self.assertEqual(r.code, 0)  # warnings only
         for code in ('NARRATIVE_SOURCE_CHANGED', 'SOURCE_UPSTREAM_CHANGED', 'ABSTRACT_DRAFT'):

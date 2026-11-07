@@ -220,7 +220,7 @@ Within a part, chapters go in teaching order:
                   └─────────────► attach the files and the notes to the GitHub Release ┘
 ```
 
-### 6.2 Stage (`book.py stage`, `lib/book.py`)
+### 6.2 Stage (`sllmwiki book stage`, `lib/book.py`)
 
 Standard-library Python, like every script. It reads the wiki through the
 existing libraries (`manifest`, `tagtree`, `metadata`, `citations`,
@@ -228,7 +228,7 @@ existing libraries (`manifest`, `tagtree`, `metadata`, `citations`,
 the cover and front page, one file per part, the chapters rewritten as in
 §5.3, and the three appendices. It also writes `book.json`: the order, every
 anchor, every diagram and formula to render, and any problem found. The pull
-request check (§7) runs the same model and rewriting inside `wiki-check.py`,
+request check (§7) runs the same model and rewriting inside `sllmwiki wiki-check`,
 writing nothing, and reports only what the wiki shows but the book can't: a
 link already broken in the wiki is the wiki's own checks' to report.
 
@@ -241,7 +241,7 @@ can't do this job (§6.4). Diagrams are ```` ```mermaid ```` blocks; math is
 `$…$`, `$$…$$` and ```` ```math ```` blocks, GitHub's three forms, never inside
 code.
 
-### 6.3 Pre-render (`book.py render`)
+### 6.3 Pre-render (`sllmwiki book render`)
 
 Headless Chrome, already on GitHub's runners, loads pinned copies of
 mermaid.js and MathJax 3 (bundled in the action, not fetched) and turns each
@@ -272,8 +272,8 @@ viewer's script (`renderer.draw(…, "12.2.0", …)` in October 2026).
 ### 6.4 Sphinx (the release action)
 
 Sphinx with MyST-Parser reads the staged folder, using the `conf.py` and
-stylesheet in `src/actions/scripts/book-template/` (passed with `-c`, so no Sphinx
-file lives in the wiki; `book.py build` sets the wiki's name, version and
+stylesheet in the package's `templates/book/` (passed with `-c`, so no Sphinx
+file lives in the wiki; `sllmwiki book build` sets the wiki's name, version and
 language with `-D`). The vendored mermaid.js and MathJax, megabytes the skill
 shouldn't carry to every install, stay in the action (`render --vendor`):
 
@@ -332,7 +332,7 @@ shouldn't carry to every install, stay in the action (`render --vendor`):
   `workflow_dispatch` (the preview), with `contents: write`.
 - It calls `src/actions/release-book` in this repository, which installs the
   pinned Sphinx and MyST-Parser (and, for the PDF, the fonts), runs
-  `book.py build` for each format that's on with the libraries in its
+  `sllmwiki book build` for each format that's on with the libraries in its
   `vendor/` folder, and attaches the files (`gh release upload`), or uploads
   an artifact for a preview. This repository's `check-book` workflow builds
   the fixture wiki with it on every pull request that touches the book.
@@ -341,22 +341,22 @@ shouldn't carry to every install, stay in the action (`render --vendor`):
 
 ### 6.7 `/sllmwiki:release`
 
-A workflow in the skill (`workflows/release.md`, `scripts/release.py`):
+A workflow in the skill (`workflows/release.md`, `sllmwiki release`):
 
-- `release.py plan` checks the default branch and its checks, picks the
+- `sllmwiki release plan` checks the default branch and its checks, picks the
   version, and drafts the notes from the narratives and sources manifests at
   the last release's tag and now.
 - The agent reviews the draft (the notes say what changed, in the wiki's
-  language), then `release.py create` makes the release.
-- `release.py wait` follows the workflow run and reports the files, their
+  language), then `sllmwiki release create` makes the release.
+- `sllmwiki release wait` follows the workflow run and reports the files, their
   sizes and any warnings.
 
 ## 7. When things run
 
 | When | What runs | Cost | Catches |
 |---|---|---|---|
-| Every pull request | staging's model and rewriting, in `wiki-check.py` (the `wiki-checks` action) | seconds, Python only | a link that works in the wiki but not in the book (a section the narrative lacks, its Metadata, a narrative with no chapter), a `built_on` cycle |
-| A pull request that changes a diagram or a formula | `book.py parse --base` in the `wiki-checks` action: the ones it brings, parsed in headless Chrome with the book's mermaid.js (`mermaid.parse`) and MathJax (an unknown macro, which MathJax would draw in red, is an error) | a few seconds; none without a change | `DIAGRAM_SYNTAX` and `MATH_SYNTAX`, with the line: a diagram or formula GitHub would show as an error |
+| Every pull request | staging's model and rewriting, in `sllmwiki wiki-check` (the `wiki-checks` action) | seconds, Python only | a link that works in the wiki but not in the book (a section the narrative lacks, its Metadata, a narrative with no chapter), a `built_on` cycle |
+| A pull request that changes a diagram or a formula | `sllmwiki book parse --base` in the `wiki-checks` action: the ones it brings, parsed in headless Chrome with the book's mermaid.js (`mermaid.parse`) and MathJax (an unknown macro, which MathJax would draw in red, is an error) | a few seconds; none without a change | `DIAGRAM_SYNTAX` and `MATH_SYNTAX`, with the line: a diagram or formula GitHub would show as an error |
 | A release | the full build, for each format that's on | 2 to 3 minutes | warnings go to the release notes |
 | A preview | the full build, as an artifact | the same | the same |
 
@@ -367,7 +367,7 @@ A workflow in the skill (`workflows/release.md`, `scripts/release.py`):
    each extra format adds seconds.
 3. **GitHub Actions minutes,** on a private repository: a few minutes per
    release, against the free plan's 2,000 a month.
-4. **No GitHub, no book:** the workflow is GitHub's. `book.py build` runs the
+4. **No GitHub, no book:** the workflow is GitHub's. `sllmwiki book build` runs the
    same pipeline on a developer's computer when Python, Sphinx and Chrome are
    installed, for developing the book, not as a promise to users.
 5. **Private repositories:** a release's files need a GitHub login to

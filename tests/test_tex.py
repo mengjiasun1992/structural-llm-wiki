@@ -3,7 +3,7 @@
 import unittest
 
 import helpers  # noqa: F401  (puts scripts/ on the path)
-from lib import tex
+from sllmwiki.lib import tex
 
 DOC = r'''\documentclass{article}
 \newcommand{\foo}{bar}

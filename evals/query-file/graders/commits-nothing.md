@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'publish\.py|git commit|fetch-source|finish-narrative'
+input_match: '(?:sllmwiki|\$\{?\w+\}?)"? publish|git commit|fetch-source|finish-narrative'
 min: 0
 max: 0
 ---

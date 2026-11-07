@@ -2,3 +2,9 @@ evals/results/
 .coverage
 .coverage.*
 __pycache__/
+
+# the package's build output (python -m build, pip wheel)
+/build/
+/dist/
+*.egg-info/
+/.venv/

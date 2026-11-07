@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'finish-narrative|publish\.py'
+input_match: 'finish-narrative|(?:sllmwiki|\$\{?\w+\}?)"? publish'
 min: 0
 max: 0
 ---

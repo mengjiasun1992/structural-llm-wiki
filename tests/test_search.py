@@ -4,7 +4,7 @@ import json
 import unittest
 
 import helpers
-from lib import manifest, search
+from sllmwiki.lib import manifest, search
 
 
 class Ranking(unittest.TestCase):
@@ -77,7 +77,7 @@ class Command(helpers.WikiTestCase):
 
     def test_failures(self):
         self.assertIn('no such file: nope.md', self.s('section', 'nope.md#x').err)
-        self.assertIn('has no section #nope; see search.py outline', self.s('section', 'alpha-doc#nope').err)
+        self.assertIn('has no section #nope; see sllmwiki search outline', self.s('section', 'alpha-doc#nope').err)
         self.assertIn('section needs a #anchor', self.s('section', 'alpha-doc').err)
 
 
@@ -89,7 +89,7 @@ class ReadingPlan(helpers.WikiTestCase):
         return helpers.write(self.tmp, 'grades.json', json.dumps(data))
 
     def test_undated_sources_count_as_oldest(self):
-        from lib import readingplan
+        from sllmwiki.lib import readingplan
         found = {'narratives': [], 'sources': [{'slug': s, 'kind': 'text', 'date': d} for s, d in (('new', '2026-01-01'), ('nodate', ''), ('old', '2001-01-01'))]}
         rows, problems = readingplan.order(found, {s: {'relevance': 'high', 'authority': 'A'} for s in ('new', 'nodate', 'old')})
         self.assertEqual(([r['slug'] for r in rows], problems), (['nodate', 'old', 'new'], []))  # the newest read last
@@ -116,7 +116,7 @@ class ReadingPlan(helpers.WikiTestCase):
         self.assertIn('Noted, not read: root-topic.', out)
 
     def test_graded_narratives(self):
-        from lib import readingplan
+        from sllmwiki.lib import readingplan
         found = {'narratives': [{'slug': n, 'created': c} for n, c in (('built-on', '1'), ('side', '2'), ('far', '3'), ('plain', '4'))],
                  'sources': [{'slug': 'doc', 'kind': 'text', 'date': ''}]}
         grades = {'doc': {'relevance': 'high', 'authority': 'A'}, 'built-on': {'relevance': 'high'}, 'side': {'relevance': 'medium'},

@@ -1,5 +1,46 @@
-# Lint and coverage configuration for the plugin's scripts (plugin/skills/sllmwiki/scripts/, src/actions/scripts/, src/tools/).
+# The sllmwiki package (src/sllmwiki/), which the plugin installs and runs as `sllmwiki <command>`,
+# and the lint and coverage configuration for it and src/tools/.
 # The scripts use only the standard library and support Python 3.9.
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sllmwiki"
+dynamic = ["version"]
+description = "The Structural LLM Wiki's commands: what the sllmwiki Claude Code plugin runs to keep a wiki of cited narratives in git."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "Mengjia Sun" }]
+dependencies = []  # the standard library only
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+  "Environment :: Console",
+  "Topic :: Documentation",
+]
+
+[project.urls]
+Homepage = "https://github.com/mengjiasun1992/structural-llm-wiki"
+Documentation = "https://github.com/mengjiasun1992/structural-llm-wiki/blob/mainline/docs/manual.md"
+Issues = "https://github.com/mengjiasun1992/structural-llm-wiki/issues"
+
+[project.scripts]
+sllmwiki = "sllmwiki.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "sllmwiki.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["sllmwiki*"]
+
+[tool.setuptools.package-data]
+# the templates: what init installs (dotfiles included), the narrative templates and language packs, the book's
+sllmwiki = ["templates/**/*", "templates/**/.*", "templates/**/.*/*", "templates/**/.*/**/*"]
 
 [tool.ruff]
 target-version = "py39"
@@ -13,7 +54,7 @@ ignore = ["E741"]
 
 [tool.coverage.run]
 # Line coverage of the skill's scripts; the tests live in tests/.
-source = ["plugin/skills/sllmwiki/scripts", "src/actions/scripts"]
+source = ["src/sllmwiki"]
 omit = ["*/__init__.py"]
 
 [tool.coverage.report]

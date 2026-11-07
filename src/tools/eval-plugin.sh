@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Run the behavior evals (claude plugin eval) against the plugin. The CLI looks for evals/ inside the
 # plugin's root, and the plugin ships without them, so this assembles a copy: plugin/'s contents, with
-# evals/ and tests/ (the scaffolds build their fixture wikis with tests/helpers.py) beside them. It runs
+# evals/, tests/ and the sllmwiki package (the scaffolds build their fixture wikis with tests/helpers.py) beside them. It runs
 # there and copies the results back to evals/results/. Arguments go to claude plugin eval.
 set -euo pipefail
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -9,6 +9,12 @@ work="$(mktemp -d "${TMPDIR:-/tmp}/sllmwiki-evals.XXXXXX")"
 cp -R "$repo/plugin/." "$work/"
 cp -R "$repo/evals" "$work/evals"
 cp -R "$repo/tests" "$work/tests"
+mkdir -p "$work/src" && cp -R "$repo/src/sllmwiki" "$work/src/sllmwiki"
+# The skill uses an sllmwiki of its version already on PATH, else installs one from PyPI, which a run's
+# sandbox can't reach. Runs inherit PATH, so this checkout's package goes on it: a run tests the branch.
+python3 -m venv "$work/.venv"
+"$work/.venv/bin/python" -m pip install --quiet --disable-pip-version-check "$repo"
+export PATH="$work/.venv/bin:$PATH"
 rm -rf "$work/evals/results"
 status=0
 (cd "$work" && claude plugin eval . "$@") || status=$?

@@ -1,12 +1,12 @@
 # Fails while a run's pull request has unticked boxes in its "Review checklist"
-# (src/actions/scripts/review-checklist.py); a pull request without one passes.
+# (the sllmwiki package's review-checklist command); a pull request without one passes.
 #
 # In the wiki's .github/workflows/review-checklist.yml (init installs it):
 #   on:
 #     pull_request:
 #       types: [opened, edited, synchronize, reopened]
 #   steps:
-#     - uses: mengjiasun1992/structural-llm-wiki/src/actions/review-checklist@v1.1.0
+#     - uses: mengjiasun1992/structural-llm-wiki/src/actions/review-checklist@v1.2.0
 
 name: Review checklist
 description: Fail until every box in a run's review checklist is ticked.
@@ -21,4 +21,4 @@ runs:
       shell: bash
       env:
         PR_BODY: ${{ github.event.pull_request.body }}
-      run: python3 "$GITHUB_ACTION_PATH/../scripts/review-checklist.py"
+      run: PYTHONPATH="$GITHUB_ACTION_PATH/../.." python3 -m sllmwiki review-checklist

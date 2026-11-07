@@ -1,8 +1,8 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'contributors\.py'
+input_match: '(?:sllmwiki|\$\{?\w+\}?)"? contributors'
 min: 1
 ---
 
-People are ranked by contributors.py, with evidence, not guessed.
+People are ranked by sllmwiki contributors, with evidence, not guessed.

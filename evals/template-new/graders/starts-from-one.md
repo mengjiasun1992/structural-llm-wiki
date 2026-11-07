@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'narrative-format\.py.*--new-template'
+input_match: '(?:sllmwiki|\$\{?\w+\}?)"? narrative-format.*--new-template'
 min: 1
 ---
 

@@ -5,14 +5,14 @@ import os
 import unittest
 
 import helpers
-from lib import manifest, narrativecheck
+from sllmwiki.lib import manifest, narrativecheck
 
 NARRATIVE = 'sllmwiki/narratives/what-is-alpha.md'
 
 
 class Checks(helpers.WikiTestCase):
     def codes(self, text, **settings):
-        from lib import config, templates
+        from sllmwiki.lib import config, templates
         s = {**config.DEFAULTS, **settings}
         return [(c, n) for _, c, n, _ in narrativecheck.check(self.root, NARRATIVE, text, s, templates.available(self.root)[0])]
 
@@ -154,6 +154,21 @@ class Command(helpers.WikiTestCase):
         self.assertIn('## 3. Overview', skel)
         self.assertEqual(self.nf('--skeleton', 'nope').code, 1)
 
+    def test_the_guide_to_follow(self):
+        out = self.nf('--guide', 'comparison').out
+        self.assertTrue(out.startswith('<!-- comparison/guide.md (bundled) -->\n'))
+        for part in ('## Audience and purpose', '<!-- shared.md -->', '<!-- shared-guide.md -->'):
+            self.assertIn(part, out)
+        self.assertLess(out.index('<!-- shared.md -->'), out.index('<!-- shared-guide.md -->'))
+        helpers.write(self.root, 'sllmwiki/.templates/comparison/template.md',
+                      helpers.read(os.path.join(helpers.TEMPLATES, 'narratives', 'comparison'), 'template.md'))
+        helpers.write(self.root, 'sllmwiki/.templates/comparison/guide.md', '# Ours\n\n'
+                      + helpers.read(os.path.join(helpers.TEMPLATES, 'narratives', 'comparison'), 'guide.md').split('\n', 1)[1])
+        self.assertTrue(self.nf('--guide', 'comparison').out.startswith('<!-- comparison/guide.md (wiki) -->\n# Ours\n'))
+        r = self.nf('--guide', 'nope')
+        self.assertEqual(r.code, 1)
+        self.assertIn('no template nope; there are case_study, comparison', r.err)
+
     def test_template_problems(self):
         helpers.write(self.root, 'sllmwiki/.templates/broken/template.md', 'no header\n')
         r = self.nf('--templates')
@@ -165,7 +180,7 @@ class Command(helpers.WikiTestCase):
 
     def test_missing_file(self):
         r = self.nf('nope.md')
-        self.assertEqual((r.code, r.err), (1, 'narrative-format.py: no such file: nope.md\n'))
+        self.assertEqual((r.code, r.err), (1, 'sllmwiki narrative-format: no such file: nope.md\n'))
 
 
 if __name__ == '__main__':
