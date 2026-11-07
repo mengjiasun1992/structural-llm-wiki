@@ -19,6 +19,12 @@ OPEN_LICENSES = {
     'cc0-1.0', 'cc-pdm-1.0', 'public-domain', 'unlicense',
     'cc-by-2.0', 'cc-by-2.5', 'cc-by-3.0', 'cc-by-4.0', 'cc-by-sa-2.0', 'cc-by-sa-2.5', 'cc-by-sa-3.0', 'cc-by-sa-4.0',
     'mit', 'apache-2.0', 'bsd-2-clause', 'bsd-3-clause', 'isc', 'mpl-2.0',
+    # more permissive and weak-copyleft code licenses: each lets anyone share a verbatim copy with its notice
+    'mit-0', '0bsd', 'bsd-3-clause-clear', 'zlib', 'bsl-1.0', 'wtfpl', 'ms-pl', 'upl-1.0',
+    'mpl-1.1', 'epl-1.0', 'epl-2.0', 'eupl-1.2', 'cddl-1.0', 'artistic-2.0',
+    'python-2.0', 'psf-2.0', 'unicode-dfs-2016', 'unicode-3.0', 'ofl-1.1',
+    # open data
+    'odc-by-1.0', 'odbl-1.0', 'pddl-1.0', 'cdla-permissive-2.0',
     # the GNU family, which lets anyone share verbatim copies that keep their notice (issue #122);
     # the bare ids are the deprecated SPDX forms GitHub's license API still reports
     'gpl-2.0', 'gpl-2.0-only', 'gpl-2.0-or-later', 'gpl-3.0', 'gpl-3.0-only', 'gpl-3.0-or-later',
