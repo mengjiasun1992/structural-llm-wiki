@@ -58,5 +58,22 @@ class CitedSections(helpers.WikiTestCase):
         self.assertIn('cites nothing', self.run_it('what-is-alpha').out)
 
 
+    def test_once_lean(self):
+        self.write('sllmwiki/sources/gamma-doc.md', '# Gamma\n\nIntro.\n\n## Parts\n\nSee [the spec](https://example.com/spec "Spec") here.\n\n'
+                   '### Part one\n\nOne.\n\n## Other\n\nElse.\n')
+        cites = ('Parts [\\[1\\]](../sources/gamma-doc.md#parts). One [\\[2\\]](../sources/gamma-doc.md#part-one). '
+                 'All [\\[3\\]](../sources/gamma-doc.md#gamma).\n')
+        self.write('sllmwiki/narratives/what-is-alpha.md', helpers.narrative_text(extra='\n' + cites))
+        by = {c['target']: c for c in json.loads(self.run_it('what-is-alpha', '--json').out)['cited']}
+        parts, one, title = (by[f'../sources/gamma-doc.md#{a}'] for a in ('parts', 'part-one', 'gamma'))
+        self.assertIn('See the spec here.', parts['text'])  # the link's text, not its URL
+        self.assertIn('### Part one', parts['text'])
+        self.assertEqual((one['text'], one['inside']), (None, '../sources/gamma-doc.md#parts'))  # printed once, in the larger
+        self.assertEqual((title['problem'], title['text']), ('cites the whole page (its title), not a section', None))
+        out = self.run_it('what-is-alpha').out
+        self.assertIn('## ../sources/gamma-doc.md#part-one  (inside ../sources/gamma-doc.md#parts, printed there)', out)
+        self.assertEqual(out.count('One.'), 1)
+
+
 if __name__ == '__main__':
     unittest.main()

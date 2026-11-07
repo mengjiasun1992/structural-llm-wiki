@@ -7,7 +7,10 @@
 citation: the target, the claims citing it (the sentence before each citation,
 with its line), then the section's text (a code source's lines, numbered).
 --claims-only leaves the sections' text out. A target that doesn't resolve is
-listed with the reason; wiki-check reports it too.
+listed with the reason (wiki-check reports it too), and so is one that names the
+whole file or the page's title (its top heading), which lint reports. A section
+inside another cited one is printed once, in the larger; links print as their
+text, without their URLs.
 
 Exit code: 0, 1 when the narrative isn't found, 2 on a usage error.
 """
@@ -16,12 +19,13 @@ import argparse
 import os
 import re
 
-from sllmwiki.lib import citations, layout, search
+from sllmwiki.lib import citations, layout, numbering, plaintext, search
 from sllmwiki.lib.layout import Cli
 from sllmwiki.lib.util import dumps, read_text
 
 cli = Cli('sllmwiki cited-sections', 'usage: sllmwiki cited-sections <narrative> [--claims-only] [--json]')
 _LINKS = re.compile(r'\[\\\[[0-9]+\\\]\]\([^)\s]*\)')
+_MD_LINK = re.compile(r'\[([^\]\n]*)\]\([^)\s]*(?:\s+"[^"]*")?\)')  # [text](url): an agent reading a section needs the text
 _SENTENCE_END = re.compile(r'(?<=[.!?:;])[*_]*\s+(?=\S)|(?<=[。！？；：])[*_]*\s*(?=\S)')
 
 
@@ -58,7 +62,7 @@ def main(argv):
     if rel is None or not rel.startswith(layout.NARRATIVES + '/'):
         cli.fail(f'no narrative {args.narrative}')
     text = read_text(os.path.join(root, rel))
-    out = []
+    files, spans, out = {}, {}, []
     for target, claims in collect(text):
         path, anchor = search.resolve(root, target, base=os.path.dirname(rel))
         section, problem = None, None
@@ -67,15 +71,33 @@ def main(argv):
         elif not anchor:
             problem = 'cites the whole file, not a section'
         else:
-            section = search.section(search.read_file(root, path), anchor)
-            problem = None if section is not None else f'{path} has no section #{anchor}'
+            body = files.setdefault(path, search.read_file(root, path))  # each source read once
+            span = None if plaintext.LINES.match(anchor) else numbering.section(body, anchor)
+            heads = numbering.headings(body)
+            if span and heads and heads[0].line == span[0] and heads[0].level == 1 and span[1] >= len(body.split('\n')):
+                problem = 'cites the whole page (its title), not a section'
+            else:
+                section = search.section(body, anchor)
+                problem = None if section is not None else f'{path} has no section #{anchor}'
+                if span and section is not None:
+                    spans.setdefault(path, []).append((span, target))
         out.append({'target': target, 'file': path, 'anchor': anchor, 'claims': [{'line': ln, 'n': n, 'claim': c} for ln, n, c in claims],
                     'problem': problem, 'text': None if args.claims_only else section})
+    for item in out:  # a section inside a larger cited one: its text is printed there
+        mine = next((sp for sp, tg in spans.get(item['file'], ()) if tg == item['target']), None)
+        outer = next((tg for sp, tg in spans.get(item['file'], ()) if mine and tg != item['target']
+                      and sp[0] <= mine[0] and mine[1] <= sp[1] and sp != mine), None)
+        if outer:
+            item['inside'] = outer
+            item['text'] = None
+        elif item['text'] and not plaintext.LINES.match(item['anchor'] or ''):
+            item['text'] = _MD_LINK.sub(r'\1', item['text'])
     if args.json:
         print(dumps({'narrative': rel, 'cited': out}))
         return 0
     for item in out:
-        print(f'## {item["target"]}' + (f'  ({item["problem"]})' if item['problem'] else ''))
+        note = item['problem'] or (f'inside {item["inside"]}, printed there' if item.get('inside') else '')
+        print(f'## {item["target"]}' + (f'  ({note})' if note else ''))
         print()
         for c in item['claims']:
             print(f'- line {c["line"]} [{c["n"]}]: {c["claim"]}')
