@@ -1,4 +1,4 @@
-"""Tests for scripts/init.py, the wiki templates, and scripts/review-checklist.py."""
+"""Tests for scripts/init.py, the wiki templates, and src/actions/scripts/review-checklist.py."""
 
 import json
 import os

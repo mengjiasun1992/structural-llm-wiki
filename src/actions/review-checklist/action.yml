@@ -1,5 +1,5 @@
 # Fails while a run's pull request has unticked boxes in its "Review checklist"
-# (scripts/review-checklist.py); a pull request without one passes.
+# (src/actions/scripts/review-checklist.py); a pull request without one passes.
 #
 # In the wiki's .github/workflows/review-checklist.yml (init installs it):
 #   on:
@@ -21,4 +21,4 @@ runs:
       shell: bash
       env:
         PR_BODY: ${{ github.event.pull_request.body }}
-      run: python3 "$GITHUB_ACTION_PATH/../../../plugin/skills/sllmwiki/scripts/review-checklist.py"
+      run: python3 "$GITHUB_ACTION_PATH/../scripts/review-checklist.py"

@@ -72,7 +72,9 @@ structural-llm-wiki/
 ├── tests/                                 # unit tests for the scripts, and the instruction budgets
 ├── src/
 │   ├── actions/                           # GitHub actions a wiki's CI calls, fetched from this repository at the tag:
-│   │                                      # wiki-checks, review-checklist, release-book
+│   │   │                                  # wiki-checks, review-checklist, release-book
+│   │   └── scripts/                       # what only they run: book.py, review-checklist.py, bookbuild.py and
+│   │                                      # book-template/ (Sphinx's conf.py and stylesheets); they import the skill's lib/
 │   └── tools/                             # development and CI tools (eval-plugin.sh, check-yaml, check-book)
 ├── evals/                                 # behavior evals, run through src/tools/eval-plugin.sh
 └── docs/

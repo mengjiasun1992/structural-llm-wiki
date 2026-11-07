@@ -220,7 +220,7 @@ Within a part, chapters go in teaching order:
                   └─────────────► attach the files and the notes to the GitHub Release ┘
 ```
 
-### 6.2 Stage (`scripts/book.py stage`, `lib/book.py`)
+### 6.2 Stage (`book.py stage`, `lib/book.py`)
 
 Standard-library Python, like every script. It reads the wiki through the
 existing libraries (`manifest`, `tagtree`, `metadata`, `citations`,
@@ -241,7 +241,7 @@ can't do this job (§6.4). Diagrams are ```` ```mermaid ```` blocks; math is
 `$…$`, `$$…$$` and ```` ```math ```` blocks, GitHub's three forms, never inside
 code.
 
-### 6.3 Pre-render (`scripts/book.py render`)
+### 6.3 Pre-render (`book.py render`)
 
 Headless Chrome, already on GitHub's runners, loads pinned copies of
 mermaid.js and MathJax 3 (bundled in the action, not fetched) and turns each
@@ -272,7 +272,7 @@ viewer's script (`renderer.draw(…, "12.2.0", …)` in October 2026).
 ### 6.4 Sphinx (the release action)
 
 Sphinx with MyST-Parser reads the staged folder, using the `conf.py` and
-stylesheet in the skill's `templates/book/` (passed with `-c`, so no Sphinx
+stylesheet in `src/actions/scripts/book-template/` (passed with `-c`, so no Sphinx
 file lives in the wiki; `book.py build` sets the wiki's name, version and
 language with `-D`). The vendored mermaid.js and MathJax, megabytes the skill
 shouldn't carry to every install, stay in the action (`render --vendor`):

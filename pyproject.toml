@@ -1,4 +1,4 @@
-# Lint and coverage configuration for the plugin's scripts (plugin/skills/sllmwiki/scripts/, src/tools/).
+# Lint and coverage configuration for the plugin's scripts (plugin/skills/sllmwiki/scripts/, src/actions/scripts/, src/tools/).
 # The scripts use only the standard library and support Python 3.9.
 
 [tool.ruff]
@@ -13,7 +13,7 @@ ignore = ["E741"]
 
 [tool.coverage.run]
 # Line coverage of the skill's scripts; the tests live in tests/.
-source = ["plugin/skills/sllmwiki/scripts"]
+source = ["plugin/skills/sllmwiki/scripts", "src/actions/scripts"]
 omit = ["*/__init__.py"]
 
 [tool.coverage.report]
