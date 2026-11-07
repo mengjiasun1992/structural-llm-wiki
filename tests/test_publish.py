@@ -88,7 +88,8 @@ class Publish(helpers.WikiTestCase):
         self.assertIn('## Decisions for you\n\n- Re-ingest beta-doc?\n', body)
         self.assertIn('## Sources\n\nSaved new.\n', body)
         self.assertIn('## Prompt\n\n> Build up alpha retries.\n> Keep it short.\n', body)
-        self.assertIn('## Run\n\n- Time: 0 min since the run started\n- Turns and tokens: no session transcript', body)
+        self.assertIn('## Run\n\n- Time: 0 min since the run started\n- Turns and tokens: no session transcript to read them from\n'
+                      '- Sources saved: 1, 6 B\n', body)  # what the branch adds over mainline
         self.assertLess(body.index('## Run'), body.index('## Prompt'))
         self.assertIn('sllmwiki/alpha-retries', helpers.git(self.origin, 'branch').stdout)
         self.write('sllmwiki/narratives/a.md', '# A?\n')
@@ -106,6 +107,8 @@ class Publish(helpers.WikiTestCase):
         self.assertIn('- Cost: $1.50\n', self.read_state('pr.md'))  # kept until a new figure
         self.assertIn('pr edit https://github.com/o/r/pull/7 --body-file', open(self.log).read())
         body = self.read_state('pr.md')
+        self.assertIn('- Sources saved: 1, 6 B\n- Narrative `a`: no template, 0 words in the body\n'
+                      '- Narrative `b`: no template, 0 words in the body\n', body)
         self.assertLess(body.index('## Sources'), body.index('## Why B?'))  # steps in pipeline order
         self.assertLess(body.index('## Why B?'), body.index('## Why A?'))  # then as last recorded
         self.assertEqual((body.count('## Why A?'), body.count('Wrote A.')), (1, 0))
@@ -144,6 +147,18 @@ class Publish(helpers.WikiTestCase):
         self.assertEqual(self.pub('start', 'run', '--title', 't', '--prompt', 'p').code, 0)
         helpers.git(self.root, 'switch', '-q', 'mainline')
         self.assertIn('sllmwiki publish resume run', self.pub('start', 'run', '--title', 't', '--prompt', 'p').err)
+
+    def test_what_a_run_saved(self):
+        publish = helpers.load_script('publish.py')
+        self.assertEqual(publish.saved(self.root, 'no-such-branch'), [])
+        self.pub('start', 'saved', '--title', 'Saved', '--prompt', 'p')
+        gone = next(f for f in sorted(os.listdir(os.path.join(self.root, 'sllmwiki', 'sources'))) if f.endswith('.md'))
+        os.remove(os.path.join(self.root, 'sllmwiki', 'sources', gone))  # a deleted source isn't one saved
+        self.write('sllmwiki/sources/big.md', 'x' * 2500)
+        self.write('sllmwiki/sources/notes.txt', 'not a source')
+        helpers.git(self.root, 'add', '-A')
+        helpers.git(self.root, 'commit', '-q', '-m', 'saved')
+        self.assertEqual(publish.saved(self.root, 'mainline'), ['- Sources saved: 1, 2.5 KB'])
 
     def test_a_changed_obsidian_graph_alone_doesnt_stop_a_run(self):
         # a tracked graph.json that Obsidian rewrote is the first (and only) line of git status, " M sllmwiki/..."
