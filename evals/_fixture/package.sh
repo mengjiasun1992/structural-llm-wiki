@@ -11,7 +11,9 @@ wheel="$(ls "$here"/../../dist/sllmwiki-*.whl 2>/dev/null | head -n 1 || true)"
 [ -n "$wheel" ] || exit 0
 version="${wheel##*/sllmwiki-}"
 version="${version%%-*}"
-venv="$HOME/../config/plugins/data/sllmwiki-inline/venv-$version"
+# resolved, not through home/: the venv's scripts name its python by this path, and the run's sandbox
+# can't enter home/
+venv="$(cd "$HOME/.." && pwd -P)/config/plugins/data/sllmwiki-inline/venv-$version"
 python3 -m venv "$venv"
 "$venv/bin/python" -m pip install --quiet --disable-pip-version-check --no-index --no-deps "$wheel"
 # for the Evals workflow, which keeps it beside the run's trace
