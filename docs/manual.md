@@ -45,7 +45,7 @@ Everything else, ask for in your own words; the skill runs the step it needs (`b
 
 ## 2. Reviewing a run
 
-Each run's pull request starts with a checklist (tags, sources, each narrative), then the decisions the agent left to you, then what the run cost. Tick each box as you check it; the wiki's "Review checklist" check turns green when all are ticked. Leave comments, and ask the agent to "apply the review comments on PR #12": it reworks the same pull request. Nothing lands until you merge. [The demo's PR #6](https://github.com/mengjiasun1992/sllmwiki-demo/pull/6) is one run's pull request, checklist and all.
+Each run's pull request starts with a checklist (tags, sources, each narrative), then the decisions the agent left to you, then what the run cost. Tick each box as you check it; the wiki's "Review checklist" check turns green when all are ticked. Leave comments, and ask the agent to "apply the review comments on PR #12": it reworks the same pull request. Nothing lands until you merge. [The demo's PR #22](https://github.com/mengjiasun1992/sllmwiki-demo/pull/22) is one run's pull request, checklist and all.
 
 ## 3. What's in your wiki
 
@@ -171,7 +171,7 @@ The scripts enforce what they can. This is a cautious default, not legal advice:
 
 **Can it read our private code and docs?** Yes, anything your agent can read: repositories you point it at, files, and pages you can open without getting around a login. Their content goes to your agent's model provider, as with any work in your agent.
 
-**What does a run cost?** Each pull request records what its run took: its time, and its turns and tokens. In the demo, one run wrote four narratives from 29 sources in 21 minutes ([PR #6](https://github.com/mengjiasun1992/sllmwiki-demo/pull/6)).
+**What does a run cost?** Each pull request records what its run took: its time, and its turns and tokens. In the demo, a run that saved three sources and wrote one 1,800-word narrative took 10 minutes and 6.0M tokens, almost all of them cached ([PR #22](https://github.com/mengjiasun1992/sllmwiki-demo/pull/22)); [the README](../README.md) has more.
 
 **Can I make my wiki public?** Yes, once its saved sources are all openly licensed: a public wiki's CI fails on a copy it may not hold. Review `sllmwiki/sources/` first, or set `source_copies = "links-only"`.
 
