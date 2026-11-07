@@ -80,14 +80,6 @@ jobs:
           git config --global user.email "evals@users.noreply.github.com"
           git config --global init.defaultBranch main
 
-      # The sandbox has no network, so the skill's `pip install sllmwiki==<version>` can't reach PyPI.
-      # The machine's pip config (which pip in the sandbox reads too) points it at this checkout's wheel
-      # instead, so a run tests the branch, not what was published.
-      - name: Serve this checkout's package to pip
-        run: |
-          python3 -m pip wheel --quiet --disable-pip-version-check --no-deps --wheel-dir "$RUNNER_TEMP/wheels" .
-          printf '[global]\nno-index = true\nfind-links = %s\n' "$RUNNER_TEMP/wheels" | sudo tee /etc/pip.conf
-
       - name: Run the evals
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

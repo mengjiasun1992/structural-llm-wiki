@@ -10,6 +10,8 @@ cp -R "$repo/plugin/." "$work/"
 cp -R "$repo/evals" "$work/evals"
 cp -R "$repo/tests" "$work/tests"
 mkdir -p "$work/src" && cp -R "$repo/src/sllmwiki" "$work/src/sllmwiki"
+# this checkout's wheel, which each scaffold installs for its run (evals/_fixture/package.sh)
+python3 -m pip wheel --quiet --disable-pip-version-check --no-deps --wheel-dir "$work/dist" "$repo"
 rm -rf "$work/evals/results"
 status=0
 (cd "$work" && claude plugin eval . "$@") || status=$?
