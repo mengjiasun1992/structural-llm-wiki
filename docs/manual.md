@@ -130,7 +130,7 @@ author = ""                 # its author; empty: the title
 
 Narratives are written in the wiki's `language`, and one can name its own (`- **Language:** zh-Hans` in its Metadata, or ask for a language when you ask the question). Sources stay in the language they were written in, and a quotation keeps its source's words, translated after it.
 
-Headings come from a language pack, `languages/<tag>.md` in the skill's or your wiki's templates: the skill ships English and Simplified Chinese (`zh-Hans`), each one it has evaluated, and a pack can carry its language's writing rules. For another language, copy [the English pack](../plugin/skills/sllmwiki/templates/languages/en.md) into your wiki's `sllmwiki/.templates/languages/` and fill in the translations; the skill writes in it, and says it hasn't evaluated it. Without a pack, headings stay English around prose in your language. Word budgets stay in words; Chinese and Japanese text counts its characters at 1.6 to a word.
+Headings come from a language pack, `languages/<tag>.md` in the package's or your wiki's templates: the skill ships English and Simplified Chinese (`zh-Hans`), each one it has evaluated, and a pack can carry its language's writing rules. For another language, copy [the English pack](../src/sllmwiki/templates/languages/en.md) into your wiki's `sllmwiki/.templates/languages/` and fill in the translations; the skill writes in it, and says it hasn't evaluated it. Without a pack, headings stay English around prose in your language. Word budgets stay in words; Chinese and Japanese text counts its characters at 1.6 to a word.
 
 ## 10. Obsidian
 
@@ -142,7 +142,7 @@ With `obsidian = true` and `/sllmwiki:init` rerun, open `sllmwiki/` as a vault: 
 
 **Update the plugin.** After a plugin update, rerun `/sllmwiki:init`: it brings the wiki's layout, CI checks and release workflow up to date in a pull request, and keeps the wiki's own files.
 
-**Other agents.** Codex, Cursor, Copilot and other agents that support [Agent Skills](https://agentskills.io) install the skill with the [`skills` CLI](https://skills.sh): `npx skills add mengjiasun1992/structural-llm-wiki -g`. There are no commands there; ask for what you want in your own words ("lint the gateway narratives").
+**Other agents.** Codex, Cursor, Copilot and other agents that support [Agent Skills](https://agentskills.io) install the skill with the [`skills` CLI](https://skills.sh): `npx skills add mengjiasun1992/structural-llm-wiki -g`, and the code it runs with `pipx install sllmwiki==<version>`, the version its `SKILL.md` names. There are no commands there; ask for what you want in your own words ("lint the gateway narratives").
 
 ## 12. Licenses, sources and your responsibility
 
@@ -163,7 +163,9 @@ The scripts enforce what they can. This is a cautious default, not legal advice:
 
 **Does the wiki have to be on GitHub?** No, but its CI checks and the book run on GitHub Actions, and `gh` opens the pull requests. Without a remote, a run keeps its commits on its branch, with the pull request's description beside them.
 
-**What if `gh` isn't installed?** Every run checks for it, with git and Python, and prints the command that installs what's missing on your machine. Without `gh`, a run prints the link to open its pull request yourself.
+**What does the plugin install?** Its code, the [`sllmwiki` package](https://pypi.org/project/sllmwiki/), from PyPI, once per version, into a virtual environment in the plugin's own data folder; nothing global changes. If you already have `sllmwiki` of that version on your PATH (`pipx install sllmwiki==<version>`), it uses that instead. Behind a proxy or offline, pip's own settings apply.
+
+**What if `gh` isn't installed?** Every run checks for it, with git, and installs what's missing with your machine's package manager; a command that needs `sudo` or a sign-in, you run yourself. Without `gh`, a run prints the link to open its pull request yourself.
 
 **Can I edit a narrative by hand?** Yes: it's Markdown in git, and the wiki's checks run on your pull request like on any other. Never edit a saved source, `tags.yaml`, a `manifest.yaml`, the index or a tag page: ask the agent, whose scripts keep them in step.
 

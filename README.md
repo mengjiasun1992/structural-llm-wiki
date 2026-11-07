@@ -24,7 +24,7 @@ Each run reports its own time and tokens in its pull request. The tokens count t
 
 ## Setup
 
-You need an agent that runs [Agent Skills](https://agentskills.io), such as [Claude Code](https://docs.claude.com/en/docs/claude-code), plus git and Python 3.9 or later. [`gh`](https://cli.github.com), signed in, is recommended: it opens the pull requests (without it, the skill prints a link to open each one yourself). The wiki's CI checks and its book need the wiki hosted on GitHub.
+You need an agent that runs [Agent Skills](https://agentskills.io), such as [Claude Code](https://docs.claude.com/en/docs/claude-code), plus git and Python 3.9 or later; the first run installs the rest, the plugin's code (the [`sllmwiki` package](https://pypi.org/project/sllmwiki/), into the plugin's own folder) and anything missing, with your package manager. [`gh`](https://cli.github.com), signed in, is recommended: it opens the pull requests (without it, the skill prints a link to open each one yourself). The wiki's CI checks and its book need the wiki hosted on GitHub.
 
 1. Create an empty repository (for example `project-foobar-sllmwiki`), clone it and start Claude Code in it.
 2. Install the plugin into it:
@@ -37,7 +37,7 @@ You need an agent that runs [Agent Skills](https://agentskills.io), such as [Cla
 3. Run `/sllmwiki:init`. It asks a few preferences (language, source policy, the book), lays out the wiki, installs its CI checks and makes the first commit. Rerun it after a plugin update.
 4. Ask your first questions: `/sllmwiki:build "How does our gateway route requests?" "Why does it retry?"`
 
-**Join a wiki:** clone it, start Claude Code inside, trust the folder and accept the `sllmwiki` plugin it offers. **Other agents** (Codex, Cursor, Copilot): `npx skills add mengjiasun1992/structural-llm-wiki -g` with the [`skills` CLI](https://skills.sh), then ask in your own words ("lint the gateway narratives").
+**Join a wiki:** clone it, start Claude Code inside, trust the folder and accept the `sllmwiki` plugin it offers. **Other agents** (Codex, Cursor, Copilot): `npx skills add mengjiasun1992/structural-llm-wiki -g` with the [`skills` CLI](https://skills.sh) and `pipx install sllmwiki` (the version the skill's `SKILL.md` names), then ask in your own words ("lint the gateway narratives").
 
 <details>
 <summary>Installing git, Python and gh</summary>
@@ -111,9 +111,10 @@ docs/                  the manual, the designs, their plans, and their figures
 `AGENTS.md` has the rules for changing this repository: tests with every logic change and coverage at 95% or above, instruction word budgets, evals for behavior changes. Run the tests, and try the plugin from a checkout:
 
 ```bash
-python3 -m pip install "coverage[toml]==7.6.10"
+python3 -m venv .venv && . .venv/bin/activate
+python3 -m pip install -e . "coverage[toml]==7.6.10"
 python3 tests/run.py --coverage
-claude --plugin-dir plugin
+claude --plugin-dir plugin             # runs the sllmwiki on PATH: this checkout's
 ```
 
 ## License
