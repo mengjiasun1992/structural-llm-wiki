@@ -24,7 +24,7 @@ runs:
       with:
         node-version: 20
 
-    # wiki-check.py: Config.toml, the schema, the tag tree, files against their
+    # sllmwiki wiki-check: Config.toml, the schema, the tag tree, files against their
     # entries, pins, attribution, the source policy (GitHub says whether the
     # repository is private, so no lookup is needed) and the generated pages.
     - name: The manifests, tags and generated pages match the files

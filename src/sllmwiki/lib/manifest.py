@@ -11,9 +11,9 @@ from .util import read_bytes, read_text, source_hash, write_text
 
 FILES = {'tags': layout.TAGS, 'sources': layout.SOURCES_MANIFEST, 'narratives': layout.NARRATIVES_MANIFEST}
 HEADERS = {
-    'tags': '# The tag tree: each tag\'s description, parent and SMEs (design doc §4.2).\n# Written by manifest.py; children, sources and narratives are derived.\n',
-    'sources': '# Sources, keyed by slug (design doc §4.3). Written by fetch-source.py and manifest.py.\n',
-    'narratives': '# Narratives, keyed by question slug (design doc §4.4). Written by finish-narrative.py.\n',
+    'tags': '# The tag tree: each tag\'s description, parent and SMEs (design doc §4.2).\n# Written by sllmwiki manifest; children, sources and narratives are derived.\n',
+    'sources': '# Sources, keyed by slug (design doc §4.3). Written by sllmwiki fetch-source and sllmwiki manifest.\n',
+    'narratives': '# Narratives, keyed by question slug (design doc §4.4). Written by sllmwiki finish-narrative.\n',
 }
 
 
@@ -56,18 +56,18 @@ def remove(root, kind, key):
 
 def put_source(root, slug, drop_copy=False, **changes):
     """Create a link source, or change fields of any existing source (a saved
-    copy's file and kind are fetch-source.py's). drop_copy turns a saved copy
+    copy's file and kind are sllmwiki fetch-source's). drop_copy turns a saved copy
     into a link in place: its file is deleted, its other fields and place kept."""
     entries = load(root, 'sources')
     entry = dict(entries.get(slug, {}))
     if slug not in entries and changes.get('kind') != 'link':
-        raise ManifestError(f'{slug} is new: save a copy with fetch-source.py, or record a link with kind link')
+        raise ManifestError(f'{slug} is new: save a copy with sllmwiki fetch-source, or record a link with kind link')
     copy = slug in entries and entry.get('kind') != 'link'
     if drop_copy and not (copy and changes.get('kind') == 'link'):
         raise ManifestError(f'--drop-copy turns a saved copy into a link (with --kind link); {slug} isn\'t a saved copy' if not copy
                             else '--drop-copy needs --kind link')
     if copy and not drop_copy and {'file', 'kind'} & {k for k, v in changes.items() if v is not None}:
-        raise ManifestError(f'{slug} is a saved copy: fetch-source.py --refresh changes its file and kind, '
+        raise ManifestError(f'{slug} is a saved copy: sllmwiki fetch-source --refresh changes its file and kind, '
                             'and --kind link --drop-copy turns it into a link')
     if drop_copy:
         path = os.path.join(root, layout.in_content(entry.pop('file')))
@@ -125,7 +125,7 @@ def put_narrative(root, slug, template, primary, supporting, read, grades=None, 
     tags = load(root, 'tags')
     unknown = [t for t in list(primary) + list(supporting) if t not in tags]
     if unknown:
-        raise ManifestError(f'no such tag(s): {", ".join(unknown)}; add them first (manifest.py add-tag)')
+        raise ManifestError(f'no such tag(s): {", ".join(unknown)}; add them first (sllmwiki manifest add-tag)')
     if not os.path.isfile(os.path.join(root, layout.NARRATIVES, f'{slug}.md')):
         raise ManifestError(f'no narrative {layout.NARRATIVES}/{slug}.md')
     entry = {'template': template, 'tags': {'primary': list(primary), 'supporting': list(supporting)}, 'read': pins(root, read)}

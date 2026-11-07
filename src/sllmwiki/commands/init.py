@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """init: make this repository a Structural LLM Wiki, or bring one up to date (design doc §3, §8).
 
-  init.py [--name NAME] [--force] [--set KEY=VALUE ...] [--commit --prompt TEXT] [--json] [--root <dir>]
-  init.py --ask [--json]
+  sllmwiki init [--name NAME] [--force] [--set KEY=VALUE ...] [--commit --prompt TEXT] [--json] [--root <dir>]
+  sllmwiki init --ask [--json]
 
 Lays out the wiki: sllmwiki/tags/tags.yaml, the sources and narratives
 manifests, the generated index and tag pages, README.md, AGENTS.md, CLAUDE.md,
@@ -43,7 +43,7 @@ from sllmwiki.lib import config, layout, manifest, toml, wikiindex  # noqa: E402
 from sllmwiki.lib.layout import Cli, entry  # noqa: E402
 from sllmwiki.lib.util import dumps, placeholder, read_text, write_text  # noqa: E402
 
-cli = Cli('init.py', 'usage: init.py [--name NAME] [--force] [--set KEY=VALUE ...] [--commit --prompt TEXT] | init.py --ask')
+cli = Cli('sllmwiki init', 'usage: sllmwiki init [--name NAME] [--force] [--set KEY=VALUE ...] [--commit --prompt TEXT] | sllmwiki init --ask')
 WIKI = os.path.join(TEMPLATES, 'wiki')
 WORKFLOWS = ('wiki-checks.yml', 'review-checklist.yml', 'release-book.yml')
 # What may already be in a folder that becomes a wiki: a new repository's files
@@ -323,7 +323,7 @@ def unrelated(root):
 
 
 def main(argv):
-    p = argparse.ArgumentParser(prog='init.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(prog='sllmwiki init', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--name')
     p.add_argument('--force', action='store_true')
     p.add_argument('--commit', action='store_true')
@@ -384,7 +384,9 @@ def main(argv):
         if new_repo:
             print(f'initialized a git repository in {root} on mainline')
         for verb, rel in run.done:
-            if verb != 'kept':
+            if verb == SKIPPED:  # the keys to merge in by hand, so the team's agents load the plugin
+                print(f'{verb} {rel}\n{read_text(os.path.join(WIKI, rel)).rstrip()}')
+            elif verb != 'kept':
                 print(f'{verb} {rel}')
         print(f'init: a wiki at {root}; its CI calls the skill\'s actions at {action_ref()}')
     return 0

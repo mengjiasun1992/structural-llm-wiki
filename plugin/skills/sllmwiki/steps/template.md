@@ -4,7 +4,7 @@ A wiki can bring its own templates, for kinds of answers the bundled ones don't 
 
 ## 1. Start from the closest template
 
-From what the owner describes (the questions it answers, its reader, what each answer must contain), pick the closest template in `narrative-format.py --templates`. Then `narrative-format.py --new-template <name> --from <closest>` copies it into `sllmwiki/.templates/<name>/` for you to change. To change a bundled template for this wiki only, give its own name. Choose a short noun for a new name, such as `postmortem`.
+From what the owner describes (the questions it answers, its reader, what each answer must contain), pick the closest template in `sllmwiki narrative-format --templates`. Then `sllmwiki narrative-format --new-template <name> --from <closest>` copies it into `sllmwiki/.templates/<name>/` for you to change. To change a bundled template for this wiki only, give its own name. Choose a short noun for a new name, such as `postmortem`.
 
 ## 2. Shape the template
 
@@ -13,18 +13,18 @@ From what the owner describes (the questions it answers, its reader, what each a
 - **Header:** `description`, one line of what the template produces; `use_when`, the questions it fits, with two or three examples in the owner's words, and how it differs from the closest bundled template; `max_words` for the body and `abstract_words`, `[min, max]`.
 - **Body:** one `## N. Title` section per part every answer needs, in reading order, each with a `<…>` line saying what goes there. Mark a section a narrative may leave out `(optional)`. Keep a ```` ```mermaid ```` placeholder where a diagram is required.
 
-`guide.md` is how to write it, under exactly these `##` sections: Audience and purpose, Voice and tone, Structure, Evidence, Length, Checklist. Audience and purpose opens with a `**Takeaway:**` line, what the reader takes away, and an `**Aim:**` line, the axes lint grades every narrative of this kind on (`**Aim:** exact, safe. Exact: … Safe: …`), then what each means. Keep what still holds from the template you copied, and change what the owner's description changes. Say each rule once: what every narrative shares stays in `templates/narratives/shared.md` and `shared-guide.md`.
+`guide.md` is how to write it, under exactly these `##` sections: Audience and purpose, Voice and tone, Structure, Evidence, Length, Checklist. Audience and purpose opens with a `**Takeaway:**` line, what the reader takes away, and an `**Aim:**` line, the axes lint grades every narrative of this kind on (`**Aim:** exact, safe. Exact: … Safe: …`), then what each means. Keep what still holds from the template you copied, and change what the owner's description changes. Say each rule once: what every narrative shares stays in `shared.md` and `shared-guide.md` (`sllmwiki narrative-format --guide <closest>` prints them).
 
 ## 3. Check it
 
-`narrative-format.py --templates` must list it, with its aim, and no problem; it checks the header, the guide's sections, Takeaway and Aim, and that the body has `##` sections, each with its `<…>` line, and repeats none of the shared ones. `narrative-format.py --skeleton <name>` must show the skeleton you meant. In a wiki whose `language` isn't English, `--templates` warns of each new heading the wiki's language pack (`sllmwiki/.templates/languages/<tag>.md`) doesn't translate; narratives keep it in English until it does: say so in the summary.
+`sllmwiki narrative-format --templates` must list it, with its aim, and no problem; it checks the header, the guide's sections, Takeaway and Aim, and that the body has `##` sections, each with its `<…>` line, and repeats none of the shared ones. `sllmwiki narrative-format --skeleton <name>` must show the skeleton you meant. In a wiki whose `language` isn't English, `--templates` warns of each new heading the wiki's language pack (`sllmwiki/.templates/languages/<tag>.md`) doesn't translate; narratives keep it in English until it does: say so in the summary.
 
 ## 4. Summary
 
-`publish.py summary template --json '{...}'` with:
+`sllmwiki publish summary template --json '{...}'` with:
 - `title`: `"Template: <name>"`;
 - `checklist`: `"Template <name>: its use_when picks the right questions, and its sections are what every answer needs"`;
 - `decisions`: what the description left open, and the choice you made;
 - `body`: what it's for, the template it started from, and its sections.
 
-Then `publish.py commit template --subject "Template <name>: <what it's for>"`.
+Then `sllmwiki publish commit template --subject "Template <name>: <what it's for>"`.

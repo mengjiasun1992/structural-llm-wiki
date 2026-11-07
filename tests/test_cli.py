@@ -27,9 +27,9 @@ class Cli(unittest.TestCase):
         self.assertEqual(call()[0], 2)  # no command
 
     def test_an_unknown_command(self):
-        code, _, err = call('wiki-check.py')
+        code, _, err = call('sllmwiki wiki-check')
         self.assertEqual(code, 2)
-        self.assertIn("no command 'wiki-check.py'", err)
+        self.assertIn("no command 'sllmwiki wiki-check'", err)
 
     def test_every_command_is_a_module_with_main(self):
         for name in cli.COMMANDS:

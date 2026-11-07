@@ -1,10 +1,9 @@
-"""Tests for scripts/publish.py and scripts/preflight.sh: a run's branch, commits and
+"""Tests for sllmwiki publish: a run's branch, commits and
 pull request against a local bare origin, with a fake gh that records its calls."""
 
 import json
 import os
 import shutil
-import subprocess
 import tempfile
 import unittest
 from unittest import mock
@@ -144,7 +143,7 @@ class Publish(helpers.WikiTestCase):
         self.assertEqual(self.pub('start', 'Bad Slug', '--title', 't', '--prompt', 'p').code, 2)
         self.assertEqual(self.pub('start', 'run', '--title', 't', '--prompt', 'p').code, 0)
         helpers.git(self.root, 'switch', '-q', 'mainline')
-        self.assertIn('publish.py resume run', self.pub('start', 'run', '--title', 't', '--prompt', 'p').err)
+        self.assertIn('sllmwiki publish resume run', self.pub('start', 'run', '--title', 't', '--prompt', 'p').err)
 
     def test_a_changed_obsidian_graph_alone_doesnt_stop_a_run(self):
         # a tracked graph.json that Obsidian rewrote is the first (and only) line of git status, " M sllmwiki/..."
@@ -333,80 +332,6 @@ class Publish(helpers.WikiTestCase):
         self.assertFalse(os.path.exists(os.path.join(base, 'summaries')))
         helpers.write(base, 'current', 'gone')
         self.assertIn('no run in progress here', self.pub('status').err)
-
-
-class Preflight(unittest.TestCase):
-    SCRIPT = os.path.join(helpers.SCRIPTS, 'preflight.sh')
-
-    def run_with(self, tools):
-        """Run preflight with only the named tools on PATH (bash and the basics stay)."""
-        bin_dir = tempfile.mkdtemp(prefix='preflight-')
-        try:
-            for name in ('uname', 'awk', 'env', 'dirname', 'grep', 'id'):
-                if name not in tools:  # a fake replaces the real one
-                    os.symlink(shutil.which(name), os.path.join(bin_dir, name))
-            for name, body in tools.items():
-                helpers.write(bin_dir, name, f'#!/bin/sh\n{body}\n')
-                os.chmod(os.path.join(bin_dir, name), 0o755)
-            return subprocess.run([shutil.which('bash'), self.SCRIPT], env={'PATH': bin_dir}, capture_output=True, text=True)
-        finally:
-            shutil.rmtree(bin_dir)
-
-    def test_everything_present(self):
-        p = self.run_with({'git': 'echo "git version 2.40.0"', 'python3': f'exec {shutil.which("python3")} "$@"', 'gh': 'exit 0'})
-        self.assertEqual(p.returncode, 0, p.stdout)
-        self.assertIn('ok       git 2.40.0', p.stdout)
-        self.assertIn('ok       gh, signed in', p.stdout)
-
-    def test_a_token_without_the_workflow_scope(self):
-        python = f'exec {shutil.which("python3")} "$@"'
-        git = 'case "$1" in remote) echo "{url}" ;; *) echo "git version 2.40.0" ;; esac'
-        gh = 'echo "  - Token scopes: {scopes}"'
-        warning = "warning  gh's token lacks the workflow scope"
-        p = self.run_with({'git': git.format(url='https://github.com/o/r.git'), 'python3': python, 'gh': gh.format(scopes="'repo'")})
-        self.assertEqual(p.returncode, 0)
-        self.assertIn(warning + ', so a push can\'t add or change .github/workflows/: gh auth refresh -h github.com -s workflow', p.stdout)
-        for url, scopes in (('https://github.com/o/r.git', "'repo', 'workflow'"),
-                            ('git@github.com:o/r.git', "'repo'")):  # SSH pushes don't use gh's token
-            p = self.run_with({'git': git.format(url=url), 'python3': python, 'gh': gh.format(scopes=scopes)})
-            self.assertNotIn(warning, p.stdout)
-        p = self.run_with({'git': git.format(url='https://github.com/o/r.git'), 'python3': python, 'gh': 'echo "  - Token: ghp_***"'})
-        self.assertNotIn(warning, p.stdout)  # scopes not listed
-
-    def test_missing_and_signed_out(self):
-        p = self.run_with({'gh': 'exit 1'})
-        self.assertEqual(p.returncode, 1)
-        self.assertIn('missing  git (required)', p.stdout)
-        self.assertIn('missing  Python 3.9 or later (required)', p.stdout)
-        self.assertIn('warning  gh isn\'t signed in', p.stdout)
-        p = self.run_with({'git': 'echo "xcrun: error" >&2; exit 1'})  # a stub that can't reach a real git
-        self.assertIn('missing  git (required): `git --version` fails here', p.stdout)
-        p = self.run_with({'python3': 'exit 1'})  # too old
-        self.assertIn('missing  Python 3.9', p.stdout)
-        self.assertIn('warning  gh (recommended', p.stdout)
-
-    def test_the_install_command_fits_the_machine(self):
-        def hints(system, *managers, uid=1000):
-            tools = {'uname': f'echo {system}', 'id': f'echo {uid}'}
-            tools.update({m: 'exit 0' for m in managers})
-            return self.run_with(tools).stdout
-        out = hints('Linux', 'apt-get')
-        self.assertIn('missing  git (required): sudo apt-get install -y git', out)
-        self.assertIn('missing  Python 3.9 or later (required): sudo apt-get install -y python3', out)
-        self.assertIn('warning  gh (recommended, to open pull requests): sudo apt-get install -y gh', out)
-        self.assertIn(': dnf install -y python3', hints('Linux', 'dnf', uid=0))  # root needs no sudo
-        out = hints('Linux', 'pacman')
-        self.assertIn('sudo pacman -S --noconfirm python\n', out)
-        self.assertIn('sudo pacman -S --noconfirm github-cli', out)
-        self.assertIn('Python 3.9 or later (required): https://www.python.org/downloads/', hints('Linux'))
-        self.assertIn('git (required): brew install git', hints('Darwin', 'brew'))
-        out = hints('Darwin')
-        self.assertIn('git (required): xcode-select --install', out)
-        self.assertIn('install Homebrew (https://brew.sh), then: brew install gh', out)
-        out = hints('MINGW64_NT-10.0')
-        self.assertIn('git (required): winget install -e --id Git.Git', out)
-        self.assertIn('gh (recommended, to open pull requests): winget install -e --id GitHub.cli', out)
-        self.assertIn('git (required): https://git-scm.com/downloads', hints('Plan9'))
 
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-# Sphinx settings for a wiki's book (docs/book_design.md §6.4). book.py build
+# Sphinx settings for a wiki's book (docs/book_design.md §6.4). sllmwiki book build
 # passes this folder with -c, so no Sphinx file lives in the wiki, and sets
 # project, version, release, copyright and language with -D. It runs inside
 # Sphinx, which provides docutils.

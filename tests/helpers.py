@@ -32,7 +32,7 @@ sys.dont_write_bytecode = True
 
 @functools.lru_cache(maxsize=None)
 def load_script(name):
-    """A command's module (wiki-check.py or wiki-check: sllmwiki.commands.wiki_check),
+    """A command's module (sllmwiki wiki-check or wiki-check: sllmwiki.commands.wiki_check),
     or a script's by its absolute path, so its main() runs in-process and counts toward coverage."""
     if os.path.isabs(name):  # a tool (src/tools/) or a test's own script, by its path
         spec = importlib.util.spec_from_file_location(os.path.splitext(os.path.basename(name))[0].replace('-', '_'), name)
@@ -246,7 +246,7 @@ what-is-alpha:
     alpha-doc: {md5(ALPHA.encode())}
 ''')
     from sllmwiki.lib import wikiindex
-    wikiindex.sync(root, write=True)  # the index and tag pages, as wiki-check.py --fix writes them
+    wikiindex.sync(root, write=True)  # the index and tag pages, as sllmwiki wiki-check --fix writes them
     if git:
         git_init(root)
     return root

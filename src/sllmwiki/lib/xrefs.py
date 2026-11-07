@@ -49,7 +49,7 @@ def _broken(root, rel, text):
 
 def check(root, rel, text):
     return [('error', 'NARRATIVE_ANCHOR', i + 1, f'{m.group("file")} has no section #{m.group("anchor")}'
-             + (f'; it is #{moved(m.group("anchor"), target)} now (finish-narrative.py repairs it)' if moved(m.group('anchor'), target) else ''))
+             + (f'; it is #{moved(m.group("anchor"), target)} now (sllmwiki finish-narrative repairs it)' if moved(m.group('anchor'), target) else ''))
             for i, m, target in _broken(root, rel, text)]
 
 

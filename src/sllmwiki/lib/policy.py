@@ -68,7 +68,7 @@ def visibility(root):
 def may_copy(source_copies, seen_by, license, permission=None):
     """(True, why) when a copy may be saved, else (False, what to do instead)."""
     if source_copies == 'links-only':
-        return False, 'Config.toml sets source_copies = "links-only": record it as a link (manifest.py put-source --kind link)'
+        return False, 'Config.toml sets source_copies = "links-only": record it as a link (sllmwiki manifest put-source --kind link)'
     if seen_by == 'private':
         return True, 'a private wiki keeps reference copies (unless the source\'s terms forbid sharing, which is yours to judge)'
     if is_open(license):
@@ -77,4 +77,4 @@ def may_copy(source_copies, seen_by, license, permission=None):
         return True, f'the owner gave permission to keep this copy: {permission}'
     who = 'a public wiki' if seen_by == 'public' else 'a wiki whose visibility GitHub couldn\'t confirm'
     return False, (f'{who} keeps copies of openly licensed sources only, and {license or "an unknown license"} isn\'t one: record it as a '
-                   'link (manifest.py put-source --kind link), or ask the owner for permission and rerun with --allow-restricted')
+                   'link (sllmwiki manifest put-source --kind link), or ask the owner for permission and rerun with --allow-restricted')

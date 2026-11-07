@@ -84,7 +84,7 @@ def load_grades(path):
 
 
 def plan_path(grades_path):
-    """Where reading-plan.py order keeps the plan it printed: beside the grades file."""
+    """Where sllmwiki reading-plan order keeps the plan it printed: beside the grades file."""
     return grades_path + '.plan.json'
 
 

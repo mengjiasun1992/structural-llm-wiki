@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """wiki-check: is the wiki consistent? (design doc §4, §7.2)
 
-  wiki-check.py [--fix] [--json] [--visibility public|private] [--root <wiki>]
+  sllmwiki wiki-check [--fix] [--json] [--visibility public|private] [--root <wiki>]
 
 Errors:
   CONFIG_INVALID            Config.toml has a problem
@@ -56,7 +56,7 @@ from sllmwiki.lib import book, compat, config, figures, footer, language, layout
 from sllmwiki.lib.layout import Cli, entry  # noqa: E402
 from sllmwiki.lib.util import dumps, read_bytes, read_text, source_hash  # noqa: E402
 
-cli = Cli('wiki-check.py', 'usage: wiki-check.py [--fix] [--json] [--visibility public|private]')
+cli = Cli('sllmwiki wiki-check', 'usage: sllmwiki wiki-check [--fix] [--json] [--visibility public|private]')
 
 
 def check(root, fix=False, seen_by=None):
@@ -99,13 +99,13 @@ def check(root, fix=False, seen_by=None):
     recorded_files = {os.path.basename(e['file']) for e in sources.values() if e.get('file')}
     for name in sorted(saved - recorded_files - {'manifest.yaml'}):
         if name.endswith('.md'):
-            add(('error', 'SOURCE_UNRECORDED', f'{layout.SOURCES}/{name}', f'{name} isn\'t in the sources manifest; save sources with fetch-source.py'))
+            add(('error', 'SOURCE_UNRECORDED', f'{layout.SOURCES}/{name}', f'{name} isn\'t in the sources manifest; save sources with sllmwiki fetch-source'))
     seen_by = seen_by or (policy.visibility(root) if any(e.get('file') for e in sources.values()) else 'private')
     for slug, e in sources.items():
         if e.get('upstream_changed'):
-            add(('warning', 'SOURCE_UPSTREAM_CHANGED', layout.SOURCES_MANIFEST, f'{slug}: the original changed on {e["upstream_changed"]}; re-ingest it (fetch-source.py --refresh)'))
+            add(('warning', 'SOURCE_UPSTREAM_CHANGED', layout.SOURCES_MANIFEST, f'{slug}: the original changed on {e["upstream_changed"]}; re-ingest it (sllmwiki fetch-source --refresh)'))
         if e.get('abstract_draft'):
-            add(('warning', 'ABSTRACT_DRAFT', layout.SOURCES_MANIFEST, f'{slug}: still the starter abstract; read it and run manifest.py set-abstract'))
+            add(('warning', 'ABSTRACT_DRAFT', layout.SOURCES_MANIFEST, f'{slug}: still the starter abstract; read it and run sllmwiki manifest set-abstract'))
         if not e.get('file'):
             continue
         rel = layout.in_content(e['file'])
@@ -116,15 +116,15 @@ def check(root, fix=False, seen_by=None):
             continue
         foot = footer.read(read_bytes(os.path.join(root, rel)))
         if not foot or foot['url'] != e.get('url'):
-            add(('error', 'SOURCE_ATTRIBUTION', rel, f'{slug}: its footer must give its URL, {e.get("url")} (fetch-source.py --refresh rewrites it)'))
+            add(('error', 'SOURCE_ATTRIBUTION', rel, f'{slug}: its footer must give its URL, {e.get("url")} (sllmwiki fetch-source --refresh rewrites it)'))
         ok, why = policy.may_copy(settings['source_copies'], seen_by, e.get('license'), e.get('permission'))
         if not ok:
-            add(('error', 'SOURCE_POLICY', rel, f'{slug}: {why}; keep a link instead: manifest.py put-source {slug} --kind link --drop-copy'))
+            add(('error', 'SOURCE_POLICY', rel, f'{slug}: {why}; keep a link instead: sllmwiki manifest put-source {slug} --kind link --drop-copy'))
 
     folder = os.path.join(root, layout.NARRATIVES)
     written = {f[:-3] for f in os.listdir(folder) if f.endswith('.md')} if os.path.isdir(folder) else set()
     for slug in sorted(written - set(narratives)):
-        add(('error', 'NARRATIVE_UNRECORDED', f'{layout.NARRATIVES}/{slug}.md', f'{slug} isn\'t recorded; run finish-narrative.py {slug}'))
+        add(('error', 'NARRATIVE_UNRECORDED', f'{layout.NARRATIVES}/{slug}.md', f'{slug} isn\'t recorded; run sllmwiki finish-narrative {slug}'))
     for slug, e in narratives.items():
         if slug not in written:
             add(('error', 'NARRATIVE_MISSING', layout.NARRATIVES_MANIFEST, f'{slug}: no file {layout.NARRATIVES}/{slug}.md'))
@@ -168,7 +168,7 @@ def pages(root):
 
 
 def main(argv):
-    p = argparse.ArgumentParser(prog='wiki-check.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(prog='sllmwiki wiki-check', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--fix', action='store_true')
     p.add_argument('--json', action='store_true')
     p.add_argument('--visibility', choices=['public', 'private'])

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """release: a release of the wiki, with its book attached (docs/book_design.md §2.2, §6.7).
 
-  release.py plan [--anyway]
+  sllmwiki release plan [--anyway]
       Fetches, then checks the default branch on GitHub: its head commit is
       what gets released. Refuses when its checks failed or haven't finished
       (--anyway releases regardless, and the notes say what was failing), or
@@ -12,15 +12,15 @@
       the book's formats (Config.toml's [structural-llm-wiki-release]), in the
       wiki's language. Writes the plan and the notes to .git/sllmwiki/release/
       (plan.json, notes.md): review the notes, and edit them if they need it.
-  release.py create [--notes FILE]
+  sllmwiki release create [--notes FILE]
       Makes the planned release on GitHub (gh release create) at the planned
       commit, with the notes (notes.md, or FILE). The release workflow then
       builds the book and attaches it. Prints the release's link.
-  release.py wait [--timeout SECONDS]
+  sllmwiki release wait [--timeout SECONDS]
       Follows the release workflow's run for the planned release, then
       reports the attached files with their sizes and links, and the release
       notes' Known issues, if any. --timeout defaults to 900.
-  release.py preview [--timeout SECONDS]
+  sllmwiki release preview [--timeout SECONDS]
       Builds the book from the current branch, as pushed, without a release:
       runs the release workflow on it (Run workflow), follows the run, and
       reports it and its artifact, which GitHub keeps for 90 days.
@@ -44,7 +44,7 @@ from sllmwiki.lib.layout import Cli, entry  # noqa: E402
 from sllmwiki.lib.policy import github_repo  # noqa: E402
 from sllmwiki.lib.util import dumps, write_text  # noqa: E402
 
-cli = Cli('release.py', 'usage: release.py plan|create|wait|preview ...; see --help')
+cli = Cli('sllmwiki release', 'usage: sllmwiki release plan|create|wait|preview ...; see --help')
 
 
 def gh(root, *args):
@@ -67,7 +67,7 @@ def state(root):
 def load_plan(root):
     path = os.path.join(state(root), 'plan.json')
     if not os.path.isfile(path):
-        cli.fail('no release is planned: run release.py plan first')
+        cli.fail('no release is planned: run sllmwiki release plan first')
     with open(path, encoding='utf-8') as f:
         return json.load(f)
 
@@ -165,7 +165,7 @@ def preview(root, repo, timeout, interval):
 
 
 def main(argv):
-    p = argparse.ArgumentParser(prog='release.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(prog='sllmwiki release', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('command', choices=['plan', 'create', 'wait', 'preview'])
     p.add_argument('--anyway', action='store_true')
     p.add_argument('--notes')

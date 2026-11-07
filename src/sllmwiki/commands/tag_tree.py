@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """tag-tree: answer questions about the tag tree (design doc §4.1).
 
-  tag-tree.py tree [--brief]   every tag, indented under its parent, with its
+  sllmwiki tag-tree tree [--brief]   every tag, indented under its parent, with its
                                description (--brief: names and counts only)
-  tag-tree.py show <tag>       a tag: description, parent, ancestors, children,
+  sllmwiki tag-tree show <tag>       a tag: description, parent, ancestors, children,
                                adjacent tags, SMEs, sources and narratives
 
 Options: --json for machine-readable output; --root <wiki>.
@@ -19,7 +19,7 @@ from sllmwiki.lib import tagtree  # noqa: E402
 from sllmwiki.lib.layout import Cli, entry  # noqa: E402
 from sllmwiki.lib.util import dumps  # noqa: E402
 
-cli = Cli('tag-tree.py', 'usage: tag-tree.py tree [--brief] | show <tag>')
+cli = Cli('sllmwiki tag-tree', 'usage: sllmwiki tag-tree tree [--brief] | show <tag>')
 
 
 def describe(tree, tag):
@@ -30,7 +30,7 @@ def describe(tree, tag):
 
 
 def main(argv):
-    p = argparse.ArgumentParser(prog='tag-tree.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(prog='sllmwiki tag-tree', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--root')
     p.add_argument('--json', action='store_true')
     sub = p.add_subparsers(dest='command', required=True)

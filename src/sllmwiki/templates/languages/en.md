@@ -105,7 +105,7 @@ and `{source}` as they are: the book puts the links and names there.
 
 ## Release
 
-The words of a release's notes, which release.py drafts and the agent reviews.
+The words of a release's notes, which sllmwiki release drafts and the agent reviews.
 
 | English | Translation |
 |---|---|

@@ -7,11 +7,13 @@ import re
 import unittest
 
 import helpers
+import sllmwiki
+from sllmwiki import cli
 
 SKILL = helpers.SKILL_DIR
 COMMANDS = os.path.join(os.path.dirname(os.path.dirname(SKILL)), 'commands')
 BUDGETS = {  # words per file; a run loads SKILL.md, a workflow, its steps, shared.md, shared-guide.md and one template with its guide
-    'SKILL.md': 900,
+    'SKILL.md': 1000,  # 900 until the bootstrap that installs the package moved in (#145)
     'workflows/*.md': 1200,
     'steps/*.md': 1200,
 }
@@ -63,15 +65,15 @@ class Budgets(unittest.TestCase):
         self.assertLessEqual(skill + words(os.path.join(SKILL, 'workflows', 'query.md')), QUERY_LOAD)
 
 
-SCRIPT = re.compile(r'\b([a-z][a-z0-9-]*\.(?:py|sh))\b')
+COMMAND = re.compile(r'\bsllmwiki ([a-z][a-z-]*)\b')
 SPAN = re.compile(r'`([^`\n]+)`')
 
 
-def scripts_named(text):
-    """[(script, [subcommand or None], [options])] for each code span that runs a script."""
+def commands_named(text):
+    """[(command, subcommand or None, [options])] for each code span that runs `sllmwiki <command>`."""
     out = []
     for span in SPAN.findall(text):
-        m = SCRIPT.search(span)
+        m = COMMAND.search(span)
         if not m:
             continue
         rest = span[m.end():].split()
@@ -80,13 +82,10 @@ def scripts_named(text):
     return out
 
 
-def script_path(name):
-    """The source of a script the instructions name: a package command (wiki-check.py), preflight.sh, or a tool."""
-    for path in (os.path.join(helpers.PACKAGE, 'commands', name.replace('-', '_')), os.path.join(helpers.SCRIPTS, name),
-                 os.path.join(helpers.REPO, 'src', 'tools', name)):
-        if os.path.isfile(path):
-            return path
-    return None
+def command_path(name):
+    """The module behind `sllmwiki <name>`, or None."""
+    path = os.path.join(helpers.PACKAGE, 'commands', name.replace('-', '_') + '.py')
+    return path if os.path.isfile(path) else None
 
 
 class References(unittest.TestCase):
@@ -95,31 +94,36 @@ class References(unittest.TestCase):
         for path in instruction_files():
             with open(path, encoding='utf-8') as f:
                 text = f.read()
-            for name, sub, options in scripts_named(text):
+            for name, sub, options in commands_named(text):
                 where = f'{os.path.relpath(path, os.path.dirname(SKILL))}: {name}'
                 with self.subTest(where=where):
-                    source_path = script_path(name)
-                    self.assertIsNotNone(source_path, f'{where}: no such script')
+                    source_path = command_path(name)
+                    self.assertIsNotNone(source_path, f'{where}: no such command')
                     with open(source_path, encoding='utf-8') as f:
                         source = f.read()
-                    if sub and name.endswith('.py') and ("add_parser(" in source or "choices=" in source):
+                    if sub and ("add_parser(" in source or "choices=" in source):
                         self.assertIn(f"'{sub}'", source, f'{where}: no subcommand {sub}')
                     for opt in options:
                         self.assertIn(f"'{opt}'", source, f'{where}: no option {opt}')
                     checked += 1
-        self.assertGreater(checked, 20)  # the instructions do name scripts
+        self.assertGreater(checked, 20)  # the instructions do name commands
 
     def test_the_scripts_list_in_skill_md_is_complete(self):
         with open(os.path.join(SKILL, 'SKILL.md'), encoding='utf-8') as f:
             text = f.read()
-        listed = set(re.findall(r'^- `([a-z-]+\.py)`', text, re.M))
-        commands = {os.path.basename(p).replace('_', '-') for p in glob.glob(os.path.join(helpers.PACKAGE, 'commands', '[a-z]*.py'))} \
-            - {'book.py', 'review-checklist.py'}  # the wiki's CI runs these, not the agent
-        self.assertEqual(listed, commands)
+        listed = set(re.findall(r'^- `sllmwiki ([a-z-]+)`', text, re.M))
+        self.assertEqual(listed, set(cli.COMMANDS) - {'book', 'review-checklist'})  # the wiki's CI runs these, not the agent
+
+    def test_skill_md_installs_this_version(self):
+        with open(os.path.join(SKILL, 'SKILL.md'), encoding='utf-8') as f:
+            text = f.read()
+        versions = re.findall(r'(?<![\w.])\d+\.\d+\.\d+(?![\w.])', text)
+        self.assertGreaterEqual(len(versions), 4)  # the venv, sllmwiki==, --version's and pipx's
+        self.assertEqual(set(versions), {sllmwiki.__version__})
 
     def test_the_parser(self):
-        self.assertEqual(scripts_named('Run `search.py section "x#y" --json` and `wiki-check.py`, not `x.md`.'),
-                         [('search.py', 'section', ['--json']), ('wiki-check.py', None, [])])
+        self.assertEqual(commands_named('Run `sllmwiki search section "x#y" --json` and `sllmwiki wiki-check`, not `x.md`.'),
+                         [('search', 'section', ['--json']), ('wiki-check', None, [])])
 
 
 class Commands(unittest.TestCase):

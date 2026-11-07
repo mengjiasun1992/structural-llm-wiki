@@ -8,7 +8,7 @@ from . import layout, metadata, tagpages, tagtree
 from .compat import escape
 from .util import read_text
 
-GENERATED = '<!-- sllmwiki:generated: rewritten by wiki-check.py --fix -->'
+GENERATED = '<!-- sllmwiki:generated: rewritten by sllmwiki wiki-check --fix -->'
 
 
 def _rel(path):
@@ -84,7 +84,7 @@ def sync(root, write):
         if have is not None and not (tagpages.is_generated(have) or GENERATED in have):
             findings.append(('warning', 'PAGE_HANDWRITTEN', rel, f'{rel} has no generated marker, so it\'s left alone; rename it to let the wiki generate it'))
             continue
-        findings.append(('error', 'INDEX_OUTDATED' if rel == layout.INDEX else 'TAG_PAGE_OUTDATED', rel, f'{rel} is out of date (wiki-check.py --fix)'))
+        findings.append(('error', 'INDEX_OUTDATED' if rel == layout.INDEX else 'TAG_PAGE_OUTDATED', rel, f'{rel} is out of date (sllmwiki wiki-check --fix)'))
         if write:
             os.makedirs(os.path.dirname(path) or root, exist_ok=True)
             with open(path, 'w', encoding='utf-8', newline='') as f:
@@ -94,7 +94,7 @@ def sync(root, write):
     for name in sorted(os.listdir(folder)) if os.path.isdir(folder) else []:
         rel = f'{layout.TAGS_DIR}/{name}'
         if name.endswith('.md') and rel not in want and tagpages.is_generated(read_text(os.path.join(root, rel))):
-            findings.append(('error', 'TAG_PAGE_ORPHAN', rel, f'{rel} is for a tag that no longer exists (wiki-check.py --fix)'))
+            findings.append(('error', 'TAG_PAGE_ORPHAN', rel, f'{rel} is for a tag that no longer exists (sllmwiki wiki-check --fix)'))
             if write:
                 os.remove(os.path.join(root, rel))
                 changed.append(rel)

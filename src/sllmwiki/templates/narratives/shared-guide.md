@@ -37,7 +37,7 @@ The body holds what the reader needs to follow the answer; what they may want bu
 
 Most narratives need at least one diagram, of the flow or of how the parts relate; add more only where each shows something new. Pick the type that shows the idea: `sequenceDiagram` for messages between parties, `stateDiagram-v2` for states, `timeline` for history, `quadrantChart` for trade-offs on two axes, `mindmap` for a field's parts, `flowchart` for a process. Color what carries meaning (a group, the failure path, the recommended choice) with light `classDef` fills and dark text. Keep labels plain text (`s_t`): not every renderer draws math in a diagram.
 
-When mermaid can't show the idea (a curve, measured data, geometry, a layout to scale) and the wiki's `images` setting is on, draw a figure: an SVG you compute from the narrative's own formulas or the numbers it cites, never traced from a source's figure, saved as `sllmwiki/narratives/figures/<slug>/<name>.svg`, with a light background, dark text and a generic font, under 40 KB. `narrative-format.py` checks the rest.
+When mermaid can't show the idea (a curve, measured data, geometry, a layout to scale) and the wiki's `images` setting is on, draw a figure: an SVG you compute from the narrative's own formulas or the numbers it cites, never traced from a source's figure, saved as `sllmwiki/narratives/figures/<slug>/<name>.svg`, with a light background, dark text and a generic font, under 40 KB. `sllmwiki narrative-format` checks the rest.
 
 Each diagram or figure is followed by its caption, on a line of its own: `*Figure 5-1: <what it shows; what each color means>.*`. Say what a picture shows once, in its caption, not again in a sentence before it; the text names it by its label where the reader should look.
 

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """search: find what to read, and read only that (design doc §6.1).
 
-  search.py context "<keywords>"         the matching tags and the top narratives, each
+  sllmwiki search context "<keywords>"         the matching tags and the top narratives, each
                                           with its abstract: query's first tier, in one call
-  search.py narratives "<keywords>"      the top narratives: question, abstract, path
-  search.py sources "<keywords>" [--tags a,b]
+  sllmwiki search narratives "<keywords>"      the top narratives: question, abstract, path
+  sllmwiki search sources "<keywords>" [--tags a,b]
                                           the top sources by abstract (only those tags')
-  search.py outline <file or slug>       a file's headings, anchors and word counts
-  search.py section "<link>"             one section: pass a citation link as is
+  sllmwiki search outline <file or slug>       a file's headings, anchors and word counts
+  sllmwiki search section "<link>"             one section: pass a citation link as is
                                           (../sources/x.md#section), a path#anchor or a slug#anchor
 
 Pass keywords with synonyms: ranking matches words, not meanings.
@@ -24,7 +24,7 @@ from sllmwiki.lib import search  # noqa: E402
 from sllmwiki.lib.layout import Cli, entry  # noqa: E402
 from sllmwiki.lib.util import dumps  # noqa: E402
 
-cli = Cli('search.py', 'usage: search.py context|narratives|sources "<keywords>" | outline <file> | section "<link>"')
+cli = Cli('sllmwiki search', 'usage: sllmwiki search context|narratives|sources "<keywords>" | outline <file> | section "<link>"')
 
 
 def show_narratives(found):
@@ -33,7 +33,7 @@ def show_narratives(found):
 
 
 def main(argv):
-    p = argparse.ArgumentParser(prog='search.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(prog='sllmwiki search', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('command', choices=['context', 'narratives', 'sources', 'outline', 'section'])
     p.add_argument('what')
     p.add_argument('--tags', type=lambda v: [t.strip() for t in v.split(',') if t.strip()])
@@ -79,7 +79,7 @@ def main(argv):
         return 0
     found = search.section(text, anchor) if anchor else None
     if found is None:
-        cli.fail(f'{rel} has no section #{anchor}; see search.py outline {rel}' if anchor else 'section needs a #anchor; see search.py outline')
+        cli.fail(f'{rel} has no section #{anchor}; see sllmwiki search outline {rel}' if anchor else 'section needs a #anchor; see sllmwiki search outline')
     print(dumps({'file': rel, 'anchor': anchor, 'text': found}) if args.json else f'<!-- {rel}#{anchor} -->\n{found}', end='' if not args.json else '\n')
     return 0
 

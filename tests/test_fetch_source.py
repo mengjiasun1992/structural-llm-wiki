@@ -65,7 +65,7 @@ class FetchSource(helpers.WikiTestCase):
         r = self.fetch('retry-budget', '/budget.md', '--published', '2026-05-01', '--license-url', 'https://e.com/l')
         self.assertEqual(r.code, 0, r.err)
         self.assertIn('saved sllmwiki/sources/retry-budget.md (text,', r.out)
-        self.assertIn('manifest.py set-abstract retry-budget', r.out)
+        self.assertIn('sllmwiki manifest set-abstract retry-budget', r.out)
         data = read_bytes(os.path.join(self.root, 'sllmwiki/sources/retry-budget.md'))
         self.assertTrue(data.startswith(MD))
         self.assertEqual(source_hash(data), helpers.md5(MD))
@@ -92,7 +92,7 @@ class FetchSource(helpers.WikiTestCase):
         self.assertEqual(r.code, 0, r.err)
         self.assertTrue(self.read('sllmwiki/sources/local-notes.md').startswith('# Notes\n\nLocal.\n'))
         r = helpers.run('fetch-source.py', ['x', '--url', 'https://e.com', '--tags', 'leaf-b', '--license', 'MIT', '--file', '/nope.md', '--root', self.root])
-        self.assertEqual((r.code, r.err), (1, 'fetch-source.py: no such file: /nope.md\n'))
+        self.assertEqual((r.code, r.err), (1, 'sllmwiki fetch-source: no such file: /nope.md\n'))
 
     def test_refresh_keeps_a_written_abstract(self):
         self.assertEqual(self.fetch('retry-budget', '/budget.md').code, 0)

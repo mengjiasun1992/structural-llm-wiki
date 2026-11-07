@@ -9,7 +9,7 @@ import re
 from . import layout
 from .compat import escape
 
-GENERATED = '<!-- sllmwiki:generated: rewritten by wiki-check.py --fix; edit tags.yaml and the manifests instead -->'
+GENERATED = '<!-- sllmwiki:generated: rewritten by sllmwiki wiki-check --fix; edit tags.yaml and the manifests instead -->'
 
 
 def path(tag):

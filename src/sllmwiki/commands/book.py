@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """book: the wiki as a book (docs/book_design.md).
 
-  book.py stage OUT [--name N] [--version V] [--date YYYY-MM-DD] [--commit C] [--source URL]
+  sllmwiki book stage OUT [--name N] [--version V] [--date YYYY-MM-DD] [--commit C] [--source URL]
       Writes the book as plain Markdown for Sphinx into the folder OUT, which
       must be empty or not exist yet: index.md (the cover, the front page and
       the contents), parts/<tag>.md, chapters/<slug>.md with their figures,
@@ -16,7 +16,7 @@
       Problems: BOOK_LINK (a link or anchor the book can't resolve),
       BOOK_CYCLE (narratives built on each other in a cycle), BOOK_FIGURE (a
       figure that isn't there). Exit code 1 when there are any.
-  book.py render STAGED --vendor DIR [--chrome PATH] [--cache DIR]
+  sllmwiki book render STAGED --vendor DIR [--chrome PATH] [--cache DIR]
       Draws every diagram and formula book.json lists as SVG, in headless
       Chrome with the mermaid.js and MathJax in DIR (mermaid.min.js,
       tex-svg-full.js), and puts the SVG in the staged pages in their place.
@@ -24,7 +24,7 @@
       each SVG by its source and the libraries, so a rerun draws only what
       changed. One that fails to draw stays as written and is a warning,
       BOOK_RENDER, kept in book.json's warnings.
-  book.py build OUT --vendor DIR [--formats pdf,epub,html] [--chrome PATH] [--cache DIR]
+  sllmwiki book build OUT --vendor DIR [--formats pdf,epub,html] [--chrome PATH] [--cache DIR]
                 [--sphinx CMD] [--name N] [--version V] [--date D] [--commit C] [--source URL]
       stage into OUT/staged, render, then Sphinx (--sphinx, default
       sphinx-build, with MyST-Parser) with the package's templates/book/
@@ -37,7 +37,7 @@
       book is staged and no file is written. Problems and warnings are listed
       (Sphinx's are BOOK_SPHINX) and don't stop the book; exit code 1 when a
       format fails.
-  book.py parse --vendor DIR [--base REF] [--chrome PATH]
+  sllmwiki book parse --vendor DIR [--base REF] [--chrome PATH]
       Checks that each diagram and formula parses, as GitHub draws them, with
       the same mermaid.js (mermaid.parse) and MathJax the book uses: with
       --base, only those a change brings, in the narratives changed since REF
@@ -45,7 +45,7 @@
       every one. Reports DIAGRAM_SYNTAX and MATH_SYNTAX with the file, the
       line and the parser's message (exit code 1). Nothing to check needs no
       Chrome.
-  book.py issues STAGED
+  sllmwiki book issues STAGED
       The release notes' "Known issues" section for a built book: its
       problems, warnings and failed formats from book.json, in the wiki's
       language; nothing when there are none.
@@ -71,7 +71,7 @@ from sllmwiki.lib import book, bookbuild, compat, config, language, layout  # no
 from sllmwiki.lib.layout import Cli, entry  # noqa: E402
 from sllmwiki.lib.util import dumps, write_text  # noqa: E402
 
-cli = Cli('book.py', 'usage: book.py stage|render|build ... (book.py --help)')
+cli = Cli('sllmwiki book', 'usage: sllmwiki book stage|render|build ... (sllmwiki book --help)')
 FORMATS = ('pdf', 'epub', 'html')  # what build makes, as Config.toml's <format>_book names it
 TEMPLATE = os.path.join(TEMPLATES, 'book')
 
@@ -259,7 +259,7 @@ def parse(root, base, vendor, chrome, as_json):
 
 
 def main(argv):
-    p = argparse.ArgumentParser(prog='book.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(prog='sllmwiki book', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('command', choices=['stage', 'render', 'build', 'issues', 'parse'])
     p.add_argument('out', nargs='?')
     p.add_argument('--base')
@@ -304,7 +304,7 @@ def main(argv):
     if args.command == 'render':
         staged = os.path.abspath(args.out)
         if not os.path.isfile(os.path.join(staged, 'book.json')):
-            cli.usage(f'{args.out} isn\'t a staged book (no book.json): run book.py stage first')
+            cli.usage(f'{args.out} isn\'t a staged book (no book.json): run sllmwiki book stage first')
         data = render(staged, args.vendor, args.chrome, args.cache)
         return _report(args, data, staged)
     root = cli.wiki(args.root)

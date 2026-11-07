@@ -1,4 +1,4 @@
-"""The checks narrative-format.py and finish-narrative.py run on a narrative
+"""The checks sllmwiki narrative-format and sllmwiki finish-narrative run on a narrative
 (design doc §4.5, §4.8, §4.10): template sections, diagrams, numbers, lengths,
 citations, markers, placeholders, doubled punctuation and markdown every
 renderer reads alike."""
@@ -127,7 +127,7 @@ def check(root, rel, text, settings, offered):
     if meta['words'] and meta['words'] != metadata.reading_label(text):
         at = next(i for i, line in enumerate(text.split('\n'), 1) if line.startswith('- **Words:**'))
         out.append(('warning', 'WORDS_OUTDATED', at, f'Metadata says {meta["words"]} words; it is {metadata.reading_label(text)} now '
-                                                    '(finish-narrative.py updates it)'))
+                                                    '(sllmwiki finish-narrative updates it)'))
     if not name:
         out.append(('error', 'NO_TEMPLATE', 1, 'Metadata names no template (- **Template:** <name>)'))
     elif not template:

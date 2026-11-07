@@ -2,7 +2,7 @@
 """narrative-format: check narratives against their template, and the rules every
 narrative shares (design doc §4.5, §4.8, §4.10).
 
-  narrative-format.py [<narrative.md> ...] [--fix-numbering] [--fix-style] [--json]
+  sllmwiki narrative-format [<narrative.md> ...] [--fix-numbering] [--fix-style] [--json]
       Checks the given narratives, or every one in sllmwiki/narratives/:
         the # title; the template named in Metadata; the template's sections, in
         order, and its diagrams, in the narrative's language; heading numbers; the Abstract's word range and
@@ -10,21 +10,24 @@ narrative shares (design doc §4.5, §4.8, §4.10).
         existing section of a saved source); the markers; leftover <placeholders>;
         and markdown every renderer reads alike, links included.
       --fix-numbering renumbers the headings and figure captions; --fix-style moves references inside
-      their sentence and writes the renderer escapes. finish-narrative.py does both, and more.
-  narrative-format.py <narrative.md> ... --stats [--json]
+      their sentence and writes the renderer escapes. sllmwiki finish-narrative does both, and more.
+  sllmwiki narrative-format <narrative.md> ... --stats [--json]
       The numbers lint grades a narrative's aim with: the body against its budget,
       the words, subsections, citations and markers in each section, citations
       by the authority of the sources they cite (the reading plan's grades), and
       pictures.
-  narrative-format.py --templates     the templates this wiki offers, with use_when, budgets and the aim lint
+  sllmwiki narrative-format --templates     the templates this wiki offers, with use_when, budgets and the aim lint
                                       grades on; a problem with one of the wiki's own (exit 1), and a heading
                                       its language pack doesn't translate (a warning)
-  narrative-format.py --new-template NAME --from BASE
+  sllmwiki narrative-format --new-template NAME --from BASE
                      starts the wiki's own template NAME in sllmwiki/.templates/NAME/, a copy of
                      BASE's template.md and guide.md to edit; named like a bundled
                      template, it replaces it
-  narrative-format.py --skeleton NAME the skeleton a new narrative starts from, in the wiki's language
+  sllmwiki narrative-format --skeleton NAME the skeleton a new narrative starts from, in the wiki's language
                      [--language TAG]  or in another one (a BCP 47 tag, such as zh-Hans)
+  sllmwiki narrative-format --guide NAME    how to write it: the template's guide.md, then shared.md (what every
+                                      narrative shares: citations, markers, quoting) and shared-guide.md (the
+                                      style every narrative shares)
 
 Options: --root <wiki>. Exit code: 0 with no errors (warnings are printed),
 1 with errors, 2 on a usage error.
@@ -42,9 +45,9 @@ from sllmwiki.lib.narrativecheck import check, stats  # noqa: E402
 from sllmwiki.lib.layout import Cli, entry  # noqa: E402
 from sllmwiki.lib.util import dumps, read_text, write_text  # noqa: E402
 
-cli = Cli('narrative-format.py', 'usage: narrative-format.py [<narrative.md> ...] [--fix-numbering] [--fix-style] | --templates | --skeleton NAME [--language TAG]')
+cli = Cli('sllmwiki narrative-format', 'usage: sllmwiki narrative-format [<narrative.md> ...] [--fix-numbering] [--fix-style] | --templates | --skeleton NAME [--language TAG] | --guide NAME')
 def main(argv):
-    p = argparse.ArgumentParser(prog='narrative-format.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(prog='sllmwiki narrative-format', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('files', nargs='*')
     p.add_argument('--fix-numbering', action='store_true')
     p.add_argument('--fix-style', action='store_true')
@@ -52,6 +55,7 @@ def main(argv):
     p.add_argument('--new-template', metavar='NAME')
     p.add_argument('--from', dest='base', metavar='BASE')
     p.add_argument('--skeleton', metavar='NAME')
+    p.add_argument('--guide', metavar='NAME')
     p.add_argument('--language', metavar='TAG')
     p.add_argument('--stats', action='store_true')
     p.add_argument('--json', action='store_true')
@@ -69,7 +73,7 @@ def main(argv):
             cli.fail(str(e))
         rel = os.path.relpath(folder, root).replace(os.sep, '/')
         print(f'started {rel}/ from {args.base}: edit template.md (its header and body sections) and guide.md, '
-              f'then check it with narrative-format.py --templates and --skeleton {args.new_template}')
+              f'then check it with sllmwiki narrative-format --templates and --skeleton {args.new_template}')
         return 0
     if args.templates:
         rows = [{'name': t.name, 'source': t.source, 'description': t.description, 'use_when': t.use_when,
@@ -90,6 +94,15 @@ def main(argv):
             for w in warnings:
                 print(f'warning: {w}')
         return 1 if problems else 0
+    if args.guide:
+        if args.guide not in offered:
+            cli.fail(f'no template {args.guide}; there are {", ".join(sorted(offered))}')
+        guide = offered[args.guide]
+        for title, path in ((f'{guide.name}/guide.md ({guide.source})', guide.guide),
+                            ('shared.md', os.path.join(templates.BUNDLED, 'shared.md')),
+                            ('shared-guide.md', os.path.join(templates.BUNDLED, 'shared-guide.md'))):
+            print(f'<!-- {title} -->\n{read_text(path).rstrip()}\n')
+        return 0
     if args.skeleton:
         if args.skeleton not in offered:
             cli.fail(f'no template {args.skeleton}; there are {", ".join(sorted(offered))}')
