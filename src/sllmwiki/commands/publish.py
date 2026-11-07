@@ -43,7 +43,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from sllmwiki.lib import runstats  # noqa: E402
+from sllmwiki.lib import layout, narrativecheck, runstats, templates  # noqa: E402
 from sllmwiki.lib.gitrepo import default_branch, has_remote  # noqa: E402
 from sllmwiki.lib.layout import Cli, entry  # noqa: E402
 from sllmwiki.lib.policy import github_repo  # noqa: E402
@@ -232,12 +232,38 @@ def description(state, found, run=()):
     return '\n'.join(line for line in lines).rstrip() + '\n'
 
 
+def saved(root, base):
+    """The Run section's lines on what the branch adds over base: the sources it saved, with their size,
+    and each narrative it wrote or changed, with its template and body's words."""
+    ref = next((r for r in (f'origin/{base}', base) if git(root, 'rev-parse', '--verify', '--quiet', r, check=False)), None)
+    if not ref:
+        return []
+    out = git(root, 'diff', '--name-status', '--no-renames', f'{ref}...HEAD', '--', layout.SOURCES, layout.NARRATIVES, check=False)
+    sources, narratives = [], []
+    for line in out.splitlines():
+        status, _, rel = line.partition('\t')
+        if not rel.endswith('.md') or not os.path.isfile(os.path.join(root, rel)):
+            continue
+        if rel.startswith(layout.SOURCES + '/') and status == 'A':
+            sources.append(os.path.getsize(os.path.join(root, rel)))
+        elif rel.startswith(layout.NARRATIVES + '/') and os.path.dirname(rel) == layout.NARRATIVES and status in ('A', 'M'):
+            narratives.append(rel)
+    size = sum(sources)
+    lines = [f'- Sources saved: {len(sources)}, {f"{size / 1000:,.1f} KB" if size >= 1000 else f"{size} B"}' if sources else '- Sources saved: none']
+    offered, _ = templates.available(root)
+    for rel in narratives:
+        s = narrativecheck.stats(root, rel, read_text(os.path.join(root, rel)), offered)
+        lines.append(f'- Narrative `{os.path.splitext(os.path.basename(rel))[0]}`: {s["template"] or "no template"}, '
+                     f'{s["body_words"]:,} words in the body')
+    return lines
+
+
 def pr(root, cost=None):
     state = load_state(root)
     if cost is not None:
         state['cost'] = cost
         save_state(root, state)
-    run = runstats.section(state.get('started'), state.get('cost'), path=runstats.transcript())
+    run = runstats.section(state.get('started'), state.get('cost'), path=runstats.transcript(), saved=saved(root, state['base']))
     body = description(state, summaries(root), run)
     body_path = os.path.join(run_dir(root), 'pr.md')
     write_text(body_path, body)

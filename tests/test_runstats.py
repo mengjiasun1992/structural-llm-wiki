@@ -59,6 +59,12 @@ class RunStats(unittest.TestCase):
         self.assertEqual(runstats.section(started)[3], '- Turns and tokens: no session transcript to read them from')
         self.assertIn('- Time: 4 min since the run started', runstats.section('2026-10-20T12:00:00', at=T0 + datetime.timedelta(minutes=4)))
 
+    def test_section_names_the_model_and_what_was_saved(self):
+        helpers.write(self.home, 'm.jsonl', json.dumps({'type': 'assistant', 'message': {'model': 'claude-opus-5-5'}}))
+        lines = runstats.section(None, path=os.path.join(self.home, 'm.jsonl'), saved=['- Sources saved: 2, 3.1 KB'])
+        self.assertEqual(lines, ['## Run', '', '- Model: claude-opus-5-5', '- Time: not recorded',
+                                 '- Turns and tokens: not counted, since the run has no start time', '- Sources saved: 2, 3.1 KB'])
+
     def test_model(self):
         self.assertIsNone(runstats.model(self.path))  # no reply names one
         helpers.write(self.home, 'm.jsonl', '\n'.join([

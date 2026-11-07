@@ -3,6 +3,6 @@
 
 import os
 
-__version__ = '1.1.0'  # the plugin's version too (.claude-plugin/plugin.json); a test keeps them equal
+__version__ = '1.2.0'  # the plugin's version too (.claude-plugin/plugin.json); a test keeps them equal
 
 TEMPLATES = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')  # what init installs, the narrative templates, the book's

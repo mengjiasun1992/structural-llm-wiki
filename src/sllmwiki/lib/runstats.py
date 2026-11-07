@@ -1,6 +1,6 @@
-"""What a run cost (design doc §5.3): its time since sllmwiki publish start, and the
-turns and tokens of this session's API requests since then, read from the
-session's own transcript. A session knows its tokens, not its price, so dollars
+"""What a run cost (design doc §5.3): its model, its time since sllmwiki publish start,
+and the turns and tokens of this session's API requests since then, read from the
+session's own transcript; and what it saved, from the caller. A session knows its tokens, not its price, so dollars
 come only from the caller.
 """
 
@@ -92,11 +92,14 @@ def duration(seconds):
     return f'{minutes // 60} h {minutes % 60} min' if minutes >= 60 else f'{minutes} min'
 
 
-def section(started, cost=None, at=None, path=None):
-    """The pull request's "Run" section, as lines."""
+def section(started, cost=None, at=None, path=None, saved=()):
+    """The pull request's "Run" section, as lines; saved: lines saying what the run saved."""
     at = at or now()
     start = parse_time(started)
     lines = ['## Run', '']
+    name = model(path)
+    if name:
+        lines.append(f'- Model: {name}')
     lines.append(f'- Time: {duration((at - start).total_seconds())} since the run started' if start else '- Time: not recorded')
     stats = usage(path, start) if path and start else None
     if stats:
@@ -106,6 +109,7 @@ def section(started, cost=None, at=None, path=None):
         lines.append('- Turns and tokens: not counted, since the run has no start time')
     else:
         lines.append('- Turns and tokens: no session transcript to read them from')
+    lines += list(saved)
     if cost is not None:
         lines.append(f'- Cost: ${cost:,.2f}')
     return lines
