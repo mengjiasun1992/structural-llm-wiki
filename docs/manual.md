@@ -140,7 +140,7 @@ With `obsidian = true` and `/sllmwiki:init` rerun, open `sllmwiki/` as a vault: 
 
 ## 11. Teams, updates and other agents
 
-**Join a wiki.** Clone it and start Claude Code inside. Trust the folder, and accept the `sllmwiki` plugin the repository offers: `init` records it in the wiki's `.claude/settings.json`.
+**Join a wiki.** Clone it and start Claude Code inside. Trust the folder, and accept the `sllmwiki` plugin the repository offers: `init` records it in the wiki's `.claude/settings.json`, and the wiki's README, which `init` writes, says what to run when no offer appears and how other agents join. The first command installs the plugin's code.
 
 **Update the plugin.** After a plugin update, rerun `/sllmwiki:init`: it brings the wiki's layout, CI checks and release workflow up to date in a pull request, and keeps the wiki's own files.
 

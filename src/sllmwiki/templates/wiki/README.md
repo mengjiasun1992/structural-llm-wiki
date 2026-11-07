@@ -23,4 +23,13 @@ Every claim cites the section of a source it rests on: the number links to it. C
 
 ## Joining
 
-Clone this repository and start Claude Code in it. Trust the folder, and accept the `sllmwiki` plugin it offers.
+Clone this repository and start Claude Code in it. Trust the folder, and accept the `sllmwiki` plugin it offers (this repository's `.claude/settings.json` offers it). Your first command installs the rest: the plugin's code, and git or gh if they're missing.
+
+If Claude Code doesn't offer it, install it yourself, in this repository:
+
+```bash
+claude plugin marketplace add mengjiasun1992/structural-llm-wiki --scope project
+claude plugin install sllmwiki@structural-llm-wiki --scope project
+```
+
+With another agent (Codex, Cursor, Copilot): `npx skills add mengjiasun1992/structural-llm-wiki -g` and `pipx install sllmwiki`, then ask in your own words ("what does the wiki say about retries?").

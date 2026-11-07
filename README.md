@@ -37,7 +37,7 @@ You need an agent that runs [Agent Skills](https://agentskills.io), such as [Cla
 3. Run `/sllmwiki:init`. It asks a few preferences (language, source policy, the book), lays out the wiki, installs its CI checks and makes the first commit. Rerun it after a plugin update.
 4. Ask your first questions: `/sllmwiki:build "How does our gateway route requests?" "Why does it retry?"`
 
-**Join a wiki:** clone it, start Claude Code inside, trust the folder and accept the `sllmwiki` plugin it offers. **Other agents** (Codex, Cursor, Copilot): `npx skills add mengjiasun1992/structural-llm-wiki -g` with the [`skills` CLI](https://skills.sh) and `pipx install sllmwiki` (the version the skill's `SKILL.md` names), then ask in your own words ("lint the gateway narratives").
+**Join a wiki:** open it in Claude Code and accept the plugin it offers; its README, which `init` writes, says the rest. **Other agents** (Codex, Cursor, Copilot): `npx skills add mengjiasun1992/structural-llm-wiki -g` with the [`skills` CLI](https://skills.sh) and `pipx install sllmwiki` (the version the skill's `SKILL.md` names), then ask in your own words ("lint the gateway narratives").
 
 <details>
 <summary>Installing git, Python and gh</summary>
