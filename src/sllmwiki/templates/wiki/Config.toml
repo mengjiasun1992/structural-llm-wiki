@@ -7,11 +7,9 @@ source_copies = "allow"     # the source policy: "allow" keeps reference copies 
 max_quote_words = 50        # the longest quotation a narrative may take from a source
 smes_exclude = []           # never listed as SMEs, such as this wiki's owner or bots: ["@alice", "dependabot"]
 markers = true              # false: no [→] or [?] markers in narratives
-images = true               # false: diagrams in mermaid only, no generated figures
-image_formats = ["svg", "png"]  # the kinds of image a narrative may embed, when images is on
-max_pictures = 5            # diagrams and images in one narrative, at most; 0: none
-max_svg_kb = 40             # an SVG figure's size, at most
-max_png_kb = 150            # a PNG figure's size, at most
+picture_formats = ["mermaid", "svg", "png"]  # the kinds of picture a narrative may use: mermaid diagrams, SVG and PNG figures
+max_pictures = 5            # pictures in one narrative, at most; 0: none
+max_image_kb = 100          # an SVG or PNG figure's size, at most
 language = "en"             # narratives' language, such as "zh-Hans"; sources keep their own
 
 # A template's word budgets, over its own. For example:

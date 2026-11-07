@@ -49,7 +49,7 @@ def check_sections(text, template):
             if not skipped.optional:
                 out.append(('error', 'MISSING_SECTION', h.line + 1, f'the template needs "{skipped.title}" before "{h.title}"'))
         if want[at].diagram and not _has_diagram(text, h):
-            out.append(('error', 'MISSING_DIAGRAM', h.line + 1, f'"{h.title}" needs a ```mermaid diagram, or a figure'))
+            out.append(('error', 'MISSING_DIAGRAM', h.line + 1, f'"{h.title}" needs a picture: a diagram or a figure'))
         pos = at + 1
     return out  # every skeleton ends with Metadata, where the template is named, so a missing section is always one skipped before it
 
@@ -147,8 +147,8 @@ def check(root, rel, text, settings, offered):
     out += check_citation_targets(root, rel, text)
     out += markers.check(text, settings['markers'])
     out += quotes.check(root, rel, text, settings['max_quote_words'])
-    out += figures.check(root, rel, text, settings['images'], settings['image_formats'], settings['max_svg_kb'], settings['max_png_kb'])
-    out += figures.check_count(text, settings['max_pictures'])
+    out += figures.check(root, rel, text, settings['picture_formats'], settings['max_image_kb'])
+    out += figures.check_pictures(text, settings['picture_formats'], settings['max_pictures'])
     out += figures.check_captions(text)
     out += xrefs.check(root, rel, text)
     lines = text.split('\n')

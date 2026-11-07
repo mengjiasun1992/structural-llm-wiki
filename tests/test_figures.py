@@ -47,11 +47,11 @@ class Figures(helpers.WikiTestCase):
         self.figure('dark.svg', '<?xml version="1.0"?>\n<!-- made by hand -->\n<svg xmlns="http://www.w3.org/2000/svg"><text>x</text></svg>')
         self.figure('script.svg', '<svg><rect fill="#fff"/><script>alert(1)</script></svg>')
         self.figure('remote.svg', '<svg><rect fill="#fff"/><image href="data:image/png;base64,AAAA"/></svg>')
-        self.figure('big.svg', SVG + ' ' * 40_000)  # max_svg_kb's default, 40
+        self.figure('big.svg', SVG + ' ' * 100_000)  # max_image_kb's default, 100
         self.figure('wide.png', png(figures.MAX_PNG_WIDTH + 1))
-        self.figure('heavy.png', png(800, 150_000))  # max_png_kb's default, 150
+        self.figure('heavy.png', png(800, 100_000))
         cases = [
-            ('![x](figures/what-is-alpha/waits.svg)', {'images': False}, 'IMAGE_OFF'),
+            ('![x](figures/what-is-alpha/waits.svg)', {'picture_formats': ['mermaid']}, 'PICTURE_KIND'),
             ('![x](waits.svg)', {}, 'IMAGE_PLACE'),
             ('![x](figures/other/waits.svg)', {}, 'IMAGE_PLACE'),
             ('![x](figures/what-is-alpha/waits.gif)', {}, 'IMAGE_PLACE'),
@@ -67,10 +67,9 @@ class Figures(helpers.WikiTestCase):
             ('![x](figures/what-is-alpha/big.svg)', {}, 'IMAGE_SIZE'),
             ('![x](figures/what-is-alpha/wide.png)', {}, 'IMAGE_SIZE'),
             ('![x](figures/what-is-alpha/heavy.png)', {}, 'IMAGE_SIZE'),
-            ('![x](figures/what-is-alpha/heavy.png)', {'image_formats': ['svg']}, 'IMAGE_KIND'),
-            ('![x](figures/what-is-alpha/waits.svg)', {'image_formats': []}, 'IMAGE_KIND'),
-            ('![x](figures/what-is-alpha/big.svg)', {'max_svg_kb': 60}, None),  # a wiki's own limit
-            ('![x](figures/what-is-alpha/heavy.png)', {'max_png_kb': 200}, None),
+            ('![x](figures/what-is-alpha/heavy.png)', {'picture_formats': ['mermaid', 'svg'], 'max_image_kb': 200}, 'PICTURE_KIND'),
+            ('![x](figures/what-is-alpha/big.svg)', {'max_image_kb': 200}, None),  # a wiki's own limit
+            ('![x](figures/what-is-alpha/heavy.png)', {'max_image_kb': 200}, None),
         ]
         for line, settings, code in cases:
             with self.subTest(line=line, settings=settings):
@@ -85,6 +84,13 @@ class Figures(helpers.WikiTestCase):
         self.assertEqual([(c, n) for c, n in self.codes(text, max_pictures=1) if c == 'PICTURES_MAX'],
                          [('PICTURES_MAX', text.split('\n').index('![Each wait twice the last](figures/what-is-alpha/waits.svg)') + 1)])
         self.assertIn('PICTURES_MAX', [c for c, _ in self.codes(text, max_pictures=0)])
+
+    def test_a_wiki_without_mermaid(self):
+        self.figure()
+        text = self.with_image('![Each wait twice the last](figures/what-is-alpha/waits.svg)')
+        found = [c for c, _ in self.codes(text, picture_formats=['svg', 'png'])]
+        self.assertEqual(found.count('PICTURE_KIND'), 1)  # the mermaid diagram; the SVG is allowed
+        self.assertNotIn('PICTURE_KIND', [c for c, _ in self.codes(text)])
 
     def test_captions(self):
         text = helpers.narrative_text()

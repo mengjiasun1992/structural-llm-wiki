@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 import shutil
 import tempfile
 import unittest
@@ -295,6 +296,26 @@ class Init(unittest.TestCase):
             r = self.init('--name', 'w', '--set', pair)
             self.assertEqual((r.code, says in r.err), (2, True), (pair, r.err))
         self.assertFalse(os.path.exists(os.path.join(self.root, 'sllmwiki', 'Config.toml')))
+
+    def test_the_old_images_setting_becomes_picture_formats(self):
+        self.assertEqual(self.init('--name', 'w').code, 0)
+        fresh = self.read('sllmwiki/Config.toml')
+        for old, want in (('images = false             # false: diagrams in mermaid only', 'picture_formats = ["mermaid"]'),
+                          ('images = true              # false: diagrams in mermaid only', 'picture_formats = ["mermaid", "svg", "png"]')):
+            with self.subTest(old=old):
+                text = re.sub(r'picture_formats = [^\n]*\n', old + '\n', fresh)
+                text = re.sub(r'max_pictures = [^\n]*\n|max_image_kb = [^\n]*\n', '', text)  # from before 1.3
+                helpers.write(self.root, 'sllmwiki/Config.toml', text)
+                self.assertNotIn('picture_formats', [q['key'] for q in json.loads(self.init('--ask', '--json').out)['ask']])  # already answered
+                self.assertEqual(self.init().code, 0)
+                now = self.read('sllmwiki/Config.toml')
+                self.assertNotIn('images = ', now)
+                self.assertIn(want, now)
+                self.assertIn('max_pictures = 5', now)
+        helpers.write(self.root, 'sllmwiki/Config.toml', fresh.replace('max_pictures', 'images = false\nmax_pictures'))
+        self.assertEqual(self.init().code, 0)
+        self.assertNotIn('images = ', self.read('sllmwiki/Config.toml'))  # picture_formats, already there, wins
+        self.assertIn('picture_formats = ["mermaid", "svg", "png"]', self.read('sllmwiki/Config.toml'))
 
     def test_settings_for_a_missing_table(self):
         mod = helpers.load_script('init.py')

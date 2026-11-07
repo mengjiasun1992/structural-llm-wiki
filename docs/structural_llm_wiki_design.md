@@ -242,7 +242,7 @@ A narrative that mentions a concept another narrative covers links to it, to its
 
 #### 4.5.3 Figures
 
-A picture is the writer's judgment, not a quota: one where it helps the reader learn most (the map of the whole, the running example step by step), more only when each teaches something new, none when it would only decorate (`shared-guide.md`, Pictures). A picture makes claims, so its caption carries the citations for what it shows, and lint checks it against them. Diagrams are mermaid by default. Where mermaid can't show an idea well, such as a curve, measured data or geometry, a narrative may embed a figure it generates, computed from its own formulas or cited numbers, never copied from a source. It is an SVG (a PNG only for what SVG can't hold), the two formats GitHub, Obsidian, mdBook and Sphinx all show, in `narratives/figures/<slug>/`, and it is kept small for the agents that may read it: an SVG under `max_svg_kb` (40 by default), a PNG under `max_png_kb` (150) and 1600 px wide. A wiki sets which kinds it takes (`image_formats`) and how many pictures a narrative may have (`max_pictures`, 5 by default). Every diagram and figure has a caption line under it, `*Figure 5-1: what it shows.*`, numbered by its section; with the alt text, the caption says what the picture shows, so no agent needs to open it. `finish-narrative` renumbers the captions and the references to them. `narrative-format` checks a figure's place, format, alt text and size, that an SVG is self-contained and has an opaque background for dark themes, and every caption; `wiki-check` reports a figure no narrative shows. `images = false` (§4.9) keeps a wiki to mermaid.
+A picture is the writer's judgment, not a quota: one where it helps the reader learn most (the map of the whole, the running example step by step), more only when each teaches something new, none when it would only decorate (`shared-guide.md`, Pictures). A picture makes claims, so its caption carries the citations for what it shows, and lint checks it against them. A picture comes in whichever of the wiki's `picture_formats` shows its idea best, none of them first: a mermaid diagram, text each viewer draws, for structure and flow in a standard shape; or a figure the narrative generates, computed from its own formulas, cited numbers or structure, never copied from a source, for a curve, measured data, geometry or a layout mermaid would crowd. It is an SVG (a PNG only for what SVG can't hold), the two formats GitHub, Obsidian, mdBook and Sphinx all show, in `narratives/figures/<slug>/`, and it is kept small for the agents and books that carry it: under `max_image_kb` (100 KB by default), and a PNG at most 1600 px wide. A wiki sets which kinds of picture it takes (`picture_formats`, mermaid, SVG and PNG by default; it replaced `images`, which `init` rewrites) and how many a narrative may have (`max_pictures`, 5 by default). Every diagram and figure has a caption line under it, `*Figure 5-1: what it shows.*`, numbered by its section; with the alt text, the caption says what the picture shows, so no agent needs to open it. `finish-narrative` renumbers the captions and the references to them. `narrative-format` checks a figure's place, format, alt text and size, that an SVG is self-contained and has an opaque background for dark themes, and every caption; `wiki-check` reports a figure no narrative shows. `images = false` (§4.9) keeps a wiki to mermaid.
 
 #### 4.5.4 Templates
 
@@ -328,11 +328,9 @@ source_copies = "allow"     # "allow": a private wiki keeps reference copies, a 
 max_quote_words = 50        # the longest quotation a narrative may take from a source
 smes_exclude = []           # never listed as SMEs, such as the wiki's owner or bots: ["@alice", "dependabot"]
 markers = true              # false: no [→] or [?] markers (§4.10)
-images = true               # false: diagrams in mermaid only, no generated figures (§4.5.3)
-image_formats = ["svg", "png"]  # the kinds of image a narrative may embed
-max_pictures = 5            # diagrams and images in one narrative, at most; 0: none
-max_svg_kb = 40             # an SVG figure's size, at most
-max_png_kb = 150            # a PNG figure's size, at most
+picture_formats = ["mermaid", "svg", "png"]  # the kinds of picture a narrative may use
+max_pictures = 5            # pictures in one narrative, at most; 0: none
+max_image_kb = 100          # an SVG or PNG figure's size, at most
 language = "en"             # the language narratives are written in, a BCP 47 tag; sources keep their own
 
 [structural-llm-wiki-templates.technical_brief_overview]   # a template's budgets, over its header
