@@ -11,7 +11,7 @@ import unittest
 from unittest import mock
 
 import helpers
-from lib import language, release
+from sllmwiki.lib import language, release
 
 # A fake gh: answers from responses.json by the longest matching start of its arguments, logs each call.
 FAKE_GH = '''import json, os, sys

@@ -10,7 +10,7 @@ import urllib.error
 from unittest import mock
 
 import helpers
-from lib import fetch, policy
+from sllmwiki.lib import fetch, policy
 
 
 class Fetch(unittest.TestCase):

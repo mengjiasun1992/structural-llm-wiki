@@ -37,10 +37,10 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import citations, compat, config, figures, language, layout, numbering, templates  # noqa: E402
-from lib.narrativecheck import check, stats  # noqa: E402
-from lib.layout import Cli, entry  # noqa: E402
-from lib.util import dumps, read_text, write_text  # noqa: E402
+from sllmwiki.lib import citations, compat, config, figures, language, layout, numbering, templates  # noqa: E402
+from sllmwiki.lib.narrativecheck import check, stats  # noqa: E402
+from sllmwiki.lib.layout import Cli, entry  # noqa: E402
+from sllmwiki.lib.util import dumps, read_text, write_text  # noqa: E402
 
 cli = Cli('narrative-format.py', 'usage: narrative-format.py [<narrative.md> ...] [--fix-numbering] [--fix-style] | --templates | --skeleton NAME [--language TAG]')
 def main(argv):

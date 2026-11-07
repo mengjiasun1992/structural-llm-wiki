@@ -7,8 +7,8 @@ import tempfile
 import unittest
 
 import helpers
-from lib import book, language
-from lib.book import Chapter
+from sllmwiki.lib import book, language
+from sllmwiki.lib.book import Chapter
 
 
 def chapters(*specs):

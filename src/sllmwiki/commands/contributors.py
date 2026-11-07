@@ -27,9 +27,9 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import config, runstats  # noqa: E402
-from lib.layout import Cli, entry  # noqa: E402
-from lib.util import dumps, read_text  # noqa: E402
+from sllmwiki.lib import config, runstats  # noqa: E402
+from sllmwiki.lib.layout import Cli, entry  # noqa: E402
+from sllmwiki.lib.util import dumps, read_text  # noqa: E402
 
 cli = Cli('contributors.py', 'usage: contributors.py <path> [<path> ...] [--repo DIR] [--limit N] [--json]')
 HALF_LIFE_DAYS = 365

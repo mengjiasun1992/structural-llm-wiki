@@ -7,7 +7,7 @@ import unittest
 from unittest import mock
 
 import helpers
-from lib import layout
+from sllmwiki.lib import layout
 
 
 class Layout(unittest.TestCase):

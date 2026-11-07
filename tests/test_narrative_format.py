@@ -5,14 +5,14 @@ import os
 import unittest
 
 import helpers
-from lib import manifest, narrativecheck
+from sllmwiki.lib import manifest, narrativecheck
 
 NARRATIVE = 'sllmwiki/narratives/what-is-alpha.md'
 
 
 class Checks(helpers.WikiTestCase):
     def codes(self, text, **settings):
-        from lib import config, templates
+        from sllmwiki.lib import config, templates
         s = {**config.DEFAULTS, **settings}
         return [(c, n) for _, c, n, _ in narrativecheck.check(self.root, NARRATIVE, text, s, templates.available(self.root)[0])]
 

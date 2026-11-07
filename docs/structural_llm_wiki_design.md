@@ -58,23 +58,24 @@ This document covers the architecture and the decisions behind it. The skill's f
 ```text
 structural-llm-wiki/
 ├── .claude-plugin/marketplace.json        # makes this repo a plugin marketplace; lists plugin/
-├── plugin/                                # the plugin: only what runs for its users
+├── plugin/                                # the plugin: instructions only (issue #145)
 │   ├── .claude-plugin/                    # plugin.json (the manifest) and icon.png
 │   ├── skills/sllmwiki/                   # the one skill
 │   │   ├── SKILL.md                       # routing and the rules every run shares
 │   │   ├── workflows/                     # build, query, release, init: read when the workflow runs
-│   │   ├── steps/                         # tags, ingest, smes, narrative, lint, template: read when the step runs
-│   │   ├── scripts/                       # the deterministic scripts, each documented by its --help
-│   │   │   └── lib/                       # shared modules
+│   │   └── steps/                         # tags, ingest, smes, narrative, lint, template: read when the step runs
+│   └── commands/                          # Claude Code commands, one per workflow: init, query, build, release
+├── pyproject.toml                         # builds the sllmwiki package; lint and coverage settings
+├── tests/                                 # unit tests for the package, and the instruction budgets
+├── src/
+│   ├── sllmwiki/                          # the package: `sllmwiki <command>`, each documented by its --help
+│   │   ├── cli.py                         # the one command, dispatching to commands/
+│   │   ├── commands/                      # one module per command (wiki-check, publish, book, …)
+│   │   ├── lib/                           # shared modules
 │   │   └── templates/                     # narratives/ (templates and guides); languages/ (language packs); book/ (Sphinx's conf.py and stylesheets);
 │   │                                      # wiki/ and the *.yml workflows (what init installs)
-│   └── commands/                          # Claude Code commands, one per workflow: init, query, build, release
-├── tests/                                 # unit tests for the scripts, and the instruction budgets
-├── src/
 │   ├── actions/                           # GitHub actions a wiki's CI calls, fetched from this repository at the tag:
-│   │   │                                  # wiki-checks, review-checklist, release-book
-│   │   └── scripts/                       # what only they run: book.py, review-checklist.py, bookbuild.py and
-│   │                                      # book-template/ (Sphinx's conf.py and stylesheets); they import the skill's lib/
+│   │                                      # wiki-checks, review-checklist, release-book; they run the package from there
 │   └── tools/                             # development and CI tools (eval-plugin.sh, check-yaml, check-book)
 ├── evals/                                 # behavior evals, run through src/tools/eval-plugin.sh
 └── docs/

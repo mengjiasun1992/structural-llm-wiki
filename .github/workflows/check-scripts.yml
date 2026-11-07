@@ -28,8 +28,8 @@ jobs:
       # every Python and shell script compiles on this Python (find, so a folder with none is fine)
       - name: Scripts parse
         run: |
-          find plugin/skills/sllmwiki/scripts src/actions/scripts src/tools -name '*.py' -print0 | xargs -0 -r python3 -m py_compile
-          find plugin/skills/sllmwiki/scripts src/actions/scripts src/tools -name '*.sh' -print0 | xargs -0 -r -n1 bash -n
+          find src/sllmwiki src/tools -name '*.py' -print0 | xargs -0 -r python3 -m py_compile
+          find plugin/skills/sllmwiki/scripts src/tools -name '*.sh' -print0 | xargs -0 -r -n1 bash -n
 
       # tests/run.py runs each test module in its own process; coverage fails below
       # fail_under in pyproject.toml (95%). It runs once the test runner exists.
@@ -53,9 +53,22 @@ jobs:
 
       - name: Python (ruff; rules in pyproject.toml)
         if: success() || failure()
-        run: ruff check plugin/skills/sllmwiki/scripts src/actions/scripts tests src/tools
+        run: ruff check src/sllmwiki tests src/tools
 
       # the skill's scripts and the evals' scaffolds (find, so a folder with none is fine)
       - name: Shell (shellcheck)
         if: success() || failure()
-        run: find plugin/skills/sllmwiki/scripts src/actions/scripts src/tools evals -name '*.sh' -print0 | xargs -0 -r shellcheck
+        run: find plugin/skills/sllmwiki/scripts src/tools evals -name '*.sh' -print0 | xargs -0 -r shellcheck
+
+      # the wheel the plugin installs carries every file under src/sllmwiki/ (the templates' dotfiles
+      # included), and its sllmwiki command runs
+      - name: The package builds, whole
+        if: success() || failure()
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check build==1.2.2.post1
+          python3 -m build --wheel --outdir "$RUNNER_TEMP/dist" .
+          wheel=$(ls "$RUNNER_TEMP"/dist/sllmwiki-*.whl)
+          python3 -c "import sys, zipfile; names = set(zipfile.ZipFile(sys.argv[1]).namelist()); missing = [p for p in sys.argv[2:] if p not in names]; print('missing from the wheel:', *missing, sep='\n  ') if missing else None; sys.exit(1 if missing else 0)" \
+            "$wheel" $(git ls-files src/sllmwiki | sed 's|^src/||')
+          python3 -m venv "$RUNNER_TEMP/venv" && "$RUNNER_TEMP/venv/bin/pip" install --quiet "$wheel"
+          "$RUNNER_TEMP/venv/bin/sllmwiki" --version

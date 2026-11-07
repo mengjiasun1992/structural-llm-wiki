@@ -272,7 +272,7 @@ viewer's script (`renderer.draw(…, "12.2.0", …)` in October 2026).
 ### 6.4 Sphinx (the release action)
 
 Sphinx with MyST-Parser reads the staged folder, using the `conf.py` and
-stylesheet in `src/actions/scripts/book-template/` (passed with `-c`, so no Sphinx
+stylesheet in the package's `templates/book/` (passed with `-c`, so no Sphinx
 file lives in the wiki; `book.py build` sets the wiki's name, version and
 language with `-D`). The vendored mermaid.js and MathJax, megabytes the skill
 shouldn't carry to every install, stay in the action (`render --vendor`):

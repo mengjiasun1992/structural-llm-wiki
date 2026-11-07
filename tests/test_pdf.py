@@ -6,7 +6,7 @@ import zlib
 
 import helpers  # noqa: F401  (puts scripts/ on the path)
 import pdfmaker
-from lib import pdf
+from sllmwiki.lib import pdf
 from pdfmaker import text
 
 

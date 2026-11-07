@@ -6,8 +6,8 @@ import shutil
 import unittest
 
 import helpers
-from lib import numbering, templates
-from lib.templates import Section, TemplateError
+from sllmwiki.lib import numbering, templates
+from sllmwiki.lib.templates import Section, TemplateError
 
 PURPOSE = '**Takeaway:** the reader can run the task.\n\n**Aim:** exact, safe. Exact: every step a command. Safe: every risk named.\n\n'
 GUIDE = '# Guide\n\n' + ''.join(f'## {s}\n\n{PURPOSE if s == "Audience and purpose" else ""}Text.\n\n' for s in templates.GUIDE_SECTIONS)

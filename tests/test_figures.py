@@ -4,7 +4,7 @@ import os
 import unittest
 
 import helpers
-from lib import config, figures, narrativecheck, templates
+from sllmwiki.lib import config, figures, narrativecheck, templates
 
 NARRATIVE = 'sllmwiki/narratives/what-is-alpha.md'
 SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10" fill="#fff"/></svg>\n'

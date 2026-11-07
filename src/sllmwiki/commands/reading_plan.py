@@ -34,9 +34,9 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import readingplan  # noqa: E402
-from lib.layout import Cli, entry  # noqa: E402
-from lib.util import dumps  # noqa: E402
+from sllmwiki.lib import readingplan  # noqa: E402
+from sllmwiki.lib.layout import Cli, entry  # noqa: E402
+from sllmwiki.lib.util import dumps  # noqa: E402
 
 cli = Cli('reading-plan.py', 'usage: reading-plan.py list|order --primary a,b [--supporting c] [--grades FILE]')
 def main(argv):

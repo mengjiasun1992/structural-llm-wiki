@@ -27,7 +27,7 @@
   book.py build OUT --vendor DIR [--formats pdf,epub,html] [--chrome PATH] [--cache DIR]
                 [--sphinx CMD] [--name N] [--version V] [--date D] [--commit C] [--source URL]
       stage into OUT/staged, render, then Sphinx (--sphinx, default
-      sphinx-build, with MyST-Parser) with book-template/
+      sphinx-build, with MyST-Parser) with the package's templates/book/
       settings, and writes OUT/<name>-<version>.html: one file with every
       stylesheet, image and diagram in it; for pdf, Chrome prints that file
       to OUT/<name>-<version>.pdf (A4, page numbers, the title as the running
@@ -65,17 +65,15 @@ import sys
 import tempfile
 
 sys.dont_write_bytecode = True
-# The skill's lib/ (plugin/skills/sllmwiki/scripts/lib/), shared with the scripts Claude runs
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'plugin', 'skills', 'sllmwiki', 'scripts'))
 
-import bookbuild  # noqa: E402
-from lib import book, compat, config, language, layout  # noqa: E402
-from lib.layout import Cli, entry  # noqa: E402
-from lib.util import dumps, write_text  # noqa: E402
+from sllmwiki import TEMPLATES  # noqa: E402
+from sllmwiki.lib import book, bookbuild, compat, config, language, layout  # noqa: E402
+from sllmwiki.lib.layout import Cli, entry  # noqa: E402
+from sllmwiki.lib.util import dumps, write_text  # noqa: E402
 
 cli = Cli('book.py', 'usage: book.py stage|render|build ... (book.py --help)')
 FORMATS = ('pdf', 'epub', 'html')  # what build makes, as Config.toml's <format>_book names it
-TEMPLATE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'book-template')
+TEMPLATE = os.path.join(TEMPLATES, 'book')
 
 
 def _git(root, *args):

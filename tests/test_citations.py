@@ -3,7 +3,7 @@
 import unittest
 
 import helpers
-from lib import citations
+from sllmwiki.lib import citations
 
 
 def codes(text):

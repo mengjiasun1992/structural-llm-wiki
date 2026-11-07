@@ -9,7 +9,7 @@ import unittest
 from unittest import mock
 
 import helpers  # noqa: F401  (puts scripts/ on the path)
-from lib import runstats
+from sllmwiki.lib import runstats
 
 T0 = datetime.datetime(2026, 10, 20, 12, 0, tzinfo=datetime.timezone.utc)
 

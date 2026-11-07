@@ -5,8 +5,8 @@ import time
 import unittest
 
 import helpers
-from lib import footer, mdlinks
-from lib.util import source_hash
+from sllmwiki.lib import footer, mdlinks
+from sllmwiki.lib.util import source_hash
 
 
 class Links(helpers.WikiTestCase):

@@ -6,7 +6,7 @@ import unittest
 from unittest import mock
 
 import helpers
-from lib import manifest, markers, metadata
+from sllmwiki.lib import manifest, markers, metadata
 
 NARRATIVE = 'sllmwiki/narratives/what-is-alpha.md'
 R, G = '[→]', '[?]'
@@ -170,7 +170,7 @@ class Finish(helpers.WikiTestCase):
         self.assertTrue(any(d.startswith('numbered') for d in done))
         self.assertIn('defined 1 marker(s) in Terminology', done)
         out = self.read('sllmwiki/narratives/beta-caching.md')
-        from lib import metadata as meta
+        from sllmwiki.lib import metadata as meta
         self.assertIn(f'- **Words:** {meta.reading_label(out)}\n', out)  # its reading time, which narrative-format keeps an eye on
         stale = out.replace(f'- **Words:** {meta.reading_label(out)}', '- **Words:** 9 (about 1 min)')
         self.write('sllmwiki/narratives/beta-caching.md', stale)

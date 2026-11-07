@@ -14,8 +14,10 @@ BUDGETS = {  # words per file; a run loads SKILL.md, a workflow, its steps, shar
     'SKILL.md': 900,
     'workflows/*.md': 1200,
     'steps/*.md': 1200,
-    'templates/narratives/shared.md': 600,
-    'templates/narratives/shared-guide.md': 900,
+}
+TEMPLATE_BUDGETS = {  # the same, for the narrative templates in the package
+    'narratives/shared.md': 600,
+    'narratives/shared-guide.md': 900,
 }
 TEMPLATE_AND_GUIDE = 1400
 BUILD_LOAD = 9000  # SKILL.md, build, its steps, shared.md, shared-guide.md and the largest template with its guide
@@ -28,22 +30,25 @@ def words(path):
 
 
 def instruction_files():
-    files = [os.path.join(SKILL, 'SKILL.md'), os.path.join(SKILL, 'templates', 'narratives', 'shared.md'),
-             os.path.join(SKILL, 'templates', 'narratives', 'shared-guide.md')]
+    files = [os.path.join(SKILL, 'SKILL.md'), os.path.join(helpers.TEMPLATES, 'narratives', 'shared.md'),
+             os.path.join(helpers.TEMPLATES, 'narratives', 'shared-guide.md')]
     files += glob.glob(os.path.join(SKILL, 'workflows', '*.md')) + glob.glob(os.path.join(SKILL, 'steps', '*.md'))
-    files += glob.glob(os.path.join(SKILL, 'templates', 'narratives', '*', '*.md')) + glob.glob(os.path.join(COMMANDS, '*.md'))
+    files += glob.glob(os.path.join(helpers.TEMPLATES, 'narratives', '*', '*.md')) + glob.glob(os.path.join(COMMANDS, '*.md'))
     return sorted(files)
 
 
 class Budgets(unittest.TestCase):
     def test_each_file(self):
-        for pattern, budget in BUDGETS.items():
-            for path in glob.glob(os.path.join(SKILL, pattern)):
-                with self.subTest(file=os.path.relpath(path, SKILL)):
-                    self.assertLessEqual(words(path), budget)
+        for base, budgets in ((SKILL, BUDGETS), (helpers.TEMPLATES, TEMPLATE_BUDGETS)):
+            for pattern, budget in budgets.items():
+                paths = glob.glob(os.path.join(base, pattern))
+                self.assertTrue(paths, pattern)
+                for path in paths:
+                    with self.subTest(file=os.path.relpath(path, base)):
+                        self.assertLessEqual(words(path), budget)
 
     def test_each_template_with_its_guide(self):
-        for folder in glob.glob(os.path.join(SKILL, 'templates', 'narratives', '*', '')):
+        for folder in glob.glob(os.path.join(helpers.TEMPLATES, 'narratives', '*', '')):
             with self.subTest(template=os.path.basename(os.path.dirname(folder))):
                 self.assertLessEqual(words(os.path.join(folder, 'template.md')) + words(os.path.join(folder, 'guide.md')), TEMPLATE_AND_GUIDE)
 
@@ -51,9 +56,9 @@ class Budgets(unittest.TestCase):
         skill = words(os.path.join(SKILL, 'SKILL.md'))
         steps = sum(words(os.path.join(SKILL, 'steps', f'{s}.md')) for s in ('tags', 'ingest', 'narrative'))
         largest = max(words(os.path.join(f, 'template.md')) + words(os.path.join(f, 'guide.md'))
-                      for f in glob.glob(os.path.join(SKILL, 'templates', 'narratives', '*', '')))
-        build = skill + words(os.path.join(SKILL, 'workflows', 'build.md')) + steps + words(os.path.join(SKILL, 'templates', 'narratives', 'shared.md')) + largest \
-            + words(os.path.join(SKILL, 'templates', 'narratives', 'shared-guide.md'))
+                      for f in glob.glob(os.path.join(helpers.TEMPLATES, 'narratives', '*', '')))
+        build = skill + words(os.path.join(SKILL, 'workflows', 'build.md')) + steps + words(os.path.join(helpers.TEMPLATES, 'narratives', 'shared.md')) + largest \
+            + words(os.path.join(helpers.TEMPLATES, 'narratives', 'shared-guide.md'))
         self.assertLessEqual(build, BUILD_LOAD)
         self.assertLessEqual(skill + words(os.path.join(SKILL, 'workflows', 'query.md')), QUERY_LOAD)
 
@@ -76,9 +81,11 @@ def scripts_named(text):
 
 
 def script_path(name):
-    for folder in (helpers.SCRIPTS, os.path.join(helpers.REPO, 'src', 'tools')):
-        if os.path.isfile(os.path.join(folder, name)):
-            return os.path.join(folder, name)
+    """The source of a script the instructions name: a package command (wiki-check.py), preflight.sh, or a tool."""
+    for path in (os.path.join(helpers.PACKAGE, 'commands', name.replace('-', '_')), os.path.join(helpers.SCRIPTS, name),
+                 os.path.join(helpers.REPO, 'src', 'tools', name)):
+        if os.path.isfile(path):
+            return path
     return None
 
 
@@ -106,7 +113,8 @@ class References(unittest.TestCase):
         with open(os.path.join(SKILL, 'SKILL.md'), encoding='utf-8') as f:
             text = f.read()
         listed = set(re.findall(r'^- `([a-z-]+\.py)`', text, re.M))
-        commands = {os.path.basename(p) for p in glob.glob(os.path.join(helpers.SCRIPTS, '*.py'))}
+        commands = {os.path.basename(p).replace('_', '-') for p in glob.glob(os.path.join(helpers.PACKAGE, 'commands', '[a-z]*.py'))} \
+            - {'book.py', 'review-checklist.py'}  # the wiki's CI runs these, not the agent
         self.assertEqual(listed, commands)
 
     def test_the_parser(self):

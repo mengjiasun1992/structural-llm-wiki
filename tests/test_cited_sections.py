@@ -4,7 +4,7 @@ import json
 import unittest
 
 import helpers
-from lib import plaintext
+from sllmwiki.lib import plaintext
 
 EXTRA = '''
 Doubling bounds the load. Each wait doubles [\\[1\\]](../sources/alpha-doc.md#details), [\\[2\\]](../sources/alpha-doc.md#alpha).

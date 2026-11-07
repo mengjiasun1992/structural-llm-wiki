@@ -20,9 +20,9 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import citations, layout, search  # noqa: E402
-from lib.layout import Cli, entry  # noqa: E402
-from lib.util import dumps, read_text  # noqa: E402
+from sllmwiki.lib import citations, layout, search  # noqa: E402
+from sllmwiki.lib.layout import Cli, entry  # noqa: E402
+from sllmwiki.lib.util import dumps, read_text  # noqa: E402
 
 cli = Cli('cited-sections.py', 'usage: cited-sections.py <narrative> [--claims-only] [--json]')
 _LINKS = re.compile(r'\[\\\[[0-9]+\\\]\]\([^)\s]*\)')

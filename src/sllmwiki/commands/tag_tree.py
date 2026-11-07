@@ -15,9 +15,9 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import tagtree  # noqa: E402
-from lib.layout import Cli, entry  # noqa: E402
-from lib.util import dumps  # noqa: E402
+from sllmwiki.lib import tagtree  # noqa: E402
+from sllmwiki.lib.layout import Cli, entry  # noqa: E402
+from sllmwiki.lib.util import dumps  # noqa: E402
 
 cli = Cli('tag-tree.py', 'usage: tag-tree.py tree [--brief] | show <tag>')
 

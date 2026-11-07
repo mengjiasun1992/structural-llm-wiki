@@ -3,7 +3,7 @@
 import unittest
 
 import helpers
-from lib import metadata
+from sllmwiki.lib import metadata
 
 DOC = '''# What is X?
 

@@ -24,9 +24,9 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from lib import config, manifest, wikiindex  # noqa: E402
-from lib.layout import Cli, entry  # noqa: E402
-from lib.util import today  # noqa: E402
+from sllmwiki.lib import config, manifest, wikiindex  # noqa: E402
+from sllmwiki.lib.layout import Cli, entry  # noqa: E402
+from sllmwiki.lib.util import today  # noqa: E402
 
 cli = Cli('manifest.py', 'usage: manifest.py <command> ...; see --help')
 

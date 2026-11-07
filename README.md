@@ -89,11 +89,12 @@ The skill is open source under the [Apache License 2.0](LICENSE); your wiki is y
 ## Developing
 
 ```text
-plugin/                the plugin, and only what runs for its users
-├── skills/sllmwiki/   the skill: SKILL.md, workflows/, steps/, scripts/, templates/
+plugin/                the plugin: instructions only
+├── skills/sllmwiki/   the skill: SKILL.md, workflows/, steps/
 └── commands/          Claude Code commands: init, query, build, release
-tests/                 unit tests for the scripts
-src/actions/           the GitHub actions a wiki's CI calls, and scripts/, the code only they run
+src/sllmwiki/          the sllmwiki package: every command, lib/, templates/
+tests/                 unit tests for the package
+src/actions/           the GitHub actions a wiki's CI calls
 src/tools/             development and CI tools (eval-plugin.sh, check-yaml, check-book)
 evals/                 behavior evals, run through src/tools/eval-plugin.sh
 docs/                  the manual, the designs, their plans, and their figures

@@ -21,8 +21,8 @@ import tempfile
 import unittest
 
 import helpers
-from lib import compat
-from lib.compat import check, check_links, escape
+from sllmwiki.lib import compat
+from sllmwiki.lib.compat import check, check_links, escape
 
 
 class Rule:

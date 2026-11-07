@@ -1,4 +1,4 @@
-"""Tests for src/actions/scripts/bookbuild.py and book.py render and build: drawing diagrams and math, and the single-file HTML
+"""Tests for lib/bookbuild.py and the book command render and build: drawing diagrams and math, and the single-file HTML
 (docs/book_design.md §6.3-§6.5). Chrome and Sphinx are stand-ins here; CI's check-book builds with the real ones."""
 
 import json
@@ -14,8 +14,7 @@ import unittest
 from unittest import mock
 
 import helpers
-import bookbuild
-from lib import book
+from sllmwiki.lib import book, bookbuild
 
 # A stand-in for Chrome: reads the render page and dumps a DOM with an SVG (or an error) for each item.
 CHROME = '''import html, json, os, re, sys
@@ -177,14 +176,14 @@ class Units(unittest.TestCase):
         self.assertEqual(counts[m], 2)
 
     def test_the_shared_stylesheet_suits_an_epub(self):
-        css = helpers.read(os.path.join(helpers.CI_SCRIPTS, 'book-template', '_static'), 'book.css')
+        css = helpers.read(os.path.join(helpers.TEMPLATES, 'book', '_static'), 'book.css')
         for rejected in ('^=', ':is(', ':has(', '@page'):  # what epubcheck's CSS parser refuses; book-html.css has them
             self.assertNotIn(rejected, css)
         body = re.search(r'(?m)^body \{([^}]*)\}', css).group(1)
         self.assertNotIn('background', body)  # an e-reader's own page colour shows through
         self.assertNotRegex(body, r'(?<![-\w])color:')
         self.assertNotRegex(css, r'(?m)^html \{')
-        conf = helpers.read(os.path.join(helpers.CI_SCRIPTS, 'book-template'), 'conf.py')
+        conf = helpers.read(os.path.join(helpers.TEMPLATES, 'book'), 'conf.py')
         self.assertIn("epub_exclude_files = ['_static/book-html.css']", conf)
 
     def test_sphinx_language(self):
@@ -295,7 +294,7 @@ class Commands(unittest.TestCase):
         self.assertIn(f'html: {html} (', r.out)
         text = helpers.read(out, f'{name}-v1.html')
         self.assertIn('SVG-IN', text)  # Sphinx read the rendered pages
-        for arg in ('-b singlehtml', f'-c {os.path.join(helpers.CI_SCRIPTS, "book-template")}', f'project={name}',
+        for arg in ('-b singlehtml', f'-c {os.path.join(helpers.TEMPLATES, "book")}', f'project={name}',
                     'version=v1', 'release=v1', 'language=en', f'epub_author={name}', 'epub_publisher=sllmwiki'):
             self.assertIn(arg, text)
         data = json.loads(helpers.read(out, 'staged/book.json'))
