@@ -7,7 +7,7 @@ import os
 import re
 
 from . import citations, compat, figures, language, layout, manifest, markers, mdlinks, metadata, numbering, quotes, xrefs
-from .compat import mask_code_spans, mask_math_spans, scan
+from .compat import mask_code_spans, mask_spans, scan
 
 PLACEHOLDER = re.compile(r'<(?!https?://|mailto:|/)[^<>\n]*\s[^<>\n]*>')
 # A formula written as text: x_t or s_{t-1}, or a Greek letter beside an operator
@@ -157,10 +157,10 @@ def check(root, rel, text, settings, offered):
         m = PLACEHOLDER.search(mask_code_spans(line)) if kinds[i] == 'text' else None
         if m:
             out.append(('error', 'PLACEHOLDER', i + 1, f'"{m.group(0)}" is the skeleton\'s placeholder; write the content'))
-        m = FORMULA.search(mask_math_spans(mask_code_spans(line))) if kinds[i] == 'text' else None
+        m = FORMULA.search(mask_spans(line)) if kinds[i] == 'text' else None
         if m:
             out.append(('warning', 'MATH_AS_TEXT', i + 1, f'"{m.group(0)}" looks like a formula written as text; write it as TeX, $...$'))
-        m = DOUBLED.search(re.sub(r'\]\([^)]*\)', ']', mask_math_spans(mask_code_spans(line)))) if kinds[i] == 'text' else None
+        m = DOUBLED.search(re.sub(r'\]\([^)]*\)', ']', mask_spans(line))) if kinds[i] == 'text' else None
         if m:
             out.append(('error', 'DOUBLED_PUNCTUATION', i + 1, f'"{m.group(0)}": punctuation doubled, likely by an edit'))
     out += compat.check(text)

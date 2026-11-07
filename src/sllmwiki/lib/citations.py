@@ -11,7 +11,7 @@ references and markers written after the period, the earlier format, inside.
 import re
 
 from . import numbering
-from .compat import mask_code_spans, mask_math_spans, scan
+from .compat import mask_spans, scan
 
 CITE = re.compile(r'(?P<space>[ \t]?)\[\\\[(?P<n>[0-9]+)\\\]\]\((?P<target>[^)\s]+)\)')
 _LISTED = re.compile(r'[ \t]*(?P<n>[0-9]+)\.[ \t]+.*?\]\((?P<target>[^)\s]+)\)')
@@ -74,10 +74,6 @@ def _prose_lines(text):
             if kinds[i] == 'text' and not (span and span[0] <= i < span[1]) and not re.match(r' {0,3}#', line)]
 
 
-def _masked(line):
-    return mask_math_spans(mask_code_spans(line))
-
-
 def place(text):
     """(text, references moved): references and markers after a sentence's closing punctuation move
     inside it, and references side by side get a comma between them."""
@@ -85,11 +81,11 @@ def place(text):
     moved = 0
     for i in _prose_lines(text):
         line = lines[i]
-        for m in reversed(list(_AFTER.finditer(_masked(line)))):
+        for m in reversed(list(_AFTER.finditer(mask_spans(line)))):
             refs = re.findall(_REF, line[m.start('refs'):m.end('refs')])
             line = line[:m.start('punct')] + ' ' + ', '.join(refs) + m.group('punct') + line[m.end('refs'):]
             moved += 1
-        for m in reversed(list(_SIDE.finditer(_masked(line)))):
+        for m in reversed(list(_SIDE.finditer(mask_spans(line)))):
             line = line[:m.end('a')] + ',' + line[m.start('gap'):]
             moved += 1
         lines[i] = line
@@ -101,7 +97,7 @@ def check_placement(text):
     lines = text.split('\n')
     out = []
     for i in _prose_lines(text):
-        masked = _masked(lines[i])
+        masked = mask_spans(lines[i])
         for _ in _AFTER.finditer(masked):
             out.append(('error', 'REFERENCE_PLACEMENT', i + 1, 'a reference goes inside its sentence, before the closing punctuation: '
                                                                '"… exponentially [3]." (sllmwiki finish-narrative moves it)'))

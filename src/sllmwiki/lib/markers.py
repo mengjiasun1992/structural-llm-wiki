@@ -10,7 +10,7 @@ import re
 
 from . import numbering
 from .citations import CITE
-from .compat import mask_code_spans, mask_math_spans, scan
+from .compat import mask_spans, scan
 
 MARKERS = {
     '[→]': 'Our own reasoning, after a statement or on a section\'s heading: a conclusion, comparison or example no cited source states.',
@@ -24,10 +24,6 @@ _SENTENCE_END = re.compile(r'[.!?][)"”’*]*(?=\s|\Z)|[。！？][)"”’*）
 _HEADING = re.compile(r' {0,3}#{1,6}[ \t]')
 
 
-def _masked(line):
-    return mask_math_spans(mask_code_spans(line))
-
-
 def uses(text):
     """[(line, column, marker)] for every marker in the narrative's prose, the Terminology table aside."""
     lines = text.split('\n')
@@ -36,7 +32,7 @@ def uses(text):
     out = []
     for i, line in enumerate(lines):
         if kinds[i] == 'text' and not (span and span[0] <= i < span[1]):
-            out += [(i, m.start(), m.group(0)) for m in _ANY.finditer(_masked(line))]
+            out += [(i, m.start(), m.group(0)) for m in _ANY.finditer(mask_spans(line))]
     return out
 
 
@@ -73,14 +69,14 @@ def check(text, on=True):
     lines = text.split('\n')
     kinds, _ = scan(lines)
     out = [('error', 'MARKER_ASCII', i + 1, '[->] is written [→] (sllmwiki finish-narrative converts it)')
-           for i, line in enumerate(lines) if kinds[i] == 'text' for _ in _ASCII.finditer(_masked(line))]
+           for i, line in enumerate(lines) if kinds[i] == 'text' for _ in _ASCII.finditer(mask_spans(line))]
     used = uses(text)
     if not on:
         return out + [('error', 'MARKER_OFF', i + 1, f'{m}: Config.toml turns markers off; say it in words instead') for i, _, m in used]
     have = defined(text)
     statements = []
     for i, col, m in used:
-        line = _masked(lines[i])
+        line = mask_spans(lines[i])
         before, after = line[:col], line[col + len(m):]
         if _HEADING.match(line):
             if after.strip():
@@ -120,7 +116,7 @@ def arrows(text):
     for i, line in enumerate(lines):
         if kinds[i] != 'text':
             continue
-        spans = [m.span() for m in _ASCII.finditer(_masked(line))]
+        spans = [m.span() for m in _ASCII.finditer(mask_spans(line))]
         for a, b in reversed(spans):
             line = line[:a] + ASCII['[->]'] + line[b:]
         lines[i], converted = line, converted + len(spans)

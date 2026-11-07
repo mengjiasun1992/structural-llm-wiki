@@ -43,7 +43,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from sllmwiki.lib import layout, narrativecheck, runstats, templates  # noqa: E402
+from sllmwiki.lib import layout, narrativecheck, runstats, schema, templates  # noqa: E402
 from sllmwiki.lib.gitrepo import default_branch, has_remote  # noqa: E402
 from sllmwiki.lib.layout import Cli, entry  # noqa: E402
 from sllmwiki.lib.policy import github_repo  # noqa: E402
@@ -115,7 +115,7 @@ def gh_available():
 
 
 def start(root, slug, title, prompt):
-    if not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', slug):
+    if not schema.SLUG.match(slug):
         cli.usage('the run\'s slug is kebab-case, such as gateway-routing')
     changes = dirty(root)
     if changes:

@@ -129,6 +129,11 @@ def mask_code_spans(line):
     return _CODE_SPAN.sub(lambda m: m.group(1) + ' ' * (len(m.group(0)) - 2 * len(m.group(1))) + m.group(1), line)
 
 
+def mask_spans(line):
+    """line with its code and math spans blanked: the prose a check reads."""
+    return mask_math_spans(mask_code_spans(line))
+
+
 def mask_math_spans(line):
     """line with each inline $math$ span's content replaced by spaces, so columns stay put."""
     return _INLINE_MATH.sub(lambda m: '$' + ' ' * (len(m.group(0)) - 2) + '$', line)
@@ -256,7 +261,7 @@ def check(text):
     for i, raw in enumerate(lines):
         if kinds[i] != 'text':
             continue
-        line = mask_math_spans(mask_code_spans(raw))
+        line = mask_spans(raw)
         h = _HEADING.match(line)
         if h:
             new = len(h.group(1))
@@ -314,7 +319,7 @@ def _escape_prose(line):
     for start, end in reversed(_bare_urls(mask_code_spans(line))):
         line = line[:start] + '<' + line[start:end] + '>' + line[end:]
         n += 1
-    masked = _mask_links(mask_math_spans(mask_code_spans(line)))
+    masked = _mask_links(mask_spans(line))
     edits = [(m.start(), '\\') for m in _DOLLAR.finditer(masked)] + [(m.start(), '\\') for m in _TILDES.finditer(masked)]
     for at, ins in sorted(edits, reverse=True):
         line = line[:at] + ins + line[at:]

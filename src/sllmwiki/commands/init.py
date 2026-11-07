@@ -96,20 +96,10 @@ def set_values(text, sets):
     lines = text.split('\n')
     for key, value in sets.items():
         i = next(i for i, line in enumerate(lines) if line.startswith(f'{key} = '))
-        new = f'{key} = {toml_value(value)}'
+        new = f'{key} = {toml.dumps_value(value)}'
         comment = re.search(r'\s{2,}(#.*)', lines[i])
         lines[i] = f'{new.ljust(comment.start(1) - 1)} {comment.group(1)}' if comment else new
     return '\n'.join(lines)
-
-
-def toml_value(value):
-    if isinstance(value, bool):
-        return 'true' if value else 'false'
-    if isinstance(value, list):
-        return '[' + ', '.join(toml_value(v) for v in value) + ']'
-    if isinstance(value, int):
-        return str(value)
-    return json.dumps(value, ensure_ascii=False)
 
 
 def parse_sets(pairs):
@@ -324,7 +314,7 @@ def main(argv):
             print(dumps({'first_setup': not os.path.isfile(os.path.join(root, layout.CONFIG)), 'ask': found}))
         else:
             for q in found:
-                print(f'{q["key"]} = {toml_value(q["value"])}: {q["about"]}')
+                print(f'{q["key"]} = {toml.dumps_value(q["value"])}: {q["about"]}')
             print(f'init: {len(found)} setting(s) to ask about' if found else 'init: nothing new to ask about')
         return 0
     others = unrelated(root)

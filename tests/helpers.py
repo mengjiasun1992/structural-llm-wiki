@@ -4,7 +4,6 @@ in-process, a fixture wiki in the fixed layout, git, and a local HTTP server
 
 import contextlib
 import functools
-import hashlib
 import http.server
 import importlib.util
 import io
@@ -25,6 +24,7 @@ PACKAGE_SRC = os.path.join(REPO, 'src')  # the sllmwiki package, imported from t
 if PACKAGE_SRC not in sys.path:
     sys.path.insert(0, PACKAGE_SRC)
 import sllmwiki  # noqa: E402
+from sllmwiki.lib import util  # noqa: E402
 PACKAGE = os.path.dirname(sllmwiki.__file__)
 TEMPLATES = sllmwiki.TEMPLATES
 sys.dont_write_bytecode = True
@@ -70,26 +70,23 @@ def run(name, argv, cwd=None):
     return Result(0 if code is None else code, out.getvalue(), err.getvalue())
 
 
-def md5(data):
-    return hashlib.md5(data).hexdigest()
+md5 = util.md5
 
 
 def write(root, rel, data):
     """Write text (str, kept byte for byte) or bytes to root/rel, making folders; the path."""
     path = os.path.join(root, rel)
-    os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
     if isinstance(data, bytes):
+        os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
         with open(path, 'wb') as f:
             f.write(data)
     else:
-        with open(path, 'w', encoding='utf-8', newline='') as f:
-            f.write(data)
+        util.write_text(path, data)
     return path
 
 
 def read(root, rel):
-    with open(os.path.join(root, rel), encoding='utf-8', newline='') as f:
-        return f.read()
+    return util.read_text(os.path.join(root, rel))
 
 
 def git(root, *args, check=True):
