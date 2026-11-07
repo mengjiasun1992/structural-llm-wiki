@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """finish-narrative: everything mechanical after a narrative is written or edited,
 in one command (design doc §7.5).
 
@@ -28,29 +27,22 @@ Exit code: 0 finished with no errors, 1 when errors remain or it was refused,
 
 import argparse
 import os
-import sys
 
-sys.dont_write_bytecode = True
-
-from sllmwiki.lib import citations, compat, config, figures, language, layout, manifest, markers, metadata, numbering, readingplan, runstats, templates, wikiindex, xrefs  # noqa: E402
-from sllmwiki.lib.narrativecheck import check as check_narrative  # noqa: E402
-from sllmwiki.lib.layout import Cli, entry  # noqa: E402
-from sllmwiki.lib.util import dumps, read_text, today, write_text  # noqa: E402
+from sllmwiki.lib import citations, compat, figures, language, layout, manifest, markers, metadata, numbering, readingplan, runstats, templates, wikiindex, xrefs
+from sllmwiki.lib.narrativecheck import check as check_narrative
+from sllmwiki.lib.layout import Cli
+from sllmwiki.lib.util import comma_list, dumps, read_text, today, write_text
 
 cli = Cli('sllmwiki finish-narrative', 'usage: sllmwiki finish-narrative <slug> [--primary a,b] [--supporting c] [--read s1,s2] [--grades FILE] [--model NAME] '
           '[--bump minor|major --note TEXT]')
 
 
-def tag_list(value):
-    return [t.strip() for t in value.split(',') if t.strip()]
-
-
 def main(argv):
     p = argparse.ArgumentParser(prog='sllmwiki finish-narrative', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('slug')
-    p.add_argument('--primary', type=tag_list)
-    p.add_argument('--supporting', type=tag_list)
-    p.add_argument('--read', type=tag_list)
+    p.add_argument('--primary', type=comma_list)
+    p.add_argument('--supporting', type=comma_list)
+    p.add_argument('--read', type=comma_list)
     p.add_argument('--grades')
     p.add_argument('--model')
     p.add_argument('--bump', choices=['minor', 'major'])
@@ -61,10 +53,7 @@ def main(argv):
     if args.bump and not args.note:
         cli.usage('--bump needs --note, the history entry')
     root = cli.wiki(args.root)
-    try:
-        settings = config.load(root).settings
-    except config.ConfigError as e:
-        cli.fail('Config.toml is invalid, fix it first: ' + '; '.join(e.problems))
+    settings = cli.config(root).settings
     rel = f'{layout.NARRATIVES}/{args.slug}.md'
     path = os.path.join(root, rel)
     if not os.path.isfile(path):
@@ -107,9 +96,9 @@ def main(argv):
     text, n = xrefs.repair(root, rel, text)
     done += [f'repaired {n} link(s) to a renumbered section of another narrative'] if n else []
     if settings['markers']:
-        text, n = markers.migrate(text)
-        done += [f'converted {n} old marker(s)'] if n else []
-    text, n = citations.place(text)  # after the old markers become new ones, so they move inside too
+        text, n = markers.arrows(text)
+        done += [f'wrote {n} [->] as [→]'] if n else []
+    text, n = citations.place(text)
     done += [f'moved {n} reference(s) inside their sentence'] if n else []
     text, n = compat.escape(text)
     done += [f'wrote {n} renderer escape(s)'] if n else []
@@ -118,10 +107,9 @@ def main(argv):
         done += [f'defined {n} marker(s) in Terminology'] if n else []
     meta = metadata.read(text)
     name = meta['template']
-    try:
-        templates.get(root, name or '')
-    except templates.TemplateError as e:
-        cli.fail(f'Metadata names no template this wiki offers: {e}')
+    offered = templates.available(root)[0]  # once: it reads and checks every template folder
+    if name not in offered:
+        cli.fail(f'Metadata names no template this wiki offers: no template {name or ""}; there are {", ".join(sorted(offered))}')
     fields = {'last_modified': today(), 'created': meta['created'] or today(), 'language': meta['language'] or settings['language']}
     history = None
     if not meta['version']:
@@ -146,7 +134,7 @@ def main(argv):
     changed = wikiindex.sync(root, write=True)[1]
     done += [f'regenerated {len(changed)} page(s): {", ".join(changed)}'] if changed else []
 
-    check = check_narrative(root, rel, text, settings, templates.available(root)[0])
+    check = check_narrative(root, rel, text, settings, offered)
     errors = [f for f in check if f[0] == 'error']
     if args.json:
         print(dumps({'slug': args.slug, 'done': done, 'findings': [dict(zip(('severity', 'code', 'line', 'message'), f)) for f in check]}))
@@ -157,7 +145,3 @@ def main(argv):
             print(f'{sev:<8} {code:<20} {rel}:{line}: {msg}')
         print(f'finish-narrative: {len(errors)} error(s) left' if errors else 'finish-narrative: done, no errors')
     return 1 if errors else 0
-
-
-if __name__ == '__main__':  # pragma: no cover
-    entry(main)

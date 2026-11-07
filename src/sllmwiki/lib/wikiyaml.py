@@ -57,6 +57,8 @@ def _quoted_spans(text):
 
 def _strip_comment(text):
     """text without a trailing " # comment", minding quotes."""
+    if '#' not in text:  # most lines: no need to walk them
+        return text.rstrip()
     for i, c, quoted in _quoted_spans(text):
         if c == '#' and not quoted and (i == 0 or text[i - 1] in ' \t'):
             return text[:i].rstrip()

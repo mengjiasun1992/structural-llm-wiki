@@ -1,11 +1,9 @@
-#!/usr/bin/env python3
 """wiki-check: is the wiki consistent? (design doc §4, §7.2)
 
   sllmwiki wiki-check [--fix] [--json] [--visibility public|private] [--root <wiki>]
 
 Errors:
   CONFIG_INVALID            Config.toml has a problem
-  OLD_LAYOUT                Config.toml, templates/ or SLLMWIKI_INDICES.md where they were before 1.0
                             (warning; rerun /sllmwiki:init, which moves them)
   LANGUAGE_PACK_INVALID     a language pack in sllmwiki/.templates/languages/ can't be read
   LANGUAGE_PACK             Config.toml's language has no pack, so headings stay English (warning)
@@ -48,13 +46,10 @@ errors, 1 with errors, 2 on a usage error.
 
 import argparse
 import os
-import sys
 
-sys.dont_write_bytecode = True
-
-from sllmwiki.lib import book, compat, config, figures, footer, language, layout, manifest, policy, schema, tagtree, templates, wikiindex, wikiyaml, xrefs  # noqa: E402
-from sllmwiki.lib.layout import Cli, entry  # noqa: E402
-from sllmwiki.lib.util import dumps, read_bytes, read_text, source_hash  # noqa: E402
+from sllmwiki.lib import book, compat, config, figures, footer, language, layout, manifest, policy, schema, tagtree, templates, wikiindex, wikiyaml, xrefs
+from sllmwiki.lib.layout import Cli
+from sllmwiki.lib.util import dumps, read_bytes, read_text, source_hash
 
 cli = Cli('sllmwiki wiki-check', 'usage: sllmwiki wiki-check [--fix] [--json] [--visibility public|private]')
 
@@ -63,9 +58,6 @@ def check(root, fix=False, seen_by=None):
     """[(severity, code, file, message)] for the whole wiki; with fix, the generated pages are rewritten first."""
     out = []
     add = out.append
-    for old in (layout.OLD_CONFIG, *layout.OLD_TEMPLATES, *layout.OLD_INDEX):
-        if os.path.exists(os.path.join(root, old)):
-            add(('warning', 'OLD_LAYOUT', old, f'{old} has moved since 1.0 (sllmwiki/Config.toml, .templates/, .SLLMWIKI_INDICES.md): rerun /sllmwiki:init, which moves it'))
     for p in config.problems(root):
         add(('error', 'CONFIG_INVALID', layout.CONFIG, p))
     settings = config.get(root).settings
@@ -185,7 +177,3 @@ def main(argv):
             print(f'{sev:<8} {code:<26} {rel}: {msg}')
         print(f'wiki-check: {errors} error(s), {len(found) - errors} warning(s)')
     return 1 if errors else 0
-
-
-if __name__ == '__main__':  # pragma: no cover
-    entry(main)

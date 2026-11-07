@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """reading-plan: what a narrative reads, and in what order (design doc §7.1).
 
   sllmwiki reading-plan list --primary a,b [--supporting c]
@@ -30,20 +29,17 @@ Exit code: 0, 1 when grades are missing or invalid, 2 on a usage error.
 
 import argparse
 import json
-import sys
 
-sys.dont_write_bytecode = True
-
-from sllmwiki.lib import readingplan  # noqa: E402
-from sllmwiki.lib.layout import Cli, entry  # noqa: E402
-from sllmwiki.lib.util import dumps  # noqa: E402
+from sllmwiki.lib import readingplan
+from sllmwiki.lib.layout import Cli
+from sllmwiki.lib.util import comma_list, dumps
 
 cli = Cli('sllmwiki reading-plan', 'usage: sllmwiki reading-plan list|order --primary a,b [--supporting c] [--grades FILE]')
 def main(argv):
     p = argparse.ArgumentParser(prog='sllmwiki reading-plan', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('command', choices=['list', 'order'])
-    p.add_argument('--primary', required=True, type=lambda v: [t.strip() for t in v.split(',') if t.strip()])
-    p.add_argument('--supporting', default=[], type=lambda v: [t.strip() for t in v.split(',') if t.strip()])
+    p.add_argument('--primary', required=True, type=comma_list)
+    p.add_argument('--supporting', default=[], type=comma_list)
     p.add_argument('--grades')
     p.add_argument('--json', action='store_true')
     p.add_argument('--root')
@@ -85,7 +81,3 @@ def main(argv):
         print(f'| {r["step"]} | {r["read"]} | {r["slug"]} | {r["why"]} |')
     print(f'\nNoted, not read: {", ".join(found["noted_not_read"]) or "none"}.')
     return 0
-
-
-if __name__ == '__main__':  # pragma: no cover
-    entry(main)

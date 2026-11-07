@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """init: make this repository a Structural LLM Wiki, or bring one up to date (design doc §3, §8).
 
   sllmwiki init [--name NAME] [--force] [--set KEY=VALUE ...] [--commit --prompt TEXT] [--json] [--root <dir>]
@@ -34,14 +33,11 @@ import json
 import os
 import re
 import subprocess
-import sys
 
-sys.dont_write_bytecode = True
-
-from sllmwiki import TEMPLATES, __version__  # noqa: E402
-from sllmwiki.lib import config, layout, manifest, toml, wikiindex  # noqa: E402
-from sllmwiki.lib.layout import Cli, entry  # noqa: E402
-from sllmwiki.lib.util import dumps, placeholder, read_text, write_text  # noqa: E402
+from sllmwiki import TEMPLATES, __version__
+from sllmwiki.lib import config, layout, manifest, toml, wikiindex
+from sllmwiki.lib.layout import Cli
+from sllmwiki.lib.util import comma_list, dumps, placeholder, quote, read_text, write_text
 
 cli = Cli('sllmwiki init', 'usage: sllmwiki init [--name NAME] [--force] [--set KEY=VALUE ...] [--commit --prompt TEXT] | sllmwiki init --ask')
 WIKI = os.path.join(TEMPLATES, 'wiki')
@@ -80,12 +76,11 @@ def questions(root):
     """The settings to ask about: [{key, table, value, about}], every one in ASK on a first setup, and on a
     rerun those Config.toml doesn't have yet."""
     template = read_text(os.path.join(WIKI, 'Config.toml'))
-    path = layout.config_path(root)
+    path = os.path.join(root, layout.CONFIG)
     have = toml.loads(read_text(path)) if os.path.isfile(path) else None
     out = []
     for key, (table, line) in settings_of(template).items():
-        had = have.get(table, {}) if have is not None else {}
-        if key not in ASK or key in had or (key == 'picture_formats' and 'images' in had):  # images: the setting it replaced
+        if key not in ASK or (have is not None and key in have.get(table, {})):
             continue
         value, _, about = line.split(' = ', 1)[1].partition('#')
         out.append({'key': key, 'table': table, 'value': toml.loads(f'v = {value.strip()}')['v'], 'about': about.strip()})
@@ -97,20 +92,10 @@ def set_values(text, sets):
     lines = text.split('\n')
     for key, value in sets.items():
         i = next(i for i, line in enumerate(lines) if line.startswith(f'{key} = '))
-        new = f'{key} = {toml_value(value)}'
+        new = f'{key} = {toml.dumps_value(value)}'
         comment = re.search(r'\s{2,}(#.*)', lines[i])
         lines[i] = f'{new.ljust(comment.start(1) - 1)} {comment.group(1)}' if comment else new
     return '\n'.join(lines)
-
-
-def toml_value(value):
-    if isinstance(value, bool):
-        return 'true' if value else 'false'
-    if isinstance(value, list):
-        return '[' + ', '.join(toml_value(v) for v in value) + ']'
-    if isinstance(value, int):
-        return str(value)
-    return json.dumps(value, ensure_ascii=False)
 
 
 def parse_sets(pairs):
@@ -132,14 +117,13 @@ def parse_sets(pairs):
                 cli.usage(f'--set {key}: a number')
             out[key] = int(raw)
         elif isinstance(default, list):
-            out[key] = [v.strip() for v in raw.split(',') if v.strip()]
+            out[key] = comma_list(raw)
         else:
             out[key] = raw
     return out
 
 
 GRAPH_LINES = ('# with the Obsidian add-on, the graph\'s settings are shared', '!sllmwiki/.obsidian/graph.json')
-OLD_GITIGNORE = {'# Obsidian: share only the graph settings, not each person\'s workspace': '# Obsidian: each person\'s settings are their own'}
 
 
 class Init:
@@ -176,22 +160,6 @@ class Init:
     def layout(self):
         for kind in ('tags', 'sources', 'narratives'):
             self.create(manifest.FILES[kind], manifest.HEADERS[kind])
-        self.move_old()
-
-    def move_old(self):
-        """Before 1.0, the settings, the templates and the index were at the root: move them into sllmwiki/."""
-        for old, new in ((layout.OLD_CONFIG, layout.CONFIG), *((t, layout.TEMPLATES) for t in layout.OLD_TEMPLATES)):
-            if os.path.exists(self.path(old)) and not os.path.exists(self.path(new)):
-                os.rename(self.path(old), self.path(new))
-                self.done.append((f'moved {old} to', new))
-        readme = read_text(self.path('README.md')) if self.exists('README.md') else ''
-        for old in layout.OLD_INDEX:
-            if os.path.isfile(self.path(old)) and wikiindex.GENERATED in read_text(self.path(old)):  # pages() writes it in its new place
-                os.remove(self.path(old))
-                self.done.append(('removed the old', old))
-            readme = readme.replace(f']({old})', f']({layout.INDEX})')  # the README init wrote links to it; only that link changes
-        if self.exists('README.md') and readme != read_text(self.path('README.md')):
-            self.put('README.md', readme, 'pointed the index link in')
 
     def readme(self):
         text = read_text(os.path.join(WIKI, 'README.md')).replace('{{name}}', self.name)
@@ -212,11 +180,7 @@ class Init:
         want = [line for line in read_text(os.path.join(WIKI, 'gitignore')).splitlines() if line.strip() and (on or line not in GRAPH_LINES)]
         rel = '.gitignore'
         have = read_text(self.path(rel)) if self.exists(rel) else ''
-        lines = [OLD_GITIGNORE.get(line, line) for line in have.splitlines()]
-        if not on:
-            lines = [line for line in lines if line not in GRAPH_LINES]
-        elif GRAPH_LINES[1] in lines and GRAPH_LINES[0] not in lines:
-            lines.insert(lines.index(GRAPH_LINES[1]), GRAPH_LINES[0])
+        lines = [line for line in have.splitlines() if on or line not in GRAPH_LINES]
         missing = [line for line in want if line not in lines]
         body = '\n'.join(lines).rstrip('\n')
         text = (body + '\n\n' if body and missing else body + '\n' if body else '') + ('\n'.join(missing) + '\n' if missing else '')
@@ -256,7 +220,7 @@ class Init:
             config.parse(text)
         except config.ConfigError as e:
             cli.fail('Config.toml has problems; fix them, then rerun init: ' + '; '.join(e.problems))
-        added = set_values(add_missing_settings(migrate_settings(text, template), template), self.sets)
+        added = set_values(add_missing_settings(text, template), self.sets)
         self.check(added)
         if added != text:
             self.put(rel, added, 'added settings to')
@@ -288,22 +252,6 @@ class Init:
         for rel in wikiindex.pages(self.root):
             if rel not in changed:
                 self.done.append(('kept', rel))
-
-
-def migrate_settings(text, template):
-    """text with a setting the template replaced rewritten as its successor: images = false, before
-    picture_formats, becomes picture_formats = ["mermaid"], and images = true the template's line."""
-    lines = text.split('\n')
-    old = next((i for i, line in enumerate(lines) if re.match(r'images = (true|false)\b', line)), None)
-    if old is None:
-        return text
-    off = lines[old].startswith('images = false')
-    if 'picture_formats' in toml.loads(text).get(config.SETTINGS, {}):
-        del lines[old]
-        return '\n'.join(lines)
-    lines[old] = next(line for line in template.split('\n') if line.startswith('picture_formats = '))
-    migrated = '\n'.join(lines)
-    return set_values(migrated, {'picture_formats': ['mermaid']}) if off else migrated
 
 
 def add_missing_settings(text, template):
@@ -359,10 +307,10 @@ def main(argv):
     if args.ask:
         found = questions(root)
         if args.json:
-            print(dumps({'first_setup': not os.path.isfile(layout.config_path(root)), 'ask': found}))
+            print(dumps({'first_setup': not os.path.isfile(os.path.join(root, layout.CONFIG)), 'ask': found}))
         else:
             for q in found:
-                print(f'{q["key"]} = {toml_value(q["value"])}: {q["about"]}')
+                print(f'{q["key"]} = {toml.dumps_value(q["value"])}: {q["about"]}')
             print(f'init: {len(found)} setting(s) to ask about' if found else 'init: nothing new to ask about')
         return 0
     others = unrelated(root)
@@ -390,7 +338,7 @@ def main(argv):
         written = sorted({rel for verb, rel in run.done if verb != SKIPPED and os.path.exists(run.path(rel))})
         if written:
             subprocess.run(['git', 'add', '--', *written], cwd=root, check=True)
-        msg = '[sllmwiki][init] Set up the wiki\n\nPrompt:\n' + '\n'.join('> ' + line if line else '>' for line in args.prompt.split('\n')) + '\n'
+        msg = '[sllmwiki][init] Set up the wiki\n\nPrompt:\n' + quote(args.prompt) + '\n'
         c = subprocess.run(['git', 'commit', '-q', '-F', '-'], cwd=root, input=msg, capture_output=True, text=True)
         if c.returncode and 'nothing to commit' not in c.stdout + c.stderr:
             cli.fail(f'git commit: {(c.stderr or c.stdout).strip()}')
@@ -407,7 +355,3 @@ def main(argv):
                 print(f'{verb} {rel}')
         print(f'init: a wiki at {root}; its CI calls the skill\'s actions at {action_ref()}')
     return 0
-
-
-if __name__ == '__main__':  # pragma: no cover
-    entry(main)

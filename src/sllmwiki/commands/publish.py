@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """publish: a run's branch, commits and one pull request (design doc §5.2-§5.3).
 
   sllmwiki publish start <slug> --title TEXT --prompt TEXT
@@ -39,19 +38,16 @@ import os
 import re
 import shutil
 import subprocess
-import sys
 
-sys.dont_write_bytecode = True
-
-from sllmwiki.lib import layout, narrativecheck, runstats, templates  # noqa: E402
-from sllmwiki.lib.gitrepo import default_branch, has_remote  # noqa: E402
-from sllmwiki.lib.layout import Cli, entry  # noqa: E402
-from sllmwiki.lib.policy import github_repo  # noqa: E402
-from sllmwiki.lib.util import placeholder, read_text, write_text  # noqa: E402
+from sllmwiki.lib import layout, narrativecheck, runstats, schema, templates
+from sllmwiki.lib.gitrepo import default_branch, has_remote
+from sllmwiki.lib.layout import Cli
+from sllmwiki.lib.policy import github_repo
+from sllmwiki.lib.util import comma_list, dumps, placeholder, quote, read_text, write_text
 
 cli = Cli('sllmwiki publish', 'usage: sllmwiki publish start|summary|commit|pr|resume|status ...; see --help')
 ACTIONS = ('init', 'template', 'tags', 'ingest', 'smes', 'narrative', 'lint')
-STEP_ORDER = ('template', 'tags', 'ingest', 'smes', 'narrative', 'lint')
+STEP_ORDER = ACTIONS[1:]  # init is a run of its own
 IGNORED = ('sllmwiki/.obsidian/',)  # Obsidian rewrites its settings whenever the graph moves; only an init commit takes graph.json
 
 
@@ -67,17 +63,8 @@ def state_dir(root):
 
 
 def current(root):
-    """The current run's slug. A state from before runs/ (one run.json) is moved into it first."""
+    """The current run's slug."""
     base = state_dir(root)
-    if os.path.isfile(os.path.join(base, 'run.json')):
-        with open(os.path.join(base, 'run.json'), encoding='utf-8') as f:
-            slug = json.load(f)['slug']
-        folder = os.path.join(base, 'runs', slug)
-        os.makedirs(folder, exist_ok=True)
-        for name in ('run.json', 'summaries', 'pr.md'):
-            if os.path.exists(os.path.join(base, name)):
-                shutil.move(os.path.join(base, name), os.path.join(folder, name))
-        write_text(os.path.join(base, 'current'), slug)
     if not os.path.isfile(os.path.join(base, 'current')):
         cli.fail('no run in progress here; start one with sllmwiki publish start')
     return read_text(os.path.join(base, 'current')).strip()
@@ -99,21 +86,27 @@ def load_state(root):
 def save_state(root, state):
     """Save the run's state and make it the current run."""
     os.makedirs(os.path.join(run_dir(root, state['slug']), 'summaries'), exist_ok=True)
-    write_text(os.path.join(run_dir(root, state['slug']), 'run.json'), json.dumps(state, indent=2, ensure_ascii=False))
+    write_text(os.path.join(run_dir(root, state['slug']), 'run.json'), dumps(state))
     write_text(os.path.join(state_dir(root), 'current'), state['slug'])
 
 
-def dirty(root):
+def _status(root):
+    """(changed lines a run cares about, untracked placeholders a sandbox left): one git status."""
     # not git(), which strips the output: the first line's leading space is part of its status ("XY path")
-    lines = subprocess.run(['git', 'status', '--porcelain'], cwd=root, capture_output=True, text=True).stdout.split('\n')
-    return [line for line in lines if line.strip() and not any(line[3:].startswith(p) for p in IGNORED)
-            and not (line.startswith('?? ') and placeholder(os.path.join(root, line[3:])))]
+    lines = [line for line in subprocess.run(['git', 'status', '--porcelain'], cwd=root, capture_output=True, text=True).stdout.split('\n')
+             if line.strip()]
+    left = [line for line in lines if line.startswith('?? ') and placeholder(os.path.join(root, line[3:]))]
+    changed = [line for line in lines if line not in left and not any(line[3:].startswith(p) for p in IGNORED)]
+    return changed, [line[3:].rstrip('/') for line in left]
+
+
+def dirty(root):
+    return _status(root)[0]
 
 
 def placeholders(root):
     """The untracked placeholders a sandbox left (util.placeholder), which a run never commits."""
-    lines = subprocess.run(['git', 'status', '--porcelain'], cwd=root, capture_output=True, text=True).stdout.split('\n')
-    return [line[3:].rstrip('/') for line in lines if line.startswith('?? ') and placeholder(os.path.join(root, line[3:]))]
+    return _status(root)[1]
 
 
 def gh_available():
@@ -124,7 +117,7 @@ def gh_available():
 
 
 def start(root, slug, title, prompt):
-    if not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', slug):
+    if not schema.SLUG.match(slug):
         cli.usage('the run\'s slug is kebab-case, such as gateway-routing')
     changes = dirty(root)
     if changes:
@@ -162,7 +155,7 @@ def record_summary(root, step, data):
     state['recorded'] = state.get('recorded', 0) + 1
     save_state(root, state)
     data = dict(data, recorded=state['recorded'])
-    write_text(os.path.join(run_dir(root, state['slug']), 'summaries', f'{name}.json'), json.dumps(data, indent=2, ensure_ascii=False))
+    write_text(os.path.join(run_dir(root, state['slug']), 'summaries', f'{name}.json'), dumps(data))
     print(f'recorded the {step} summary "{data["title"]}" for {state["branch"]}')
 
 
@@ -181,10 +174,6 @@ def latest(found, step):
     """The step's most recently recorded summary, or {}."""
     mine = [s for k, s in found.items() if k.split('.')[0] == step]
     return max(mine, key=lambda s: s.get('recorded', 0)) if mine else {}
-
-
-def quote(prompt):
-    return '\n'.join('> ' + line if line else '>' for line in prompt.split('\n'))
 
 
 def message(state, action, tags, subject, report):
@@ -229,7 +218,7 @@ def description(state, found, run=()):
     if run:
         lines += [''] + list(run)
     lines += ['', '## Prompt', '', quote(state['prompt']), '', 'This pull request was opened by a run; the owner merges it.']
-    return '\n'.join(line for line in lines).rstrip() + '\n'
+    return '\n'.join(lines).rstrip() + '\n'
 
 
 def saved(root, base):
@@ -332,7 +321,7 @@ def rebuild(root, slug, branch):
     save_state(root, state)
     for n, data in enumerate(earlier(info.get('body') or '') if state['pr'] else []):
         write_text(os.path.join(run_dir(root, slug), 'summaries', f'earlier.{n:03d}.json'),
-                   json.dumps(dict(data, recorded=n - 1000), indent=2, ensure_ascii=False))
+                   dumps(dict(data, recorded=n - 1000)))
     return state
 
 
@@ -371,7 +360,7 @@ def main(argv):
     g.add_argument('--file')
     c = sub.add_parser('commit')
     c.add_argument('action', choices=ACTIONS)
-    c.add_argument('--tags', default=[], type=lambda v: [t.strip() for t in v.split(',') if t.strip()])
+    c.add_argument('--tags', default=[], type=comma_list)
     c.add_argument('--subject', required=True)
     o = sub.add_parser('pr')
     o.add_argument('--cost', type=float, help='what the run cost so far, in US dollars, when the caller knows it')
@@ -406,7 +395,3 @@ def main(argv):
         print(f'run {state["branch"]} from {state["base"]}: {state["title"]}')
         print(f'summaries: {", ".join(summaries(root)) or "none"}; pull request: {state.get("pr") or "not opened yet"}')
     return 0
-
-
-if __name__ == '__main__':  # pragma: no cover
-    entry(main)

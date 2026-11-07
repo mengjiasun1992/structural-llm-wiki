@@ -38,7 +38,6 @@ FIELD = re.compile(r'^- \*\*Language:\*\*[ \t]*(\S+)[ \t]*$', re.M)
 # Han, kana and the CJK punctuation and full-width forms: scripts written without spaces between words
 CJK = re.compile(r'[　-〿぀-ヿ㐀-䶿一-鿿豈-﫿＀-￯]')
 CJK_CHARACTERS_PER_WORD = 1.6  # a budget in words, read in characters: about 1.6 Chinese or Japanese characters to an English word
-SENTENCE_END = '.!?。！？'
 _RULE = re.compile(r'\|?[-: |]+\|?\Z')
 _ROW = re.compile(r'\|(?P<english>(?:[^|\\]|\\.)*)\|(?P<translation>(?:[^|\\]|\\.)*)\|\s*\Z')
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """review-checklist: are all of a run's review boxes ticked? (design doc §5.2)
 
   sllmwiki review-checklist [--file PR_BODY.md]   (default: the PR_BODY environment variable)
@@ -11,12 +10,9 @@ Exit code: 0 all ticked or no checklist, 1 boxes left, 2 usage error.
 
 import os
 import re
-import sys
 
-sys.dont_write_bytecode = True
-
-from sllmwiki.lib.layout import Cli, entry  # noqa: E402
-from sllmwiki.lib.util import read_text  # noqa: E402
+from sllmwiki.lib.layout import Cli
+from sllmwiki.lib.util import read_text
 
 cli = Cli('sllmwiki review-checklist', 'usage: sllmwiki review-checklist [--file PR_BODY.md]')
 BOX = re.compile(r'\s*[-*] \[( |x|X)\] (.*)')
@@ -54,7 +50,3 @@ def main(argv):
         print(f'not ticked: {item}')
     print(f'review-checklist: {len(found) - len(left)} of {len(found)} ticked')
     return 1 if left else 0
-
-
-if __name__ == '__main__':  # pragma: no cover
-    entry(main)

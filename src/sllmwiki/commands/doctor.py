@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """doctor: are the tools a run needs here?
 
   sllmwiki doctor
@@ -15,11 +14,8 @@ import os
 import platform
 import shutil
 import subprocess
-import sys
 
-sys.dont_write_bytecode = True
-
-from sllmwiki.lib.layout import Cli, entry  # noqa: E402
+from sllmwiki.lib.layout import Cli
 
 cli = Cli('sllmwiki doctor', 'usage: sllmwiki doctor')
 DOWNLOADS = {'git': 'https://git-scm.com/downloads', 'gh': 'https://cli.github.com'}
@@ -94,7 +90,3 @@ def main(argv):
     for status, line in found:
         print(f'{status:<8} {line}')
     return 1 if any(s == 'missing' for s, _ in found) else 0
-
-
-if __name__ == '__main__':
-    entry(main)

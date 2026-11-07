@@ -2,7 +2,6 @@
 
 import json
 import os
-import re
 import shutil
 import tempfile
 import unittest
@@ -131,40 +130,6 @@ class Init(unittest.TestCase):
         self.assertIn(f'{init.SKIPPED} .claude/settings.json\n{{\n  "extraKnownMarketplaces"', r.out)  # the keys to merge in
         self.assertIn('"sllmwiki@structural-llm-wiki": true', r.out)
 
-    def test_the_old_root_layout_moves_under_sllmwiki(self):
-        # before 1.0 the settings, the templates and the index were at the root
-        self.assertEqual(self.init('--name', 'demo-wiki').code, 0)
-        os.rename(os.path.join(self.root, 'sllmwiki', 'Config.toml'), os.path.join(self.root, 'Config.toml'))
-        helpers.write(self.root, 'Config.toml', helpers.read(self.root, 'Config.toml').replace('markers = true', 'markers = false'))
-        self.assertFalse(config.load(self.root).settings['markers'])  # read at the root until init moves it
-        os.rename(os.path.join(self.root, 'sllmwiki', '.SLLMWIKI_INDICES.md'), os.path.join(self.root, 'SLLMWIKI_INDICES.md'))
-        helpers.write(self.root, 'README.md', self.read('README.md').replace('](sllmwiki/.SLLMWIKI_INDICES.md)', '](SLLMWIKI_INDICES.md)'))
-        helpers.write(self.root, 'templates/skim_read/template.md', 'x\n')
-        done = json.loads(self.init('--json').out)['done']
-        for d in ({'what': 'moved Config.toml to', 'file': 'sllmwiki/Config.toml'}, {'what': 'moved templates to', 'file': 'sllmwiki/.templates'},
-                  {'what': 'removed the old', 'file': 'SLLMWIKI_INDICES.md'}):
-            self.assertIn(d, done)
-        self.assertEqual(self.read('sllmwiki/.templates/skim_read/template.md'), 'x\n')
-        self.assertIn('](sllmwiki/.SLLMWIKI_INDICES.md)', self.read('README.md'))
-        self.assertFalse(config.load(self.root).settings['markers'])
-        self.assertTrue(os.path.isfile(os.path.join(self.root, 'sllmwiki', '.SLLMWIKI_INDICES.md')))
-        for old in ('Config.toml', 'templates', 'SLLMWIKI_INDICES.md'):
-            self.assertFalse(os.path.exists(os.path.join(self.root, old)), old)
-
-    def test_the_visible_templates_and_index_get_their_dot_names(self):
-        # briefly, they were sllmwiki/templates/ and sllmwiki/SLLMWIKI_INDICES.md, which Obsidian shows
-        self.assertEqual(self.init('--name', 'demo-wiki').code, 0)
-        os.rename(os.path.join(self.root, 'sllmwiki', '.SLLMWIKI_INDICES.md'), os.path.join(self.root, 'sllmwiki', 'SLLMWIKI_INDICES.md'))
-        helpers.write(self.root, 'README.md', self.read('README.md').replace('](sllmwiki/.SLLMWIKI_INDICES.md)', '](sllmwiki/SLLMWIKI_INDICES.md)'))
-        helpers.write(self.root, 'sllmwiki/templates/skim_read/template.md', 'x\n')
-        done = json.loads(self.init('--json').out)['done']
-        self.assertIn({'what': 'moved sllmwiki/templates to', 'file': 'sllmwiki/.templates'}, done)
-        self.assertIn({'what': 'removed the old', 'file': 'sllmwiki/SLLMWIKI_INDICES.md'}, done)
-        self.assertEqual(self.read('sllmwiki/.templates/skim_read/template.md'), 'x\n')
-        self.assertIn('](sllmwiki/.SLLMWIKI_INDICES.md)', self.read('README.md'))
-        for gone in ('sllmwiki/templates', 'sllmwiki/SLLMWIKI_INDICES.md'):
-            self.assertFalse(os.path.exists(os.path.join(self.root, gone)), gone)
-
     def test_empty_placeholders_arent_unrelated(self):
         # the eval sandbox on Linux puts empty files and folders over the config files it guards
         helpers.write(self.root, '.bashrc', '')
@@ -214,17 +179,18 @@ class Init(unittest.TestCase):
         self.init()
         self.assertEqual(self.read('.gitignore'), off)
 
-    def test_an_earlier_gitignore_is_brought_up_to_date(self):
-        earlier = ("node_modules/\n\n# Obsidian: share only the graph settings, not each person's workspace\n"
-                   'sllmwiki/.obsidian/*\n!sllmwiki/.obsidian/graph.json\n.DS_Store\n')
-        helpers.write(self.root, '.gitignore', earlier)
-        self.init()
+    def test_the_obsidian_add_on_shares_the_graph_or_not(self):
+        shared = ("node_modules/\n\n# Obsidian: each person's settings are their own\nsllmwiki/.obsidian/*\n"
+                  "# with the Obsidian add-on, the graph's settings are shared\n!sllmwiki/.obsidian/graph.json\n.DS_Store\n")
+        helpers.write(self.root, '.gitignore', shared)
+        self.init()  # the add-on is off: a person's own graph is never committed
         self.assertEqual(self.read('.gitignore'), "node_modules/\n\n# Obsidian: each person's settings are their own\nsllmwiki/.obsidian/*\n.DS_Store\n")
-        helpers.write(self.root, '.gitignore', earlier)
         helpers.write(self.root, 'sllmwiki/Config.toml', self.read('sllmwiki/Config.toml').replace('obsidian = false', 'obsidian = true'))
         self.init()
-        self.assertEqual(self.read('.gitignore'), "node_modules/\n\n# Obsidian: each person's settings are their own\nsllmwiki/.obsidian/*\n"
-                                                  "# with the Obsidian add-on, the graph's settings are shared\n!sllmwiki/.obsidian/graph.json\n.DS_Store\n")
+        text = self.read('.gitignore')
+        self.assertIn("# with the Obsidian add-on, the graph's settings are shared\n!sllmwiki/.obsidian/graph.json\n", text)
+        self.init()
+        self.assertEqual(self.read('.gitignore'), text)  # nothing more to add
 
     def test_the_action_ref_follows_the_version(self):
         mod = helpers.load_script('init.py')
@@ -296,26 +262,6 @@ class Init(unittest.TestCase):
             r = self.init('--name', 'w', '--set', pair)
             self.assertEqual((r.code, says in r.err), (2, True), (pair, r.err))
         self.assertFalse(os.path.exists(os.path.join(self.root, 'sllmwiki', 'Config.toml')))
-
-    def test_the_old_images_setting_becomes_picture_formats(self):
-        self.assertEqual(self.init('--name', 'w').code, 0)
-        fresh = self.read('sllmwiki/Config.toml')
-        for old, want in (('images = false             # false: diagrams in mermaid only', 'picture_formats = ["mermaid"]'),
-                          ('images = true              # false: diagrams in mermaid only', 'picture_formats = ["mermaid", "svg", "png"]')):
-            with self.subTest(old=old):
-                text = re.sub(r'picture_formats = [^\n]*\n', old + '\n', fresh)
-                text = re.sub(r'max_pictures = [^\n]*\n|max_image_kb = [^\n]*\n', '', text)  # from before 1.3
-                helpers.write(self.root, 'sllmwiki/Config.toml', text)
-                self.assertNotIn('picture_formats', [q['key'] for q in json.loads(self.init('--ask', '--json').out)['ask']])  # already answered
-                self.assertEqual(self.init().code, 0)
-                now = self.read('sllmwiki/Config.toml')
-                self.assertNotIn('images = ', now)
-                self.assertIn(want, now)
-                self.assertIn('max_pictures = 5', now)
-        helpers.write(self.root, 'sllmwiki/Config.toml', fresh.replace('max_pictures', 'images = false\nmax_pictures'))
-        self.assertEqual(self.init().code, 0)
-        self.assertNotIn('images = ', self.read('sllmwiki/Config.toml'))  # picture_formats, already there, wins
-        self.assertIn('picture_formats = ["mermaid", "svg", "png"]', self.read('sllmwiki/Config.toml'))
 
     def test_settings_for_a_missing_table(self):
         mod = helpers.load_script('init.py')

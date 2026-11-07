@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """book: the wiki as a book (docs/book_design.md).
 
   sllmwiki book stage OUT [--name N] [--version V] [--date YYYY-MM-DD] [--commit C] [--source URL]
@@ -61,28 +60,17 @@ import os
 import shlex
 import shutil
 import subprocess
-import sys
 import tempfile
 
-sys.dont_write_bytecode = True
-
-from sllmwiki import TEMPLATES  # noqa: E402
-from sllmwiki.lib import book, bookbuild, compat, config, language, layout  # noqa: E402
-from sllmwiki.lib.layout import Cli, entry  # noqa: E402
-from sllmwiki.lib.util import dumps, write_text  # noqa: E402
+from sllmwiki import TEMPLATES
+from sllmwiki.lib import book, bookbuild, compat, config, language, layout
+from sllmwiki.lib.gitrepo import git
+from sllmwiki.lib.layout import Cli
+from sllmwiki.lib.util import comma_list, dumps, write_text
 
 cli = Cli('sllmwiki book', 'usage: sllmwiki book stage|render|build ... (sllmwiki book --help)')
 FORMATS = ('pdf', 'epub', 'html')  # what build makes, as Config.toml's <format>_book names it
 TEMPLATE = os.path.join(TEMPLATES, 'book')
-
-
-def _git(root, *args):
-    """git's output in root, or '' when it fails."""
-    try:
-        r = subprocess.run(['git', '-C', root, *args], capture_output=True, text=True, check=False)
-    except OSError:  # pragma: no cover (no git)
-        return ''
-    return r.stdout.strip() if r.returncode == 0 else ''
 
 
 def _empty(cli_out):
@@ -96,8 +84,8 @@ def stage(root, out, args):
     """Write the staged book into out; its book.json."""
     release = config.get(root).release
     staged = book.stage(root, args.name or os.path.basename(root), args.version, args.date,
-                        _git(root, 'rev-parse', '--short', 'HEAD') if args.commit is None else args.commit,
-                        book.web_url(_git(root, 'remote', 'get-url', 'origin')) if args.source is None else args.source or None,
+                        git(root, 'rev-parse', '--short', 'HEAD') if args.commit is None else args.commit,
+                        book.web_url(git(root, 'remote', 'get-url', 'origin')) if args.source is None else args.source or None,
                         release['title'] or None, release['author'] or None)
     for rel, text in staged.files.items():
         write_text(os.path.join(out, rel), text)
@@ -209,8 +197,8 @@ def to_parse(root, base=None):
     and source aren't in base's version."""
     folder = layout.NARRATIVES
     if base:
-        names = (_git(root, 'diff', '--name-only', base, '--', folder).split('\n')
-                 + _git(root, 'ls-files', '--others', '--exclude-standard', '--', folder).split('\n'))
+        names = (git(root, 'diff', '--name-only', base, '--', folder).split('\n')
+                 + git(root, 'ls-files', '--others', '--exclude-standard', '--', folder).split('\n'))
     else:
         names = [f'{folder}/{n}' for n in sorted(os.listdir(os.path.join(root, folder)))]
     out = []
@@ -218,7 +206,7 @@ def to_parse(root, base=None):
         path = os.path.join(root, rel)
         if not (rel.endswith('.md') and os.path.dirname(rel) == folder and os.path.isfile(path)):
             continue
-        before = {(r.kind, r.source) for r in compat.renderables(_git(root, 'show', f'{base}:{rel}'))} if base else set()
+        before = {(r.kind, r.source) for r in compat.renderables(git(root, 'show', f'{base}:{rel}'))} if base else set()
         with open(path, encoding='utf-8') as f:
             text = f.read()
         out += [(rel, r.first + 1, r.kind, r.source) for r in compat.renderables(text) if (r.kind, r.source) not in before]
@@ -268,7 +256,7 @@ def main(argv):
     p.add_argument('--date', default=datetime.date.today().isoformat())
     p.add_argument('--commit')
     p.add_argument('--source')
-    p.add_argument('--formats', type=lambda v: [f.strip() for f in v.split(',') if f.strip()])
+    p.add_argument('--formats', type=comma_list)
     p.add_argument('--vendor')
     p.add_argument('--chrome')
     p.add_argument('--cache')
@@ -365,7 +353,3 @@ def _report(args, data, out):
           f'{len(problems)} problem{"s" if len(problems) != 1 else ""}, '
           f'{len(warnings)} warning{"s" if len(warnings) != 1 else ""}: {out}')
     return 0
-
-
-if __name__ == '__main__':  # pragma: no cover
-    entry(main)

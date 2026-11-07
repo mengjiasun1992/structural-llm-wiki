@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """manifest: write tags.yaml and the manifests, one checked entry at a time,
 so they're never edited by hand (design doc §4.2-§4.4).
 
@@ -20,19 +19,12 @@ directory), and rewrites the index and tag pages after it writes. Exit code: 0 d
 """
 
 import argparse
-import sys
 
-sys.dont_write_bytecode = True
-
-from sllmwiki.lib import config, manifest, wikiindex  # noqa: E402
-from sllmwiki.lib.layout import Cli, entry  # noqa: E402
-from sllmwiki.lib.util import today  # noqa: E402
+from sllmwiki.lib import manifest, wikiindex
+from sllmwiki.lib.layout import Cli
+from sllmwiki.lib.util import comma_list, today
 
 cli = Cli('sllmwiki manifest', 'usage: sllmwiki manifest <command> ...; see --help')
-
-
-def tags_arg(value):
-    return [t.strip() for t in value.split(',') if t.strip()]
 
 
 def parser():
@@ -55,16 +47,16 @@ def parser():
     s.add_argument('--drop-copy', action='store_true')
     for opt in ('--url', '--published', '--license', '--license-url', '--abstract'):
         s.add_argument(opt)
-    s.add_argument('--tags', type=tags_arg)
+    s.add_argument('--tags', type=comma_list)
     b = sub.add_parser('set-abstract')
     b.add_argument('slug')
     b.add_argument('--abstract', required=True)
     n = sub.add_parser('put-narrative')
     n.add_argument('slug')
     n.add_argument('--template', required=True)
-    n.add_argument('--primary', type=tags_arg, required=True)
-    n.add_argument('--supporting', type=tags_arg, default=[])
-    n.add_argument('--read', type=tags_arg, default=[])
+    n.add_argument('--primary', type=comma_list, required=True)
+    n.add_argument('--supporting', type=comma_list, default=[])
+    n.add_argument('--read', type=comma_list, default=[])
     r = sub.add_parser('remove')
     r.add_argument('kind', choices=['tags', 'sources', 'narratives'])
     r.add_argument('key')
@@ -74,10 +66,7 @@ def parser():
 def main(argv):
     args = parser().parse_args(argv)
     root = cli.wiki(args.root)
-    try:
-        config.load(root)
-    except config.ConfigError as e:
-        cli.fail('Config.toml is invalid, fix it first: ' + '; '.join(e.problems))
+    cli.config(root)
     try:
         if args.command == 'add-tag':
             manifest.add_tag(root, args.tag, args.description, args.parent)
@@ -104,7 +93,3 @@ def main(argv):
         cli.fail(str(e))
     wikiindex.sync(root, write=True)  # the index and tag pages show what changed
     return 0
-
-
-if __name__ == '__main__':  # pragma: no cover
-    entry(main)

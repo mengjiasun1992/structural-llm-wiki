@@ -336,18 +336,6 @@ class Publish(helpers.WikiTestCase):
         self.assertIn('(its state rebuilt', self.pub('resume', 'alpha-retries').out)
         self.assertIn('no run branch sllmwiki/nope', self.pub('resume', 'nope').err)
 
-    def test_the_old_single_run_state_moves_into_runs(self):
-        self.pub('start', 'alpha-retries', '--title', 't', '--prompt', 'p')
-        base = os.path.join(self.root, '.git', 'sllmwiki')
-        shutil.move(self.state_path('run.json'), os.path.join(base, 'run.json'))
-        shutil.move(self.state_path('summaries'), os.path.join(base, 'summaries'))
-        os.remove(os.path.join(base, 'current'))
-        self.assertIn('run sllmwiki/alpha-retries', self.pub('status').out)
-        self.assertTrue(os.path.isfile(self.state_path('run.json')))
-        self.assertFalse(os.path.exists(os.path.join(base, 'summaries')))
-        helpers.write(base, 'current', 'gone')
-        self.assertIn('no run in progress here', self.pub('status').err)
-
 
 if __name__ == '__main__':
     unittest.main()

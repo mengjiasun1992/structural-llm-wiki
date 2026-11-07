@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """tag-tree: answer questions about the tag tree (design doc §4.1).
 
   sllmwiki tag-tree tree [--brief]   every tag, indented under its parent, with its
@@ -11,13 +10,10 @@ Exit code: 0, or 1 for an unknown tag, 2 for a usage error.
 """
 
 import argparse
-import sys
 
-sys.dont_write_bytecode = True
-
-from sllmwiki.lib import tagtree  # noqa: E402
-from sllmwiki.lib.layout import Cli, entry  # noqa: E402
-from sllmwiki.lib.util import dumps  # noqa: E402
+from sllmwiki.lib import tagtree
+from sllmwiki.lib.layout import Cli
+from sllmwiki.lib.util import dumps
 
 cli = Cli('sllmwiki tag-tree', 'usage: sllmwiki tag-tree tree [--brief] | show <tag>')
 
@@ -66,7 +62,3 @@ def main(argv):
         counts = f'({r["sources"]} sources, {r["narratives"]} narratives)'
         print(f'{"  " * r["depth"]}{r["tag"]} {counts}' + ('' if args.brief else f': {r["description"]}'))
     return 0
-
-
-if __name__ == '__main__':  # pragma: no cover
-    entry(main)

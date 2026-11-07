@@ -41,13 +41,6 @@ class Settings(unittest.TestCase):
                                       'smes_exclude': ['@owner', 'dependabot'], 'markers': False,
                                       'picture_formats': ['mermaid', 'svg', 'png'], 'max_pictures': 5, 'max_image_kb': 100, 'language': 'en'})
 
-    def test_the_old_images_setting(self):  # replaced by picture_formats
-        def formats(text):
-            return parse('[structural-llm-wiki-settings]\n' + text).settings['picture_formats']
-        self.assertEqual(formats('images = false\n'), ['mermaid'])
-        self.assertEqual(formats('images = true\n'), ['mermaid', 'svg', 'png'])
-        self.assertEqual(formats('images = false\npicture_formats = ["svg"]\n'), ['svg'])  # the new one wins
-
     def test_bad_values(self):
         cases = [
             ('source_copies = "none"', 'source_copies must be "allow" or "links-only"'),
@@ -63,7 +56,6 @@ class Settings(unittest.TestCase):
             ('max_image_kb = 0', 'max_image_kb must be a positive whole number'),
             ('picture_formats = ["gif"]', "picture_formats must list some of 'mermaid', 'svg', 'png'"),
             ('picture_formats = "svg"', 'picture_formats must be a list'),
-            ('images = "no"', 'images must be true or false'),
             ('marker = true', 'unknown setting structural-llm-wiki-settings.marker (did you mean markers?)'),
             ('zzz = true', 'unknown setting structural-llm-wiki-settings.zzz (known: source_copies, max_quote_words'),
         ]

@@ -5,6 +5,7 @@ A narrative numbers every heading of level 2 to 4 (design doc §4.5):
 number. Headings in code (lib/compat.py's scan) aren't headings.
 """
 
+import functools
 import re
 
 from .compat import scan
@@ -28,18 +29,25 @@ def split_number(text):
     return (m.group(1), text[m.end():]) if m else (None, text)
 
 
-def headings(text):
-    """Every ATX heading outside code, in order."""
+@functools.lru_cache(maxsize=64)
+def _heading_rows(text):
+    """(line, level, number, title, text) of every ATX heading outside code: one scan per text, however many
+    checks ask (a narrative's are asked for dozens of times in one run)."""
     lines = text.split('\n')
     kinds, _ = scan(lines)
     out = []
     for i, line in enumerate(lines):
         m = _HEADING.match(line) if kinds[i] == 'text' else None
         if m:
-            text = (m.group(2) or '').strip()
-            number, title = split_number(text)
-            out.append(Heading(i, len(m.group(1)), number, title.strip(), text))
-    return out
+            raw = (m.group(2) or '').strip()
+            number, title = split_number(raw)
+            out.append((i, len(m.group(1)), number, title.strip(), raw))
+    return tuple(out)
+
+
+def headings(text):
+    """Every ATX heading outside code, in order: new Heading objects, which a caller may change."""
+    return [Heading(*row) for row in _heading_rows(text)]
 
 
 def _expected(heads):

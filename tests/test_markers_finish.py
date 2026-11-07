@@ -43,31 +43,19 @@ class Markers(unittest.TestCase):
         self.assertEqual(self.codes(doc(many, DEFINED)), [('MARKER_LEVEL', 10)])
         self.assertEqual(self.codes(doc(many + f'\nCited. {CITE}', DEFINED)), [])
 
-    def test_undefined_old_and_off(self):
+    def test_undefined_typed_and_off(self):
         self.assertEqual(self.codes(doc(f'Unknown. {G}')), [('MARKER_UNDEFINED', 10)])
         self.assertEqual(self.codes(doc(f'Unknown. {G}'), on=False), [('MARKER_OFF', 10)])
         self.assertEqual(self.codes(doc('No markers.'), on=False), [])
-        self.assertEqual(self.codes(doc('[sllmwiki_reasoning] Old.', DEFINED)), [('MARKER_OLD', 12)])
         self.assertEqual([markers.unmark('Applying them [->]'), markers.unmark('Applying them [→]')], ['Applying them'] * 2)
-        self.assertEqual(self.codes(doc('Typed. [->]', DEFINED)), [('MARKER_OLD', 12)])
+        self.assertEqual(self.codes(doc('Typed. [->]', DEFINED)), [('MARKER_ASCII', 12)])
 
-    def test_migrate(self):
-        old = doc('[sllmwiki_reasoning] Mine here. Then cited. ' + CITE + '\n\n1. [sllmwiki_reasoning] What if it fails?\n'
-                  '- [sllmwiki_gap] The sources don\'t say\n| a | [sllmwiki_reasoning] Cheap and conservative | c |\n'
-                  '[sllmwiki_reasoning] One, `x.` then. Two.', '| **[sllmwiki_reasoning]** | old |\n| **[sllmwiki_gap]** | old |\n')
-        text, n = markers.migrate(old)
-        self.assertEqual(n, 7)
-        for want in (f'Mine here. {R} Then cited.', f'1. What if it fails? {R}', f'- The sources don\'t say {G}',
-                     f'| a | Cheap and conservative {R} | c |', f'One, `x.` then. {R} Two.'):
-            self.assertIn(want, text)
-        self.assertNotIn('sllmwiki_', text)
-        text, _ = markers.add_rows(text)
-        self.assertEqual(self.codes(text), [])
-        self.assertEqual(markers.migrate(text), (text, 0))
-        typed, n = markers.migrate(doc('Typed. [->] And `[->]` in code.', '| **[->]** | old |\n'))
+    def test_arrows(self):
+        typed, n = markers.arrows(doc('Typed. [->] And `[->]` in code.', '| **[->]** | old |\n'))
         self.assertEqual(n, 2)
         self.assertIn('Typed. [→] And `[->]` in code.', typed)
         self.assertIn('| **[→]** |', typed)
+        self.assertEqual(markers.arrows(typed), (typed, 0))
 
     def test_add_rows(self):
         text, n = markers.add_rows(doc(f'Mine. {R} Unknown. {G}'))
@@ -227,18 +215,12 @@ class Finish(helpers.WikiTestCase):
         self.assertIn('MARKER_OFF', r.out)
         self.assertNotIn(markers.MARKERS[R], self.read(NARRATIVE))
 
-    def test_the_old_format_is_converted(self):
-        old = helpers.narrative_text(extra='\n[sllmwiki_reasoning] Mine here. Then more.\n').replace(
-            f'twice as long {CITE}.', f'twice as long. {CITE}')
-        self.write(NARRATIVE, old)
+    def test_references_move_inside_their_sentence(self):
+        self.write(NARRATIVE, helpers.narrative_text().replace(f'twice as long {CITE}.', f'twice as long. {CITE}'))
         r = self.finish('what-is-alpha')
         self.assertEqual(r.code, 0, r.out + r.err)
-        self.assertIn('moved 2 reference(s) inside their sentence', r.out)
-        text = self.read(NARRATIVE)
-        self.assertIn(f'twice as long {CITE}.', text)
-        self.assertIn(f'Mine here {R}. Then more.', text)
-
-
+        self.assertIn('moved 1 reference(s) inside their sentence', r.out)
+        self.assertIn(f'twice as long {CITE}.', self.read(NARRATIVE))
 
 
 class Statement(unittest.TestCase):

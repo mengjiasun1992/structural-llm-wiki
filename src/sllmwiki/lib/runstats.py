@@ -38,23 +38,40 @@ def transcript(session_id=None, config_dir=None):
     return found[0] if found else None
 
 
+_REPLIES = {}  # path -> ((mtime, size), replies): a PR's Run section asks for the model and the usage
+
+
+def _replies(path):
+    """The transcript's assistant entries, parsed once per state of the file; None if unreadable."""
+    try:
+        st = os.stat(path)
+    except (OSError, TypeError):
+        return None
+    stamp = (st.st_mtime_ns, st.st_size)
+    if path not in _REPLIES or _REPLIES[path][0] != stamp:
+        replies = []
+        try:
+            with open(path, encoding='utf-8') as f:
+                for line in f:
+                    try:
+                        entry = json.loads(line)
+                    except ValueError:
+                        continue
+                    if isinstance(entry, dict) and entry.get('type') == 'assistant':
+                        replies.append(entry)
+        except OSError:
+            return None
+        _REPLIES[path] = (stamp, replies)
+    return _REPLIES[path][1]
+
+
 def model(path):
     """The model of the session's latest reply, or None."""
-    if not path:
-        return None
     found = None
-    try:
-        with open(path, encoding='utf-8') as f:
-            for line in f:
-                try:
-                    entry = json.loads(line)
-                except ValueError:
-                    continue
-                name = (entry.get('message') or {}).get('model') if isinstance(entry, dict) and entry.get('type') == 'assistant' else None
-                if isinstance(name, str) and name != '<synthetic>':  # <synthetic>: a reply the CLI wrote itself, such as an error
-                    found = name
-    except OSError:
-        return None
+    for entry in _replies(path) or ():
+        name = (entry.get('message') or {}).get('model')
+        if isinstance(name, str) and name != '<synthetic>':  # <synthetic>: a reply the CLI wrote itself, such as an error
+            found = name
     return found
 
 
@@ -63,23 +80,15 @@ def usage(path, since):
 
     A request's reply can span several transcript lines that repeat its usage,
     so each request counts once."""
-    requests = {}
-    try:
-        with open(path, encoding='utf-8') as f:
-            for line in f:
-                try:
-                    entry = json.loads(line)
-                except ValueError:
-                    continue
-                if not isinstance(entry, dict) or entry.get('type') != 'assistant':
-                    continue
-                at = parse_time(entry.get('timestamp'))
-                u = (entry.get('message') or {}).get('usage')
-                if at is None or at < since or not isinstance(u, dict):
-                    continue
-                requests[entry.get('requestId') or entry.get('uuid')] = u
-    except OSError:
+    replies = _replies(path)
+    if replies is None:
         return None
+    requests = {}
+    for entry in replies:
+        at = parse_time(entry.get('timestamp'))
+        u = (entry.get('message') or {}).get('usage')
+        if at is not None and at >= since and isinstance(u, dict):
+            requests[entry.get('requestId') or entry.get('uuid')] = u
 
     def total(keys):
         return sum(int(u.get(k) or 0) for u in requests.values() for k in keys)

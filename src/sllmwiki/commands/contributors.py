@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """contributors: the people behind some code or docs, ranked with their evidence
 (design doc §5.1, the smes step).
 
@@ -23,13 +22,10 @@ import fnmatch
 import os
 import re
 import subprocess
-import sys
 
-sys.dont_write_bytecode = True
-
-from sllmwiki.lib import config, runstats  # noqa: E402
-from sllmwiki.lib.layout import Cli, entry  # noqa: E402
-from sllmwiki.lib.util import dumps, read_text  # noqa: E402
+from sllmwiki.lib import runstats
+from sllmwiki.lib.layout import Cli
+from sllmwiki.lib.util import dumps, read_text
 
 cli = Cli('sllmwiki contributors', 'usage: sllmwiki contributors <path> [<path> ...] [--repo DIR] [--limit N] [--json]')
 HALF_LIFE_DAYS = 365
@@ -184,10 +180,7 @@ def main(argv):
     missing = [x for x in args.paths if not os.path.exists(os.path.join(repo, x))]
     if missing:
         cli.fail(f'not in {repo}: {", ".join(missing)}')
-    try:
-        exclude = config.load(root).settings['smes_exclude']
-    except config.ConfigError as e:
-        cli.fail('Config.toml is invalid, fix it first: ' + '; '.join(e.problems))
+    exclude = cli.config(root).settings['smes_exclude']
     people, total = rank(repo, [x.rstrip('/') or '.' for x in args.paths], exclude)
     rows = [{'name': x.name, 'email': x.email, 'score': round(x.score(total), 2), 'evidence': x.evidence(total)} for x in people[:args.limit]]
     if args.json:
@@ -198,7 +191,3 @@ def main(argv):
     if not rows:
         print('no one found: no commits, blame, CODEOWNERS or named authors for these paths')
     return 0
-
-
-if __name__ == '__main__':  # pragma: no cover
-    entry(main)

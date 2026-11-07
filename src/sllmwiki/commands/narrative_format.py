@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """narrative-format: check narratives against their template, and the rules every
 narrative shares (design doc §4.5, §4.8, §4.10).
 
@@ -38,12 +37,10 @@ import glob
 import os
 import sys
 
-sys.dont_write_bytecode = True
-
-from sllmwiki.lib import citations, compat, config, figures, language, layout, numbering, templates  # noqa: E402
-from sllmwiki.lib.narrativecheck import check, stats  # noqa: E402
-from sllmwiki.lib.layout import Cli, entry  # noqa: E402
-from sllmwiki.lib.util import dumps, read_text, write_text  # noqa: E402
+from sllmwiki.lib import citations, compat, config, figures, language, layout, numbering, templates
+from sllmwiki.lib.narrativecheck import check, stats
+from sllmwiki.lib.layout import Cli
+from sllmwiki.lib.util import dumps, read_text, write_text
 
 cli = Cli('sllmwiki narrative-format', 'usage: sllmwiki narrative-format [<narrative.md> ...] [--fix-numbering] [--fix-style] | --templates | --skeleton NAME [--language TAG] | --guide NAME')
 def main(argv):
@@ -172,7 +169,3 @@ def print_stats(root, files, offered, as_json):
             print(f'  {s["section"]}: {s["words"]} words, {s["citations"]} citations, {s["markers"]} markers'
                   + (f', {s["subsections"]} subsections' if s['subsections'] else ''))
     return 0
-
-
-if __name__ == '__main__':  # pragma: no cover
-    entry(main)

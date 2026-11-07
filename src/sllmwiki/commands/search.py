@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """search: find what to read, and read only that (design doc §6.1).
 
   sllmwiki search context "<keywords>"         the matching tags and the top narratives, each
@@ -16,13 +15,10 @@ Exit code: 0, 1 when nothing is found for outline or section, 2 on a usage error
 """
 
 import argparse
-import sys
 
-sys.dont_write_bytecode = True
-
-from sllmwiki.lib import search  # noqa: E402
-from sllmwiki.lib.layout import Cli, entry  # noqa: E402
-from sllmwiki.lib.util import dumps  # noqa: E402
+from sllmwiki.lib import search
+from sllmwiki.lib.layout import Cli
+from sllmwiki.lib.util import comma_list, dumps
 
 cli = Cli('sllmwiki search', 'usage: sllmwiki search context|narratives|sources "<keywords>" | outline <file> | section "<link>"')
 
@@ -36,7 +32,7 @@ def main(argv):
     p = argparse.ArgumentParser(prog='sllmwiki search', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('command', choices=['context', 'narratives', 'sources', 'outline', 'section'])
     p.add_argument('what')
-    p.add_argument('--tags', type=lambda v: [t.strip() for t in v.split(',') if t.strip()])
+    p.add_argument('--tags', type=comma_list)
     p.add_argument('--limit', type=int, default=5)
     p.add_argument('--json', action='store_true')
     p.add_argument('--root')
@@ -82,7 +78,3 @@ def main(argv):
         cli.fail(f'{rel} has no section #{anchor}; see sllmwiki search outline {rel}' if anchor else 'section needs a #anchor; see sllmwiki search outline')
     print(dumps({'file': rel, 'anchor': anchor, 'text': found}) if args.json else f'<!-- {rel}#{anchor} -->\n{found}', end='' if not args.json else '\n')
     return 0
-
-
-if __name__ == '__main__':  # pragma: no cover
-    entry(main)

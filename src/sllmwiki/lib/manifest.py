@@ -4,6 +4,7 @@ each entry checked against lib/schema.py before it is written (design doc
 read from the files when needed.
 """
 
+import copy
 import os
 
 from . import layout, numbering, schema, wikiyaml
@@ -21,10 +22,21 @@ class ManifestError(Exception):
     pass
 
 
+_PARSED = {}  # path -> ((mtime, size), parsed): one command loads a manifest many times
+
+
 def load(root, kind):
-    """The parsed file (an empty mapping when it doesn't exist yet)."""
+    """The parsed file (an empty mapping when it doesn't exist yet); a copy the caller may change."""
     path = os.path.join(root, FILES[kind])
-    return wikiyaml.parse(read_text(path)) if os.path.isfile(path) else {}
+    try:
+        st = os.stat(path)
+    except OSError:
+        return {}
+    stamp = (st.st_mtime_ns, st.st_size)
+    cached = _PARSED.get(path)
+    if not cached or cached[0] != stamp:
+        cached = _PARSED[path] = (stamp, wikiyaml.parse(read_text(path)))
+    return copy.deepcopy(cached[1])
 
 
 def _ordered(kind, fields):

@@ -31,9 +31,9 @@ named here exists is lib/templates.py's to check.
 
 import difflib
 import os
-import re
 
-from .layout import CONFIG, config_path
+from . import language, schema
+from .layout import CONFIG
 from .toml import TomlError, loads
 from .util import read_text
 
@@ -55,7 +55,6 @@ DEFAULTS = {
 }
 SOURCE_COPIES = ('allow', 'links-only')
 PICTURE_FORMATS = ('mermaid', 'svg', 'png')  # mermaid diagrams, and the figures GitHub, Obsidian and the books all show
-LEGACY = {'images'}  # replaced by picture_formats: images = false reads as ["mermaid"] (init rewrites the line)
 TEMPLATE_KEYS = ('max_words', 'abstract_words')
 ADDON_DEFAULTS = {
     'obsidian': False,  # init writes sllmwiki/.obsidian/graph.json (design doc §4.8)
@@ -67,8 +66,6 @@ RELEASE_DEFAULTS = {  # what a release attaches (docs/book_design.md §3)
     'title': '',         # the book's title; empty: the repository's name
     'author': '',        # its author; empty: the title
 }
-_TEMPLATE_NAME = re.compile(r'[a-z0-9][a-z0-9_-]*\Z')
-_LANGUAGE = re.compile(r'[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*\Z')  # as lib/language.py's TAG
 
 
 class ConfigError(Exception):
@@ -106,12 +103,7 @@ def _settings(table, problems):
     out = {}
     for key, value in table.items():
         where = f'{SETTINGS}.{key}'
-        if key in LEGACY:
-            if type(value) is not bool:
-                problems.append(f'{where} must be true or false')
-            elif not value and 'picture_formats' not in table:
-                out['picture_formats'] = ['mermaid']
-        elif key not in DEFAULTS:
+        if key not in DEFAULTS:
             problems.append(f'unknown setting {where}{_hint(key, list(DEFAULTS))}')
         elif type(value) is not type(DEFAULTS[key]):
             problems.append(f'{where} must be {_kind(DEFAULTS[key])}')
@@ -123,7 +115,7 @@ def _settings(table, problems):
             problems.append(f'{where} must be a whole number, 0 or more')
         elif key == 'picture_formats' and not all(v in PICTURE_FORMATS for v in value):
             problems.append(f'{where} must list some of {", ".join(repr(f) for f in PICTURE_FORMATS)}, not {value!r}')
-        elif key == 'language' and not _LANGUAGE.match(value):
+        elif key == 'language' and not language.TAG.match(value):
             problems.append(f'{where} must be a language tag, such as "en" or "zh-Hans", not {value!r}')
         elif key == 'smes_exclude' and not all(isinstance(v, str) and v.strip() for v in value):
             problems.append(f'{where} must list names, such as ["@alice", "dependabot"]')
@@ -139,7 +131,7 @@ def _templates(table, problems):
         if not isinstance(keys, dict):
             problems.append(f'{TEMPLATES}.{name} must be a table, {where}, with a template\'s max_words and abstract_words')
             continue
-        if not _TEMPLATE_NAME.match(name):
+        if not schema.TEMPLATE.match(name):
             problems.append(f'{where}: a template name is lowercase letters, digits, _ and -')
             continue
         lengths = {}
@@ -206,7 +198,7 @@ def parse(text):
 
 def load(root):
     """The wiki's Config (the defaults without a Config.toml); raises ConfigError."""
-    path = config_path(root)
+    path = os.path.join(root, CONFIG)
     return parse(read_text(path)) if os.path.isfile(path) else Config()
 
 

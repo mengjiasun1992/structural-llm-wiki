@@ -52,7 +52,7 @@ _LINK_OR_AUTO = re.compile(r'!?\[[^\]\n]*\]\([^)\n]*\)|<[^>\n]+>')
 
 _WIKILINK = re.compile(r'(?<![!\[\\])\[\[([^\[\]\n]+)\]\](?!\()')
 _EMBED = re.compile(r'!\[\[([^\[\]\n]+)\]\]')
-_OLD_CITE = re.compile(r'(?<![\\\[])\[\[([0-9]+)\]\]\(')
+_BRACKET_CITE = re.compile(r'(?<![\\\[])\[\[([0-9]+)\]\]\(')
 _HIGHLIGHT = re.compile(r'(?<![=\w])==(?=\S)([^=\n]*?\S)==(?![=\w])')
 _CALLOUT = re.compile(r' {0,3}>[ \t]*\[!([^\]\n]+)\]([-+]?)(.*)\Z')
 _TAG = re.compile(r'(?:(?<=\s)|^)#([A-Za-z_][\w/-]*)')
@@ -127,6 +127,11 @@ def scan(lines):
 def mask_code_spans(line):
     """line with each code span's content replaced by spaces, so columns stay put."""
     return _CODE_SPAN.sub(lambda m: m.group(1) + ' ' * (len(m.group(0)) - 2 * len(m.group(1))) + m.group(1), line)
+
+
+def mask_spans(line):
+    """line with its code and math spans blanked: the prose a check reads."""
+    return mask_math_spans(mask_code_spans(line))
 
 
 def mask_math_spans(line):
@@ -256,7 +261,7 @@ def check(text):
     for i, raw in enumerate(lines):
         if kinds[i] != 'text':
             continue
-        line = mask_math_spans(mask_code_spans(raw))
+        line = mask_spans(raw)
         h = _HEADING.match(line)
         if h:
             new = len(h.group(1))
@@ -273,7 +278,7 @@ def check(text):
             add('error', 'HEADING_ATTRS', i, f'"{m.group(2)}}}" ending a heading is read by mdBook as its id and classes; write \\}}')
         if _MYST_LINE.match(line) or [r for r in _MYST_ROLE.finditer(raw) if line[r.start()] == '{']:
             add('warning', 'MYST_SYNTAX', i, 'a MyST target "(label)=", break "+++" or role "{name}`x`", which the other renderers show as text')
-        for m in _OLD_CITE.finditer(line):
+        for m in _BRACKET_CITE.finditer(line):
             add('error', 'CITATION_BRACKETS', i, f'"[[{m.group(1)}]](" reads as a wikilink in Obsidian; write [\\[{m.group(1)}\\]]( (escape() does)')
         for m in _EMBED.finditer(line):
             add('error', 'EMBED', i, f'"![[{m.group(1)}]]" is an Obsidian embed, text elsewhere; use ![alt](path)')
@@ -314,12 +319,12 @@ def _escape_prose(line):
     for start, end in reversed(_bare_urls(mask_code_spans(line))):
         line = line[:start] + '<' + line[start:end] + '>' + line[end:]
         n += 1
-    masked = _mask_links(mask_math_spans(mask_code_spans(line)))
+    masked = _mask_links(mask_spans(line))
     edits = [(m.start(), '\\') for m in _DOLLAR.finditer(masked)] + [(m.start(), '\\') for m in _TILDES.finditer(masked)]
     for at, ins in sorted(edits, reverse=True):
         line = line[:at] + ins + line[at:]
     n += len(edits)
-    cites = list(_OLD_CITE.finditer(mask_code_spans(line)))
+    cites = list(_BRACKET_CITE.finditer(mask_code_spans(line)))
     for m in reversed(cites):
         line = line[:m.start()] + f'[\\[{m.group(1)}\\]](' + line[m.end():]
     return line, n + len(cites)
@@ -357,6 +362,17 @@ _TITLE = re.compile(r'(\S+)[ \t]+("[^"]*"|\'[^\']*\')[ \t]*\Z')
 _SCHEME = re.compile(r'[A-Za-z][A-Za-z0-9+.-]*:')
 
 
+
+def _files_by_name(root):
+    """{file name: [folders holding one]} under root, hidden folders (.git, .templates) left out: built once per
+    check, for the fix a link that doesn't resolve suggests."""
+    found = {}
+    for folder, dirs, files in os.walk(root):
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        for name in files:
+            found.setdefault(name, []).append(folder)
+    return found
+
 def check_links(text, file_dir, root):
     """Findings for links the renderers resolve differently, in a file in file_dir
     of the repository at root: LINK_SPACES (a space in a path, which GitHub doesn't
@@ -365,7 +381,7 @@ def check_links(text, file_dir, root):
     which only GitHub lists)."""
     lines = text.split('\n')
     kinds, _ = scan(lines)
-    out = []
+    out, index = [], None
     for i, line in enumerate(lines):
         if kinds[i] != 'text':
             continue
@@ -389,8 +405,8 @@ def check_links(text, file_dir, root):
             if os.path.isdir(target):
                 out.append(('warning', 'LINK_FOLDER', i + 1, f'"{path}" is a folder: only GitHub lists it; link to a file in it'))
             elif not os.path.exists(target):
-                named = [os.path.join(d, os.path.basename(file)) for d, _, files in os.walk(root)
-                         if os.path.basename(file) in files and '/.' not in d.replace(os.sep, '/') + '/']
+                index = index if index is not None else _files_by_name(root)
+                named = [os.path.join(d, os.path.basename(file)) for d in index.get(os.path.basename(file), ())]
                 found = os.path.join(root, file.lstrip('/')) if os.path.exists(os.path.join(root, file.lstrip('/'))) else (named[0] if len(named) == 1 else None)
                 hint = f'; write {os.path.relpath(found, file_dir).replace(os.sep, "/")}' if found else ''
                 out.append(('error', 'LINK_PATH', i + 1, f'"{path}" doesn\'t resolve from this file\'s folder, which is all GitHub tries{hint}'))
