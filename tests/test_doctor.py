@@ -77,6 +77,26 @@ class Doctor(unittest.TestCase):
         self.assertIn('winget install -e --id Git.Git', hints('MINGW64_NT-10.0'))
         self.assertIn('git (required): https://git-scm.com/downloads', hints('Plan9'))
 
+    def test_a_newer_release(self):
+        def pypi(version):
+            return mock.patch.object(doctor.fetch, 'fetch', return_value=doctor.fetch.Response(
+                doctor.PYPI, 200, 'application/json', ('{"info": {"version": "%s"}}' % version).encode()))
+        with pypi('99.0.0'):
+            status, line = doctor.update()
+        self.assertEqual(status, 'update')
+        self.assertIn(f'sllmwiki 99.0.0 is out; this is {doctor.__version__}. In Claude Code: {doctor.UPGRADE}', line)
+        self.assertIn('pipx install sllmwiki==99.0.0', line)
+        for same in (doctor.__version__, '0.1.0'):  # this one, or older (a stale index)
+            with pypi(same):
+                self.assertEqual(doctor.update()[0], 'ok')
+        with mock.patch.object(doctor.fetch, 'fetch', side_effect=doctor.fetch.FetchError('offline')):
+            self.assertEqual(doctor.update()[0], 'warning')
+        with pypi('99.0.0'):
+            r = self.run_with({'git': 'echo "git version 2.40.0"', 'gh': 'exit 0'})
+            self.assertNotIn('99.0.0', r.out)  # only with --updates
+            r = helpers.run('doctor.py', ['--updates'])
+        self.assertIn('update   sllmwiki 99.0.0 is out', r.out)
+
     def test_usage(self):
         self.assertEqual(helpers.run('doctor.py', ['--bogus']).code, 2)
 

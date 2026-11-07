@@ -1,23 +1,31 @@
 """doctor: are the tools a run needs here?
 
-  sllmwiki doctor
+  sllmwiki doctor [--updates]
 
 git is required; gh, signed in, is recommended (without it, a run prints the
 link to open its pull request). Python 3.9 or later is running this. Prints
 what's missing with the command that installs it on this machine, from its
 package manager; a command starting with sudo, the owner runs.
+--updates also asks PyPI for the latest sllmwiki release, the plugin's too,
+and prints the command that upgrades to it when it's newer than this one.
 Exit code: 0 ready, 1 something required is missing, 2 usage error.
 """
 
 import argparse
+import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 
+from sllmwiki import __version__
+from sllmwiki.lib import fetch
 from sllmwiki.lib.layout import Cli
 
-cli = Cli('sllmwiki doctor', 'usage: sllmwiki doctor')
+cli = Cli('sllmwiki doctor', 'usage: sllmwiki doctor [--updates]')
+PYPI = 'https://pypi.org/pypi/sllmwiki/json'  # the latest release: the package and the plugin share its version
+UPGRADE = 'claude plugin marketplace update structural-llm-wiki && claude plugin update sllmwiki@structural-llm-wiki'
 DOWNLOADS = {'git': 'https://git-scm.com/downloads', 'gh': 'https://cli.github.com'}
 WINGET = {'git': 'Git.Git', 'gh': 'GitHub.cli'}
 LINUX = ('apt-get', 'dnf', 'yum', 'pacman', 'zypper', 'apk')  # the package managers looked for, in order
@@ -83,10 +91,28 @@ def checks():
     return out
 
 
+def _release(version):
+    return tuple(int(n) for n in re.findall(r'\d+', version))
+
+
+def update():
+    """(status, line): 'update' with the command when PyPI has a newer release than this one, 'ok' when not,
+    'warning' when PyPI can't be asked (offline, a proxy, a sandbox)."""
+    try:
+        latest = json.loads(fetch.fetch(PYPI, timeout=10).data)['info']['version']
+    except (fetch.FetchError, ValueError, KeyError, TypeError) as e:
+        return 'warning', f"couldn't ask PyPI for a newer sllmwiki ({e}); this is {__version__}"
+    if _release(latest) <= _release(__version__):
+        return 'ok', f'sllmwiki {__version__}, the latest release'
+    return 'update', (f'sllmwiki {latest} is out; this is {__version__}. In Claude Code: {UPGRADE}, then restart it. '
+                      f'Another agent: npx skills update, then pipx install sllmwiki=={latest}')
+
+
 def main(argv):
     p = argparse.ArgumentParser(prog='sllmwiki doctor', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.parse_args(argv)
-    found = checks()
+    p.add_argument('--updates', action='store_true')
+    args = p.parse_args(argv)
+    found = checks() + ([update()] if args.updates else [])
     for status, line in found:
         print(f'{status:<8} {line}')
     return 1 if any(s == 'missing' for s, _ in found) else 0

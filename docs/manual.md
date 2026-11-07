@@ -142,7 +142,7 @@ With `obsidian = true` and `/sllmwiki:init` rerun, open `sllmwiki/` as a vault: 
 
 **Join a wiki.** Clone it and start Claude Code inside. Trust the folder, and accept the `sllmwiki` plugin the repository offers: `init` records it in the wiki's `.claude/settings.json`, and the wiki's README, which `init` writes, says what to run when no offer appears and how other agents join. The first command installs the plugin's code.
 
-**Update the plugin.** After a plugin update, rerun `/sllmwiki:init`: it brings the wiki's layout, CI checks and release workflow up to date in a pull request, and keeps the wiki's own files.
+**Update the plugin.** `/sllmwiki:init` checks for a newer release and offers to upgrade: on a yes, it runs `claude plugin marketplace update structural-llm-wiki && claude plugin update sllmwiki@structural-llm-wiki`, and after a restart you rerun it. After a plugin update, rerun `/sllmwiki:init`: it brings the wiki's layout, CI checks and release workflow up to date in a pull request, and keeps the wiki's own files.
 
 **Other agents.** Codex, Cursor, Copilot and other agents that support [Agent Skills](https://agentskills.io) install the skill with the [`skills` CLI](https://skills.sh): `npx skills add mengjiasun1992/structural-llm-wiki -g`, and the code it runs with `pipx install sllmwiki==<version>`, the version its `SKILL.md` names. There are no commands there; ask for what you want in your own words ("lint the gateway narratives").
 
