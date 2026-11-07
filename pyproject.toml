@@ -12,8 +12,8 @@ dynamic = ["version"]
 description = "The Structural LLM Wiki's commands: what the sllmwiki Claude Code plugin runs to keep a wiki of cited narratives in git."
 readme = "README.md"
 requires-python = ">=3.9"
-license = "Apache-2.0"
-license-files = ["LICENSE", "NOTICE"]
+license = "GPL-3.0-or-later AND MIT-0"  # the code; the templates (src/sllmwiki/templates/LICENSE)
+license-files = ["LICENSE", "NOTICE", "src/sllmwiki/templates/LICENSE"]
 authors = [{ name = "Mengjia Sun" }]
 dependencies = []  # the standard library only
 classifiers = [

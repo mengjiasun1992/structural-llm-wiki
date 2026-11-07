@@ -148,7 +148,7 @@ With `obsidian = true` and `/sllmwiki:init` rerun, open `sllmwiki/` as a vault: 
 
 A wiki holds other people's work next to text an LLM wrote, so it's worth knowing who owns what and who answers for it.
 
-- **The skill** is open source under the [Apache License 2.0](../LICENSE), copyright 2026 Mengjia Sun ([NOTICE](../NOTICE)). It covers the skill's code, templates and docs, not what you put in your wiki.
+- **The skill** is open source, copyright 2026 Mengjia Sun ([NOTICE](../NOTICE)): its code under the [GNU General Public License, version 3 or later](../LICENSE), so a modified version someone distributes stays open too; its templates (what `init` puts in your wiki, the narrative templates, the book's stylesheet) under [MIT-0](../src/sllmwiki/templates/LICENSE), with no conditions, so your wiki and its books owe the skill nothing. Running the skill, even on private code, triggers no GPL obligation; distributing a modified copy of its code does. Versions up to 1.2.0 were released under Apache 2.0.
 - **Your wiki is yours.** The skill picks no license for it: what your narratives may be shared under is your call, and a wiki made from your company's code and docs falls under your company's rules.
 - **Sources stay their authors'.** Copyright stays with each source's authors, and every saved source keeps its URL and license. Narratives quote only briefly, at most `max_quote_words` words, and cite the rest.
 - **Copies follow a source policy.** A private wiki keeps reference copies unless a source's terms forbid sharing; a public wiki keeps only openly licensed ones, and its CI fails on a copy it may not hold. With `source_copies = "links-only"` it keeps no copies at all. Review `sllmwiki/sources/` before you make a private wiki public.

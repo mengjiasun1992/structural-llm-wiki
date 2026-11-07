@@ -1,4 +1,16 @@
 Structural LLM Wiki
 Copyright 2026 Mengjia Sun
 
-This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+The code is licensed under the GNU General Public License, version 3 or (at your option) any
+later version (GPL-3.0-or-later; see LICENSE).
+
+The templates in src/sllmwiki/templates/ (the files init installs in a wiki, the narrative
+templates and language packs, and the book's Sphinx configuration and stylesheets) are licensed
+under MIT No Attribution (MIT-0; see src/sllmwiki/templates/LICENSE), so wikis and books made
+with them carry no license conditions from this project.
+
+Versions up to and including 1.2.0 were released under the Apache License, Version 2.0, and
+remain available under it.
+
+Third-party files keep their own licenses: mermaid (MIT) and MathJax (Apache-2.0), vendored in
+src/actions/release-book/vendor/ with their license files.
