@@ -30,7 +30,7 @@ Read in that order, each source once, and only what the plan says: whole sources
 
 ## 5. Summary
 
-`sllmwiki publish summary narrative --json '{...}'` with:
+`sllmwiki publish commit narrative --tags <its primary tags> --json '{...}'` with:
 - `title`: the question;
 - `checklist`: `"<the question>: answers it, every claim cited or marked, reads well"`;
 - `body`:

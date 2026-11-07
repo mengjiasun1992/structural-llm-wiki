@@ -158,6 +158,21 @@ class Publish(helpers.WikiTestCase):
         self.assertEqual(self.pub('commit', 'ingest', '--tags', 'leaf-a').code, 0)
         self.assertEqual(helpers.git(self.root, 'log', '-1', '--format=%s').stdout.strip(), '[sllmwiki][ingest][leaf-a] Sources for subjects')
 
+    def test_one_call_records_commits_and_opens_the_pull_request(self):
+        self.pub('start', 'one-call', '--title', 'T', '--prompt', 'p')
+        r = self.pub('commit', 'tags', '--json', '{"title": "Tags", "checklist": ["Tags: a"]}')  # no new tag: nothing to commit
+        self.assertEqual(r.code, 0, r.err)
+        self.assertIn('nothing changed to commit; the summary is recorded', r.out)
+        self.write('sllmwiki/sources/new.md', '# New\n')
+        r = self.pub('commit', 'ingest', '--tags', 'leaf-a', '--json', '{"title": "Sources", "body": "Saved new."}', '--pr')
+        self.assertEqual(r.code, 0, r.err)
+        self.assertEqual(helpers.git(self.root, 'log', '-1', '--format=%s').stdout.strip(), '[sllmwiki][ingest][leaf-a] Sources')
+        self.assertIn('opened https://github.com/o/r/pull/7', r.out)
+        body = helpers.read(self.root, '.git/sllmwiki/runs/one-call/pr.md')
+        self.assertIn('- [ ] Tags: a', body)
+        self.assertIn('## Sources\n\nSaved new.', body)
+        self.assertEqual(self.pub('commit', 'smes', '--json', '{not json').code, 1)
+
     def test_what_a_run_saved(self):
         publish = helpers.load_script('publish.py')
         self.assertEqual(publish.saved(self.root, 'no-such-branch'), [])

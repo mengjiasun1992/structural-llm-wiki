@@ -35,10 +35,8 @@ Each template's guide names its aim, a few axes, and says what each axis means; 
 
 ## 6. Summary and commit
 
-`sllmwiki publish summary lint --json '{...}'` with:
+`sllmwiki publish commit lint --tags <tags> --json '{...}' --pr`, one commit, with:
 - `title`: "Lint: " and what this lint checked, so a later lint in the same run keeps its own section;
 - `checklist`: "Lint: every H finding fixed or decided";
 - `decisions`: each big finding, with its number;
 - `body`: the aim grades, a table of narrative and each axis of its aim, met, partly or missed, with the evidence; then a table of number, narrative and line, finding, and fixed or left as a decision.
-
-Then one commit, `sllmwiki publish commit lint --tags <tags>`, and `sllmwiki publish pr`.

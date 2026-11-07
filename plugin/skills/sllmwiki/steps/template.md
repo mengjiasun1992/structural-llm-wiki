@@ -21,10 +21,8 @@ From what the owner describes (the questions it answers, its reader, what each a
 
 ## 4. Summary
 
-`sllmwiki publish summary template --json '{...}'` with:
+`sllmwiki publish commit template --json '{...}'` with:
 - `title`: `"Template: <name>"`;
 - `checklist`: `"Template <name>: its use_when picks the right questions, and its sections are what every answer needs"`;
 - `decisions`: what the description left open, and the choice you made;
 - `body`: what it's for, the template it started from, and its sections.
-
-Then `sllmwiki publish commit template --subject "Template <name>: <what it's for>"`.

@@ -42,7 +42,7 @@ A saved source stays in the language it was written in: never translate it. Read
 
 ## 5. Summary
 
-`sllmwiki publish summary ingest --json '{...}'` with:
+`sllmwiki publish commit ingest --tags <tags> --json '{...}'` with:
 - `title`: "Sources";
 - `checklist`: "Sources: each is one you'd trust";
 - `decisions`: anything the owner must decide, such as permission to keep a copy, and each A source you couldn't use or save, with its link and why;

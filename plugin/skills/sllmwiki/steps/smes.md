@@ -16,10 +16,8 @@ For each tag, the files its knowledge comes from: the code its code sources were
 
 ## 4. Summary
 
-`sllmwiki publish summary smes --json '{...}'` with:
+`sllmwiki publish commit smes --tags <tags> --json '{...}'` with:
 - `title`: "SMEs";
 - `checklist`: "SMEs: each is someone you'd ask";
 - `decisions`: a tag with no local repository to rank people from;
 - `body`: a table of tag, person, evidence, and question.
-
-Then `sllmwiki publish commit smes --tags <tags> --subject "SMEs for: <topic>"`.
