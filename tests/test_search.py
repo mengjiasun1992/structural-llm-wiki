@@ -50,8 +50,16 @@ class Command(helpers.WikiTestCase):
 
     def test_context(self):
         r = self.s('context', 'alpha retry')
-        self.assertTrue(r.out.startswith('Tags: leaf-a (First leaf, about alpha systems)'))
+        self.assertTrue(r.out.startswith('Tags:\n- leaf-a: First leaf, about alpha systems'))
         self.assertIn('## What is alpha?  (sllmwiki/narratives/what-is-alpha.md, version 1.0', r.out)
+        self.assertNotIn('Built on an older version', r.out)
+        self.assertIn('- leaf-a: First leaf, about alpha systems\n  - SME @ann: wrote the alpha doc', r.out)
+        tags = json.loads(self.s('context', 'alpha', '--json').out)['tags']
+        self.assertTrue(all('smes' in t for t in tags))
+        self.write('sllmwiki/sources/alpha-doc.md', self.read('sllmwiki/sources/alpha-doc.md').replace('twice as long', 'three times as long'))
+        r = self.s('context', 'alpha retry')
+        self.assertIn('Built on an older version of alpha-doc: say so with the answer.', r.out)  # wiki-check's NARRATIVE_SOURCE_CHANGED
+        self.assertEqual(json.loads(self.s('context', 'alpha', '--json').out)['narratives'][0]['changed'], ['alpha-doc'])
         self.assertEqual(json.loads(self.s('context', 'alpha', '--json').out)['narratives'][0]['slug'], 'what-is-alpha')
         self.assertIn('Tags: none match', self.s('context', 'zebra').out)
         self.assertIn('No narrative matches.', self.s('context', 'zebra').out)
