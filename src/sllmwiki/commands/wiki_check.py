@@ -19,6 +19,7 @@ Errors:
   PIN_UNKNOWN               a narrative is pinned to a source that isn't recorded or has no copy
   SOURCE_ATTRIBUTION        a saved source lacks its footer, or the footer's URL isn't its recorded URL
   SOURCE_POLICY             a saved copy the source policy doesn't allow (design doc §4.7)
+  VISIBILITY_MISMATCH       Config.toml declares visibility = "private", but the repository is public
   INDEX_OUTDATED, TAG_PAGE_OUTDATED, TAG_PAGE_ORPHAN
                             a generated page is out of date (--fix rewrites it)
   NARRATIVE_ANCHOR          a link to a section of another narrative that isn't there
@@ -40,7 +41,8 @@ Warnings:
   PAGE_HANDWRITTEN          a page where a generated one would go, left alone
   FIGURE_UNUSED             a figure in narratives/figures/ that no narrative shows
 
---visibility skips asking GitHub who can see the wiki. Exit code: 0 with no
+--visibility skips asking GitHub who can see the wiki, and stands for its answer;
+Config.toml's visibility decides only when GitHub can't say. Exit code: 0 with no
 errors, 1 with errors, 2 on a usage error.
 """
 
@@ -92,7 +94,11 @@ def check(root, fix=False, seen_by=None):
     for name in sorted(saved - recorded_files - {'manifest.yaml'}):
         if name.endswith('.md'):
             add(('error', 'SOURCE_UNRECORDED', f'{layout.SOURCES}/{name}', f'{name} isn\'t in the sources manifest; save sources with sllmwiki fetch-source'))
-    seen_by = seen_by or (policy.visibility(root) if any(e.get('file') for e in sources.values()) else 'private')
+    seen = seen_by or (policy.observed(root) if any(e.get('file') for e in sources.values()) else 'private')
+    why = policy.mismatch(seen, settings['visibility'])
+    if why:
+        add(('error', 'VISIBILITY_MISMATCH', layout.CONFIG, why))
+    seen_by = policy.resolve(seen, settings['visibility'])
     for slug, e in sources.items():
         if e.get('upstream_changed'):
             add(('warning', 'SOURCE_UPSTREAM_CHANGED', layout.SOURCES_MANIFEST, f'{slug}: the original changed on {e["upstream_changed"]}; re-ingest it (sllmwiki fetch-source --refresh)'))

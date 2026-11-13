@@ -5,7 +5,9 @@ Judging a source's license or terms is the agent's job; it records what it
 found (--license). This module decides from that record and the setting
 source_copies: with "links-only" nothing is copied; otherwise a private wiki
 keeps reference copies and a public one only openly licensed sources, unless
-the owner has given permission (--allow-restricted, which is recorded).
+the owner has given permission (--allow-restricted, which is recorded). Who can
+see the wiki is the repository's answer; Config.toml's visibility decides only
+when the repository can't say (resolve).
 """
 
 import json
@@ -55,9 +57,10 @@ def _github_repo(root):
     return github_repo(p.stdout.strip()) if p.returncode == 0 else None
 
 
-def visibility(root):
-    """'public', 'private' (also a wiki with no remote, which only its owner has), or
-    'unknown' (a remote off GitHub, or GitHub can't be asked), which counts as public."""
+def observed(root):
+    """Who can see the wiki, as the repository shows it: 'public', 'private' (also a wiki with
+    no remote, which only its owner has), or 'unknown' (a remote off GitHub, or GitHub can't
+    say), which counts as public."""
     repo = _github_repo(root)
     if repo is None:
         has_remote = subprocess.run(['git', 'remote'], cwd=root, capture_output=True, text=True, check=False).stdout.strip()
@@ -73,10 +76,32 @@ def visibility(root):
         with urllib.request.urlopen(f'https://api.github.com/repos/{repo[0]}/{repo[1]}', timeout=15) as r:
             return 'private' if json.load(r).get('private') else 'public'
     except urllib.error.HTTPError as e:
-        e.close()
-        return 'private' if e.code == 404 else 'unknown'
+        e.close()  # a 404 isn't proof of private: GitHub hides a suspended or flagged account's public repositories too
+        return 'unknown'
     except (urllib.error.URLError, OSError, ValueError):
         return 'unknown'
+
+
+def resolve(seen, declared=''):
+    """The visibility the policy applies, from what the repository shows and what Config.toml's
+    visibility declares: the declaration decides only when the repository can't say, and
+    otherwise can only make the policy stricter (a private wiki declared public)."""
+    if seen == 'unknown':
+        return declared or 'unknown'
+    return 'public' if 'public' in (seen, declared) else 'private'
+
+
+def mismatch(seen, declared):
+    """What to say when Config.toml declares the wiki private but the repository shows it public, else None."""
+    if seen == 'public' and declared == 'private':
+        return ('Config.toml declares visibility = "private", but the repository is public: '
+                'the public policy applies; change the declaration, or make the repository private')
+    return None
+
+
+def visibility(root, declared=''):
+    """The visibility the policy applies (resolve) for the wiki at root."""
+    return resolve(observed(root), declared)
 
 
 def may_copy(source_copies, seen_by, license, permission=None):
@@ -90,5 +115,6 @@ def may_copy(source_copies, seen_by, license, permission=None):
     if permission:
         return True, f'the owner gave permission to keep this copy: {permission}'
     who = 'a public wiki' if seen_by == 'public' else 'a wiki whose visibility GitHub couldn\'t confirm'
-    return False, (f'{who} keeps copies of openly licensed sources only, and {license or "an unknown license"} isn\'t one: record it as a '
+    hint = '' if seen_by == 'public' else ' (if it is private, the owner can declare visibility = "private" in Config.toml)'
+    return False, (f'{who}{hint} keeps copies of openly licensed sources only, and {license or "an unknown license"} isn\'t one: record it as a '
                    'link (sllmwiki manifest put-source --kind link), or ask the owner for permission and rerun with --allow-restricted')

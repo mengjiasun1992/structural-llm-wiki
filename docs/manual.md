@@ -106,6 +106,7 @@ GitHub's *Releases → Draft a new release* does the same without the agent; `/s
 ```toml
 [structural-llm-wiki-settings]
 source_copies = "allow"     # or "links-only": keep no copies, only links
+visibility = ""             # "private" or "public", for when GitHub can't say who sees the wiki
 max_quote_words = 50        # the longest quotation a narrative may take
 smes_exclude = []           # never listed as SMEs, such as the wiki's owner or bots
 markers = true              # false: no reasoning or gap markers
@@ -153,7 +154,7 @@ A wiki holds other people's work next to text an LLM wrote, so it's worth knowin
 - **The skill** is open source, copyright 2026 Mengjia Sun ([NOTICE](../NOTICE)): its code under the [GNU General Public License, version 3 or later](../LICENSE), so a modified version someone distributes stays open too; its templates (what `init` puts in your wiki, the narrative templates, the book's stylesheet) under [MIT-0](../src/sllmwiki/templates/LICENSE), with no conditions, so your wiki and its books owe the skill nothing. Running the skill, even on private code, triggers no GPL obligation; distributing a modified copy of its code does. Versions up to 1.2.0 were released under Apache 2.0.
 - **Your wiki is yours.** The skill picks no license for it: what your narratives may be shared under is your call, and a wiki made from your company's code and docs falls under your company's rules.
 - **Sources stay their authors'.** Copyright stays with each source's authors, and every saved source keeps its URL and license. Narratives quote only briefly, at most `max_quote_words` words, and cite the rest.
-- **Copies follow a source policy.** A private wiki keeps reference copies unless a source's terms forbid sharing; a public wiki keeps only openly licensed ones, and its CI fails on a copy it may not hold. With `source_copies = "links-only"` it keeps no copies at all. Review `sllmwiki/sources/` before you make a private wiki public.
+- **Copies follow a source policy.** A private wiki keeps reference copies unless a source's terms forbid sharing; a public wiki keeps only openly licensed ones, and its CI fails on a copy it may not hold. Who can see the wiki is GitHub's answer; when GitHub can't say (the wiki is hosted elsewhere, or GitHub is unreachable), the wiki counts as public unless you set `visibility = "private"`. With `source_copies = "links-only"` it keeps no copies at all. Review `sllmwiki/sources/` before you make a private wiki public.
 - **Fair access only.** The skill never gets around a login, paywall or anti-bot protection, and uses no unofficial copies; when it may not keep a copy, it records a link instead, and when in doubt it asks.
 - **No personal data or secrets** go into the wiki, even when a source contains them.
 - **Your model provider sees what your agent reads.** Questions and sources go to the model your agent runs on, under that provider's terms: ingest only what you may share with it.

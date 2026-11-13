@@ -2,6 +2,7 @@
 
     [structural-llm-wiki-settings]
     source_copies = "allow"     # or "links-only"
+    visibility = ""             # or "private" or "public"
     max_quote_words = 50
     smes_exclude = []
     markers = true
@@ -45,6 +46,7 @@ RELEASE = PREFIX + 'release'
 
 DEFAULTS = {
     'source_copies': 'allow',  # "allow": private wikis keep copies, public ones only openly licensed; "links-only": none
+    'visibility': '',          # who can see the wiki, when the repository can't say: "private" or "public"; "": ask it (lib/policy.py)
     'max_quote_words': 50,     # the longest quotation a narrative may take from a source
     'smes_exclude': [],        # people and bots never listed as SMEs
     'markers': True,           # the [→] and [?] markers (design doc §4.10)
@@ -109,6 +111,8 @@ def _settings(table, problems):
             problems.append(f'{where} must be {_kind(DEFAULTS[key])}')
         elif key == 'source_copies' and value not in SOURCE_COPIES:
             problems.append(f'{where} must be "allow" or "links-only", not {value!r}')
+        elif key == 'visibility' and value not in ('', 'private', 'public'):
+            problems.append(f'{where} must be "private", "public" or "", not {value!r}')
         elif key in ('max_quote_words', 'max_image_kb') and value < 1:
             problems.append(f'{where} must be a positive whole number')
         elif key == 'max_pictures' and value < 0:
