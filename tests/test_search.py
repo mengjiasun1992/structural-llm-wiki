@@ -64,6 +64,20 @@ class Command(helpers.WikiTestCase):
         self.assertIn('Tags: none match', self.s('context', 'zebra').out)
         self.assertIn('No narrative matches.', self.s('context', 'zebra').out)
 
+    def test_context_puts_the_audience_first(self):
+        # a query's first call shows who to write for, so its answer can't miss it (query-audience eval, #170)
+        self.assertIsNone(json.loads(self.s('context', 'alpha', '--json').out)['audience'])
+        self.write('sllmwiki/.templates/audience.md', '# Readers\n\nProduct managers: open with "Bottom line:".\n')
+        r = self.s('context', 'alpha retry')
+        self.assertTrue(r.out.startswith('Write the answer for this wiki\'s audience (sllmwiki/.templates/audience.md), '
+                                         'before the skill and its guides:\n\n# Readers\n\nProduct managers: open with "Bottom line:".\n\nTags:\n'), r.out[:300])
+        self.assertEqual(json.loads(self.s('context', 'alpha', '--json').out)['audience'],
+                         '# Readers\n\nProduct managers: open with "Bottom line:".')
+        self.write('sllmwiki/.templates/audience.md', ' '.join(['word'] * 801))
+        r = self.s('context', 'alpha')
+        self.assertIn('over its 800', r.err)  # still shown, with the problem
+        self.assertTrue(r.out.startswith('Write the answer for'))
+
     def test_narratives_and_sources(self):
         self.assertIn('## What is alpha?', self.s('narratives', 'alpha').out)
         self.assertEqual(self.s('narratives', 'zebra').out, 'No narrative matches.\n')

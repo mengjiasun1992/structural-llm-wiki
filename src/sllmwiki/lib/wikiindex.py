@@ -81,7 +81,7 @@ def sync(root, write):
         have = read_text(path) if os.path.isfile(path) else None
         if have == text:
             continue
-        if have is not None and not (tagpages.is_generated(have) or GENERATED in have):
+        if have is not None and not tagpages.is_generated(have):
             findings.append(('warning', 'PAGE_HANDWRITTEN', rel, f'{rel} has no generated marker, so it\'s left alone; rename it to let the wiki generate it'))
             continue
         findings.append(('error', 'INDEX_OUTDATED' if rel == layout.INDEX else 'TAG_PAGE_OUTDATED', rel, f'{rel} is out of date (sllmwiki wiki-check --fix)'))
