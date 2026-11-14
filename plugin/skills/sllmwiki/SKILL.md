@@ -26,10 +26,10 @@ A wiki is a git repository whose knowledge lives in `sllmwiki/`: sources saved v
 
 ## Before anything
 
-The code is the `sllmwiki` package, version 1.3.0. Run this first, as one command: it uses an `sllmwiki` 1.3.0 on PATH (as after `pipx install sllmwiki==1.3.0`, which another agent installs first), else the plugin's own, installing it unasked, then runs `doctor`.
+The code is the `sllmwiki` package, version 1.3.1. Run this first, as one command: it uses an `sllmwiki` 1.3.1 on PATH (as after `pipx install sllmwiki==1.3.1`, which another agent installs first), else the plugin's own, installing it unasked, then runs `doctor`.
 
 ```bash
-V="${CLAUDE_PLUGIN_DATA}/venv-1.3.0"; S=sllmwiki; sllmwiki --version 2>/dev/null | grep -qx 'sllmwiki 1.3.0' || { S="$V/bin/sllmwiki"; "$S" --version >/dev/null 2>&1 || { python3 -m venv "$V" && "$V/bin/python" -m pip install --quiet --disable-pip-version-check sllmwiki==1.3.0; }; }; echo "sllmwiki is $S"; "$S" doctor
+V="${CLAUDE_PLUGIN_DATA}/venv-1.3.1"; S=sllmwiki; sllmwiki --version 2>/dev/null | grep -qx 'sllmwiki 1.3.1' || { S="$V/bin/sllmwiki"; "$S" --version >/dev/null 2>&1 || { python3 -m venv "$V" && "$V/bin/python" -m pip install --quiet --disable-pip-version-check sllmwiki==1.3.1; }; }; echo "sllmwiki is $S"; "$S" doctor
 ```
 
 In every command after, `sllmwiki` means the path it prints (`Scripts` for `bin` on Windows). Without Python 3.9 or later, install that first (`brew install python`, `sudo apt-get install -y python3 python3-venv` or `winget install -e --id Python.Python.3.13`).
