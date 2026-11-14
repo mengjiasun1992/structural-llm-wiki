@@ -2,7 +2,7 @@
 # plugin installs sllmwiki==<its version> from there. Trusted publishing: PyPI trusts this workflow,
 # in the pypi environment, so no token is stored; the environment can require the owner's approval.
 # A version on PyPI can never be replaced, so the build checks first: the tag is the package's
-# version, the tests pass, and the wheel carries every file.
+# version, the tests pass, the wheel carries every file, and PyPI's page renders with its images.
 name: Publish package
 
 on:
@@ -34,13 +34,20 @@ jobs:
       - name: Unit tests
         run: python3 tests/run.py
 
-      # the wheel and the source archive; the wheel must carry every file under src/sllmwiki/
+      # README.md is PyPI's page: its relative links and images lead nowhere there, so point them at
+      # this tag on GitHub (issue #168); the README in the repository keeps its relative paths
+      - name: PyPI's page links to GitHub
+        run: python3 src/tools/pypi-readme.py --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME" --write README.md
+
+      # the wheel and the source archive; the wheel must carry every file under src/sllmwiki/, and the
+      # long description must render on PyPI
       - name: Build
         run: |
-          python3 -m pip install --quiet --disable-pip-version-check build==1.2.2.post1
+          python3 -m pip install --quiet --disable-pip-version-check build==1.2.2.post1 twine==6.1.0
           python3 -m build --outdir dist .
           python3 -c "import sys, zipfile; names = set(zipfile.ZipFile(sys.argv[1]).namelist()); missing = [p for p in sys.argv[2:] if p not in names]; print('missing from the wheel:', *missing, sep='\n  ') if missing else None; sys.exit(1 if missing else 0)" \
             dist/sllmwiki-*.whl $(git ls-files src/sllmwiki | sed 's|^src/||')
+          python3 -m twine check --strict dist/*
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:

@@ -131,7 +131,7 @@ def main(argv):
     if unknown:
         cli.fail(f'no such tag(s): {", ".join(unknown)}; add them first (sllmwiki manifest add-tag)')
 
-    seen_by = policy.visibility(root)
+    seen_by = policy.visibility(root, settings['visibility'])
     ok, why = policy.may_copy(settings['source_copies'], seen_by, args.license, args.allow_restricted)
     if not ok:
         cli.fail(why)

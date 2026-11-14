@@ -16,7 +16,7 @@ def problems(text):
 class Defaults(helpers.WikiTestCase):
     def test_no_file_means_the_defaults(self):
         c = config.load(self.root)
-        self.assertEqual(c.settings, {'source_copies': 'allow', 'max_quote_words': 50, 'smes_exclude': [], 'markers': True, 'picture_formats': ['mermaid', 'svg', 'png'], 'max_pictures': 5, 'max_image_kb': 100, 'language': 'en'})
+        self.assertEqual(c.settings, {'source_copies': 'allow', 'visibility': '', 'max_quote_words': 50, 'smes_exclude': [], 'markers': True, 'picture_formats': ['mermaid', 'svg', 'png'], 'max_pictures': 5, 'max_image_kb': 100, 'language': 'en'})
         self.assertEqual((c.templates, c.addons), ({}, {'obsidian': False}))
         self.assertEqual(config.problems(self.root), [])
 
@@ -35,9 +35,9 @@ class Defaults(helpers.WikiTestCase):
 
 class Settings(unittest.TestCase):
     def test_every_setting(self):
-        c = parse('[structural-llm-wiki-settings]\nsource_copies = "links-only"\nmax_quote_words = 25\n'
+        c = parse('[structural-llm-wiki-settings]\nsource_copies = "links-only"\nvisibility = "private"\nmax_quote_words = 25\n'
                   'smes_exclude = ["@owner", "dependabot"]\nmarkers = false\n')
-        self.assertEqual(c.settings, {'source_copies': 'links-only', 'max_quote_words': 25,
+        self.assertEqual(c.settings, {'source_copies': 'links-only', 'visibility': 'private', 'max_quote_words': 25,
                                       'smes_exclude': ['@owner', 'dependabot'], 'markers': False,
                                       'picture_formats': ['mermaid', 'svg', 'png'], 'max_pictures': 5, 'max_image_kb': 100, 'language': 'en'})
 
@@ -45,6 +45,8 @@ class Settings(unittest.TestCase):
         cases = [
             ('source_copies = "none"', 'source_copies must be "allow" or "links-only"'),
             ('source_copies = true', 'source_copies must be a string'),
+            ('visibility = "internal"', 'visibility must be "private", "public" or ""'),
+            ('visibility = false', 'visibility must be a string'),
             ('max_quote_words = 0', 'max_quote_words must be a positive whole number'),
             ('max_quote_words = "50"', 'max_quote_words must be a whole number'),
             ('max_quote_words = true', 'max_quote_words must be a whole number'),
@@ -57,7 +59,7 @@ class Settings(unittest.TestCase):
             ('picture_formats = ["gif"]', "picture_formats must list some of 'mermaid', 'svg', 'png'"),
             ('picture_formats = "svg"', 'picture_formats must be a list'),
             ('marker = true', 'unknown setting structural-llm-wiki-settings.marker (did you mean markers?)'),
-            ('zzz = true', 'unknown setting structural-llm-wiki-settings.zzz (known: source_copies, max_quote_words'),
+            ('zzz = true', 'unknown setting structural-llm-wiki-settings.zzz (known: source_copies, visibility, max_quote_words'),
         ]
         for line, msg in cases:
             with self.subTest(line=line):

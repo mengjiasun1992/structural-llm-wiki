@@ -130,7 +130,8 @@ class Visibility(unittest.TestCase):
         api.__enter__.return_value = io.StringIO(json.dumps({'private': False}))
         self.assertEqual(self.run_with('https://github.com/o/r.git', OSError(), lambda *a, **k: api), 'public')
         not_found = urllib.error.HTTPError('u', 404, 'nf', {}, io.BytesIO())
-        self.assertEqual(self.run_with('https://github.com/o/r.git', completed('', 1), mock.Mock(side_effect=not_found)), 'private')
+        # a 404 isn't proof of private: GitHub hides a suspended or flagged account's public repositories too
+        self.assertEqual(self.run_with('https://github.com/o/r.git', completed('', 1), mock.Mock(side_effect=not_found)), 'unknown')
         limited = urllib.error.HTTPError('u', 403, 'rate', {}, io.BytesIO())
         self.assertEqual(self.run_with('https://github.com/o/r.git', subprocess.TimeoutExpired('gh', 1), mock.Mock(side_effect=limited)), 'unknown')
         self.assertEqual(self.run_with('https://github.com/o/r.git'), 'unknown')  # offline
@@ -139,6 +140,35 @@ class Visibility(unittest.TestCase):
         self.assertEqual(self.run_with(None, remotes=''), 'private')
         self.assertEqual(self.run_with('https://gitlab.example.com/o/r.git'), 'unknown')
         self.assertEqual(self.run_with('git@github-work:o/r.git', completed('PRIVATE\n')), 'private')  # an SSH host alias
+
+
+class Declared(unittest.TestCase):
+    def test_resolve(self):
+        cases = [  # (the repository's answer, Config.toml's visibility, what the policy applies)
+            ('unknown', '', 'unknown'),
+            ('unknown', 'private', 'private'),  # the declaration decides only when the repository can't say
+            ('unknown', 'public', 'public'),
+            ('public', '', 'public'),
+            ('public', 'private', 'public'),  # the repository wins
+            ('public', 'public', 'public'),
+            ('private', '', 'private'),
+            ('private', 'private', 'private'),
+            ('private', 'public', 'public'),  # stricter: a private wiki kept ready to publish
+        ]
+        for seen, declared, want in cases:
+            self.assertEqual(policy.resolve(seen, declared), want, (seen, declared))
+
+    def test_mismatch(self):
+        self.assertIn('the public policy applies', policy.mismatch('public', 'private'))
+        for seen, declared in (('public', ''), ('public', 'public'), ('private', 'public'), ('unknown', 'private'), ('private', 'private')):
+            self.assertIsNone(policy.mismatch(seen, declared), (seen, declared))
+
+    def test_visibility_reads_the_declaration_when_github_cant_say(self):
+        with mock.patch.object(policy, 'observed', return_value='unknown'):
+            self.assertEqual(policy.visibility('/wiki', 'private'), 'private')
+            self.assertEqual(policy.visibility('/wiki'), 'unknown')
+        with mock.patch.object(policy, 'observed', return_value='public'):
+            self.assertEqual(policy.visibility('/wiki', 'private'), 'public')
 
 
 class Repository(helpers.WikiTestCase):
@@ -168,6 +198,8 @@ class MayCopy(unittest.TestCase):
         ok, why = policy.may_copy('allow', 'unknown', None)
         self.assertFalse(ok)
         self.assertIn('couldn\'t confirm', why)
+        self.assertIn('visibility = "private"', why)  # how an owner of a private wiki says so
+        self.assertNotIn('visibility = "private"', policy.may_copy('allow', 'public', None)[1])
         self.assertIn('an unknown license', why)
         ok, why = policy.may_copy('allow', 'public', 'proprietary', 'Jane, 2026-10-21')
         self.assertTrue(ok)

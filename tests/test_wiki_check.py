@@ -128,8 +128,24 @@ class Check(helpers.WikiTestCase):
         self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nsource_copies = "links-only"\n')
         self.assertEqual(self.codes().count('SOURCE_POLICY'), 2)
 
+    def test_a_declared_visibility(self):
+        manifest.put_source(self.root, 'alpha-doc', license='proprietary')
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nvisibility = "private"\n')
+        with mock.patch.object(policy, 'observed', return_value='unknown'):  # GitHub can't say: the declaration decides
+            self.assertNotIn('SOURCE_POLICY', [f['code'] for f in json.loads(helpers.run('wiki-check.py', ['--root', self.root, '--json']).out)['findings']])
+        with mock.patch.object(policy, 'observed', return_value='public'):  # GitHub can: it wins, and the declaration is reported
+            codes = [f['code'] for f in json.loads(helpers.run('wiki-check.py', ['--root', self.root, '--json']).out)['findings']]
+        self.assertIn('SOURCE_POLICY', codes)
+        self.assertIn('VISIBILITY_MISMATCH', codes)
+        r = json.loads(helpers.run('wiki-check.py', ['--root', self.root, '--visibility', 'public', '--json']).out)  # CI's answer, the same
+        self.assertEqual([f['file'] for f in r['findings'] if f['code'] == 'VISIBILITY_MISMATCH'], ['sllmwiki/Config.toml'])
+        self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nvisibility = "public"\n')  # stricter than the repository
+        codes = [f['code'] for f in json.loads(helpers.run('wiki-check.py', ['--root', self.root, '--visibility', 'private', '--json']).out)['findings']]
+        self.assertIn('SOURCE_POLICY', codes)
+        self.assertNotIn('VISIBILITY_MISMATCH', codes)
+
     def test_visibility_is_asked_only_with_saved_copies(self):
-        with mock.patch.object(policy, 'visibility', return_value='private') as asked:
+        with mock.patch.object(policy, 'observed', return_value='private') as asked:
             self.assertEqual(helpers.run('wiki-check.py', ['--root', self.root]).code, 0)
             self.assertEqual(asked.call_count, 1)
             manifest.remove(self.root, 'sources', 'alpha-doc')
