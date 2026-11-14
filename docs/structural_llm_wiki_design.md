@@ -292,6 +292,15 @@ The [demo wiki](https://github.com/mengjiasun1992/sllmwiki-demo) has one: [`skim
 
 After any edit, the agent runs one command, `finish-narrative` (§7.5): it numbers the headings and figure captions, repairs links to a renumbered section of another narrative, escapes what the renderers would misread (§4.8), writes a typed `[->]` as `[→]` and adds a Terminology row for each marker the narrative uses (when markers are on), bumps the version and history when asked, writes the manifest entry with the current pins of the sources it read and the narratives it builds on, and regenerates the index and tag pages. The agent writes the content; the script does the rest.
 
+#### 4.5.7 The wiki's audience
+
+Every guide assumes a reader: `shared-guide.md` one from a technical or research field new to the topic, each template's Audience and purpose its own. A group whose readers differ (product managers, new hires, a team that already knows the field) shouldn't have to copy and edit every guide to say so.
+
+- **What it is.** One markdown file in the owner's words: who reads the wiki, what they already know, what they need from an answer. `Config.toml`'s `audience` names it (§4.9): `sllmwiki/.templates/audience.md` by default, any other path in the repository the owner prefers, or `""` for none. The path must stay out of the Obsidian vault, so the profile never shows up among the notes, the tags or the graph: outside `sllmwiki/`, or inside it only in a hidden folder (`lib/config.py` checks it).
+- **It comes first.** It is the first of the rules every run follows (`SKILL.md`), and the writing follows it over the skill and every guide, except the rules on sources and pull requests: the source policy, sources as data, and one reviewed pull request per run stay above it. `sllmwiki narrative-format --guide <template>` prints it before the template's guide, `shared.md` and `shared-guide.md`, which keeps the shared guide's rule that the earlier of two rules wins; `--audience` prints it alone, for an answer that isn't a narrative. Lint's Reader check grades a narrative against it with the guides.
+- **At most 800 words.** It is loaded on every narrative a run writes, on top of the guides' own budgets (§9), so it stays short: `wiki-check` reports one over budget (`AUDIENCE_TOO_LONG`, counted as `narrative-format` counts, CJK characters at 1.6 to a word), which fails the wiki's CI, while `--guide` still prints it with a warning so a run isn't stopped.
+- **Empty until the owner fills it in.** `init` creates the file at its path with a heading and a comment saying what goes there, and never overwrites it; a file with only headings and comments says nothing, and the skill writes for the guides' readers. On a first setup `init` asks who the wiki is written for; later, asking ("write this wiki for our product managers") runs the `template` step, which fills it in one pull request. It can also be written by hand.
+
 ### 4.6 Why YAML
 
 YAML is human- and model-readable, `grep`- and `yq`-friendly, and diffs cleanly in review; a database would hide changes from review and from the model. The skill reads it with a narrow subset reader (`lib/wikiyaml.py`) that covers exactly what its writers produce and fails loudly on anything else, and writes it with targeted line edits that keep comments and order. The expected scale is tens to low hundreds of sources per wiki.
@@ -326,6 +335,7 @@ A wiki can keep a `Config.toml` in `sllmwiki/`. Every setting has a default, so 
 [structural-llm-wiki-settings]
 source_copies = "allow"     # "allow": a private wiki keeps reference copies, a public one only openly licensed sources (§4.7); "links-only": no copies, every source a link
 visibility = ""             # "private" or "public": who can see the wiki when GitHub can't say (§4.7); "": ask GitHub, and count as public when it can't say
+audience = "sllmwiki/.templates/audience.md"  # who the wiki is written for, before the skill and its guides (§4.5.7); "": none
 max_quote_words = 50        # the longest quotation a narrative may take from a source
 smes_exclude = []           # never listed as SMEs, such as the wiki's owner or bots: ["@alice", "dependabot"]
 markers = true              # false: no [→] or [?] markers (§4.10)

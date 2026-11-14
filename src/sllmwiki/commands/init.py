@@ -35,7 +35,7 @@ import re
 import subprocess
 
 from sllmwiki import TEMPLATES, __version__
-from sllmwiki.lib import config, language, layout, manifest, toml, wikiindex
+from sllmwiki.lib import audience, config, language, layout, manifest, toml, wikiindex
 from sllmwiki.lib.layout import Cli
 from sllmwiki.lib.util import comma_list, dumps, placeholder, quote, read_text, write_text
 
@@ -254,6 +254,12 @@ class Init:
         for name in WORKFLOWS:
             self.refresh(f'.github/workflows/{name}', read_text(os.path.join(TEMPLATES, name)).replace('{{ref}}', ref))
 
+    def audience(self):
+        """The empty audience profile, at the path Config.toml's audience names, unless it exists or the path is ""."""
+        rel = audience.path(self.root)
+        if rel:
+            self.create(rel, audience.STARTER)
+
     def obsidian(self):
         if config.load(self.root).addons['obsidian']:
             self.create(layout.OBSIDIAN_GRAPH, read_text(os.path.join(WIKI, 'sllmwiki', '.obsidian', 'graph.json')))
@@ -348,6 +354,7 @@ def main(argv):
     run.gitignore()
     run.settings()
     run.workflows()
+    run.audience()
     run.obsidian()
     run.pages()
     if args.commit:

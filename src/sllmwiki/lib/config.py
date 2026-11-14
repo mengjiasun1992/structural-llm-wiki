@@ -2,6 +2,7 @@
 
     [structural-llm-wiki-settings]
     source_copies = "allow"     # or "links-only"
+    audience = "sllmwiki/.templates/audience.md"  # the audience profile; "": none
     visibility = ""             # or "private" or "public"
     max_quote_words = 50
     smes_exclude = []
@@ -32,9 +33,10 @@ named here exists is lib/templates.py's to check.
 
 import difflib
 import os
+import posixpath
 
 from . import language, schema
-from .layout import CONFIG
+from .layout import AUDIENCE, CONFIG, CONTENT
 from .toml import TomlError, loads
 from .util import read_text
 
@@ -47,6 +49,7 @@ RELEASE = PREFIX + 'release'
 DEFAULTS = {
     'source_copies': 'allow',  # "allow": private wikis keep copies, public ones only openly licensed; "links-only": none
     'visibility': '',          # who can see the wiki, when the repository can't say: "private" or "public"; "": ask it (lib/policy.py)
+    'audience': AUDIENCE,      # the audience profile's path in the repository, kept out of the Obsidian vault; "": none
     'max_quote_words': 50,     # the longest quotation a narrative may take from a source
     'smes_exclude': [],        # people and bots never listed as SMEs
     'markers': True,           # the [→] and [?] markers (design doc §4.10)
@@ -92,6 +95,20 @@ class Config:
         return [key[:-len('_book')] for key, on in self.release.items() if key.endswith('_book') and on]
 
 
+def audience_problem(path):
+    """What's wrong with a path for the audience profile, or None: a markdown file in the repository,
+    outside the Obsidian vault (sllmwiki/, where a hidden folder such as .templates/ is left out) and so
+    outside the notes and tags."""
+    parts = posixpath.normpath(path.replace('\\', '/')).split('/')
+    if path.startswith(('/', '\\')) or ':' in parts[0] or parts[0] == '..':
+        return 'must be a path in the repository, relative to its root'
+    if not path.endswith('.md'):
+        return 'must be a markdown file (.md)'
+    if parts[0] == CONTENT and not any(part.startswith('.') for part in parts[1:]):
+        return f'must stay out of the Obsidian vault and its notes and tags: outside {CONTENT}/, or in a hidden folder such as {AUDIENCE}'
+    return None
+
+
 def _hint(key, known):
     near = difflib.get_close_matches(key, known, n=1)
     return f' (did you mean {near[0]}?)' if near else f' (known: {", ".join(known)})'
@@ -113,6 +130,8 @@ def _settings(table, problems):
             problems.append(f'{where} must be "allow" or "links-only", not {value!r}')
         elif key == 'visibility' and value not in ('', 'private', 'public'):
             problems.append(f'{where} must be "private", "public" or "", not {value!r}')
+        elif key == 'audience' and value and audience_problem(value):
+            problems.append(f'{where} {audience_problem(value)}, not {value!r}')
         elif key in ('max_quote_words', 'max_image_kb') and value < 1:
             problems.append(f'{where} must be a positive whole number')
         elif key == 'max_pictures' and value < 0:

@@ -269,7 +269,7 @@ class Init(unittest.TestCase):
         self.assertEqual(q['choices'][0]['value'], 'en')  # the default first
 
     def test_set_refusals(self):
-        for pair, says in (('markers=maybe', 'true or false'), ('max_quote_words=lots', 'a number'), ('colour=red', 'settings are author'),
+        for pair, says in (('markers=maybe', 'true or false'), ('max_quote_words=lots', 'a number'), ('colour=red', 'settings are audience, author'),
                            ('nokey', 'settings are'), ('source_copies=some', 'must be "allow" or "links-only"')):
             r = self.init('--name', 'w', '--set', pair)
             self.assertEqual((r.code, says in r.err), (2, True), (pair, r.err))

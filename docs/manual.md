@@ -57,7 +57,7 @@ Your wiki is its own git repository, plain Markdown and YAML you can read anywhe
 | **Narratives** | `sllmwiki/narratives/` | One per question: the facts and claims that answer it, told in order, opening with an abstract, every claim cited; the figures a narrative draws in `figures/` |
 | **Tags** | `sllmwiki/tags/` | A tree of topics, each with a page listing its narratives, sources and the people who know it |
 | **Index** | `sllmwiki/.SLLMWIKI_INDICES.md` | A clickable map of the topics, for GitHub |
-| **Your templates** | `sllmwiki/.templates/` | Optional: your own kinds of narratives, and language packs |
+| **Your templates** | `sllmwiki/.templates/` | Optional: your own kinds of narratives, language packs, and `audience.md`, who the wiki is written for |
 | **Settings** | `sllmwiki/Config.toml` | The source policy, markers, language, the book's formats, title and author |
 | **Books** | the repository's Releases | The wiki as a PDF, EPUB or HTML file, attached to each release; never committed |
 
@@ -80,6 +80,8 @@ Each kind of answer comes from a template, picked by the question's subject. Eac
 **Your own templates.** For a kind of answer the five don't fit, describe it: "make a template for postmortems of our incidents". The agent starts from the closest bundled template and shapes its sections, writing guide and aim from your description. It checks the result and opens a pull request. The template lives in `sllmwiki/.templates/<name>/` as a `template.md` (a short header and the sections every answer needs) and a `guide.md` (its reader, aim, style and checklist), and you can also write it by hand. From then on the agent picks it for the questions its header says it fits, and lint grades its narratives on its aim. A template named like a bundled one replaces it; to change only a length, set `max_words` in `Config.toml` instead. The demo has one: [`skim_read`](https://github.com/mengjiasun1992/sllmwiki-demo/tree/main/sllmwiki/.templates/skim_read), a ten-minute primer on a long paper for someone deciding whether to read it, and [a narrative made with it](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-does-keeping-calm-argue-and-is-it-worth-reading-in-full.md). How templates work: [the design, §4.5.5](structural_llm_wiki_design.md#455-a-wikis-own-templates).
 
 When no template fits a question, the agent uses the closest one and says so in the pull request, with the request to make one.
+
+**Who your wiki is written for.** The guides write for a reader from a technical or research field who is new to the topic. If your readers are someone else, say so once, in the audience file: `init` creates it empty, in `sllmwiki/.templates/audience.md`, and `audience` in `Config.toml` can move it anywhere in the repository outside the Obsidian vault, or turn it off with `""`. Ask "write this wiki for our product managers: no code, the decision first", or edit it yourself, in at most 800 words. From then on every narrative and answer follows it before the skill's and the guides' own rules, though never over the source policy or the review of each pull request. How it works: [the design, §4.5.7](structural_llm_wiki_design.md#457-the-wikis-audience).
 
 ## 5. Citations and markers
 
@@ -107,6 +109,7 @@ GitHub's *Releases → Draft a new release* does the same without the agent; `/s
 [structural-llm-wiki-settings]
 source_copies = "allow"     # or "links-only": keep no copies, only links
 visibility = ""             # "private" or "public", for when GitHub can't say who sees the wiki
+audience = "sllmwiki/.templates/audience.md"  # who the wiki is written for; "" for none
 max_quote_words = 50        # the longest quotation a narrative may take
 smes_exclude = []           # never listed as SMEs, such as the wiki's owner or bots
 markers = true              # false: no reasoning or gap markers

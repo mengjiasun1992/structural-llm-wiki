@@ -19,7 +19,7 @@ For consistency, read the Abstract and Terminology of each narrative sharing its
 | Code | a symbol, file or line that isn't there; design intent presented as current behavior |
 | Consistency | a contradiction or a different term across narratives sharing tags; a concept another narrative covers, explained again, described in a way that contradicts it, or mentioned without a link to it |
 | Language | grammar, spelling and wording wrong for the narrative's language (its Metadata's `Language`); a sentence left in another language, other than a quotation |
-| Reader | anything that breaks the template's guide or `shared-guide.md` (`sllmwiki narrative-format --guide <template>`, already loaded when this run wrote the narrative), and content that doesn't serve the question |
+| Reader | anything that breaks the wiki's audience profile, the template's guide or `shared-guide.md` (`sllmwiki narrative-format --guide <template>`, already loaded when this run wrote the narrative), and content that doesn't serve the question |
 
 Formatting, links and numbering, figure captions included, are `sllmwiki narrative-format`'s and `sllmwiki wiki-check`'s: run them, don't check by hand. A figure's caption and alt text say what it shows; open its file only to check its numbers against the source.
 
