@@ -35,7 +35,7 @@ The body holds what the reader needs to follow the answer; what they may want bu
 
 ## Pictures
 
-A picture earns its place when it saves the reader from building something in their head: how the parts fit, what happens in what order, how a state changes, a quantity's shape. Aim for one, where it helps most; add another only when it teaches what the others can't, up to the wiki's `max_pictures`; leave pictures out when they would only decorate. What follows is a floor and rules of thumb, not a limit: judge each case by what helps this reader learn.
+A picture earns its place when it saves the reader from building something in their head: how the parts fit, what happens in what order, how a state changes, a quantity's shape. Add one wherever it does, each teaching something new, up to `max_pictures`; none where it would only decorate. Choose the form by what it shows: boxes are no stand-in for a chart or geometry. What follows is a floor and rules of thumb, not a limit: judge each case by what helps this reader learn.
 
 - **Where it helps most:** the map of the whole, near the start; the running example step by step, the same small diagram at each step rather than one dense one; before and after. A comparison is often clearest as a table.
 - **The form:** whichever of the wiki's `picture_formats` shows this idea best; none comes first.
