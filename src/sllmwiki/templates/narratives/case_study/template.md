@@ -17,9 +17,7 @@ abstract_words: [80, 150]
 
 <The case in order, each event cited. An incident: the timeline from trigger through spread and detection to recovery. A design decision: the options considered, and the choice.>
 
-```mermaid
-%% <a sequenceDiagram or timeline for an incident; a flowchart of the options for a design decision>
-```
+<picture: an incident's timeline or a decision's options: a mermaid sequenceDiagram, timeline or flowchart; an SVG for measured data such as a latency curve>
 
 ## 6. Why
 

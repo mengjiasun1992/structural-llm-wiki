@@ -6,8 +6,8 @@ abstract_words) and holds the template's body sections. The skeleton a
 narrative follows is shared-skeleton.md with the body put where it says
 <!-- sllmwiki:body -->, and the skeleton is the schema: its ## headings are the
 required sections, in order; a heading ending in "(optional)" may be left out;
-<...> in a heading matches any text; a section holding a ```mermaid block
-needs a diagram. A wiki's own template in sllmwiki/.templates/<name>/ is offered next to
+<...> in a heading matches any text; a section holding a <picture: ...> line
+needs a picture, in whatever form shows it best. A wiki's own template in sllmwiki/.templates/<name>/ is offered next to
 the bundled ones, and one with a bundled template's name replaces it.
 Config.toml's [structural-llm-wiki-templates.<name>] tables set budgets over a
 template's header.
@@ -27,6 +27,7 @@ BODY_MARK = '<!-- sllmwiki:body -->'
 GUIDE_SECTIONS = ('Audience and purpose', 'Voice and tone', 'Structure', 'Evidence', 'Length', 'Checklist')
 HEADER_KEYS = ('description', 'use_when', 'max_words', 'abstract_words')
 OPTIONAL = re.compile(r'\s*\(optional\)\s*\Z', re.I)
+PICTURE = re.compile(r'<picture:', re.I)  # a section's placeholder for the picture it needs
 NAME = re.compile(r'[a-z0-9][a-z0-9_-]*\Z')  # as Config.toml's [structural-llm-wiki-templates.<name>]
 
 
@@ -105,7 +106,7 @@ class Template:
         out = []
         for i, h in enumerate(heads):
             end = heads[i + 1].line if i + 1 < len(heads) else len(lines)
-            diagram = any(line.strip().startswith('```mermaid') for line in lines[h.line:end])
+            diagram = any(PICTURE.match(line.strip()) for line in lines[h.line:end])
             out.append(Section(OPTIONAL.sub('', h.title), bool(OPTIONAL.search(h.title)), diagram))
         return out
 

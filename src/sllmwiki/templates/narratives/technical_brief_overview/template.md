@@ -13,9 +13,7 @@ abstract_words: [80, 150]
 
 <The idea in plain words, in one paragraph, then the one rule or formula it comes down to, then the picture of it.>
 
-```mermaid
-%% <the diagram that shows the idea best: a flowchart, sequenceDiagram, stateDiagram-v2, ...>
-```
+<picture: the idea at a glance, in the form that shows it best: a mermaid flowchart, sequenceDiagram or stateDiagram-v2 for structure and flow; an SVG for a curve, numbers or geometry>
 
 ## 5. How does it work?
 
