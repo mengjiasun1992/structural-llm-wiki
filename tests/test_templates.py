@@ -1,6 +1,7 @@
 """Tests for lib/templates.py and the bundled narrative templates."""
 
 import json
+import re
 import os
 import shutil
 import unittest
@@ -54,6 +55,11 @@ class Bundled(helpers.WikiTestCase):
         self.assertEqual(got, [('Context', False, False), ('The problem', False, False), ('What happened', False, True), ('Why', False, False),
                                ('The ideas at work', False, False), ('Outcome', True, False), ('Lessons', False, False),
                                ('Where to go next', True, False), ('Appendix', True, False)])
+        for name in ('case_study', 'comparison', 'survey', 'technical_brief_overview'):
+            skel = templates.get(self.root, name).skeleton()
+            self.assertNotIn('```mermaid', skel)  # the picture's format is the writer's choice, among picture_formats
+            line = next(x for x in skel.split('\n') if x.startswith('<picture:'))
+            self.assertFalse(re.search(r'mermaid|svg|png', line, re.I), line)  # a template says what to show, not in which format
         for name in ('case_study', 'comparison', 'survey'):
             skel = templates.get(self.root, name).skeleton()
             self.assertEqual(numbering.check(skel), [])
@@ -202,7 +208,7 @@ class Schema(helpers.WikiTestCase):
         self.assertIn('repeats "References"', self.problem(head + '## Steps\n\n<s>\n\n## References (optional)\n\n<r>\n'))
         self.assertIn('repeats "参考资料"', self.problem(head + '## 参考资料\n\n<r>\n'))  # in a language pack's words too
         self.assertIn('section "Steps" needs a <...> line', self.problem(head + '## Steps\n\nFree text.\n\n## Risks\n\n<r>\n'))
-        self.assertIsNone(self.problem(head + '## Steps\n\n```mermaid\n%% <a flowchart of the steps>\n```\n'))
+        self.assertIsNone(self.problem(head + '## Steps\n\n<picture: a flowchart of the steps>\n'))
 
     def test_headings_a_language_pack_doesnt_translate(self):
         self.problem()

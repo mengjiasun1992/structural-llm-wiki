@@ -40,6 +40,8 @@ class Checks(helpers.WikiTestCase):
         self.assertIn('MISSING_DIAGRAM', [c for c, _ in self.codes(placeholder)])
         sequence = text.replace(diagram, '```mermaid\n%% the retry\nsequenceDiagram\n    Client->>Server: request\n```\n')
         self.assertNotIn('MISSING_DIAGRAM', [c for c, _ in self.codes(sequence)])
+        figure = text.replace(diagram, '![Retry delays doubling](figures/retries/delays.svg)\n')
+        self.assertNotIn('MISSING_DIAGRAM', [c for c, _ in self.codes(figure)])  # a figure meets it as well as a diagram
         cut = text[:text.index('## 8. References')] + text[text.index('## 9. Metadata'):]
         self.assertEqual([c for c, _ in self.codes(cut) if c == 'MISSING_SECTION'], ['MISSING_SECTION'])
         no_end = text[:text.index('## 8. References')] + '- **Template:** technical_brief_overview\n'
