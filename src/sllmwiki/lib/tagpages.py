@@ -10,6 +10,7 @@ from . import layout
 from .compat import escape
 
 GENERATED = '<!-- sllmwiki:generated: rewritten by sllmwiki wiki-check --fix; edit tags.yaml and the manifests instead -->'
+MARKER = '<!-- sllmwiki:generated:'  # what every generated page's marker starts with, in any wording the skill has used
 
 
 def path(tag):
@@ -57,4 +58,6 @@ def render(tree, tag, questions, minutes=None):
 
 
 def is_generated(text):
-    return GENERATED in text
+    """Whether a page carries a generated marker, the index's or a tag page's, in today's wording or an
+    older one (before 1.2.0 it named wiki-check.py), so --fix keeps every page the wiki generated current."""
+    return MARKER in text

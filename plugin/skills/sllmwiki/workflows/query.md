@@ -8,7 +8,7 @@ Answer a question from what the wiki already knows, reading as little as possibl
    2. one section: `sllmwiki search outline <narrative>`, then `sllmwiki search section "<narrative>#<anchor>"`;
    3. the source section a citation points to: `sllmwiki search section "<the citation's link>"`, passed as is;
    4. sources no narrative covers yet: `sllmwiki search sources "<keywords>"`, then one section of the best.
-3. **Reply** with:
+3. **Reply,** written for the audience `search context` printed first, when it did, with:
    - the answer, citing each narrative or source section it rests on, as links;
    - a warning when a narrative it rests on was built on a source that has changed since;
    - what the wiki doesn't cover;

@@ -6,7 +6,7 @@ import unittest
 from unittest import mock
 
 import helpers
-from sllmwiki.lib import compat, manifest, policy, tagpages, wikiindex
+from sllmwiki.lib import compat, layout, manifest, policy, tagpages, wikiindex
 
 
 class Pages(helpers.WikiTestCase):
@@ -172,6 +172,20 @@ class Check(helpers.WikiTestCase):
         r = self.wc('--fix')
         self.assertIn('PAGE_HANDWRITTEN', r.out)
         self.assertEqual(self.read('sllmwiki/tags/leaf-a.md'), '# leaf-a\n\nMy own page.\n')
+
+    def test_pages_with_the_marker_from_before_1_2_0(self):
+        # the marker named wiki-check.py until the scripts became the sllmwiki package (#145); a page with it is still generated
+        self.wc('--fix')
+        for rel in ('sllmwiki/tags/leaf-a.md', layout.INDEX):
+            self.write(rel, self.read(rel).replace('sllmwiki wiki-check --fix', 'wiki-check.py --fix'))
+        self.write('sllmwiki/tags/gone.md', '# gone\n\n<!-- sllmwiki:generated: rewritten by wiki-check.py --fix; edit tags.yaml and the manifests instead -->\n')
+        codes = self.codes()
+        self.assertNotIn('PAGE_HANDWRITTEN', codes)
+        self.assertEqual(sorted(c for c in codes if c.endswith(('OUTDATED', 'ORPHAN'))), ['INDEX_OUTDATED', 'TAG_PAGE_ORPHAN', 'TAG_PAGE_OUTDATED'])
+        self.assertEqual(self.wc('--fix').code, 0)
+        self.assertIn('sllmwiki wiki-check --fix', self.read('sllmwiki/tags/leaf-a.md'))
+        self.assertIn('sllmwiki wiki-check --fix', self.read(layout.INDEX))
+        self.assertFalse(os.path.exists(os.path.join(self.root, 'sllmwiki/tags/gone.md')))
 
 
     def test_what_the_book_cannot_show(self):

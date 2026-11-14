@@ -1,6 +1,7 @@
 """search: find what to read, and read only that (design doc §6.1).
 
-  sllmwiki search context "<keywords>"         the matching tags, each with its SMEs, and the top
+  sllmwiki search context "<keywords>"         the wiki's audience profile, when it has one, to write the
+                                          answer for; the matching tags, each with its SMEs; and the top
                                           narratives, each with its abstract and the sources it
                                           read that have changed since: query's first tier, in one call
   sllmwiki search narratives "<keywords>"      the top narratives: question, abstract, path
@@ -16,8 +17,9 @@ Exit code: 0, 1 when nothing is found for outline or section, 2 on a usage error
 """
 
 import argparse
+import sys
 
-from sllmwiki.lib import search
+from sllmwiki.lib import audience, search
 from sllmwiki.lib.layout import Cli
 from sllmwiki.lib.util import comma_list, dumps
 
@@ -42,10 +44,16 @@ def main(argv):
     root = cli.wiki(args.root)
 
     if args.command == 'context':
-        result = {'tags': search.find_tags(root, args.what, args.limit), 'narratives': search.find_narratives(root, args.what, args.limit)}
+        profile = audience.read(root)
+        for prob in audience.problems(root):
+            print(f'search: {prob}', file=sys.stderr)
+        result = {'audience': profile, 'tags': search.find_tags(root, args.what, args.limit),
+                  'narratives': search.find_narratives(root, args.what, args.limit)}
         if args.json:
             print(dumps(result))
             return 0
+        if profile:
+            print(f'Write the answer for this wiki\'s audience ({audience.path(root)}), before the skill and its guides:\n\n{profile}\n')
         print('Tags:' + ('' if result['tags'] else ' none match'))
         for t in result['tags']:
             print(f'- {t["tag"]}: {t["description"]}' + ''.join(f'\n  - SME {s}' for s in t['smes']))
