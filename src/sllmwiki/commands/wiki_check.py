@@ -7,6 +7,7 @@ Errors:
                             (warning; rerun /sllmwiki:init, which moves them)
   LANGUAGE_PACK_INVALID     a language pack in sllmwiki/.templates/languages/ can't be read
   LANGUAGE_PACK             Config.toml's language has no pack, so headings stay English (warning)
+  AUDIENCE_TOO_LONG         the audience profile (the file Config.toml's audience names) is over its 800 words
   TEMPLATE_INVALID          one of the wiki's templates in sllmwiki/.templates/ doesn't load (so it isn't
                             offered), or Config.toml sets budgets for a template there isn't
   YAML_INVALID              tags.yaml or a manifest can't be read
@@ -49,7 +50,7 @@ errors, 1 with errors, 2 on a usage error.
 import argparse
 import os
 
-from sllmwiki.lib import book, compat, config, figures, footer, language, layout, manifest, policy, schema, tagtree, templates, wikiindex, wikiyaml, xrefs
+from sllmwiki.lib import audience, book, compat, config, figures, footer, language, layout, manifest, policy, schema, tagtree, templates, wikiindex, wikiyaml, xrefs
 from sllmwiki.lib.layout import Cli
 from sllmwiki.lib.util import dumps, read_bytes, read_text, source_hash
 
@@ -65,6 +66,8 @@ def check(root, fix=False, seen_by=None):
     settings = config.get(root).settings
     for p in language.use(root):
         add(('error', 'LANGUAGE_PACK_INVALID', f'{layout.TEMPLATES}/{language.FOLDER}', p))
+    for p in audience.problems(root):
+        add(('error', 'AUDIENCE_TOO_LONG', audience.path(root), p))
     for p in templates.available(root)[1]:
         name = p.split(':', 1)[0].split()[-1]
         add(('error', 'TEMPLATE_INVALID', layout.CONFIG if p.startswith('Config.toml') else f'{layout.TEMPLATES}/{name}', p))

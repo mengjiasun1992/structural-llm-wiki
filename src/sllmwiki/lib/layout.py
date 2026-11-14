@@ -24,6 +24,7 @@ OBSIDIAN_GRAPH = f'{CONTENT}/.obsidian/graph.json'
 INDEX = f'{CONTENT}/.SLLMWIKI_INDICES.md'
 TEMPLATES = f'{CONTENT}/.templates'  # the wiki's own narrative templates and language packs
 CONFIG = f'{CONTENT}/Config.toml'
+AUDIENCE = f'{TEMPLATES}/audience.md'  # the audience profile's default path; Config.toml's audience moves it (lib/audience.py)
 
 
 def in_content(rel):

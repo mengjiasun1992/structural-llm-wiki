@@ -16,7 +16,7 @@ def problems(text):
 class Defaults(helpers.WikiTestCase):
     def test_no_file_means_the_defaults(self):
         c = config.load(self.root)
-        self.assertEqual(c.settings, {'source_copies': 'allow', 'visibility': '', 'max_quote_words': 50, 'smes_exclude': [], 'markers': True, 'picture_formats': ['mermaid', 'svg', 'png'], 'max_pictures': 5, 'max_image_kb': 100, 'language': 'en'})
+        self.assertEqual(c.settings, {'source_copies': 'allow', 'visibility': '', 'audience': 'sllmwiki/.templates/audience.md', 'max_quote_words': 50, 'smes_exclude': [], 'markers': True, 'picture_formats': ['mermaid', 'svg', 'png'], 'max_pictures': 5, 'max_image_kb': 100, 'language': 'en'})
         self.assertEqual((c.templates, c.addons), ({}, {'obsidian': False}))
         self.assertEqual(config.problems(self.root), [])
 
@@ -35,11 +35,16 @@ class Defaults(helpers.WikiTestCase):
 
 class Settings(unittest.TestCase):
     def test_every_setting(self):
-        c = parse('[structural-llm-wiki-settings]\nsource_copies = "links-only"\nvisibility = "private"\nmax_quote_words = 25\n'
+        c = parse('[structural-llm-wiki-settings]\nsource_copies = "links-only"\nvisibility = "private"\naudience = "docs/readers.md"\nmax_quote_words = 25\n'
                   'smes_exclude = ["@owner", "dependabot"]\nmarkers = false\n')
-        self.assertEqual(c.settings, {'source_copies': 'links-only', 'visibility': 'private', 'max_quote_words': 25,
+        self.assertEqual(c.settings, {'source_copies': 'links-only', 'visibility': 'private', 'audience': 'docs/readers.md', 'max_quote_words': 25,
                                       'smes_exclude': ['@owner', 'dependabot'], 'markers': False,
                                       'picture_formats': ['mermaid', 'svg', 'png'], 'max_pictures': 5, 'max_image_kb': 100, 'language': 'en'})
+
+    def test_audience_paths_allowed(self):
+        for path in ('', 'sllmwiki/.templates/audience.md', 'sllmwiki/.private/readers.md', 'docs/readers.md', 'AUDIENCE.md'):
+            with self.subTest(path=path):
+                self.assertEqual(parse(f'[structural-llm-wiki-settings]\naudience = "{path}"\n').settings['audience'], path)
 
     def test_bad_values(self):
         cases = [
@@ -47,6 +52,17 @@ class Settings(unittest.TestCase):
             ('source_copies = true', 'source_copies must be a string'),
             ('visibility = "internal"', 'visibility must be "private", "public" or ""'),
             ('visibility = false', 'visibility must be a string'),
+            # the audience profile: a markdown file in the repository, out of the Obsidian vault and its notes and tags
+            ('audience = "sllmwiki/narratives/readers.md"', 'audience must stay out of the Obsidian vault'),
+            ('audience = "sllmwiki/tags/readers.md"', 'audience must stay out of the Obsidian vault'),
+            ('audience = "sllmwiki/readers.md"', 'audience must stay out of the Obsidian vault'),
+            ('audience = "sllmwiki/./readers.md"', 'audience must stay out of the Obsidian vault'),
+            ('audience = "/etc/readers.md"', 'audience must be a path in the repository'),
+            ('audience = "../readers.md"', 'audience must be a path in the repository'),
+            ('audience = "docs/../../readers.md"', 'audience must be a path in the repository'),
+            ('audience = "C:/readers.md"', 'audience must be a path in the repository'),
+            ('audience = "docs/readers.txt"', 'audience must be a markdown file (.md)'),
+            ('audience = 1', 'audience must be a string'),
             ('max_quote_words = 0', 'max_quote_words must be a positive whole number'),
             ('max_quote_words = "50"', 'max_quote_words must be a whole number'),
             ('max_quote_words = true', 'max_quote_words must be a whole number'),
@@ -59,7 +75,7 @@ class Settings(unittest.TestCase):
             ('picture_formats = ["gif"]', "picture_formats must list some of 'mermaid', 'svg', 'png'"),
             ('picture_formats = "svg"', 'picture_formats must be a list'),
             ('marker = true', 'unknown setting structural-llm-wiki-settings.marker (did you mean markers?)'),
-            ('zzz = true', 'unknown setting structural-llm-wiki-settings.zzz (known: source_copies, visibility, max_quote_words'),
+            ('zzz = true', 'unknown setting structural-llm-wiki-settings.zzz (known: source_copies, visibility, audience, max_quote_words'),
         ]
         for line, msg in cases:
             with self.subTest(line=line):

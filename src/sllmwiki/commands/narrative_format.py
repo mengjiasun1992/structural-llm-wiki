@@ -24,9 +24,13 @@ narrative shares (design doc §4.5, §4.8, §4.10).
                      template, it replaces it
   sllmwiki narrative-format --skeleton NAME the skeleton a new narrative starts from, in the wiki's language
                      [--language TAG]  or in another one (a BCP 47 tag, such as zh-Hans)
-  sllmwiki narrative-format --guide NAME    how to write it: the template's guide.md, then shared.md (what every
-                                      narrative shares: citations, markers, quoting) and shared-guide.md (the
-                                      style every narrative shares)
+  sllmwiki narrative-format --guide NAME    how to write it: the wiki's audience profile when it says something
+                                      (the file Config.toml's audience names, which comes first), the
+                                      template's guide.md, then shared.md (what every narrative shares:
+                                      citations, markers, quoting) and shared-guide.md (the style every
+                                      narrative shares)
+  sllmwiki narrative-format --audience      the audience profile alone, for what isn't a narrative, such as
+                                      an answer; or a line saying the wiki has none
 
 Options: --root <wiki>. Exit code: 0 with no errors (warnings are printed),
 1 with errors, 2 on a usage error.
@@ -37,12 +41,12 @@ import glob
 import os
 import sys
 
-from sllmwiki.lib import citations, compat, config, figures, language, layout, numbering, templates
+from sllmwiki.lib import audience, citations, compat, config, figures, language, layout, numbering, templates
 from sllmwiki.lib.narrativecheck import check, stats
 from sllmwiki.lib.layout import Cli
 from sllmwiki.lib.util import dumps, read_text, write_text
 
-cli = Cli('sllmwiki narrative-format', 'usage: sllmwiki narrative-format [<narrative.md> ...] [--fix-numbering] [--fix-style] | --templates | --skeleton NAME [--language TAG] | --guide NAME')
+cli = Cli('sllmwiki narrative-format', 'usage: sllmwiki narrative-format [<narrative.md> ...] [--fix-numbering] [--fix-style] | --templates | --skeleton NAME [--language TAG] | --guide NAME | --audience')
 def main(argv):
     p = argparse.ArgumentParser(prog='sllmwiki narrative-format', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('files', nargs='*')
@@ -53,6 +57,7 @@ def main(argv):
     p.add_argument('--from', dest='base', metavar='BASE')
     p.add_argument('--skeleton', metavar='NAME')
     p.add_argument('--guide', metavar='NAME')
+    p.add_argument('--audience', action='store_true')
     p.add_argument('--language', metavar='TAG')
     p.add_argument('--stats', action='store_true')
     p.add_argument('--json', action='store_true')
@@ -91,10 +96,20 @@ def main(argv):
             for w in warnings:
                 print(f'warning: {w}')
         return 1 if problems else 0
+    if args.audience or args.guide:
+        profile = audience.read(root)
+        for prob in audience.problems(root):
+            print(f'narrative-format: {prob}', file=sys.stderr)
+    if args.audience:
+        print(profile or 'This wiki has no audience profile (Config.toml\'s audience): write for the readers the guides describe.')
+        return 0
     if args.guide:
         if args.guide not in offered:
             cli.fail(f'no template {args.guide}; there are {", ".join(sorted(offered))}')
         guide = offered[args.guide]
+        if profile:
+            print(f'<!-- {audience.path(root)}: who this wiki is written for; it comes before the skill and the guides '
+                  f'below -->\n{profile}\n')
         for title, path in ((f'{guide.name}/guide.md ({guide.source})', guide.guide),
                             ('shared.md', os.path.join(templates.BUNDLED, 'shared.md')),
                             ('shared-guide.md', os.path.join(templates.BUNDLED, 'shared-guide.md'))):

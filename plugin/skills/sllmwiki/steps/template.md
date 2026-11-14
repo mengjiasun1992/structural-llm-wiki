@@ -2,6 +2,8 @@
 
 A wiki can bring its own templates, for kinds of answers the bundled ones don't fit: a folder in `sllmwiki/.templates/<name>/` with a `template.md` and a `guide.md`, offered next to the bundled ones; one named like a bundled template replaces it. A wiki that only wants a different length sets `max_words` or `abstract_words` in `Config.toml` instead (`[structural-llm-wiki-templates.<name>]`); do that, and stop here.
 
+**The wiki's audience** isn't a template but one file before the skill and every guide, the one `Config.toml`'s `audience` names (init starts it empty in `sllmwiki/.templates/audience.md`; another path must stay out of the Obsidian vault, and `""` turns it off). Write the owner's description there (who the readers are, what they already know, what they need from an answer), at most 800 words. `sllmwiki wiki-check` must not report `AUDIENCE_TOO_LONG`. End with `sllmwiki publish commit template --json` titled `"Audience"`, its body the profile in a sentence, and stop here.
+
 ## 1. Start from the closest template
 
 From what the owner describes (the questions it answers, its reader, what each answer must contain), pick the closest template in `sllmwiki narrative-format --templates`. Then `sllmwiki narrative-format --new-template <name> --from <closest>` copies it into `sllmwiki/.templates/<name>/` for you to change. To change a bundled template for this wiki only, give its own name. Choose a short noun for a new name, such as `postmortem`.
