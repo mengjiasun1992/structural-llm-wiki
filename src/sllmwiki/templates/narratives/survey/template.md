@@ -13,7 +13,7 @@ abstract_words: [80, 150]
 
 <The groups the items fall into, and what holds each together, in the picture; the caption says what it shows.>
 
-<picture: the groups and their items, in the form that shows them best: a mermaid mindmap, flowchart or quadrantChart; an SVG for a layout to scale or numbers>
+<picture: the groups and their items: a mind map, a flowchart of what supports what, or a quadrant chart of two trade-offs>
 
 ## 6. The main items
 

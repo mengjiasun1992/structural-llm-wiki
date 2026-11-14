@@ -17,7 +17,7 @@ abstract_words: [80, 150]
 
 <The answer: a decision diagram whose questions are the conditions the scenarios changed, then each candidate's rules, the situations where it wins and the signs it's time to switch, each pointing to the dimension below that justifies it.>
 
-<picture: the questions that decide the choice, the recommended candidate marked: a mermaid flowchart, or an SVG when the choice turns on numbers>
+<picture: the questions that decide the choice, the recommended candidate marked: a decision flowchart, or a chart when the choice turns on numbers>
 
 ## 5. At a glance
 

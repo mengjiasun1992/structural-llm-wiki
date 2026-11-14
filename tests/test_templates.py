@@ -1,6 +1,7 @@
 """Tests for lib/templates.py and the bundled narrative templates."""
 
 import json
+import re
 import os
 import shutil
 import unittest
@@ -55,7 +56,10 @@ class Bundled(helpers.WikiTestCase):
                                ('The ideas at work', False, False), ('Outcome', True, False), ('Lessons', False, False),
                                ('Where to go next', True, False), ('Appendix', True, False)])
         for name in ('case_study', 'comparison', 'survey', 'technical_brief_overview'):
-            self.assertNotIn('```mermaid', templates.get(self.root, name).skeleton())  # the picture's form is the writer's choice
+            skel = templates.get(self.root, name).skeleton()
+            self.assertNotIn('```mermaid', skel)  # the picture's format is the writer's choice, among picture_formats
+            line = next(x for x in skel.split('\n') if x.startswith('<picture:'))
+            self.assertFalse(re.search(r'mermaid|svg|png', line, re.I), line)  # a template says what to show, not in which format
         for name in ('case_study', 'comparison', 'survey'):
             skel = templates.get(self.root, name).skeleton()
             self.assertEqual(numbering.check(skel), [])

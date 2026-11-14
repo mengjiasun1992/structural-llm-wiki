@@ -13,7 +13,7 @@ abstract_words: [80, 150]
 
 <The idea in plain words, in one paragraph, then the one rule or formula it comes down to, then the picture of it.>
 
-<picture: the idea at a glance, in the form that shows it best: a mermaid flowchart, sequenceDiagram or stateDiagram-v2 for structure and flow; an SVG for a curve, numbers or geometry>
+<picture: the idea at a glance: a flowchart, sequence diagram or state diagram for structure and flow; a chart or drawing for a curve, numbers or geometry>
 
 ## 5. How does it work?
 
