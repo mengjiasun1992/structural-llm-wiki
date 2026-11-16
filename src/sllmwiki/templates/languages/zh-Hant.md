@@ -62,6 +62,7 @@ narrative written in it, and how to write it.
 | Figure | 圖 |
 | Our own reasoning, after a statement or on a section's heading: a conclusion, comparison or example no cited source states. | 我們自己的推論，標在陳述之後或章節標題上：引用的來源中沒有的結論、比較或例子。 |
 | A gap, after a statement or on a heading: something the question needs that the sources don't answer. | 缺口，標在陳述之後或標題上：問題需要、而來源沒有回答的內容。 |
+| An owner's note: a quote block at the end of a section, the wiki owner's own view, agreed with them before it was written; the username and date say whose and when. Not a source. | 擁有者的筆記：章節末尾的引用區塊，是 wiki 擁有者自己的看法，寫入前已與其確認；使用者名稱和日期說明是誰、何時寫的。不是來源。 |
 
 ## Book
 

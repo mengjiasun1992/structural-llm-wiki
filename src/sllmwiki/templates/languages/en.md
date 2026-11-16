@@ -71,6 +71,7 @@ and the markers' Terminology rows.
 | Figure | |
 | Our own reasoning, after a statement or on a section's heading: a conclusion, comparison or example no cited source states. | |
 | A gap, after a statement or on a heading: something the question needs that the sources don't answer. | |
+| An owner's note: a quote block at the end of a section, the wiki owner's own view, agreed with them before it was written; the username and date say whose and when. Not a source. | |
 
 ## Book
 

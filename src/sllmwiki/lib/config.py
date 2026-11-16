@@ -7,6 +7,7 @@
     max_quote_words = 50
     smes_exclude = []
     markers = true
+    owner_notes = false
     picture_formats = ["mermaid", "svg", "png"]
     language = "en"
 
@@ -53,6 +54,7 @@ DEFAULTS = {
     'max_quote_words': 50,     # the longest quotation a narrative may take from a source
     'smes_exclude': [],        # people and bots never listed as SMEs
     'markers': True,           # the [→] and [?] markers (design doc §4.10)
+    'owner_notes': False,      # the owner's notes, [\*user date] quote blocks at a section's end (design doc §4.10.1)
     'picture_formats': ['mermaid', 'svg', 'png'],  # the kinds of picture a narrative may use (design doc §4.5.3)
     'max_pictures': 5,         # pictures in one narrative, at most; 0: none
     'max_image_kb': 100,       # an SVG or PNG figure's size, at most

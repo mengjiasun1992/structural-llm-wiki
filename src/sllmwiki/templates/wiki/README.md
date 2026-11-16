@@ -19,7 +19,7 @@ A Structural LLM Wiki: this team's knowledge, kept in git by a coding agent with
 
 ## Reading a narrative
 
-Every claim cites the section of a source it rests on: the number links to it. Citations sit inside the sentence, before its period, as in a paper. What no source says is marked where a citation would go, `[→]` (the narrative's own reasoning) or `[?]` (something the sources don't answer), or once on a heading for a whole section; a narrative defines the ones it uses. When `Config.toml` sets `markers = false`, there are no markers: an uncited sentence is the narrative's own.
+Every claim cites the section of a source it rests on: the number links to it. Citations sit inside the sentence, before its period, as in a paper. What no source says is marked where a citation would go, `[→]` (the narrative's own reasoning) or `[?]` (something the sources don't answer), or once on a heading for a whole section; a narrative defines the ones it uses. When `Config.toml` sets `markers = false`, there are no markers: an uncited sentence is the narrative's own. When it sets `owner_notes = true`, a quote block at a section's end starting `[*<username> <date>]` is the owner's own note on that section: their view, not a source.
 
 ## Joining
 

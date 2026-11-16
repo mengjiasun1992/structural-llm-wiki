@@ -8,7 +8,8 @@ in one command (design doc §7.5).
 In order: numbers the headings and figure captions; repairs links to a renumbered
 section of another narrative; moves references and markers inside their
 sentence, before its closing punctuation; writes the renderer escapes; converts old markers
-and adds a Terminology row for each marker the narrative uses (when markers are on); sets the
+and adds a Terminology row for each marker the narrative uses (when markers are on); writes each
+owner's note marker [* as [\\* and defines the notes in Terminology (when owner_notes is on); sets the
 Metadata's dates and, for a new narrative, version 1.0 and its first history
 entry, or with --bump, the next version and --note as its history entry;
 records the narrative with its template, tags, the current pins of the sources
@@ -28,7 +29,7 @@ Exit code: 0 finished with no errors, 1 when errors remain or it was refused,
 import argparse
 import os
 
-from sllmwiki.lib import citations, compat, figures, language, layout, manifest, markers, metadata, numbering, readingplan, runstats, templates, wikiindex, xrefs
+from sllmwiki.lib import citations, compat, figures, language, layout, manifest, markers, metadata, notes, numbering, readingplan, runstats, templates, wikiindex, xrefs
 from sllmwiki.lib.narrativecheck import check as check_narrative
 from sllmwiki.lib.layout import Cli
 from sllmwiki.lib.util import comma_list, dumps, read_text, today, write_text
@@ -105,6 +106,11 @@ def main(argv):
     if settings['markers']:
         text, n = markers.add_rows(text, language.for_narrative(text, settings['language'])[1])
         done += [f'defined {n} marker(s) in Terminology'] if n else []
+    if settings['owner_notes']:
+        text, n = notes.escape(text)
+        done += [f'wrote {n} note marker(s) [*… as [\\*…'] if n else []
+        text, n = notes.add_row(text, language.for_narrative(text, settings['language'])[1])
+        done += ['defined the owner\'s notes in Terminology'] if n else []
     meta = metadata.read(text)
     name = meta['template']
     offered = templates.available(root)[0]  # once: it reads and checks every template folder
