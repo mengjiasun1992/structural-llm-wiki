@@ -73,9 +73,9 @@ class Command(helpers.WikiTestCase):
                                          'before the skill and its guides:\n\n# Readers\n\nProduct managers: open with "Bottom line:".\n\nTags:\n'), r.out[:300])
         self.assertEqual(json.loads(self.s('context', 'alpha', '--json').out)['audience'],
                          '# Readers\n\nProduct managers: open with "Bottom line:".')
-        self.write('sllmwiki/.templates/audience.md', ' '.join(['word'] * 801))
+        self.write('sllmwiki/.templates/audience.md', ' '.join(['word'] * 1001))
         r = self.s('context', 'alpha')
-        self.assertIn('over its 800', r.err)  # still shown, with the problem
+        self.assertIn('over its 1000', r.err)  # still shown, with the problem
         self.assertTrue(r.out.startswith('Write the answer for'))
 
     def test_narratives_and_sources(self):

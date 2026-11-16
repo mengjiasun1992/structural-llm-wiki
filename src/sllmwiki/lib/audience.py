@@ -11,10 +11,10 @@ import re
 from . import config, language
 from .util import read_text
 
-MAX_WORDS = 800
+MAX_WORDS = 1000  # 800 until a real profile needed its checklist (mengjia-sllmwiki#65)
 STARTER = ('# Who reads this wiki\n\n'
            '<!-- Empty for now: the skill writes for the readers its guides describe. Say who reads this wiki, what they\n'
-           'already know and what they need from an answer, in at most 800 words; it comes before the skill\'s and the\n'
+           'already know and what they need from an answer, in at most 1000 words; it comes before the skill\'s and the\n'
            'guides\' rules on how to write. Config.toml\'s audience names this file. -->\n')
 COMMENT = re.compile(r'<!--.*?-->', re.S)
 

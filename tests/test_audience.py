@@ -1,5 +1,5 @@
 """Tests for lib/audience.py: the wiki's audience profile, at the path Config.toml's audience names, before the
-skill and every guide, in at most 800 words; init's empty starter; and how narrative-format and wiki-check use it."""
+skill and every guide, in at most 1000 words; init's empty starter; and how narrative-format and wiki-check use it."""
 
 import json
 import os
@@ -58,26 +58,26 @@ class Profile(helpers.WikiTestCase):
         self.assertEqual(audience.path(self.root), 'docs/readers.md')
         self.assertEqual(audience.read(self.root), PROFILE.strip())
         self.assertTrue(self.nf('--guide', 'comparison').out.startswith('<!-- docs/readers.md: who this wiki'))
-        self.write('docs/readers.md', ' '.join(['word'] * 801))
+        self.write('docs/readers.md', ' '.join(['word'] * 1001))
         r = json.loads(helpers.run('wiki-check.py', ['--root', self.root, '--visibility', 'private', '--json']).out)
         self.assertEqual([f['file'] for f in r['findings'] if f['code'] == 'AUDIENCE_TOO_LONG'], ['docs/readers.md'])
 
-    def test_at_most_800_words(self):
+    def test_at_most_1000_words(self):
         self.write(layout.AUDIENCE, ' '.join(['word'] * audience.MAX_WORDS))
         self.assertEqual(audience.problems(self.root), [])
         self.write(layout.AUDIENCE, ' '.join(['word'] * (audience.MAX_WORDS + 1)) + '\n<!-- ' + 'not counted ' * 50 + '-->\n')
-        self.assertIn('801 words, over its 800', audience.problems(self.root)[0])
+        self.assertIn('1001 words, over its 1000', audience.problems(self.root)[0])
         self.assertIn('AUDIENCE_TOO_LONG', self.codes())
         r = self.nf('--audience')  # still printed, with the problem on stderr: the run goes on, the wiki's CI fails
         self.assertEqual(r.code, 0)
-        self.assertIn('over its 800', r.err)
+        self.assertIn('over its 1000', r.err)
         self.assertTrue(r.out.startswith('word word'))
-        self.assertIn('over its 800', self.nf('--guide', 'comparison').err)
+        self.assertIn('over its 1000', self.nf('--guide', 'comparison').err)
 
     def test_chinese_counts_by_characters(self):
-        self.write(layout.AUDIENCE, '读' * 1280)  # 1280 characters at 1.6 to a word: 800 words
+        self.write(layout.AUDIENCE, '读' * 1600)  # 1600 characters at 1.6 to a word: 1000 words
         self.assertEqual(audience.problems(self.root), [])
-        self.write(layout.AUDIENCE, '读' * 1290)
+        self.write(layout.AUDIENCE, '读' * 1610)
         self.assertEqual(len(audience.problems(self.root)), 1)
 
     def test_not_a_template(self):

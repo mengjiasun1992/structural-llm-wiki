@@ -81,7 +81,7 @@ Each kind of answer comes from a template, picked by the question's subject. Eac
 
 When no template fits a question, the agent uses the closest one and says so in the pull request, with the request to make one.
 
-**Who your wiki is written for.** The guides write for a reader from a technical or research field who is new to the topic. If your readers are someone else, say so once, in the audience file: `init` creates it empty, in `sllmwiki/.templates/audience.md`, and `audience` in `Config.toml` can move it anywhere in the repository outside the Obsidian vault, or turn it off with `""`. Ask "write this wiki for our product managers: no code, the decision first", or edit it yourself, in at most 800 words. From then on every narrative and answer follows it before the skill's and the guides' own rules, though never over the source policy or the review of each pull request. How it works: [the design, §4.5.7](structural_llm_wiki_design.md#457-the-wikis-audience).
+**Who your wiki is written for.** The guides write for a reader from a technical or research field who is new to the topic. If your readers are someone else, say so once, in the audience file: `init` creates it empty, in `sllmwiki/.templates/audience.md`, and `audience` in `Config.toml` can move it anywhere in the repository outside the Obsidian vault, or turn it off with `""`. Ask "write this wiki for our product managers: no code, the decision first", or edit it yourself, in at most 1000 words. From then on every narrative and answer follows it before the skill's and the guides' own rules, though never over the source policy or the review of each pull request. How it works: [the design, §4.5.7](structural_llm_wiki_design.md#457-the-wikis-audience).
 
 ## 5. Citations and markers
 

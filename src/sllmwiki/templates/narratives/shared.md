@@ -32,7 +32,7 @@ A number you compute from a cited formula, with its inputs shown, isn't your own
 
 ## Readers' annotations
 
-Only with `reader_annotations = true` in Config.toml. An annotation is a reader's own view of a section, never a source or your reasoning. Write one only from what that reader said, once you agree on what it means, any conflict with the sources settled first; reframe it in the narrative's style as a quote block of its own, `> [* <YYYY-MM-DD> <github username>] …`, at the end of the section's own text, newest first, never inline nor in Terminology, SMEs, References or Metadata. It holds no citation or marker: a correction goes before it, cited or marked.
+Only with `reader_annotations = true` in Config.toml. An annotation is a reader's own view of a section, never a source or your reasoning. Write one only from what that reader said, once you agree on what it means, any conflict with the sources settled first; reframe it in the narrative's style as a quote block of its own, `> [* <YYYY-MM-DD> <github username>] …`, at the end of the section's own text, newest first, never inline nor in Terminology, SMEs, References or Metadata. It states the understanding you agreed on, corrections folded in, never the reader's first words beside a list of corrections; and it holds no citation or marker.
 
 ## Quoting
 
