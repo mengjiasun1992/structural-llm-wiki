@@ -21,7 +21,7 @@ Read in that order, each source once, and only what the plan says: whole sources
 - **Where:** save the narrative as `sllmwiki/narratives/<question-slug>.md`.
 - **What to follow:** the three guides `sllmwiki narrative-format --guide <template>` prints: the template's, `shared.md` and `shared-guide.md`.
 - **Updating:** keep the narrative's version history and say what changed.
-- **The owner's notes** (when `owner_notes` is on): add the ones the owner gave, as `shared.md` says. Inside a run, one whose meaning is unclear or that conflicts with the sources waits: it goes in the summary's decisions.
+- **Readers' annotations** (when `reader_annotations` is on): add the ones a reader gave, as `shared.md` says. Inside a run, one whose meaning is unclear or that conflicts with the sources waits: it goes in the summary's decisions.
 
 ## 4. Finish
 
@@ -35,7 +35,7 @@ Read in that order, each source once, and only what the plan says: whole sources
 
 `sllmwiki publish commit narrative --tags <its primary tags> --json '{...}'` with:
 - `title`: the question;
-- `checklist`: `"<the question>: answers it, every claim cited or marked, reads well"`, and `"Notes: each says what you meant"` when it added or reframed an owner's note;
+- `checklist`: `"<the question>: answers it, every claim cited or marked, reads well"`, and `"Annotations: each says what you meant"` when it added or reframed a reader's annotation;
 - `body`:
   - reuse, expand or new, and why;
   - the template, and why it fits the subject; or, when none fits, that none does, the closest taken, what it leaves out, and how to add one: ask `make a template for <this kind of answer>`;

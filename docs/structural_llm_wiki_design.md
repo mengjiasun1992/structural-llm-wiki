@@ -339,7 +339,7 @@ audience = "sllmwiki/.templates/audience.md"  # who the wiki is written for, bef
 max_quote_words = 50        # the longest quotation a narrative may take from a source
 smes_exclude = []           # never listed as SMEs, such as the wiki's owner or bots: ["@alice", "dependabot"]
 markers = true              # false: no [→] or [?] markers (§4.10)
-owner_notes = false         # true: the owner's notes in narratives (§4.10.1)
+reader_annotations = false  # true: readers' annotations in narratives (§4.10.1)
 picture_formats = ["mermaid", "svg", "png"]  # the kinds of picture a narrative may use
 max_pictures = 5            # pictures in one narrative, at most; 0: none
 max_image_kb = 100          # an SVG or PNG figure's size, at most
@@ -383,21 +383,21 @@ A narrative says plainly what its sources don't. Two markers do it, each written
 - **Checked.** `narrative-format` reports a marker that doesn't follow its statement, or that shares it with a citation. Lint reports a factual claim that is neither cited nor marked, and a marked statement that a source does state, which should be cited instead.
 - **Turned off.** With `markers = false` (§4.9), narratives use no markers and Terminology gets no marker rows. An uncited sentence is then the narrative's own reasoning, a gap is said in words ("the sources don't say …"), and lint still reports a factual claim without a citation. The wiki's README says which convention the wiki uses.
 
-#### 4.10.1 The owner's notes
+#### 4.10.1 Readers' annotations
 
-A third kind of statement, beside a source's and the narrative's own: the owner's. When the owner retells a section in their own words, or has a view on it, marking that `[→]` would say the agent reasoned it, and correcting it in place would lose the owner's words. A note keeps both apart. Off by default (`owner_notes = false`, §4.9), since most wikis are written for readers other than the owner.
+A third kind of statement, beside a source's and the narrative's own: a reader's. When a reader retells a section in their own words, or has a view on it, marking that `[→]` would say the agent reasoned it, and correcting it in place would lose the reader's words. An annotation keeps both apart. Off by default (`reader_annotations = false`, §4.9), since most wikis are written for readers who only read. ("Note" would collide with the Obsidian vault's notes, §4.8.)
 
 ```markdown
-> [\*mengjiasun1992 2026-11-16] The whole network reads like a function of if-blocks…
+> [* 2026-11-16 mengjiasun1992] The whole network reads like a function of if-blocks…
 ```
 
-- **The marker** is `[*<github username> <YYYY-MM-DD>]`: whose note and when, so several people's notes stay apart and sort by date. The `*` is written `[\*`, so no renderer starts emphasis at it (`finish-narrative` escapes it), and no `@`, so rendering the narrative notifies no one.
-- **Intent first.** The agent writes a note only from what the owner said, after they agree on what it means; a conflict with the sources is raised then and settled before anything is written. The agent reframes the note in the narrative's style. Inside a run, which doesn't pause, the pull request's checklist lists every note added or reframed ("Notes: each says what you meant"), and one whose meaning is unclear waits in the summary's decisions.
-- **A section's footnote, never inline.** A note is a quote block of its own at the end of the section's own text, before the next heading; one section is the finest grain, which keeps the narrative's text clean. A note on the whole narrative goes in an Appendix section, such as "In my own words". Several notes on one section are separate quote blocks, newest first.
-- **The owner's words only.** A note holds no citation or marker; a correction it needs is a paragraph of its own before the notes, cited or marked.
-- **Checked.** `narrative-format` reports a malformed marker (`NOTE_FORMAT`), a note inside a paragraph (`NOTE_INLINE`), one that isn't at its section's end or is in Terminology, SMEs, References or Metadata (`NOTE_PLACEMENT`), a citation or marker inside one (`NOTE_MIXED`), notes out of date order (`NOTE_ORDER`), an unescaped `[*` (`NOTE_ESCAPE`), a missing Terminology row (`NOTE_UNDEFINED`), and any note while `owner_notes` is off (`NOTE_OFF`). Notes don't count toward the word budget. Lint compares each note with what its section now says and removes one that no longer fits, listing it with its text in the run's decisions so the owner can restore it.
-- **Read as the owner's.** A query that uses a note quotes it with its marker, as the owner's view, not a source; the book keeps it as the quote block it is, and its Glossary leaves out the notes' Terminology row.
-- **Out of scope:** a document the owner writes, where notes could sit inline: a possible third kind of document beside sources and narratives.
+- **The marker** is `[* <YYYY-MM-DD> <github username>]`: when and whose. The date comes first, at a fixed width, so annotations scan by time like a log; the username, of any length, comes last, so several readers' annotations stay apart. The space after `*` keeps every renderer from starting emphasis there (checked on GitHub and markdown-it, which MyST uses), so the marker is typed as it shows; no `@`, so rendering the narrative notifies no one.
+- **Intent first.** The agent writes an annotation only from what that reader said, after they agree on what it means; a conflict with the sources is raised then and settled before anything is written. The agent reframes it in the narrative's style. Inside a run, which doesn't pause, the pull request's checklist lists every annotation added or reframed ("Annotations: each says what you meant"), and one whose meaning is unclear waits in the summary's decisions.
+- **A section's footnote, never inline.** An annotation is a quote block of its own at the end of the section's own text, before the next heading; one section is the finest grain, which keeps the narrative's text clean. One on the whole narrative goes in an Appendix section, such as "In my own words". Several on one section are separate quote blocks, newest first.
+- **The reader's words only.** An annotation holds no citation or marker; a correction it needs is a paragraph of its own before the annotations, cited or marked.
+- **Checked.** `narrative-format` reports a malformed marker (`ANNOTATION_FORMAT`), an annotation inside a paragraph (`ANNOTATION_INLINE`), one that isn't at its section's end or is in Terminology, SMEs, References or Metadata (`ANNOTATION_PLACEMENT`), a citation or marker inside one (`ANNOTATION_MIXED`), annotations out of date order (`ANNOTATION_ORDER`), a missing Terminology row (`ANNOTATION_UNDEFINED`), and any annotation while `reader_annotations` is off (`ANNOTATION_OFF`). Bracketed italics such as `[*sic*]` are no marker. Annotations don't count toward the word budget. Lint compares each with what its section now says and removes one that no longer fits, listing it with its text in the run's decisions so it can be restored.
+- **Read as the reader's.** A query that uses an annotation quotes it with its marker, as that reader's view, not a source; the book keeps it as the quote block it is, and its Glossary leaves out the annotations' Terminology row.
+- **Out of scope:** a document a reader writes, where annotations could sit inline: a possible third kind of document beside sources and narratives.
 
 ## 5. Building knowledge: `build`
 

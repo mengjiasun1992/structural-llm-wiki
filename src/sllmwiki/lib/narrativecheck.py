@@ -1,12 +1,12 @@
 """The checks sllmwiki narrative-format and sllmwiki finish-narrative run on a narrative
 (design doc §4.5, §4.8, §4.10): template sections, diagrams, numbers, lengths,
-citations, markers, owner's notes, placeholders, doubled punctuation and markdown every
+citations, markers, readers' annotations, placeholders, doubled punctuation and markdown every
 renderer reads alike."""
 
 import os
 import re
 
-from . import citations, compat, figures, language, layout, manifest, markers, mdlinks, metadata, notes, numbering, quotes, xrefs
+from . import annotations, citations, compat, figures, language, layout, manifest, markers, mdlinks, metadata, numbering, quotes, xrefs
 from .compat import mask_code_spans, mask_spans, scan
 
 PLACEHOLDER = re.compile(r'<(?!https?://|mailto:|/)[^<>\n]*\s[^<>\n]*>')
@@ -139,14 +139,14 @@ def check(root, rel, text, settings, offered):
         lo, hi = template.abstract_words
         if not lo <= n <= hi:
             out.append(('error', 'ABSTRACT_LENGTH', 1, f'the Abstract has {n} words; {template.name} wants {lo}-{hi}'))
-        body = words(body_lines(notes.without(text)))  # the owner's notes are theirs, not the budget's
+        body = words(body_lines(annotations.without(text)))  # readers' annotations are theirs, not the budget's
         if body > template.max_words:
             out.append(('warning', 'BODY_LENGTH', 1, f'the body has {body} words, over {template.name}\'s budget of {template.max_words}'))
     out += numbering.check(text)
     out += citations.check(text)
     out += check_citation_targets(root, rel, text)
     out += markers.check(text, settings['markers'])
-    out += notes.check(text, settings['owner_notes'], _titles(('Terminology', 'SMEs', 'References', 'Metadata')))
+    out += annotations.check(text, settings['reader_annotations'], _titles(('Terminology', 'SMEs', 'References', 'Metadata')))
     out += quotes.check(root, rel, text, settings['max_quote_words'])
     out += figures.check(root, rel, text, settings['picture_formats'], settings['max_image_kb'])
     out += figures.check_pictures(text, settings['picture_formats'], settings['max_pictures'])
@@ -195,7 +195,7 @@ def stats(root, rel, text, offered):
             by[(grades.get(c.slug) or {}).get('authority', 'ungraded')] += 1
     used = markers.uses(text)
     return {'file': rel, 'template': name, 'budget': template.max_words if template else None,
-            'body_words': words(body_lines(notes.without(text))), 'abstract_words': words(metadata.abstract(text).split('\n')),
+            'body_words': words(body_lines(annotations.without(text))), 'abstract_words': words(metadata.abstract(text).split('\n')),
             'sections': sections, 'citations': by,
             'markers': {'statements': sum(1 for i, _, _ in used if not lines[i].lstrip().startswith('#')),
                         'headings': sum(1 for i, _, _ in used if lines[i].lstrip().startswith('#'))},

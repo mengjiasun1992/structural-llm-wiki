@@ -10,7 +10,7 @@ Answer a question from what the wiki already knows, reading as little as possibl
    4. sources no narrative covers yet: `sllmwiki search sources "<keywords>"`, then one section of the best.
 3. **Reply,** written for the audience `search context` printed first, when it did, with:
    - the answer, citing each narrative or source section it rests on, as links;
-   - an owner's note it uses, quoted with its marker as the owner's view, not a source ("your note of 2026-11-16 says …");
+   - a reader's annotation it uses, quoted with its marker as that reader's view, not a source ("your annotation of 2026-11-16 says …");
    - a warning when a narrative it rests on was built on a source that has changed since;
    - what the wiki doesn't cover;
    - who to ask: the tags' SMEs;
