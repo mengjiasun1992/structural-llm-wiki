@@ -18,7 +18,7 @@ BUDGETS = {  # words per file; a run loads SKILL.md, a workflow, its steps, shar
 }
 TEMPLATE_BUDGETS = {  # the same, for the narrative templates in the package
     'narratives/shared.md': 600,
-    'narratives/shared-guide.md': 1300,  # 900 until Pictures became a judgment rule (#156); 1060 until Tell it as a story
+    'narratives/shared-guide.md': 1450,  # 900 until Pictures became a judgment rule (#156); 1060 until Tell it as a story; 1300 until the foundations lessons
 }
 TEMPLATE_AND_GUIDE = 1400
 BUILD_LOAD = 9000  # SKILL.md, build, its steps, shared.md, shared-guide.md and the largest template with its guide
