@@ -97,7 +97,9 @@ class Fetch(unittest.TestCase):
                  ('', 'page.htm', 'html'), ('', 'data.bin', None), ('image/png', 'x.png', None),
                  ('application/x-tex', 'x', 'tex'), ('text/x-tex', 'x', 'tex'), ('', 'main.tex', 'tex'),
                  ('text/plain; charset=utf-8', 'https://e.com/tcp_input.c', 'code'), ('text/x-python', 'a.py', 'code'),
-                 ('', 'b.go', 'code'), ('text/html', 'page.py', 'html'), ('', 'clients.rst', 'text'), ('text/x-rst', 'x', 'text')]
+                 ('', 'b.go', 'code'), ('text/html', 'page.py', 'html'), ('', 'clients.rst', 'text'), ('text/x-rst', 'x', 'text'),
+                 ('application/json', 'https://e.com/raw/main/config.json', 'code'), ('text/plain', 'values.yaml', 'code'),
+                 ('', 'pyproject.toml', 'code'), ('application/json', 'x', None)]
         for ct, name, want in cases:
             self.assertEqual(fetch.kind_of(ct, name), want, (ct, name))
         self.assertEqual((fetch.charset('text/html; charset=ISO-8859-1'), fetch.charset('text/html')), ('ISO-8859-1', None))

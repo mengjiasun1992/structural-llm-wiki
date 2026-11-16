@@ -10,7 +10,7 @@ HTML page's main content converted, a PDF's text layer with its outline as
 headings, an EPUB's chapters in reading order (never one whose chapters are
 encrypted), a LaTeX source's sections as headings and its math kept as TeX (its
 \\input files read from beside --file), a plain-text standard (an RFC) with its
-numbered sections as headings, a code file in one fenced block so citations
+numbered sections as headings, a code or config file (.json, .yaml, .toml) in one fenced block so citations
 can name its lines (#L10-L20), with the "Original source" footer. The source is recorded with a
 starter abstract (its opening words, marked abstract_draft); read the source
 and replace it with `sllmwiki manifest set-abstract <slug> --abstract "..."`.

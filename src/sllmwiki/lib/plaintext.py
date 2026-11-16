@@ -20,7 +20,8 @@ LINES = re.compile(r'L(?P<start>[1-9][0-9]*)(?:-L(?P<end>[1-9][0-9]*))?\Z')
 MIN_SECTIONS = 3
 LANGUAGES = {'.py': 'python', '.go': 'go', '.c': 'c', '.h': 'c', '.cc': 'cpp', '.cpp': 'cpp', '.hpp': 'cpp', '.java': 'java',
              '.js': 'javascript', '.ts': 'typescript', '.rs': 'rust', '.rb': 'ruby', '.sh': 'bash', '.scala': 'scala',
-             '.kt': 'kotlin', '.swift': 'swift', '.cs': 'csharp', '.erl': 'erlang', '.ex': 'elixir', '.hs': 'haskell'}
+             '.kt': 'kotlin', '.swift': 'swift', '.cs': 'csharp', '.erl': 'erlang', '.ex': 'elixir', '.hs': 'haskell',
+             '.json': 'json', '.yaml': 'yaml', '.yml': 'yaml', '.toml': 'toml'}  # config files, cited by line like code
 
 
 def _fence(body):

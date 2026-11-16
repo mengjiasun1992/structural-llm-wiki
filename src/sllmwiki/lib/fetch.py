@@ -96,12 +96,15 @@ def _fetch_once(url, timeout):
         raise FetchError(f'{url}: {getattr(e, "reason", e)}') from None
 
 
+CONFIG_TYPES = ('application/json', 'application/yaml', 'application/x-yaml', 'text/yaml', 'application/toml')  # a config file served as itself
+
+
 def kind_of(content_type, name):
     """'text', 'html', 'pdf', 'epub', 'tex' or 'code' from a content type, else from the file name's extension; None when neither tells.
-    A code file served as plain text is code."""
+    A code or config file (.json, .yaml, .toml) served as plain text or as its own type is code."""
     ct = (content_type or '').split(';')[0].strip().lower()
     ext = os.path.splitext(name.split('?')[0].split('#')[0])[1].lower()
-    if ext in plaintext.LANGUAGES and (ct in ('', 'text/plain', 'application/octet-stream') or ct.startswith('text/x-')):
+    if ext in plaintext.LANGUAGES and (ct in ('', 'text/plain', 'application/octet-stream') + CONFIG_TYPES or ct.startswith('text/x-')):
         return 'code'
     by_type = {'text/markdown': 'text', 'text/x-markdown': 'text', 'text/plain': 'text', 'text/html': 'html',
                'application/xhtml+xml': 'html', 'application/pdf': 'pdf', 'application/epub+zip': 'epub', 'application/x-tex': 'tex', 'text/x-tex': 'tex', 'text/x-rst': 'text'}
