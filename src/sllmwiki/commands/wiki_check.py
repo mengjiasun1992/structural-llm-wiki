@@ -7,7 +7,7 @@ Errors:
                             (warning; rerun /sllmwiki:init, which moves them)
   LANGUAGE_PACK_INVALID     a language pack in sllmwiki/.templates/languages/ can't be read
   LANGUAGE_PACK             Config.toml's language has no pack, so headings stay English (warning)
-  AUDIENCE_TOO_LONG         the audience profile (the file Config.toml's audience names) is over its 800 words
+  AUDIENCE_TOO_LONG         the audience profile (the file Config.toml's audience names) is over its 1000 words
   TEMPLATE_INVALID          one of the wiki's templates in sllmwiki/.templates/ doesn't load (so it isn't
                             offered), or Config.toml sets budgets for a template there isn't
   YAML_INVALID              tags.yaml or a manifest can't be read

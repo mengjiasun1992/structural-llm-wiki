@@ -11,9 +11,9 @@ marker [* <YYYY-MM-DD> <github username>]:
 
 The space after * keeps every renderer from reading it as the start of
 emphasis, so the marker is typed as it shows. Several annotations on one
-section are separate quote blocks, newest first. An annotation holds the
-reader's words only: a correction goes in a paragraph of its own, cited or
-marked, before the annotations.
+section are separate quote blocks, newest first. An annotation states the
+understanding the reader and the agent agreed on, corrections folded in, and
+holds no citation or marker.
 """
 
 import datetime
@@ -137,13 +137,13 @@ def check(text, on=False, names=None):
                 j += 1
             else:
                 out.append(('error', 'ANNOTATION_PLACEMENT', a.line + 1, 'an annotation goes at the end of its section\'s own text, after '
-                                                                         'everything else and before the next heading; a correction to it goes before'))
+                                                                         'everything else and before the next heading'))
                 break
         body = '\n'.join(lines[a.line:a.last + 1])
         rest = mask_spans(body[body.index(']') + 1:])
         if CITE.search(rest) or _OTHER_MARKERS.search(rest):
-            out.append(('error', 'ANNOTATION_MIXED', a.line + 1, 'an annotation holds the reader\'s words only: put a citation or marker '
-                                                                 'in a paragraph of its own, before the annotations'))
+            out.append(('error', 'ANNOTATION_MIXED', a.line + 1, 'an annotation holds no citation or marker: put the claim in the '
+                                                                 'section\'s text, cited or marked'))
         by_section.setdefault(head.line, []).append(a)
     for group in by_section.values():
         for a, b in zip(group, group[1:]):
