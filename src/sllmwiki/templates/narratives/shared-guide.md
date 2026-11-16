@@ -22,8 +22,9 @@ Explain it in the order the reader meets it, not a textbook's:
 - **One new concept at a time,** in its own step or paragraph, never in a clause.
 - **The example is set up once, in full,** in its scene: every case and number the narrative later uses is there from the start.
 - **Say what is what:** what is set by hand to teach, what someone chooses before it runs, what is learned or measured, what is fixed in use, and each assumption, where it is made, so the reader never guesses why. Where the toy behaves unlike the real system, say so there.
-- **A derivation goes one link at a time:** the nearest case first, each link checked with a number, then the general rule.
-- **Names come after use:** once the reader has seen a part work, give its official name; a table from the story's words to the field's terms closes the mechanism.
+- **What it does before how to read it:** a process opens with what it achieves at a glance (the question it answers, what goes in and out, what it costs), before any figure or walkthrough.
+- **A derivation goes one link at a time:** the nearest case first, every hop shown, each link checked with a number, then the general rule. Show the arithmetic behind every rule and number, never "by calculus" or "the rule is"; give each quantity its unit and write each division out; say when a number is a rate at a point rather than the effect of a whole step; never explain a method with the one it replaces.
+- **Names come after use:** once the reader has seen a part work, give its official name; a table from the story's words to the field's terms closes the mechanism. Never coin a shorthand of your own ("the floor"): say what the thing does.
 
 ## Ideas first, sources second
 
@@ -43,13 +44,13 @@ A template's sections are where content goes, not a form to fill. When an option
 
 ## Detail in its place
 
-The body holds what the reader needs to follow the answer; what they may want but don't need goes in the Appendix, linked from where it's relevant. The budget is a ceiling, not a target: stop once the question is answered. An answer that needs several areas new to the reader is several narratives, one question each, read in order, each saying what it needs from the one before. Over it, move a secondary example or variant to the Appendix; never cut context. The questions a reader would ask after the body can go in the Appendix as an FAQ, each answered briefly.
+The body holds what the reader needs to follow the answer; what they may want but don't need goes in the Appendix, linked from where it's relevant. The budget is a ceiling, not a target: stop once the question is answered. An answer that needs several areas new to the reader is several narratives, one question each, read in order, each saying what it needs from the one before. Over it, move a secondary example or variant to the Appendix; never cut context or reasoning. The questions a reader would ask after the body can go in the Appendix as an FAQ, each answered briefly.
 
 ## Pictures
 
 A picture earns its place when it saves the reader from building something in their head: how the parts fit, what happens in what order, how a state changes, a quantity's shape. Add one wherever it does, each teaching something new, up to `max_pictures`; none where it would only decorate. Choose the form by what it shows: boxes are no stand-in for a chart or geometry. What follows is a floor and rules of thumb, not a limit: judge each case by what helps this reader learn.
 
-- **Where it helps most:** the map of the whole, near the start; the running example step by step, the same small diagram at each step rather than one dense one; before and after. A comparison is often clearest as a table.
+- **Where it helps most:** the map of the whole, near the start; the running example step by step, the same small diagram at each step rather than one dense one, showing what each step reuses from the steps before as well as what it adds; before and after. A comparison is often clearest as a table.
 - **The form:** whichever of the wiki's `picture_formats` shows this idea best; none comes first.
   - **Mermaid**, text each viewer draws: structure and flow in a standard shape, in the type that fits (`sequenceDiagram` for messages, `stateDiagram-v2` for states, `timeline` for history, `quadrantChart` for trade-offs on two axes, `mindmap` for a field's parts, `flowchart` for a process). Some viewers, GitHub's among them, clip a long node label: keep labels to a few words, or draw an SVG.
   - **An SVG** you draw controls every position: a curve, measured data, geometry, a layout to scale, or a diagram mermaid would crowd.
