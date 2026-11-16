@@ -89,6 +89,8 @@ As in a paper, a claim's numbered citations sit inside its sentence, before the 
 
 What no source states is marked `[→]` (the narrative's own reasoning), and something the sources don't answer `[?]` (a gap), never filled with a guess. A marker goes where a citation goes, or once on a heading for a whole section; each narrative defines the ones it uses ([an example](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-is-an-ewma-exponentially-weighted-moving-average-and-how-does-it-work.md)). Turn them off with `markers = false`.
 
+With `reader_annotations = true`, a narrative can also hold your own annotations: tell the agent your view of a section, agree on what it means, and it adds a quote block at the section's end, `> [* <date> <your github username>] …`, apart from the cited text. Lint removes an annotation once its section no longer fits it, and lists it on the pull request so you can restore it. How it works: [the design, §4.10.1](structural_llm_wiki_design.md#4101-readers-annotations).
+
 ## 6. Keeping it true
 
 Each narrative records the source versions it read and the narratives it builds on. Ask the agent to refresh a topic's sources ("refresh the gateway sources"): it re-saves the ones that changed where they came from, the wiki's checks flag exactly the narratives built on them, and a lint ("lint the gateway narratives") rechecks just those against the new version. A narrative that builds on another is flagged when that one changes, too.
@@ -113,6 +115,7 @@ audience = "sllmwiki/.templates/audience.md"  # who the wiki is written for; "" 
 max_quote_words = 50        # the longest quotation a narrative may take
 smes_exclude = []           # never listed as SMEs, such as the wiki's owner or bots
 markers = true              # false: no reasoning or gap markers
+reader_annotations = false  # true: your own annotations, quote blocks at a section's end
 picture_formats = ["mermaid", "svg", "png"]  # the kinds of picture a narrative may use
 max_pictures = 5            # pictures in one narrative, at most; 0: none
 max_image_kb = 100          # an SVG or PNG figure's size, at most

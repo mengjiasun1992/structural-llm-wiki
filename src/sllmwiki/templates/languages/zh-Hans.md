@@ -62,6 +62,7 @@ it, and how to write it.
 | Figure | 图 |
 | Our own reasoning, after a statement or on a section's heading: a conclusion, comparison or example no cited source states. | 我们自己的推理，标在陈述之后或章节标题上：引用的来源中没有的结论、比较或例子。 |
 | A gap, after a statement or on a heading: something the question needs that the sources don't answer. | 缺口，标在陈述之后或标题上：问题需要、而来源没有回答的内容。 |
+| A reader's annotation: a quote block at the end of a section, a reader's own view, agreed with them before it was written; the date and username say when and whose. Not a source. | 读者批注：章节末尾的引用块，是读者自己的看法，写入前已与其确认；日期和用户名说明何时、由谁写的。不是来源。 |
 
 ## Book
 

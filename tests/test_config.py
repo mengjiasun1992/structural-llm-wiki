@@ -16,7 +16,7 @@ def problems(text):
 class Defaults(helpers.WikiTestCase):
     def test_no_file_means_the_defaults(self):
         c = config.load(self.root)
-        self.assertEqual(c.settings, {'source_copies': 'allow', 'visibility': '', 'audience': 'sllmwiki/.templates/audience.md', 'max_quote_words': 50, 'smes_exclude': [], 'markers': True, 'picture_formats': ['mermaid', 'svg', 'png'], 'max_pictures': 5, 'max_image_kb': 100, 'language': 'en'})
+        self.assertEqual(c.settings, {'source_copies': 'allow', 'visibility': '', 'audience': 'sllmwiki/.templates/audience.md', 'max_quote_words': 50, 'smes_exclude': [], 'markers': True, 'reader_annotations': False, 'picture_formats': ['mermaid', 'svg', 'png'], 'max_pictures': 5, 'max_image_kb': 100, 'language': 'en'})
         self.assertEqual((c.templates, c.addons), ({}, {'obsidian': False}))
         self.assertEqual(config.problems(self.root), [])
 
@@ -36,9 +36,9 @@ class Defaults(helpers.WikiTestCase):
 class Settings(unittest.TestCase):
     def test_every_setting(self):
         c = parse('[structural-llm-wiki-settings]\nsource_copies = "links-only"\nvisibility = "private"\naudience = "docs/readers.md"\nmax_quote_words = 25\n'
-                  'smes_exclude = ["@owner", "dependabot"]\nmarkers = false\n')
+                  'smes_exclude = ["@owner", "dependabot"]\nmarkers = false\nreader_annotations = true\n')
         self.assertEqual(c.settings, {'source_copies': 'links-only', 'visibility': 'private', 'audience': 'docs/readers.md', 'max_quote_words': 25,
-                                      'smes_exclude': ['@owner', 'dependabot'], 'markers': False,
+                                      'smes_exclude': ['@owner', 'dependabot'], 'markers': False, 'reader_annotations': True,
                                       'picture_formats': ['mermaid', 'svg', 'png'], 'max_pictures': 5, 'max_image_kb': 100, 'language': 'en'})
 
     def test_audience_paths_allowed(self):

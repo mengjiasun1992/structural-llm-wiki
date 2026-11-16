@@ -30,6 +30,10 @@ Write it as yours, marked, never as a source's. When markers are on (the default
 
 A number you compute from a cited formula, with its inputs shown, isn't your own reasoning: cite the formula's section. Mark at the level the reasoning spans: a section that is all yours (applying the ideas, a constructed scenario) marks its heading once, `## 8. Applying them [→]`, not each sentence. A statement is cited or marked, never both. With `markers = false` in Config.toml, leave markers out: an uncited sentence is then your own, and a gap is said in words ("the sources don't say …").
 
+## Readers' annotations
+
+Only with `reader_annotations = true` in Config.toml. An annotation is a reader's own view of a section, never a source or your reasoning. Write one only from what that reader said, once you agree on what it means, any conflict with the sources settled first; reframe it in the narrative's style as a quote block of its own, `> [* <YYYY-MM-DD> <github username>] …`, at the end of the section's own text, newest first, never inline nor in Terminology, SMEs, References or Metadata. It holds no citation or marker: a correction goes before it, cited or marked.
+
 ## Quoting
 
 Explain in your own words and the narrative's language. Quote only a definition or key sentence, in quotation marks and its source's language (translated after it) with its citation, at most `max_quote_words` words (50 by default). Never copy tables, figures or passages.

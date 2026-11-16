@@ -15,7 +15,7 @@ import os
 import posixpath
 import re
 
-from . import citations, compat, config, language, layout, manifest, markers, mdlinks, metadata, numbering, tagtree
+from . import citations, compat, config, language, layout, manifest, markers, mdlinks, metadata, annotations, numbering, tagtree
 from .compat import mask_code_spans, scan
 from .util import read_text
 
@@ -466,13 +466,13 @@ def sources_page(book, sources, linked_by, pack):
 
 
 def terms(text):
-    """[(term, definition)] from a chapter's Terminology table, the markers' rows aside."""
+    """[(term, definition)] from a chapter's Terminology table, the markers' and readers' annotations' rows aside."""
     span = numbering.section(text, 'Terminology')
     rows = [line for line in text.split('\n')[span[0]:span[1]] if line.lstrip().startswith('|')] if span else []
     out = []
     for line in rows[2:]:  # the header and its rule
         cells = _cells(line.strip() if line.strip().endswith('|') else line.strip() + '|')
-        if len(cells) >= 2 and cells[0].strip('*') not in markers.MARKERS:
+        if len(cells) >= 2 and cells[0].strip('*') not in markers.MARKERS and cells[0] != f'**{annotations.TERM}**':
             out.append((cells[0], ' | '.join(cells[1:])))
     return out
 
