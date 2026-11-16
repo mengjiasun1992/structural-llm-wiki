@@ -11,7 +11,18 @@ Never make the reader interpret something before they know what it is and why it
 3. **Each key example's scene,** where it first appears: what the system does, its problem, and what goes wrong without the answer.
 4. **Each section, scenario, formula or piece of pseudocode** opens with what it's about and why the reader needs it here.
 
-Each term is defined before its first use. Depth comes after context, never instead of it.
+Each term is explained before it is used: show what it does, on the example, then give its name. Depth comes after context, never instead of it.
+
+## Tell it as a story
+
+Explain it in the order the reader meets it, not a textbook's:
+
+- **A job the reader cares about, with the data in hand:** a task they could face, the evidence they would have, and what goes wrong without the answer.
+- **Each concept arrives as the answer to the question the reader would ask next:** what is it for, why not something simpler, where does this number come from, is it fixed or does it change. A concept no question has asked for yet waits.
+- **One new concept at a time,** in its own step or paragraph, never in a clause.
+- **The example is set up once, in full,** in its scene: every case and number the narrative later uses is there from the start.
+- **Say what is what:** what is set by hand to teach, what is learned or measured, what is fixed in use, and each assumption, where it is made, so the reader never guesses why.
+- **Names come after use:** once the reader has seen a part work, give its official name; a table from the story's words to the field's terms closes the mechanism.
 
 ## Ideas first, sources second
 
@@ -31,7 +42,7 @@ A template's sections are where content goes, not a form to fill. When an option
 
 ## Detail in its place
 
-The body holds what the reader needs to follow the answer; what they may want but don't need goes in the Appendix, linked from where it's relevant. The budget is a ceiling, not a target: stop once the question is answered. Over it, move a secondary example or variant to the Appendix; never cut context.
+The body holds what the reader needs to follow the answer; what they may want but don't need goes in the Appendix, linked from where it's relevant. The budget is a ceiling, not a target: stop once the question is answered. An answer that needs several areas new to the reader is several narratives, one question each, read in order, each saying what it needs from the one before. Over it, move a secondary example or variant to the Appendix; never cut context.
 
 ## Pictures
 
