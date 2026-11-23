@@ -32,6 +32,7 @@ runs:
       shell: bash
       env:
         PRIVATE: ${{ github.event.repository.private }}
+        SLLMWIKI_MARKDOWNLINT: "off"  # its own step below
       run: PYTHONPATH="$GITHUB_ACTION_PATH/../.." python3 -m sllmwiki wiki-check --visibility "$([ "$PRIVATE" = true ] && echo private || echo public)"
 
     # sllmwiki narrative-format: each narrative against its template and the rules every narrative shares.
@@ -61,8 +62,9 @@ runs:
         python3 -m pip install --quiet --disable-pip-version-check pyyaml==6.0.2
         python3 "$GITHUB_ACTION_PATH/../../tools/check-yaml.py"
 
-    # markdownlint with this folder's .markdownlint-cli2.jsonc: the rules that catch markdown that renders wrong.
+    # markdownlint with the package's settings (sllmwiki/templates/markdownlint/): the rules that catch markdown
+    # that renders wrong. sllmwiki wiki-check runs the same locally, so it skips them above.
     - name: Markdown renders correctly
       if: success() || failure()
       shell: bash
-      run: npx --yes markdownlint-cli2@0.13.0 --config "$GITHUB_ACTION_PATH/.markdownlint-cli2.jsonc" "**/*.md"
+      run: npx --yes markdownlint-cli2@0.13.0 --config "$GITHUB_ACTION_PATH/../../sllmwiki/templates/markdownlint/.markdownlint-cli2.jsonc" "**/*.md"

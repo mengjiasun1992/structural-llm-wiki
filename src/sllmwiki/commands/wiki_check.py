@@ -34,7 +34,11 @@ Errors:
                             on any page under sllmwiki/ but the sources, markdown a
                             renderer would show wrong: GitHub, Obsidian or a book
                             (lib/compat.py; their warnings are warnings here too)
+  MD001, MD038, MD051, ...  markdownlint's rules, as the wiki's CI runs them on every .md file but the
+                            sources and .templates/ (lib/markdownlint.py; needs Node's npx)
 Warnings:
+  MARKDOWNLINT_SKIPPED      markdownlint couldn't run here (no Node, or offline): CI still runs it;
+                            SLLMWIKI_MARKDOWNLINT=off skips it on purpose
   NARRATIVE_SOURCE_CHANGED  a narrative was built on an older version of a source: recheck it
   NARRATIVE_BASE_CHANGED    a narrative it builds on changed since, or is gone: recheck the wording it reuses
   SOURCE_UPSTREAM_CHANGED   check-upstream found the original changed: re-ingest it
@@ -50,7 +54,7 @@ errors, 1 with errors, 2 on a usage error.
 import argparse
 import os
 
-from sllmwiki.lib import audience, book, compat, config, figures, footer, language, layout, manifest, policy, schema, tagtree, templates, wikiindex, wikiyaml, xrefs
+from sllmwiki.lib import audience, book, compat, markdownlint, config, figures, footer, language, layout, manifest, policy, schema, tagtree, templates, wikiindex, wikiyaml, xrefs
 from sllmwiki.lib.layout import Cli
 from sllmwiki.lib.util import dumps, read_bytes, read_text, source_hash
 
@@ -154,6 +158,7 @@ def check(root, fix=False, seen_by=None):
         text = read_text(os.path.join(root, rel))
         for sev, code, line, msg in compat.check(text) + compat.check_links(text, os.path.dirname(os.path.join(root, rel)), root):
             out.append((sev, code, f'{rel}:{line}', msg))
+    out += markdownlint.run(root)  # as the wiki's CI runs it, after --fix
     return out
 
 

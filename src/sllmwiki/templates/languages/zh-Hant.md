@@ -82,6 +82,7 @@ narrative written in it, and how to write it.
 | Cited by | 引用於 |
 | Known issues | 已知問題 |
 | {n} min read | 閱讀約 {n} 分鐘 |
+| About {n} min read. | 閱讀約 {n} 分鐘。 |
 | {n} min | {n} 分鐘 |
 | Original | 原文 |
 | The narratives in this book are the wiki owner's work. Every source belongs to its authors: the book links to it and quotes it briefly, but never copies it. | 本書中的敘述是 wiki 擁有者的作品。每個來源都屬於其作者：本書連結到來源並簡短引用，但從不複製。 |

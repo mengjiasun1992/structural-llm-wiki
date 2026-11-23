@@ -28,6 +28,7 @@ from sllmwiki.lib import util  # noqa: E402
 PACKAGE = os.path.dirname(sllmwiki.__file__)
 TEMPLATES = sllmwiki.TEMPLATES
 sys.dont_write_bytecode = True
+os.environ['SLLMWIKI_MARKDOWNLINT'] = 'off'  # tests never fetch from npm: test_markdownlint runs it with a stand-in
 
 
 @functools.lru_cache(maxsize=None)

@@ -18,7 +18,10 @@
 
 The model and the reading plan are views of the narrative's manifest entry
 (its models and grades), and the words a count of its text (reading()), all
-written by finish-narrative.
+written by finish-narrative. So is a reading-time line under the title
+(*About 5 min read.*, in the narrative's language), when the narrative has one:
+the writer adds it where the wiki's audience wants it, and finish-narrative keeps
+its minutes those of Words (with_reading_line).
 """
 
 import re
@@ -40,12 +43,55 @@ def title(text):
     return m.group(1) if m else None
 
 
+READING_LINE = 'About {n} min read.'  # the reading-time line's words, translated by the language packs
+
+
+def _reading_line(lines):
+    """(index, wording) of the reading-time line: the first line after the # title, past blank lines, when it is
+    *<READING_LINE or a pack's translation of it>*; None without one. wording keeps {n} for the minutes."""
+    from .language import names
+    start = next((i + 1 for i, line in enumerate(lines) if line.startswith('# ')), None)
+    i = next((j for j in range(start, len(lines)) if lines[j].strip()), None) if start is not None else None
+    if i is None:
+        return None
+    for wording in names(READING_LINE):
+        pattern = re.escape(wording).replace(re.escape('{n}'), '[0-9]+')
+        if re.fullmatch(rf'\*{pattern}\*[ \t]*', lines[i]):
+            return i, wording
+    return None
+
+
+def without_reading_line(text):
+    """text without its reading-time line (and the blank line after it), for the book, whose version line shows it."""
+    lines = text.split('\n')
+    found = _reading_line(lines)
+    if not found:
+        return text
+    del lines[found[0]:found[0] + (2 if found[0] + 1 < len(lines) and not lines[found[0] + 1].strip() else 1)]
+    return '\n'.join(lines)
+
+
+def with_reading_line(text):
+    """text with its reading-time line, when it has one, giving reading()'s minutes; unchanged without one."""
+    lines = text.split('\n')
+    found = _reading_line(lines)
+    if not found:
+        return text
+    i, wording = found
+    lines[i] = '*' + wording.replace('{n}', str(reading(text)[1])) + '*'
+    return '\n'.join(lines)
+
+
 def reading(text):
     """(words, minutes) of what a reader reads in the narrative: everything but its front matter, code and
-    diagram blocks, and the References, SMEs and Metadata sections; at WORDS_PER_MINUTE, at least a minute."""
+    diagram blocks, its reading-time line, and the References, SMEs and Metadata sections; at WORDS_PER_MINUTE,
+    at least a minute."""
     from .compat import scan
     from .narrativecheck import words  # the count budgets use: markdown, link targets and code fences left out
     lines = text.split('\n')
+    found = _reading_line(lines)
+    if found:
+        del lines[found[0]]
     for name in UNREAD:
         span = numbering.section('\n'.join(lines), name)
         if span:

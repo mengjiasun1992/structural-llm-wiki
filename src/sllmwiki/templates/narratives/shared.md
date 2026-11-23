@@ -10,7 +10,7 @@ A narrative answers one question, for its template's reader. It starts from `sll
 - **Appendix** (when needed): what a reader may want but doesn't need to follow the answer: the Glossary, a derivation, an example beyond the key ones, a table of values, a lesser variant. Each item is a ### subsection that still serves the question, and the body links to it where it's relevant.
 - **SMEs** (when known): who to ask, the evidence, and one specific question each.
 - **References:** the sources read in full, then the Citations list, which gives each citation number its target once.
-- **Metadata:** version, template, model, dates, history and the reading plan. `sllmwiki finish-narrative` keeps it.
+- **Metadata:** version, template, model, dates, history and the reading plan. `sllmwiki finish-narrative` keeps it, and the minutes of a reading-time line, `*About 1 min read.*`, written under the title when the audience wants one.
 
 ## Other narratives
 

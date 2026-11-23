@@ -15,6 +15,8 @@ mkdir -p "$work/src" && cp -R "$repo/src/sllmwiki" "$work/src/sllmwiki"
 python3 -m venv "$work/.venv"
 "$work/.venv/bin/python" -m pip install --quiet --disable-pip-version-check "$repo"
 export PATH="$work/.venv/bin:$PATH"
+# a run's sandbox can't reach npm either, so wiki-check skips markdownlint rather than wait on it
+export SLLMWIKI_MARKDOWNLINT=off
 rm -rf "$work/evals/results"
 status=0
 (cd "$work" && claude plugin eval . "$@") || status=$?
