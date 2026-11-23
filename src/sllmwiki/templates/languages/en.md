@@ -95,6 +95,7 @@ and `{source}` as they are: the book puts the links and names there.
 | Cited by | |
 | Known issues | |
 | {n} min read | |
+| About {n} min read. | |
 | {n} min | |
 | Original | |
 | The narratives in this book are the wiki owner's work. Every source belongs to its authors: the book links to it and quotes it briefly, but never copies it. | |

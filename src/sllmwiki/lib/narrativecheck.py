@@ -128,6 +128,11 @@ def check(root, rel, text, settings, offered):
         at = next(i for i, line in enumerate(text.split('\n'), 1) if line.startswith('- **Words:**'))
         out.append(('warning', 'WORDS_OUTDATED', at, f'Metadata says {meta["words"]} words; it is {metadata.reading_label(text)} now '
                                                     '(sllmwiki finish-narrative updates it)'))
+    fresh = metadata.with_reading_line(text)
+    if fresh != text:
+        at, line = next((i, a) for i, (a, b) in enumerate(zip(fresh.split('\n'), text.split('\n')), 1) if a != b)
+        out.append(('warning', 'READING_TIME_OUTDATED', at, f'the reading time under the title is now {line.strip("*")} '
+                                                          '(sllmwiki finish-narrative updates it)'))
     if not name:
         out.append(('error', 'NO_TEMPLATE', 1, 'Metadata names no template (- **Template:** <name>)'))
     elif not template:

@@ -16,7 +16,8 @@ records the narrative with its template, tags, the current pins of the sources
 it read, the reading plan's grades (--grades, the file given to sllmwiki reading-plan
 order, which must have run on it since it last changed)
 and the model that wrote a new version (this session's, or --model); writes the
-model and the reading plan into the Metadata; regenerates the index and tag
+model, the reading plan and the words into the Metadata, and the minutes into the
+reading-time line under the title when the narrative has one (*About 5 min read.*); regenerates the index and tag
 pages; then checks it with narrative-format and prints what's left.
 
 A new narrative needs --primary (its core tags) and --read (the saved sources it
@@ -127,6 +128,7 @@ def main(argv):
     version = fields.get('version') or meta['version']
     if model:
         fields['model'] = model
+    text = metadata.with_reading_line(text)  # the reading-time line isn't counted either
     fields['words'] = metadata.reading_label(text)  # Metadata isn't counted, so writing it doesn't change it
     text = metadata.write(text, fields, history, plan)  # the template was read from the Metadata section, so there is one
     write_text(path, text)

@@ -224,7 +224,7 @@ def rewrite(root, book, slug):
     text = read_text(os.path.join(root, rel))
     _, pack = language.for_narrative(text, config.get(root).settings['language'])
     version = _version_line(text, pack)
-    text = _without_metadata(text)
+    text = metadata.without_reading_line(_without_metadata(text))  # the version line has the reading time
     problems, targets, sources, figures = [], [], [], []
     own = numbering.anchors(text)
 

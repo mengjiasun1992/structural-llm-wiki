@@ -1,0 +1,11 @@
+// markdownlint-cli2's settings for a wiki: the rules next to this file, run by the wiki's CI
+// (src/actions/wiki-checks) and by sllmwiki wiki-check (lib/markdownlint.py), from the wiki's root.
+{
+  "config": {
+    "extends": "./.markdownlint.jsonc"
+  },
+  // sources are verbatim copies, never edited; .templates/ holds the wiki's own
+  // narrative templates, full of <placeholder> text (narrative-format checks them); .git/ holds
+  // a local run's state (sllmwiki publish), which CI never sees
+  "ignores": ["sllmwiki/sources/**", "sllmwiki/.templates/**", "**/node_modules/**", ".git/**"]
+}
