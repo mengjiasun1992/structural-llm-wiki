@@ -5,13 +5,15 @@ in one command (design doc §7.5).
                       [--grades GRADES.json] [--model NAME]
                       [--bump minor|major --note TEXT] [--json] [--root <wiki>]
 
-In order: numbers the headings and figure captions; repairs links to a renumbered
+In order: numbers the headings and figure captions; numbers the citations by first use
+and rebuilds the Citations list to match; repairs links to a renumbered
 section of another narrative; moves references and markers inside their
 sentence, before its closing punctuation; writes the renderer escapes; converts old markers
 and adds a Terminology row for each marker the narrative uses (when markers are on); defines
 readers' annotations in Terminology when a narrative has some (when reader_annotations is on); sets the
 Metadata's dates and, for a new narrative, version 1.0 and its first history
-entry, or with --bump, the next version and --note as its history entry;
+entry, or with --bump, the next version and --note as its history entry (not again when
+the newest entry already has that note, so a rerun after fixing errors bumps once);
 records the narrative with its template, tags, the current pins of the sources
 it read, the reading plan's grades (--grades, the file given to sllmwiki reading-plan
 order, which must have run on it since it last changed)
@@ -37,6 +39,12 @@ from sllmwiki.lib.util import comma_list, dumps, read_text, today, write_text
 
 cli = Cli('sllmwiki finish-narrative', 'usage: sllmwiki finish-narrative <slug> [--primary a,b] [--supporting c] [--read s1,s2] [--grades FILE] [--model NAME] '
           '[--bump minor|major --note TEXT]')
+
+
+def _latest_note(meta):
+    """The newest history entry's note, or None."""
+    entries = sorted(meta['history'], key=lambda e: tuple(int(p) for p in e[0].split('.')), reverse=True)
+    return entries[0][2].strip() if entries else None
 
 
 def main(argv):
@@ -95,6 +103,8 @@ def main(argv):
     done += [f'numbered {n} heading(s)'] if n else []
     text, n = figures.renumber(text)
     done += [f'numbered {n} figure caption(s)'] if n else []
+    text, n, dropped = citations.renumber(text)
+    done += [f'renumbered {n} citation(s)' + (f', dropped {dropped} no longer cited' if dropped else '')] if n or dropped else []
     text, n = xrefs.repair(root, rel, text)
     done += [f'repaired {n} link(s) to a renumbered section of another narrative'] if n else []
     if settings['markers']:
@@ -119,6 +129,8 @@ def main(argv):
     history = None
     if not meta['version']:
         fields['version'], history = '1.0', ('1.0', today(), 'First version.')
+    elif args.bump and _latest_note(meta) == args.note.strip():
+        done.append(f'version {meta["version"]} already has this note: not bumped again')  # a rerun after fixing errors
     elif args.bump:
         fields['version'] = metadata.bump(meta['version'], args.bump)
         history = (fields['version'], today(), args.note)

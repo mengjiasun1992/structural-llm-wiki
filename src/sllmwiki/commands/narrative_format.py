@@ -1,15 +1,21 @@
 """narrative-format: check narratives against their template, and the rules every
 narrative shares (design doc §4.5, §4.8, §4.10).
 
-  sllmwiki narrative-format [<narrative.md> ...] [--fix-numbering] [--fix-style] [--json]
+  sllmwiki narrative-format [<narrative.md> ...] [--fix-numbering] [--fix-citations] [--fix-style]
+                     [--render-mermaid] [--json]
       Checks the given narratives, or every one in sllmwiki/narratives/:
         the # title; the template named in Metadata; the template's sections, in
         order, and its diagrams, in the narrative's language; heading numbers; the Abstract's word range and
         the body's budget; citations (numbered in order, listed, pointing at an
         existing section of a saved source); the markers; leftover <placeholders>;
         and markdown every renderer reads alike, links included.
-      --fix-numbering renumbers the headings and figure captions; --fix-style moves references inside
-      their sentence and writes the renderer escapes. sllmwiki finish-narrative does both, and more.
+      --fix-numbering renumbers the headings and figure captions; --fix-citations numbers citations
+      1, 2, 3... by first use and rebuilds the Citations list to match, each link's target deciding what
+      its number means, dropping entries no longer cited; --fix-style moves references inside their
+      sentence and writes the renderer escapes. sllmwiki finish-narrative does all three, and more.
+      --render-mermaid also renders each mermaid diagram with mermaid-cli through npx (fetched on first
+      use, with a headless browser): an error for one that doesn't render (MERMAID_SYNTAX), a warning
+      when it can't run (MERMAID_UNCHECKED).
   sllmwiki narrative-format <narrative.md> ... --stats [--json]
       The numbers lint grades a narrative's aim with: the body against its budget,
       the words, subsections, citations and markers in each section, citations
@@ -41,16 +47,18 @@ import glob
 import os
 import sys
 
-from sllmwiki.lib import audience, citations, compat, config, figures, language, layout, numbering, templates
+from sllmwiki.lib import audience, citations, compat, config, figures, language, layout, mermaid, numbering, templates
 from sllmwiki.lib.narrativecheck import check, stats
 from sllmwiki.lib.layout import Cli
 from sllmwiki.lib.util import dumps, read_text, write_text
 
-cli = Cli('sllmwiki narrative-format', 'usage: sllmwiki narrative-format [<narrative.md> ...] [--fix-numbering] [--fix-style] | --templates | --skeleton NAME [--language TAG] | --guide NAME | --audience')
+cli = Cli('sllmwiki narrative-format', 'usage: sllmwiki narrative-format [<narrative.md> ...] [--fix-numbering] [--fix-citations] [--fix-style] [--render-mermaid] | --templates | --skeleton NAME [--language TAG] | --guide NAME | --audience')
 def main(argv):
     p = argparse.ArgumentParser(prog='sllmwiki narrative-format', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('files', nargs='*')
     p.add_argument('--fix-numbering', action='store_true')
+    p.add_argument('--fix-citations', action='store_true')
+    p.add_argument('--render-mermaid', action='store_true')
     p.add_argument('--fix-style', action='store_true')
     p.add_argument('--templates', action='store_true')
     p.add_argument('--new-template', metavar='NAME')
@@ -144,12 +152,17 @@ def main(argv):
         fixed = text
         if args.fix_numbering:
             fixed = figures.renumber(numbering.renumber(fixed)[0])[0]
+        if args.fix_citations:
+            fixed, n, dropped = citations.renumber(fixed)
+            if n or dropped:
+                print(f'renumbered {n} citation(s) in {rel}' + (f', dropped {dropped} no longer cited' if dropped else ''))
         if args.fix_style:
             fixed = compat.escape(citations.place(fixed)[0])[0]
         if fixed != text:
             write_text(path, fixed)
             print(f'fixed {rel}')
-        for sev, code, line, msg in check(root, rel, fixed, settings, offered):
+        found = check(root, rel, fixed, settings, offered) + (mermaid.render(fixed) if args.render_mermaid else [])
+        for sev, code, line, msg in found:
             results.append({'file': rel, 'line': line, 'severity': sev, 'code': code, 'message': msg})
             errors += sev == 'error'
     for prob in problems:

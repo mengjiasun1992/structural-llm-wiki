@@ -805,14 +805,15 @@ The step decides without pausing and says why on the pull request. The owner can
 `finish-narrative <slug> [--bump minor|major]` does every mechanical step after a narrative edit, in order:
 
 1. heading and caption numbers;
-2. links to renumbered sections;
-3. renderer escapes;
-4. marker conversion and the markers' Terminology rows;
-5. the version and history;
-6. the manifest entry with its source and `built_on` pins;
-7. the index and tag pages.
+2. citation numbers, 1, 2, 3 by first use, and the Citations list rebuilt to match (each link's target decides what its number means);
+3. links to renumbered sections;
+4. renderer escapes;
+5. marker conversion and the markers' Terminology rows;
+6. the version and history;
+7. the manifest entry with its source and `built_on` pins;
+8. the index and tag pages.
 
-`finish-narrative` prints what it changed and any finding it couldn't fix. The instructions name only this command, so no step lists finishing chores.
+`finish-narrative` prints what it changed and any finding it couldn't fix. It runs again after the agent fixes those findings, so `--bump` doesn't bump again when the newest history entry already has the same `--note` (issue #190). `narrative-format --fix-citations` renumbers the citations on their own. `narrative-format --render-mermaid` renders each mermaid diagram with mermaid-cli, when Node is installed: GitHub shows a diagram with a syntax error as an error box, and nothing else catches one. It runs only when asked, since mermaid-cli fetches a headless browser on first use. The instructions name only this command, so no step lists finishing chores.
 
 ## 8. Workflows and steps
 
