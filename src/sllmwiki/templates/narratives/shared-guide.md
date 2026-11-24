@@ -20,10 +20,10 @@ Depth comes after context, never instead of it.
 - **How it works, first:** a narrative on how something works describes it working, end to end, before any "why" or "why not something else".
 - **The big picture fits the subject,** on the running example, in everyday words, at the top of the section it maps, naming no new term:
   - a structure: a short map of its parts, each by what it does;
-  - a process: its steps in the order they really happen, setup before use, each by what it does ("first we time each reply, then we smooth those times");
+  - a process: its steps in the order they really happen, setup before use, each by what it does and how often it runs, at start, per job or every time ("first we time each reply, then we smooth those times");
   - both: the map, then the steps.
 
-  The parts or steps follow right after it; none restates where it sits. A step list holds only steps: trade-offs, failures and limits go to the template's sections for them, a recap to the end.
+  A picture in it comes first, its text after. The parts or steps follow right after it; none restates where it sits. A step list holds only steps: trade-offs, failures and limits go to the template's sections for them, a recap to the end.
 - **Headings say what a section explains,** as a statement ("Switches join every GPU"), not a question. A question the reader would ask is answered inside the section where it comes up; those left over go to an FAQ in the Appendix.
 - **Related content side by side:** a list next to the details it lists, a picture next to the text it explains.
 - **One new concept at a time,** in its own step or paragraph, and a step that brings in more than two is split; only a term the narrative passes through is defined in a clause (`shared.md`, Terminology). A term's definition cites a source, never `[→]`.
@@ -55,7 +55,7 @@ A list longer than five to seven items is grouped under a few named areas, each 
 
 ## One or two key examples
 
-One running example carries the narrative: each section that explains something comes back to it, so the reader never switches context to follow a point. A second only shows what the first can't. Others go in the Appendix, or are named in a sentence with a link. Pick the examples that fit this question; when a related narrative's key example fits just as well, reuse it and link to its scene. Work anything computed on the running example, with its numbers, step by step, in a small table where it helps: a reader follows three numbers faster than one formula. Name each value for what it is (`past`, `pred`), not by a bare letter.
+One running example carries the narrative: each section that explains something comes back to it, so the reader never switches context to follow a point. A second only shows what the first can't. Others go in the Appendix, or are named in a sentence with a link. Pick the examples that fit this question; when a related narrative's key example fits just as well, reuse it, but set it all up here, in one place (a table often does); a link to that narrative only adds detail. Work anything computed on the running example, with its numbers, step by step, in a small table where it helps: a reader follows three numbers faster than one formula. Name each value for what it is (`past`, `pred`), not by a bare letter.
 
 ## The shape fits the content
 
@@ -76,6 +76,7 @@ A picture earns its place when it saves the reader from building something in th
   - **A PNG**, only for what's raster by nature, like a heatmap.
   - Draw an image from the narrative's own formulas, numbers or structure, never traced from a source's figure: `sllmwiki/narratives/figures/<slug>/<name>.svg` or `.png`, light background, dark text, a generic font; an SVG keeps the formula and inputs it was drawn from in its `<desc>`.
 - **Easy to read:** one idea per picture, about a dozen elements at most, short plain-text labels in the narrative's names (`s_t`, as not every renderer draws math). Check that no label is cut off or overlaps another. Keep each thing's color and place the same across pictures. Color only what carries meaning, with light `classDef` fills and dark text, and never by color alone: a label, a shape or a dashed line says it too.
+- **Whole and representative:** draw a cycle whole, there and back; a diagram of one representative says how many run in parallel and what differs for the others.
 - **A picture makes claims:** it shows nothing its caption's citations don't support.
 
 Each picture is followed by its caption, on a line of its own: `*Figure 5-1: <its point, not just its subject; what each color means> [3].*`. The caption states the picture's point once; no paragraph repeats it. The text names the picture by its label where the reader should look. An image's alt text says what it shows. `sllmwiki narrative-format` checks the rest, the wiki's limits included.

@@ -14,10 +14,12 @@ Present tense, second person where it helps ("you configure …"). No hype, no h
 
 ## Structure
 
-- **Background:** the orientation, then the problem through the running example, then the prerequisites.
+- **Background:** the orientation, then the problem through the running example, then the prerequisites. A long one is split into subsections, its assumptions before the numbers that use them.
 - **The core idea before any detail:** in plain words first, as you'd say it to a colleague, then the one rule or formula, then the diagram that shows it.
 - **How it works, worked:** a numbered walkthrough, one step per arrow or transition of the diagram, each on the running example.
 - **Several new concepts: build up from a toy.** When the mechanism brings more than two concepts new to the reader, first build it on a toy small enough to compute by hand, in an ideal setting, one concept per step, in the concept plan's order; then take the same steps to the real running example, with a table from toy to real.
+- **Who does what, at each level:** a system with several levels (node, CPU, GPU, switch) gets a short table of each level's actions, in the body.
+- **The data on each path:** what crosses each path, how much per unit of work, and what isn't on it. Every rate says whether it is each way or both directions added.
 - **The basic form first;** then, in Variants, at most two, each one the running example needs or a reader is likely to meet, named as a variant of it.
 - **Decisions and limitations:** those that change how the running example behaves, about three each. Parameters come with rules of thumb: a typical value, how to choose it, and what goes wrong when it's too high or too low.
 
@@ -48,4 +50,5 @@ Spend the budget on the core idea worked in full on the running example; a neigh
 - [ ] The core idea is in plain words before its formula and diagram.
 - [ ] The walkthrough matches the diagram, step for step, on the running example.
 - [ ] Each parameter has a rule of thumb.
+- [ ] With several levels, a table says what each does; each path says what data crosses it, how much, and each rate's direction.
 - [ ] With several new concepts, a toy is built up one concept at a time before the real case.
