@@ -129,3 +129,50 @@ def check(text):
         if n not in first:
             out.append(('warning', 'CITATION_UNUSED', line + 1, f'[{n}] is listed but never cited'))
     return out
+
+
+def renumber(text):
+    """(text, changed, dropped): citations numbered 1, 2, 3... by the first use of each target, the body's link
+    deciding which section a number means, and the Citations list rebuilt to match, in that order. Each entry keeps
+    its own label; a target the list lacks gets <slug>: <section>. changed counts the body's citations and the list's
+    entries rewritten; dropped, the entries no longer cited."""
+    used = cites(text)
+    order = []
+    for c in used:
+        if c.target not in order:
+            order.append(c.target)
+    number = {t: i for i, t in enumerate(order, 1)}
+    lines = text.split('\n')
+    changed = 0
+    for i in sorted({c.line for c in used}):
+        def swap(m):
+            nonlocal changed
+            changed += number[m.group('target')] != int(m.group('n'))
+            return f'{m.group("space")}[\\[{number[m.group("target")]}\\]]({m.group("target")})'
+        lines[i] = CITE.sub(swap, lines[i])
+    span = _citations_span('\n'.join(lines))
+    if not span:
+        return '\n'.join(lines), changed, 0
+    entries = [i for i in range(span[0] + 1, span[1]) if _LISTED.match(lines[i])]
+    labels = {}
+    for i in entries:
+        labels.setdefault(_LISTED.match(lines[i]).group('target'), lines[i].split('.', 1)[1].strip())
+    rebuilt = [f'{number[t]}. {labels.get(t) or _label(t)}' for t in order]
+    old = [lines[i] for i in entries]
+    changed += sum(1 for a, b in zip(old, rebuilt) if a != b) + abs(len(old) - len(rebuilt))
+    dropped = sum(1 for t in labels if t not in number)
+    if entries:
+        at = entries[0]
+        lines = [line for j, line in enumerate(lines) if j not in set(entries)]
+        lines[at:at] = rebuilt
+    elif rebuilt:
+        lines[span[0] + 1:span[0] + 1] = [''] + rebuilt
+    return '\n'.join(lines), changed, dropped
+
+
+def _label(target):
+    """A Citations entry's label for a target the list lacks: <slug>: <section>, or the target itself."""
+    m = SOURCE_TARGET.match(target)
+    if not m:
+        return f'[{target}]({target})'
+    return f'[{m.group("slug")}: {m.group("anchor")}]({target})' if m.group('anchor') else f'[{m.group("slug")}]({target})'

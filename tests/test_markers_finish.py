@@ -180,6 +180,13 @@ class Finish(helpers.WikiTestCase):
         self.assertEqual(r.code, 0, r.out)
         meta = metadata.read(self.read(NARRATIVE))
         self.assertEqual((meta['version'], meta['history'][0][1:], len(meta['history'])), ('1.1', (meta['last_modified'], 'Added the jitter.'), 2))
+        r = self.finish('what-is-alpha', '--bump', 'minor', '--note', 'Added the jitter.')  # a rerun after fixing an error
+        self.assertEqual(r.code, 0, r.out)
+        self.assertIn('already has this note', r.out)
+        meta = metadata.read(self.read(NARRATIVE))
+        self.assertEqual((meta['version'], len(meta['history'])), ('1.1', 2))
+        self.assertEqual(self.finish('what-is-alpha', '--bump', 'minor', '--note', 'Another change.').code, 0)
+        self.assertEqual(metadata.read(self.read(NARRATIVE))['version'], '1.2')
 
     def test_a_narrative_without_history_gets_its_first_entry(self):
         self.write(NARRATIVE, helpers.narrative_text().replace('- **History:**\n  - 1.0 (2026-10-01): First version.\n', ''))
