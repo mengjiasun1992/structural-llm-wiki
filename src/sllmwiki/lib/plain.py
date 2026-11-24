@@ -10,6 +10,10 @@ long sentence is sometimes the clearest one. Lint judges the rest: passive voice
   bare "this" or "these" as a sentence's subject ("This means …"): name the thing.
 - SENTENCE_VAGUE: a vague word ("thing", "stuff", "very", "a lot"), a qualifier a number should replace ("significantly",
   "recently"), or a verb and noun one verb says ("make a decision").
+- ABBREV_UNDEFINED: an abbreviation (two or more capitals) whose first use outside the title and Terminology isn't
+  spelled out beside it, though the title may spell it out; "continuous integration (CI)" or "CI (continuous integration)"; general computing ones (GENERAL) need none.
+- PASSIVE_SHARE: more than MAX_PASSIVE of a narrative's sentences in the passive ("is cached", "were sent"), once
+  it has MIN_SENTENCES; one sentence alone may need the passive, so only the share is reported.
 - SENTENCE_UNSOURCED: an authority with no name ("experts agree", "it is widely believed", "studies show"): name and cite it.
 
 Only prose is checked: code, math, tables, block quotes (often a source's words), headings, and the
@@ -44,6 +48,15 @@ VAGUE = re.compile(r'\b(?:things?|stuff|very|really|quite|a lot|lots of|basicall
                    r'actually|definitely|extremely|somewhat|arguably|relatively|'
                    r'significantly|substantially|recently|'
                    r'(?:make|makes|made|making) an? (?:decision|choice)|(?:do|does|did|doing) an? (?:review|analysis))\b', re.I)
+GENERAL = frozenset('ACM AI API ARPANET ASCII AWS CLI CPU CSS CSV DNS EU FAQ GB GPU HTML HTTP HTTPS IBM ID IEEE IP ISO JSON KB MB MIT NASA '
+                    'NIST OK OS PDF PNG RAM RFC SHA SQL SSD SSH SVG TB TCP TLS UDP UI UK URI URL US USB UTC UTF XML YAML'
+                    .split())  # the reader's field knows these, or knows them by these names
+ABBR = re.compile(r'\b([A-Z]{2,})s?\b')
+NUMERAL = re.compile(r'[IVX]+')
+PASSIVE = re.compile(r"\b(?:is|are|was|were|be|been|being)\s+(?:not\s+|\w+ly\s+)?(?:\w+ed|built|chosen|done|drawn|given|"
+                     r'known|made|kept|sent|set|shown|taken|written|held|found|run|seen|split|spent|told|left|put|paid|'
+                     r'brought|broken|driven|hidden|bound|caught|led|lost|meant|sold|taught|won|grown|thrown)\b', re.I)
+MAX_PASSIVE, MIN_SENTENCES = 0.15, 20  # most writing standards ask for under 15% passive; too few sentences say nothing
 SPLIT = re.compile(r'(?<=[.!?;:])["\')*]*\s+')  # a colon or semicolon ends a clause the reader can stop at
 LINK = re.compile(r'\[([^\]]*)\]\([^)]*\)')
 CITE = re.compile(r'\[\\\[[0-9]+\\\]\]\([^)]*\)|\[→\]')
@@ -61,20 +74,50 @@ def _skipped(title):
     return title.lower() in {t.lower() for e in SKIPPED for t in language.names(e)}
 
 
+def _spelled(text, m):
+    """Whether the abbreviation m matched is spelled out beside it: "words (ABBR)" or "ABBR (words)"."""
+    before, after = text[:m.start()].rstrip(' *_'), text[m.end():].lstrip(' *_')
+    return after.startswith('(') or (before.endswith('(') and after.startswith(')'))
+
+
+def _abbreviations(line, seen, at):
+    """ABBREV_UNDEFINED for each abbreviation first met on this line and not spelled out beside it."""
+    out = []
+    text = LINK.sub(r'\1', CITE.sub('', mask_spans(line)))
+    for m in ABBR.finditer(text):
+        word = m.group(1)
+        if word in seen or word in GENERAL or NUMERAL.fullmatch(word):
+            continue
+        seen.add(word)
+        if not _spelled(text, m):
+            out.append(('warning', 'ABBREV_UNDEFINED', at, f'"{word}" isn\'t spelled out at its first use: write the words, '
+                                                          f'then ({word}); a word in capitals goes in lowercase'))
+    return out
+
+
 def check(text, tag):
     """[(severity, code, line, message)] for the narrative's prose; [] unless it is in English."""
     if tag.lower().split('-')[0] != 'en':
         return []
     lines = text.split('\n')
     kinds, _ = scan(lines)
-    out, skip = [], False
+    terminology = {t.lower() for t in language.names('Terminology')}
+    out, skip, glossary, passive, total = [], False, False, [], 0
+    title = next((line for line in lines if line.startswith('# ')), '')
+    seen = {m.group(1) for m in ABBR.finditer(title) if _spelled(title, m)}  # what the title spells out is defined
     for i, line in enumerate(lines):
         if line.startswith('#'):
-            skip = line.startswith('## ') and _skipped(re.sub(r'^##\s+(?:[0-9.]+\s+)?', '', line).strip())
+            if line.startswith('## '):
+                section = re.sub(r'^##\s+(?:[0-9.]+\s+)?', '', line).strip()
+                skip, glossary = _skipped(section), section.lower() in terminology
             continue
         if skip or kinds[i] != 'text' or line.lstrip().startswith(('|', '>', '$$', '!')):
             continue
+        if not glossary:
+            out += _abbreviations(line, seen, i + 1)
         parts = sentences(line)
+        total += len(parts)
+        passive += [i + 1 for s in parts if PASSIVE.search(s)]
         if parts and OPENER.match(parts[0]):
             out.append(('warning', 'SENTENCE_REFERENCE', i + 1, f'"{parts[0].split()[0]}" opens the paragraph: name the thing'))
         for s in parts:
@@ -102,4 +145,8 @@ def check(text, tag):
             if m:
                 out.append(('warning', 'SENTENCE_TRAILING', i + 1, f'"{m.group(0).lstrip(", ")} …" trails the sentence: '
                                                                   'give the result its own sentence'))
+    if total >= MIN_SENTENCES and len(passive) > MAX_PASSIVE * total:
+        where = ', '.join(str(n) for n in passive[:5]) + (', …' if len(passive) > 5 else '')
+        out.append(('warning', 'PASSIVE_SHARE', passive[0], f'{len(passive)} of {total} sentences ({len(passive) * 100 // total}%) '
+                                                           f'are passive, over {int(MAX_PASSIVE * 100)}%: say who acts (lines {where})'))
     return out
