@@ -71,6 +71,15 @@ class Charts(unittest.TestCase):
         self.assertEqual(mermaid.check_charts('# Q\n\n```mermaid\npie\n```\n')[0][2], 3)  # the fence's line
 
 
+class Clicks(unittest.TestCase):
+    def test_clicks(self):
+        text = ('# Q\n\n```mermaid\ngraph LR\n  a["A"]\n  click a "tags/x.md"\n  click a href "https://github.com/o/r"\n'
+                '  click a "mailto:x@example.com"\n  click a call show()\n```\n')
+        found = mermaid.check_clicks(text)
+        self.assertEqual([(f[1], f[2]) for f in found], [('MERMAID_RELATIVE_CLICK', 6)])
+        self.assertEqual(mermaid.check_clicks('# Q\n\nclick a "x.md"\n'), [])  # outside a diagram
+
+
 class Command(helpers.WikiTestCase):
     def test_render_mermaid_flag(self):
         bin_dir = tempfile.mkdtemp(dir=self.root)

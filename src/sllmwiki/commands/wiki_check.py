@@ -34,6 +34,8 @@ Errors:
                             on any page under sllmwiki/ but the sources, markdown a
                             renderer would show wrong: GitHub, Obsidian or a book
                             (lib/compat.py; their warnings are warnings here too)
+  MERMAID_RELATIVE_CLICK    on the same pages, a mermaid click link that isn't an https:// URL:
+                            GitHub draws mermaid on another host, so it breaks there
   MD001, MD038, MD051, ...  markdownlint's rules, as the wiki's CI runs them on every .md file but the
                             sources and .templates/ (lib/markdownlint.py; needs Node's npx)
 Warnings:
@@ -54,7 +56,7 @@ errors, 1 with errors, 2 on a usage error.
 import argparse
 import os
 
-from sllmwiki.lib import audience, book, compat, markdownlint, config, figures, footer, language, layout, manifest, policy, schema, tagtree, templates, wikiindex, wikiyaml, xrefs
+from sllmwiki.lib import audience, book, compat, markdownlint, config, figures, footer, language, layout, manifest, mermaid, policy, schema, tagtree, templates, wikiindex, wikiyaml, xrefs
 from sllmwiki.lib.layout import Cli
 from sllmwiki.lib.util import dumps, read_bytes, read_text, source_hash
 
@@ -156,7 +158,8 @@ def check(root, fix=False, seen_by=None):
     out += [(sev, code, rel, msg) for sev, code, rel, msg in findings if not (fix and rel in changed)]
     for rel in pages(root):  # after --fix, so a page it regenerates is checked as it now is
         text = read_text(os.path.join(root, rel))
-        for sev, code, line, msg in compat.check(text) + compat.check_links(text, os.path.dirname(os.path.join(root, rel)), root):
+        for sev, code, line, msg in (compat.check(text) + compat.check_links(text, os.path.dirname(os.path.join(root, rel)), root)
+                                     + mermaid.check_clicks(text)):
             out.append((sev, code, f'{rel}:{line}', msg))
     out += markdownlint.run(root)  # as the wiki's CI runs it, after --fix
     return out

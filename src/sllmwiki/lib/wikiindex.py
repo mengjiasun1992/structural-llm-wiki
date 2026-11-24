@@ -1,10 +1,16 @@
 """sllmwiki/.SLLMWIKI_INDICES.md, GitHub's map of the wiki (design doc §4.8): a mermaid
-diagram of the tag tree whose nodes open the tag pages, and the same tree as a
-nested list; and pages(), every generated page with its text."""
+diagram of the tag tree, and the same tree as a nested list of links to the tag pages;
+and pages(), every generated page with its text.
+
+GitHub draws a mermaid diagram in an iframe on another host, so a relative `click` link
+resolves there and breaks (issue #199). When origin is on GitHub, each node opens its tag
+page by an absolute URL on the default branch (`blob/HEAD`, which needs no branch name, so
+a CI checkout and a clone write the same page); elsewhere the nodes don't click, and the
+list below the diagram, whose relative links work in every renderer, opens the pages."""
 
 import os
 
-from . import layout, metadata, tagpages, tagtree
+from . import layout, metadata, policy, tagpages, tagtree
 from .compat import escape
 from .util import read_text
 
@@ -16,7 +22,8 @@ def _rel(path):
     return os.path.relpath(path, os.path.dirname(layout.INDEX)).replace(os.sep, '/')
 
 
-def render(tree, questions):
+def render(tree, questions, repo=None):
+    """The index's text; repo, (owner, name) on GitHub, makes the diagram's nodes open their tag pages."""
     lines = ['# Index of this wiki', '', GENERATED, '',
              'The topics this wiki covers. Each opens a page with its narratives, sources and who to ask.', '']
     walk = tree.walk()
@@ -30,8 +37,8 @@ def render(tree, questions):
         parent = tree.parent(tag)
         if parent in ids:
             lines.append(f'    {ids[parent]} --> {ids[tag]}')
-    for _, tag in walk:
-        lines.append(f'    click {ids[tag]} "{_rel(tagpages.path(tag))}"')
+    for _, tag in walk if repo else ():
+        lines.append(f'    click {ids[tag]} "https://github.com/{repo[0]}/{repo[1]}/blob/HEAD/{tagpages.path(tag)}"')
     lines += ['```', '']
     for depth, tag in walk:
         count = sum(len(v) for v in tree.narratives_of(tag).values())
@@ -64,7 +71,7 @@ def pages(root):
     tree = tagtree.load(root)
     qs = questions(root, tree)
     mins = minutes(root, tree)
-    out = {layout.INDEX: render(tree, qs)}
+    out = {layout.INDEX: render(tree, qs, policy.origin_repo(root))}
     for tag in tree.tags:
         out[tagpages.path(tag)] = tagpages.render(tree, tag, qs, mins)
     return out

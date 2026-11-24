@@ -51,7 +51,7 @@ def github_repo(url):
     return (m.group(1), m.group(2)) if m else None
 
 
-def _github_repo(root):
+def origin_repo(root):
     """(owner, repo) of the wiki's origin on GitHub, as configured (before any insteadOf), or None."""
     p = subprocess.run(['git', 'config', '--get', 'remote.origin.url'], cwd=root, capture_output=True, text=True, check=False)
     return github_repo(p.stdout.strip()) if p.returncode == 0 else None
@@ -61,7 +61,7 @@ def observed(root):
     """Who can see the wiki, as the repository shows it: 'public', 'private' (also a wiki with
     no remote, which only its owner has), or 'unknown' (a remote off GitHub, or GitHub can't
     say), which counts as public."""
-    repo = _github_repo(root)
+    repo = origin_repo(root)
     if repo is None:
         has_remote = subprocess.run(['git', 'remote'], cwd=root, capture_output=True, text=True, check=False).stdout.strip()
         return 'unknown' if has_remote else 'private'

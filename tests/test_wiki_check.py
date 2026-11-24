@@ -6,14 +6,14 @@ import unittest
 from unittest import mock
 
 import helpers
-from sllmwiki.lib import compat, layout, manifest, policy, tagpages, wikiindex
+from sllmwiki.lib import compat, layout, manifest, mermaid, policy, tagpages, tagtree, wikiindex
 
 
 class Pages(helpers.WikiTestCase):
     def test_the_index(self):
         text = self.read('sllmwiki/.SLLMWIKI_INDICES.md')
         self.assertIn('    t0 --> t1\n', text)
-        self.assertIn('    click t1 "tags/leaf-a.md"\n', text)
+        self.assertNotIn('click', text)  # no GitHub remote: the list below the diagram links the pages
         self.assertIn('  - [leaf-a](tags/leaf-a.md): First leaf, about alpha systems (1 narrative)\n', text)
         self.assertEqual(compat.check(text), [])
 
@@ -37,6 +37,19 @@ class Pages(helpers.WikiTestCase):
         self.assertIn('- [What is alpha?](../narratives/what-is-alpha.md) · 1 min (supporting)', text)
         self.assertIn('(abstract not written yet): ' + ' '.join(['long'] * 30) + '…', text)
 
+    def test_index_clicks_on_github(self):
+        tree = tagtree.load(self.root)
+        text = wikiindex.render(tree, {}, ('o', 'wiki'))
+        self.assertIn('    click t1 "https://github.com/o/wiki/blob/HEAD/sllmwiki/tags/leaf-a.md"\n', text)
+        self.assertEqual(mermaid.check_clicks(text), [])
+        helpers.git(self.root, 'init', '-q')
+        helpers.git(self.root, 'remote', 'add', 'origin', 'git@github.com:o/wiki.git')
+        self.assertEqual(wikiindex.pages(self.root)[layout.INDEX], text)  # what sync writes, from origin
+        for line in text.split('\n'):
+            if line.startswith('  - [') or line.startswith('- ['):
+                target = line.split('](')[1].split(')')[0]
+                self.assertTrue(os.path.isfile(os.path.join(self.root, 'sllmwiki', target)), target)
+
     def test_an_empty_wiki(self):
         from sllmwiki.lib.tagtree import Tree
         self.assertIn('No topics yet.', wikiindex.render(Tree({}, {}, {}), {}))
@@ -52,6 +65,13 @@ class Check(helpers.WikiTestCase):
     def test_a_consistent_wiki(self):
         r = self.wc()
         self.assertEqual((r.code, r.out), (0, 'wiki-check: 0 error(s), 0 warning(s)\n'))
+
+    def test_relative_clicks(self):
+        path = 'sllmwiki/narratives/what-is-alpha.md'
+        self.write(path, self.read(path) + '\n```mermaid\ngraph LR\n  a["A"]\n  click a "../tags/leaf-a.md"\n'
+                   '  click a href "https://example.com/a"\n```\n')
+        findings = json.loads(self.wc('--json').out)['findings']
+        self.assertEqual([f['message'][:25] for f in findings if f['code'] == 'MERMAID_RELATIVE_CLICK'], ['click "../tags/leaf-a.md"'])
 
     def test_every_page_renders_alike(self):
         self.write('sllmwiki/notes/meeting.md', '# Notes\n\nSee [[what-is-alpha]] and ==this==, and [gone](missing.md).\n')
