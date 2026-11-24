@@ -10,9 +10,9 @@
 
 **Your group's knowledge, researched by your coding agent, cited to the exact source, and reviewed like code.**
 
-An agent skill, packaged as a Claude Code plugin, that turns a git repository into a wiki your coding agent researches and keeps current. You ask a question. It saves the *sources* that answer it, verbatim copies of code, design docs, specifications, papers or web pages, and writes a *narrative*: an account, told in order, of what happened or how something works, every claim linked to the section of a source that supports it. Each run arrives as one pull request you review. It builds on Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) and adds what a group needs: claims you can check, review before anything lands, and a book at each release.
+Structural LLM Wiki is an agent skill, packaged as a Claude Code plugin. The skill turns a git repository into a wiki that your coding agent researches and keeps current. You ask a question. The agent saves the *sources* that answer it: verbatim copies of code, design docs, specifications, papers or web pages. Then the agent writes a *narrative*: an account, told in order, of what happened or how something works. Every claim in a narrative links to the section of a source that supports it. Each run arrives as one pull request for you to review. The skill builds on Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). It adds what a group needs: claims you can check, review before anything lands, and a book at each release.
 
-**See one.** Every narrative in [the demo wiki](https://github.com/mengjiasun1992/sllmwiki-demo) was researched and written by an unattended run, and arrived as a pull request to review. Three recent runs, one question each:
+**See one.** An unattended run researched and wrote every narrative in [the demo wiki](https://github.com/mengjiasun1992/sllmwiki-demo), and each arrived as a pull request to review. Three recent runs, one question each:
 
 | Question | Model | Kind | Sources saved | Narrative | Time | Tokens | Pull request |
 |---|---|---|---|---|---|---|---|
@@ -20,11 +20,31 @@ An agent skill, packaged as a Claude Code plugin, that turns a git repository in
 | [What are the classic failure modes of large distributed systems, and their mitigations?](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/what-are-the-classic-failure-modes-of-large-scale-distributed-systems-and-their-mitigations.md) | Opus 5.5 | survey | 4 (43 KB), and 2 papers as links | 1,937 words | 8 min | 8.7M in, 42K out | [#23](https://github.com/mengjiasun1992/sllmwiki-demo/pull/23) |
 | [How does classic attention compare with paged attention?](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/narratives/how-does-classic-attention-compare-with-paged-attention-in-transformers.md) | Haiku 5.5 | comparison | 4 (290 KB), and 1 paper as a link | 982 words | 7 min | 4.6M in, 57K out | [#24](https://github.com/mengjiasun1992/sllmwiki-demo/pull/24) |
 
-Each run reports its own time and tokens in its pull request. The tokens count the main session only, and about 98% of the input is cached. Start at [the demo's index](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/.SLLMWIKI_INDICES.md), or download its book as a PDF, EPUB or HTML file from [its latest release](https://github.com/mengjiasun1992/sllmwiki-demo/releases/latest).
+Each run reports its own time and tokens in its pull request. The tokens count the main session only. About 98% of the input is cached. Start at [the demo's index](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/.SLLMWIKI_INDICES.md), or download its book as a PDF, EPUB or HTML file from [its latest release](https://github.com/mengjiasun1992/sllmwiki-demo/releases/latest).
+
+## Why use it
+
+- **Builders** need to understand a system before they change it. But the why is in a design doc that drifted and a chat thread nobody can find. And an AI's answer can't say which parts it read and which it guessed.
+- **Tech leads** need what the group knows to outlive who knows it. Onboarding runs through the same few seniors. Nobody can say which docs are still true.
+- **Researchers** have more papers than time. LLM summaries cite sections that don't say what they claim.
+
+What the wiki does about it:
+
+- **Every claim can be checked.** Each one cites the exact section of a saved source, one click away. The narrative marks what no source states, as its own reasoning (`[→]`) or as a gap (`[?]`), and never fills it with a guess. The skill's lint step checks every claim and quotation against the section it cites.
+- **Nothing lands unreviewed.** The agent researches on its own and delivers one pull request. The pull request has a checklist on top, the decisions the agent couldn't make, and what the run cost. Your seniors review instead of writing from scratch.
+- **Knowledge compounds.** One narrative per question, kept in git. A new answer builds on what the wiki already explains, and the next person who asks gets the reviewed answer.
+- **Answers stay true.** Each narrative records the source versions it read. When code or a doc changes, exactly the narratives that rest on it are flagged.
+- **It teaches.** Each answer's shape fits its question, and each answer is written for a reader new to the topic. You can describe your own kind of answer, such as a postmortem or a ten-minute primer on a paper.
+- **It knows who to ask.** Each topic lists the people behind its code and docs, ranked by evidence from git history and code owners.
+- **A book with every release.** Each release attaches the whole wiki as a PDF, an EPUB or one HTML file. Its chapters come in teaching order, with diagrams and math drawn as on GitHub. The book is an onboarding pack, current as of that day.
+
+![Every kind of question gets the shape that teaches it. What is X? In short, then rigorously, and its edge cases. How does X work? One real example, walked through with its numbers. Principles of X? The field mapped first, then each idea in brief. X or Y? Every option compared, and the rule for when each wins. What happened? The timeline, the chain of causes, and the lessons. Your own kind? A postmortem, a primer: a template you describe.](docs/images/answer-shapes.svg)
+
+The wiki is plain Markdown and YAML in git. You can browse it on GitHub, open it in Obsidian, or use it from any agent that supports Agent Skills. Scripts do everything mechanical, so your tokens go to judgment.
 
 ## Setup
 
-You need an agent that runs [Agent Skills](https://agentskills.io), such as [Claude Code](https://docs.claude.com/en/docs/claude-code), plus git and Python 3.9 or later; the first run installs the rest, the plugin's code (the [`sllmwiki` package](https://pypi.org/project/sllmwiki/), into the plugin's own folder) and anything missing, with your package manager. [`gh`](https://cli.github.com), signed in, is recommended: it opens the pull requests (without it, the skill prints a link to open each one yourself). The wiki's CI checks and its book need the wiki hosted on GitHub.
+You need an agent that runs [Agent Skills](https://agentskills.io), such as [Claude Code](https://docs.claude.com/en/docs/claude-code), plus git and Python 3.9 or later. The first run installs the rest. It puts the plugin's code, the [`sllmwiki` package](https://pypi.org/project/sllmwiki/), into the plugin's own folder, and installs anything missing with your package manager. [`gh`](https://cli.github.com), signed in, is recommended, because it opens the pull requests. Without `gh`, the skill prints a link to open each pull request yourself. The wiki's CI checks and its book need the wiki hosted on GitHub.
 
 1. Create an empty repository (for example `project-foobar-sllmwiki`), clone it and start Claude Code in it.
 2. Install the plugin into it:
@@ -37,7 +57,9 @@ You need an agent that runs [Agent Skills](https://agentskills.io), such as [Cla
 3. Run `/sllmwiki:init`. It asks a few preferences (language, source policy, the book), lays out the wiki, installs its CI checks and makes the first commit. Rerun it after a plugin update.
 4. Ask your first questions: `/sllmwiki:build "How does our gateway route requests?" "Why does it retry?"`
 
-**Join a wiki:** open it in Claude Code and accept the plugin it offers; its README, which `init` writes, says the rest. **Other agents** (Codex, Cursor, Copilot): `npx skills add mengjiasun1992/structural-llm-wiki -g` with the [`skills` CLI](https://skills.sh) and `pipx install sllmwiki` (the version the skill's `SKILL.md` names), then ask in your own words ("lint the gateway narratives").
+**Join a wiki:** open the wiki in Claude Code and accept the plugin it offers. The wiki's README, which `init` writes, says the rest.
+
+**Other agents** (Codex, Cursor, Copilot): add the skill with the [`skills` CLI](https://skills.sh), `npx skills add mengjiasun1992/structural-llm-wiki -g`. Then install the package with `pipx install sllmwiki`, at the version the skill's `SKILL.md` names. After that, ask in your own words ("lint the gateway narratives").
 
 <details>
 <summary>Installing git, Python and gh</summary>
@@ -51,26 +73,6 @@ gh auth login && gh auth setup-git                           # then, everywhere
 
 </details>
 
-## Why use it
-
-- **Builders** need to understand a system before they change it, but the why is in a design doc that drifted and a chat thread nobody can find, and an AI's answer can't say which parts it read and which it guessed.
-- **Tech leads** need what the group knows to outlive who knows it. Onboarding runs through the same few seniors, and nobody can say which docs are still true.
-- **Researchers** have more papers than time, and LLM summaries cite sections that don't say what they claim.
-
-What the wiki does about it:
-
-- **Every claim can be checked.** Each one cites the exact section of a saved source, one click away. What no source states is marked as the narrative's own reasoning (`[→]`) or as a gap (`[?]`), never filled with a guess. Lint checks every claim and quotation against the section it cites.
-- **Nothing lands unreviewed.** The agent researches on its own and delivers one pull request: a checklist on top, the decisions it couldn't make, and what the run cost. Your seniors review instead of writing from scratch.
-- **Knowledge compounds.** One narrative per question, kept in git. A new answer builds on what the wiki already explains, and the next person who asks gets the reviewed answer.
-- **Answers stay true.** Each narrative records the source versions it read. When code or a doc changes, exactly the narratives that rest on it are flagged.
-- **It teaches.** The answer's shape fits the question, written for a reader new to the topic; describe your own kind, such as a postmortem or a ten-minute primer on a paper.
-- **It knows who to ask.** Each topic lists the people behind its code and docs, ranked by evidence from git history and code owners.
-- **A book with every release.** The whole wiki as a PDF, an EPUB or one HTML file, chapters in teaching order, diagrams and math drawn as on GitHub: an onboarding pack, current as of that day.
-
-![Every kind of question gets the shape that teaches it. What is X? In short, then rigorously, and its edge cases. How does X work? One real example, walked through with its numbers. Principles of X? The field mapped first, then each idea in brief. X or Y? Every option compared, and the rule for when each wins. What happened? The timeline, the chain of causes, and the lessons. Your own kind? A postmortem, a primer: a template you describe.](docs/images/answer-shapes.svg)
-
-It's all plain Markdown and YAML in git: browse it on GitHub, open it in Obsidian, or use it from any agent that supports Agent Skills. Scripts do everything mechanical, so your tokens go to judgment.
-
 ## Usage
 
 ![Four moments, from your side. Ask anything: an answer in seconds, each claim cited, and who to ask. Grow it by asking: it researches while you're away, and you review one pull request; nothing lands till you merge. It stays true: when a source changes, exactly the answers that rest on it are flagged, and the rest stay untouched. Share it as a book: each release, such as v2026.10.24, attaches the whole wiki as a PDF to print and share, an EPUB for e-readers and phones, and one HTML file for a browser; read it offline, or hand it on.](docs/images/four-moments.svg)
@@ -82,17 +84,19 @@ It's all plain Markdown and YAML in git: browse it on GitHub, open it in Obsidia
 | Research questions unattended: sources saved, a cited answer each, one pull request to review | `/sllmwiki:build "How does the gateway route requests?" "Why does it retry?"` |
 | Publish the wiki as a book (PDF, EPUB, HTML) in a dated release | `/sllmwiki:release` |
 
-Everything else, ask in your own words: "Lint the gateway narratives", "Who knows the gateway?", "Make a template for postmortems of our incidents", or "What can sllmwiki do?".
+For everything else, ask in your own words: "Lint the gateway narratives", "Who knows the gateway?", "Make a template for postmortems of our incidents", or "What can sllmwiki do?".
 
 **[The manual](docs/manual.md)** has the rest: reviewing a run, what's in your wiki, templates, citations, books, settings, languages, Obsidian, teams, and an FAQ.
 
 ## Licenses and your data
 
-The skill is open source under the [GPL 3.0 or later](LICENSE), and the templates it puts in your wiki and book under [MIT-0](src/sllmwiki/templates/LICENSE), with no conditions; your wiki is yours, and each source stays its authors', kept with its URL and license, quoted briefly, never fetched past a login or paywall. Narratives are written by an LLM: every claim is cited, but review each pull request before you merge it. The plugin runs on your machine and its authors collect nothing ([Privacy](PRIVACY.md)). The details: [the manual, §12](docs/manual.md#12-licenses-sources-and-your-responsibility).
+The skill is open source under the [GPL 3.0 or later](LICENSE). The templates it puts in your wiki and book are under [MIT-0](src/sllmwiki/templates/LICENSE), with no conditions. Your wiki is yours. Each source stays its authors': the wiki keeps it with its URL and license, quotes it briefly, and never fetches it past a login or paywall.
+
+An LLM writes the narratives. Every claim is cited, but review each pull request before you merge it. The plugin runs on your machine, and its authors collect nothing ([Privacy](PRIVACY.md)). The details are in [the manual, §12](docs/manual.md#12-licenses-sources-and-your-responsibility).
 
 ## Design
 
-[docs/structural_llm_wiki_design.md](docs/structural_llm_wiki_design.md) has the architecture and the decisions behind it, and [docs/book_design.md](docs/book_design.md) the book a release attaches. [docs/skill_execution_plan.md](docs/skill_execution_plan.md) and [docs/book_execution_plan.md](docs/book_execution_plan.md) say how each was built.
+[docs/structural_llm_wiki_design.md](docs/structural_llm_wiki_design.md) has the architecture and the decisions behind it. [docs/book_design.md](docs/book_design.md) describes the book that a release attaches. [docs/skill_execution_plan.md](docs/skill_execution_plan.md) and [docs/book_execution_plan.md](docs/book_execution_plan.md) say how each was built.
 
 ## Developing
 
@@ -108,7 +112,7 @@ evals/                 behavior evals, run through src/tools/eval-plugin.sh
 docs/                  the manual, the designs, their plans, and their figures
 ```
 
-`AGENTS.md` has the rules for changing this repository: tests with every logic change and coverage at 95% or above, instruction word budgets, evals for behavior changes. Run the tests, and try the plugin from a checkout:
+`AGENTS.md` has the rules for changing this repository. The rules include tests with every logic change, coverage at 95% or above, instruction word budgets, and evals for behavior changes. To run the tests and try the plugin from a checkout:
 
 ```bash
 python3 -m venv .venv && . .venv/bin/activate
@@ -119,4 +123,4 @@ claude --plugin-dir plugin             # runs the sllmwiki on PATH: this checkou
 
 ## License
 
-Copyright 2026 Mengjia Sun. The code is licensed under the [GNU General Public License, version 3 or later](LICENSE); the templates in `src/sllmwiki/templates/` under [MIT-0](src/sllmwiki/templates/LICENSE). Versions up to 1.2.0 were released under Apache 2.0. See [NOTICE](NOTICE).
+Copyright 2026 Mengjia Sun. The code is licensed under the [GNU General Public License, version 3 or later](LICENSE). The templates in `src/sllmwiki/templates/` are licensed under [MIT-0](src/sllmwiki/templates/LICENSE). Versions up to 1.2.0 were released under Apache 2.0. See [NOTICE](NOTICE).
