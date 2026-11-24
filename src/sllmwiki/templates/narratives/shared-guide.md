@@ -16,10 +16,17 @@ Depth comes after context, never instead of it.
 
 ## Plan, big picture, then steps
 
-- **Plan the concepts before writing:** list the new concepts and what each is built from. Sort them so each comes after the ones it rests on: atomic things first, then what combines them. The sections follow this plan, one per concept or per small group that belongs together. A question the reader would ask (why not simpler?) is answered inside the section where it comes up, never as a section of its own.
-- **The big picture where the steps start:** the section that breaks a path into steps opens with the whole path, on the running example, in a few sentences or one picture: where it ends, and each step by what it does, not its name ("first we time each reply, then we smooth those times"). It names every step the section explains and brings in no new term. The steps follow right after it; none restates where it sits.
+- **Plan the concepts before writing:** list the new concepts and what each is built from. Sort them so each comes after the ones it rests on: atomic things first, then what combines them. The sections follow this plan, one per concept or per small group that belongs together.
+- **How it works, first:** a narrative on how something works describes it working, end to end, before any "why" or "why not something else".
+- **The big picture fits the subject,** on the running example, in everyday words, at the top of the section it maps, naming no new term:
+  - a structure: a short map of its parts, each by what it does;
+  - a process: its steps in the order they really happen, setup before use, each by what it does ("first we time each reply, then we smooth those times");
+  - both: the map, then the steps.
+
+  The parts or steps follow right after it; none restates where it sits. A step list holds only steps: trade-offs, failures and limits go to the template's sections for them, a recap to the end.
+- **Headings say what a section explains,** as a statement ("Switches join every GPU"), not a question. A question the reader would ask is answered inside the section where it comes up; those left over go to an FAQ in the Appendix.
 - **Related content side by side:** a list next to the details it lists, a picture next to the text it explains.
-- **One new concept at a time,** in its own step or paragraph; only a term the narrative passes through is defined in a clause (`shared.md`, Terminology). A term's definition cites a source, never `[→]`.
+- **One new concept at a time,** in its own step or paragraph, and a step that brings in more than two is split; only a term the narrative passes through is defined in a clause (`shared.md`, Terminology). A term's definition cites a source, never `[→]`.
 - **Never use a concept before its section,** in a table or a picture either. A map in the field's names goes after its parts, as a recap. A link explains nothing unless the reader reads that narrative first; a basic several narratives need is explained in each, in a line, under the same name. When uses before explanations keep happening, fix the plan: reorder or regroup the sections.
 - **Names come after use:** show a part work on the example, then give its official name; a table from the story's words to the field's terms closes the mechanism. Never coin a shorthand of your own ("the floor"): say what the part does.
 - **Each example is set up once, in full,** in its scene, as the system every section using it works on: its parts and their names, each value's unit, its data and its starting values. Every case and number the narrative later uses is there from the start; later sections refer to it by name and show only what they add or change, never describing it again in another form (a new table, sentence or picture of the same thing); a section that narrows it (one knob, one log) says so.
@@ -56,7 +63,7 @@ A template's sections are where content goes, not a form to fill. When an option
 
 ## Detail in its place
 
-The body holds what the reader needs to follow the answer; what they may want but don't need goes in the Appendix, linked from where it's relevant. The budget is a ceiling, not a target: stop once the question is answered. Over the budget, move a secondary example or variant to the Appendix; never cut context or reasoning. An answer that needs several areas new to the reader is several narratives, one question each, read in order, each saying what it needs from the one before. The questions a reader would ask after the body can go in the Appendix as an FAQ, each answered briefly.
+The body holds what the reader needs to follow the answer; what they may want but don't need goes in the Appendix, linked from where it's relevant. The budget is a ceiling, not a target: stop once the question is answered. Over the budget, move a secondary example or variant to the Appendix; never cut context or reasoning. An answer that needs several areas new to the reader is several narratives, one question each, read in order, each saying what it needs from the one before.
 
 ## Pictures
 
