@@ -4,6 +4,7 @@
 
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757.svg)](#setup)
 [![License: GPL v3+](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/sllmwiki.svg)](https://pypi.org/project/sllmwiki/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](#setup)
 [![Scripts](https://github.com/mengjiasun1992/structural-llm-wiki/actions/workflows/check-scripts.yml/badge.svg?branch=mainline)](https://github.com/mengjiasun1992/structural-llm-wiki/actions/workflows/check-scripts.yml?query=branch%3Amainline)
 [![Book](https://github.com/mengjiasun1992/structural-llm-wiki/actions/workflows/check-book.yml/badge.svg?branch=mainline)](https://github.com/mengjiasun1992/structural-llm-wiki/actions/workflows/check-book.yml?query=branch%3Amainline)
@@ -107,7 +108,7 @@ plugin/                the plugin: instructions only
 src/sllmwiki/          the sllmwiki package: every command, lib/, templates/
 tests/                 unit tests for the package
 src/actions/           the GitHub actions a wiki's CI calls
-src/tools/             development and CI tools (eval-plugin.sh, check-yaml, check-book)
+src/tools/             development and CI tools (eval-plugin.sh, bump-version, check-yaml, check-book)
 evals/                 behavior evals, run through src/tools/eval-plugin.sh
 docs/                  the manual, the designs, their plans, and their figures
 ```

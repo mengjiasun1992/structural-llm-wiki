@@ -110,7 +110,7 @@ class References(unittest.TestCase):
     def test_skill_md_installs_this_version(self):
         with open(os.path.join(SKILL, 'SKILL.md'), encoding='utf-8') as f:
             text = f.read()
-        versions = re.findall(r'(?<![\w.])\d+\.\d+\.\d+(?![\w.])', text)
+        versions = re.findall(r'(?<![\w.])\d+\.\d+\.\d+(?!\w|\.\d)', text)  # one ending a sentence too
         self.assertGreaterEqual(len(versions), 4)  # the venv, sllmwiki==, --version's and pipx's
         self.assertEqual(set(versions), {sllmwiki.__version__})
 
