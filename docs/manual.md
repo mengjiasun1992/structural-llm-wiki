@@ -2,7 +2,7 @@
 
 Everything about using the `sllmwiki` plugin, after [the README](../README.md)'s setup. How it's built, and why: [the design](structural_llm_wiki_design.md).
 
-**The big picture.** A wiki is a git repository that answers questions from saved sources. The agent saves each source verbatim, with its URL and license. For each question, the agent writes a narrative: the answer, with every claim cited to a source. Tags sort sources and narratives into a tree of topics. Each tag page also lists the people who know its topic, the SMEs. Lint checks each narrative against its sources. Every run that changes the wiki ends in one pull request, and nothing lands until you merge it. Where each part lives: [§3](#3-whats-in-your-wiki).
+**The big picture.** A wiki is a git repository that answers questions from saved sources. The agent saves each source verbatim, with its URL and license. For each question, the agent writes a narrative: the answer, with every claim cited to a source. Tags sort sources and narratives into a tree of topics. Each tag page also lists the people who know its topic, the subject-matter experts (SMEs). Lint checks each narrative against its sources. Every run that changes the wiki ends in one pull request, and nothing lands until you merge it. Where each part lives: [§3](#3-whats-in-your-wiki).
 
 - [1. Commands and requests](#1-commands-and-requests)
 - [2. Reviewing a run](#2-reviewing-a-run)
@@ -29,7 +29,7 @@ Four commands cover what you do: set up, ask, grow and publish.
 | Research questions unattended: sources saved, a cited answer each, one pull request to review | `/sllmwiki:build "How does the gateway route requests?" "Why does it retry?"` |
 | Publish the wiki as a book (PDF, EPUB, HTML) in a dated release | `/sllmwiki:release` (`--preview` only builds it) |
 
-**`query`** answers from what the wiki already knows, reading as little as it can, so most answers come back in seconds. Every claim cites the narrative or source it came from, and the answer names the people who know the area. If the wiki doesn't cover the question yet, you still get an answer, clearly labeled DRAFT, and an offer to research it properly.
+**`query`** answers from what the wiki already knows, reading as little as it can, so most answers come back in seconds. Every claim cites the narrative or source it came from, and the answer names the people who know the area. If the wiki doesn't cover the question yet, you still get an answer, labeled DRAFT, and an offer to research it.
 
 **`build`** reuses what the wiki already answers, finds and saves the sources the rest need, writes a narrative per question and checks every claim against its source. You come back to one pull request.
 
@@ -65,7 +65,7 @@ Your wiki is its own git repository, plain Markdown and YAML you can read anywhe
 
 The index and the templates have dot names, so Obsidian hides them and the book leaves them out. The demo wiki has each: [sources](https://github.com/mengjiasun1992/sllmwiki-demo/tree/main/sllmwiki/sources), [narratives](https://github.com/mengjiasun1992/sllmwiki-demo/tree/main/sllmwiki/narratives), [tags](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/tags/tags.yaml) and [the index](https://github.com/mengjiasun1992/sllmwiki-demo/blob/main/sllmwiki/.SLLMWIKI_INDICES.md).
 
-Sources are ranked by relevance, then authority (code, specifications and original papers first), then date. They're saved as the most faithful text that can be checked: markdown, HTML, PDF (by its outline), EPUB (by its table of contents), LaTeX and code; large books are sliced by chapter.
+The agent ranks sources by relevance, then authority (code, specifications and original papers first), then date. It saves each as the most faithful text it can check: markdown, HTML, PDF (by its outline), EPUB (by its table of contents), LaTeX and code. A PDF over 100 pages with an outline becomes one source per chapter.
 
 ## 4. Narratives and templates
 
@@ -105,7 +105,7 @@ With `reader_annotations = true`, a narrative can also hold your own annotations
 
 ## 6. Keeping it true
 
-Each narrative records the source versions it read and the narratives it builds on. To update a topic, ask the agent to refresh its sources ("refresh the gateway sources"). The agent re-saves the sources that changed where they came from. The wiki's checks then flag exactly the narratives built on those sources. A lint ("lint the gateway narratives") rechecks just those narratives against the new version. A narrative that builds on another is flagged when that one changes, too.
+Each narrative records the source versions it read and the narratives it builds on. To update a topic, ask the agent to refresh its sources ("refresh the gateway sources"). The agent re-saves the sources that changed where they came from. The wiki's checks then flag exactly the narratives built on those sources. A lint ("lint the gateway narratives") rechecks only those narratives against the new version. A narrative that builds on another is flagged when that one changes, too.
 
 ## 7. Books and releases
 
@@ -167,22 +167,22 @@ Set `obsidian = true` and rerun `/sllmwiki:init`. Then open `sllmwiki/` as a vau
 
 **Join a wiki.** Clone it and start Claude Code inside. Trust the folder, and accept the `sllmwiki` plugin the repository offers. `init` records the plugin in the wiki's `.claude/settings.json`. The wiki's README, which `init` writes, says what to run when no offer appears and how other agents join. Your first `sllmwiki` command installs the plugin's code.
 
-**Update the plugin.** `/sllmwiki:init` checks for a newer release and offers to upgrade. On a yes, it runs `claude plugin marketplace update structural-llm-wiki && claude plugin update sllmwiki@structural-llm-wiki`; then restart. After a plugin update, rerun `/sllmwiki:init`: it brings the wiki's layout, CI checks and release workflow up to date in a pull request, and keeps the wiki's own files.
+**Update the plugin.** `/sllmwiki:init` checks for a newer release and offers to upgrade. On a yes, it runs `claude plugin marketplace update structural-llm-wiki && claude plugin update sllmwiki@structural-llm-wiki`; then restart. After a plugin update, rerun `/sllmwiki:init`: it brings the wiki's layout, continuous integration (CI) checks and release workflow up to date in a pull request, and keeps the wiki's own files.
 
 **Other agents.** Codex, Cursor, Copilot and other agents that support [Agent Skills](https://agentskills.io) install the skill with the [`skills` CLI](https://skills.sh): `npx skills add mengjiasun1992/structural-llm-wiki -g`. They install the code it runs with `pipx install sllmwiki==<version>`, the version its `SKILL.md` names. These agents have no commands: ask for what you want in your own words ("lint the gateway narratives").
 
 ## 12. Licenses, sources and your responsibility
 
-A wiki holds other people's work next to text an LLM wrote, so it's worth knowing who owns what and who answers for it.
+A wiki holds other people's work next to text a large language model (LLM) wrote. Each part has its owner, and you answer for what your wiki publishes.
 
 - **The skill** is open source, copyright 2026 Mengjia Sun ([NOTICE](../NOTICE)). Its code is under the [GNU General Public License, version 3 or later](../LICENSE), so a modified version someone distributes stays open too. Its templates (what `init` puts in your wiki, the narrative templates, the book's stylesheet) are under [MIT-0](../src/sllmwiki/templates/LICENSE), with no conditions, so your wiki and its books owe the skill nothing. Running the skill, even on private code, triggers no GPL obligation; distributing a modified copy of its code does. Versions up to 1.2.0 were released under Apache 2.0.
 - **Your wiki is yours.** The skill picks no license for it. What your narratives may be shared under is your call. A wiki made from your company's code and docs falls under your company's rules.
-- **Sources stay their authors'.** Copyright stays with each source's authors, and every saved source keeps its URL and license. Narratives quote only briefly, at most `max_quote_words` words, and cite the rest.
+- **Sources stay their authors'.** Copyright stays with each source's authors, and every saved source keeps its URL and license. Narratives quote at most `max_quote_words` words of a source, and cite the rest.
 - **Copies follow a source policy.** A private wiki keeps reference copies unless a source's terms forbid sharing. A public wiki keeps only openly licensed ones, and its CI fails on a copy it may not hold. GitHub says who can see the wiki. When GitHub can't say (the wiki is hosted elsewhere, or GitHub is unreachable), the wiki counts as public unless you set `visibility = "private"`. With `source_copies = "links-only"` it keeps no copies at all. Review `sllmwiki/sources/` before you make a private wiki public.
 - **Fair access only.** The skill never gets around a login, paywall or anti-bot protection, and uses no unofficial copies. When it may not keep a copy, it records a link instead. When in doubt, it asks.
 - **No personal data or secrets** go into the wiki, even when a source contains them.
 - **Your model provider sees what your agent reads.** Questions and sources go to the model your agent runs on, under that provider's terms. Ingest only what you may share with it.
-- **Narratives are written by an LLM.** Every claim cites its source, and what no source states is marked, but a narrative can still be wrong. Review each pull request before you merge it, and check a claim's source before you rely on it.
+- **An LLM writes the narratives.** Every claim cites its source, and what no source states is marked, but a narrative can still be wrong. Review each pull request before you merge it, and check a claim's source before you rely on it.
 
 The scripts enforce what they can. These rules are a cautious default, not legal advice: for anything that matters, ask your own counsel. What the plugin does with your data: [Privacy](../PRIVACY.md).
 
@@ -200,7 +200,7 @@ The scripts enforce what they can. These rules are a cautious default, not legal
 
 **Can it read our private code and docs?** Yes, anything your agent can read: repositories you point it at, files, and pages you can open without getting around a login. Their content goes to your agent's model provider, as with any work in your agent.
 
-**What does a run cost?** Each pull request records what its run took: its time, and its turns and tokens. In the demo, a run that saved three sources and wrote one 1,800-word narrative took 10 minutes and 6.0M tokens, almost all of them cached ([PR #22](https://github.com/mengjiasun1992/sllmwiki-demo/pull/22)). [The README](../README.md) has more.
+**What does a run cost?** Each pull request records what its run took: its time, and its turns and tokens. In the demo, a run that saved three sources and wrote one 1,800-word narrative took 10 minutes and 6.0M tokens, about 98% of them cached ([PR #22](https://github.com/mengjiasun1992/sllmwiki-demo/pull/22)). [The README](../README.md) has three runs.
 
 **Can I make my wiki public?** Yes, once its saved sources are all openly licensed: a public wiki's CI fails on a copy it may not hold. Review `sllmwiki/sources/` first, or set `source_copies = "links-only"`.
 

@@ -14,12 +14,12 @@ Present tense, even-handed across items and schools of thought.
 
 ## Structure
 
-- **Overview:** the orientation, then what's in scope and what isn't, the lists the items were checked against and how they were chosen, any item those lists name that is left out and why, and what follows.
+- **Overview:** the orientation, then what's in scope and what isn't. Then the lists the items were checked against and how they were chosen, any item those lists name that is left out and why, and what follows.
 - **The main items:** those the most authoritative sources agree on, plus any one of them puts first. Merge one idea under two names; name a tactic inside the item it serves.
 - **The map:** three to five groups, each with what holds it together, shown before any item; the items follow the same groups, in the same order.
 - **Each item briefly,** in about a hundred words: what it says and why it matters, an example in a sentence when there's a real one, and where to go deeper.
 - **Tensions,** when items pull against each other: which trade off, which overlap, and how practitioners balance them.
-- **Classic case studies,** whenever the sources describe cases the domain is known by: a paragraph each on what happened and which items it shows, linked to its own case study, or named as the question one would answer ("What happened in <the case>, and what does it teach?").
+- **Classic case studies,** whenever the sources describe cases the domain is known by: a paragraph each on what happened and which items it shows. Each links to its own case study, or names the question one would answer ("What happened in <the case>, and what does it teach?").
 - **Applying them,** when the domain is practical: an order to learn them in, or questions to ask of a design.
 
 ## Examples

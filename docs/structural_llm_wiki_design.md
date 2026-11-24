@@ -334,13 +334,14 @@ Every diagram and figure has a caption line under it, `*Figure 5-1: what it show
 - `narrative-format` checks a figure's place, format, alt text and size, and every caption. It also checks that an SVG is self-contained and has an opaque background for dark themes.
 - `wiki-check` reports a figure no narrative shows.
 
-Narratives are written in plain sentences (`shared-guide.md`, Plain sentences): who does what first, one idea per sentence, exact words, and a name rather than an "it" the reader must resolve. The guide states each rule as what to do, not what to avoid. On an English narrative, `narrative-format` checks the parts a script can find without judging (`lib/plain.py`):
+Narratives are written in plain sentences (`shared-guide.md`, Plain sentences): one point per paragraph, in its first sentence; who does what first; one idea per sentence; exact words, and numbers rather than adjectives; and a name rather than an "it" the reader must resolve. The guide states each rule as what to do, not what to avoid. On an English narrative, `narrative-format` checks the parts a script can find without judging (`lib/plain.py`):
 
 - a sentence over 30 words (`SENTENCE_LONG`);
-- a filler phrase such as `in order to` (`SENTENCE_FILLER`);
+- a filler phrase such as `in order to` or `this section explains`, a redundant pair such as `each and every`, or `I think` before a claim (`SENTENCE_FILLER`);
 - a trailing `, allowing …` clause (`SENTENCE_TRAILING`);
 - an "it" or bare "this" with nothing clear to point at (`SENTENCE_REFERENCE`);
-- a vague word such as `thing` or `very` (`SENTENCE_VAGUE`).
+- a vague word such as `thing` or `very`, or a qualifier a number should replace, such as `significantly` or `recently` (`SENTENCE_VAGUE`);
+- an authority with no name, such as `experts agree` (`SENTENCE_UNSOURCED`).
 
 These findings are warnings, since a long sentence is sometimes the clearest one. Lint's Reader check judges the rest: passive voice, nested clauses, noun stacks.
 

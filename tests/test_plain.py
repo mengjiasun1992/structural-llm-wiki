@@ -39,6 +39,18 @@ CASES = (  # (line, the codes it gets)
     ('Retries add a lot of load.', ['SENTENCE_VAGUE']),
     ('The owner makes a decision on each source.', ['SENTENCE_VAGUE']),
     ('The owner decides on each source. Everything else waits.', []),  # "everything" isn't "thing"
+    ('Retries wait due to the fact that the server is busy.', ['SENTENCE_FILLER']),
+    ('Each and every client waits.', ['SENTENCE_FILLER']),
+    ('We think the wait helps.', ['SENTENCE_FILLER']),
+    ('This section explains the wait.', ['SENTENCE_FILLER']),
+    ('The wait cuts load significantly.', ['SENTENCE_VAGUE']),
+    ('The ring was recently redesigned.', ['SENTENCE_VAGUE']),
+    ('Experts agree that the wait helps.', ['SENTENCE_UNSOURCED']),
+    ('It is widely believed that retries help.', ['SENTENCE_REFERENCE', 'SENTENCE_UNSOURCED']),
+    ('Studies show the wait helps.', ['SENTENCE_UNSOURCED']),
+    ('The wait cuts load from 120 ms to 80 ms.', []),
+    ('The two methods are compared fairly, with respect to x.', []),  # "fairly" and "with respect to" are exact here
+    ('Each kind of narrative has a guide.', []),  # "kind of" naming a kind
 )
 
 
