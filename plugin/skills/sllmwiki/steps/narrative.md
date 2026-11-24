@@ -19,14 +19,15 @@ Read in that order, each source once, and only what the plan says: whole sources
 - **Template:** pick one with `sllmwiki narrative-format --templates`, by its use_when, and start from `sllmwiki narrative-format --skeleton <template>`. When none fits the subject, take the closest.
 - **Language:** write in the wiki's language (Config.toml's `language`, English by default), or in the one the user asks for: pass it as `--skeleton <template> --language <tag>`, which writes it into Metadata, puts the headings in that language and names the pack's Writing rules to follow. Sources stay in theirs.
 - **Where:** save the narrative as `sllmwiki/narratives/<question-slug>.md`.
+- **Spine first:** write the spine `shared-guide.md` asks for before the outline; the outline expands it.
 - **What to follow:** the three guides `sllmwiki narrative-format --guide <template>` prints: the template's, `shared.md` and `shared-guide.md`.
-- **Updating:** keep the narrative's version history and say what changed. After a guide change, or when asked to rework it, plan it again: a new concept plan and outline from the guides, with the old text only a quarry of cited facts. Keep no heading, question form or section boundary because it was there.
+- **Updating:** keep the narrative's version history and say what changed. After a guide change, or when asked to rework it, plan it again: a new spine and outline from the guides, with the old text only a quarry of cited facts. Keep no heading, question form or section boundary because it was there.
 - **Readers' annotations** (when `reader_annotations` is on): add the ones a reader gave, as `shared.md` says. Inside a run, one whose meaning is unclear or that conflicts with the sources waits: it goes in the summary's decisions.
 
 ## 4. Finish
 
 1. Go over the checklists, and fix what fails: the template guide's Checklist, and the audience profile's when it has one (`sllmwiki narrative-format --audience`).
-2. Check the plan: the new concepts listed with what each is built from, the sections in that order, how it works before any why, a big picture at the top of what it maps, and statement headings. Read it as the reader, new to the topic: check they always know where they are on the path and why each paragraph is there; recompute every worked number, show the arithmetic behind every rule and number, and look at every picture as rendered (`sllmwiki narrative-format --render-mermaid <file>` renders the mermaid ones; when it can't, look at them on GitHub before asking for review). After any rewrite, read it again: a fix can contradict what was there.
+2. Check it against the spine: each section expands one of its sentences, in order, and leads into the next; each new concept introduced by the time the spine needs it; how it works before any why; a big picture at the top of what it maps, and statement headings. Read it as the reader, new to the topic: check they always know where they are on the path and why each paragraph is there; recompute every worked number, show the arithmetic behind every rule and number, and look at every picture as rendered (`sllmwiki narrative-format --render-mermaid <file>` renders the mermaid ones; when it can't, look at them on GitHub before asking for review). After any rewrite, read it again: a fix can contradict what was there.
 3. Run `sllmwiki finish-narrative <slug> --primary <tags> --supporting <tags> --read <the slugs read in full> --grades <file>`, with the grades file from §2.
    - On an update, add `--bump minor --note "<what changed>"`, or `major` for a new answer.
 4. Fix every error it reports, by editing the narrative, then run it again until none are left.
@@ -40,4 +41,4 @@ Read in that order, each source once, and only what the plan says: whole sources
   - reuse, expand or new, and why;
   - the template, and why it fits the subject; or, when none fits, that none does, the closest taken, what it leaves out, and how to add one: ask `make a template for <this kind of answer>`;
   - the reading plan's table;
-  - the narrative's outline, with a link to it.
+  - the spine paragraph, and the narrative's outline, with a link to it.
