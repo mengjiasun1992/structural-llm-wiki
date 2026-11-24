@@ -10,7 +10,7 @@ A reader who knows, or is learning, a concept or a domain, and wants to see it a
 
 ## Voice and tone
 
-Plain, concrete and factual: the past tense for events, the present for designs still in use. No blame: describe what the system did and why, not who erred.
+Factual: the past tense for events, the present for designs still in use. No blame: describe what the system did and why, not who erred.
 
 ## Structure
 

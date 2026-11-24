@@ -10,7 +10,7 @@ A reader who has to choose among the common candidates for a job and doesn't yet
 
 ## Voice and tone
 
-Plain, direct and even-handed: no candidate is the hero. Concrete numbers over adjectives, with the conditions they hold under.
+Even-handed: no candidate is the hero. Each number comes with the conditions it holds under.
 
 ## Structure
 
