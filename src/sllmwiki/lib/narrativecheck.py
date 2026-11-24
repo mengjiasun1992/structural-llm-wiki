@@ -116,6 +116,20 @@ def check_citation_targets(root, rel, text):
     return out
 
 
+def check_question_headings(text):
+    """A ### or #### heading in a question's form outside the Appendix, where an FAQ may hold questions: headings say
+    what their section explains (shared-guide.md, Plan, big picture, then steps)."""
+    out, appendix = [], False
+    for h in numbering.headings(text):
+        title = markers.unmark(h.title).strip()
+        if h.level == 2:
+            appendix = re.sub(r'^[0-9.]+\s+', '', title).replace(' (optional)', '').lower() in _titles(['Appendix'])
+        elif h.level in (3, 4) and not appendix and title.endswith(('?', '\uff1f')):
+            out.append(('warning', 'QUESTION_HEADING', h.line + 1, f'"{title}" is a question: say what the section explains, '
+                                                                 'or move it to the Appendix\'s FAQ'))
+    return out
+
+
 def check(root, rel, text, settings, offered):
     """Every finding for one narrative, in line order."""
     out = []
@@ -157,6 +171,7 @@ def check(root, rel, text, settings, offered):
     out += figures.check_pictures(text, settings['picture_formats'], settings['max_pictures'])
     out += figures.check_captions(text)
     out += xrefs.check(root, rel, text)
+    out += check_question_headings(text)
     out += plain.check(text, language.for_narrative(text, settings['language'])[0])
     lines = text.split('\n')
     kinds, _ = scan(lines)

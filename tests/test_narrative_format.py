@@ -87,6 +87,14 @@ class Checks(helpers.WikiTestCase):
         for fine in ('$s_t = \\alpha x_t$', '`max_quote_words`', 'snake_case_names', 'Greek α alone'):
             self.assertNotIn('MATH_AS_TEXT', [c for c, _ in self.codes(text.replace('Requests fail', fine + '. Requests fail'))], fine)
         self.assertIn('LINK_PATH', [c for c, _ in self.codes(text.replace('Requests fail', 'See [x](nowhere.md). Requests fail'))])
+        asked = text.replace('Requests fail', '### Why switches, not direct links?\n\nRequests fail')
+        self.assertIn('QUESTION_HEADING', [c for c, _ in self.codes(asked)])
+        stated = text.replace('Requests fail', '### Switches join every GPU\n\nRequests fail')
+        self.assertNotIn('QUESTION_HEADING', [c for c, _ in self.codes(stated)])
+        faq = text.replace('## 8. References', '## 8. Appendix\n\n### 8.1 FAQ\n\n#### Why not direct links?\n\nThey cost more.\n\n## 8. References', 1)
+        self.assertEqual([c for c, _ in self.codes(faq) if c == 'QUESTION_HEADING'], [], 'an FAQ in the Appendix may ask')
+        after = faq.replace('### 8.2 Citations', '### 8.2 Citations?')  # a section after the Appendix is checked again
+        self.assertIn('QUESTION_HEADING', [c for c, _ in self.codes(after)])
         trailing = text.replace('Requests fail', 'Clients wait longer, allowing the server to recover. Requests fail')
         self.assertIn('SENTENCE_TRAILING', [c for c, _ in self.codes(trailing)])
         self.assertNotIn('SENTENCE_TRAILING', [c for c, _ in self.codes(trailing, language='zh-Hans')])  # English only

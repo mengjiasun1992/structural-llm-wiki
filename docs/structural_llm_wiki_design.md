@@ -344,6 +344,8 @@ Narratives are written in plain sentences (`shared-guide.md`, Plain sentences): 
 
 These findings are warnings, since a long sentence is sometimes the clearest one. Lint's Reader check judges the rest: passive voice, nested clauses, noun stacks.
 
+A narrative describes how its subject works before any "why", and its big picture fits the subject: a map of the parts for a structure, the steps in the order they happen for a process. Headings say what their section explains. A question the reader would ask is answered in its section, or in an Appendix FAQ, and `narrative-format` warns on a question as a `###` or `####` heading outside the Appendix (`QUESTION_HEADING`). Question headings had come from an older rule that made each concept the answer to the reader's next question (issue #188). Reworking a narrative after a guide change plans it again: an outline kept from the old version kept its question headings.
+
 #### 4.5.4 Templates
 
 A template is a folder with `template.md` and `guide.md`. The skeleton in `template.md` is the schema:

@@ -14,11 +14,11 @@ COMMANDS = os.path.join(os.path.dirname(os.path.dirname(SKILL)), 'commands')
 BUDGETS = {  # words per file; a run loads SKILL.md, a workflow, its steps, shared.md, shared-guide.md and one template with its guide
     'SKILL.md': 1000,  # 900 until the bootstrap that installs the package moved in (#145)
     'workflows/*.md': 1200,
-    'steps/*.md': 1210,  # 1200 until the big picture moved to the steps it lists
+    'steps/*.md': 1240,  # 1210 until statement headings and re-planning a rework (#188); 1200 until the big picture moved to the steps it lists
 }
 TEMPLATE_BUDGETS = {  # the same, for the narrative templates in the package
     'narratives/shared.md': 1000,  # 740 until the owner raised it (#184); 600 until readers' annotations (#176); 720 until the reading-time line (#182)
-    'narratives/shared-guide.md': 2020,  # 2000 until the big picture moved to the steps it lists, and related content side by side; 1900 until plain sentences (#184); 1850 until why each concept is here; 1800 until maps and links count as uses; 1730 until concepts in dependency order; 900 until Pictures became a judgment rule (#156); 1060 until Tell it as a story; 1300 until the foundations lessons; 1450 until the reasoning lessons; 1560 until one example, one name; 1670 until the goal first and one meaning per word (#182)
+    'narratives/shared-guide.md': 2090,  # 2020 until how it works first, map or steps, statement headings (#188); 2000 until the big picture moved to the steps it lists, and related content side by side; 1900 until plain sentences (#184); 1850 until why each concept is here; 1800 until maps and links count as uses; 1730 until concepts in dependency order; 900 until Pictures became a judgment rule (#156); 1060 until Tell it as a story; 1300 until the foundations lessons; 1450 until the reasoning lessons; 1560 until one example, one name; 1670 until the goal first and one meaning per word (#182)
 }
 TEMPLATE_AND_GUIDE = 1500  # 1400 until the owner raised it (#184)
 BUILD_LOAD = 9000  # SKILL.md, build, its steps, shared.md, shared-guide.md and the largest template with its guide
