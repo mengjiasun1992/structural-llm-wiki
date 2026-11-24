@@ -457,7 +457,7 @@ The questions and the user's words are passed to every step. A request that name
 
 ### 5.3 Commit messages
 
-`sllmwiki publish commit` writes every commit message: `[sllmwiki][<action>][<tags>] <summary>`, then the step's summary, then the request that started the run, verbatim, in a `Prompt:` block. Actions: `init`, `template`, `tags`, `ingest`, `smes`, `narrative`, `lint`. A release isn't a commit: it changes no file (§10).
+`sllmwiki publish commit` writes every commit message: `[sllmwiki][<action>][<tags>] <summary>`, then the step's summary, then the request that started the run, verbatim, in a `Prompt:` block, then, once the run's pull request is open, `Pull request: <url>`. The commits before it get the link from GitHub's squash merge, which adds `(#N)` to the merged commit's subject. Actions: `init`, `template`, `tags`, `ingest`, `smes`, `narrative`, `lint`. A release isn't a commit: it changes no file (§10).
 
 ## 6. Using knowledge: `query`
 
