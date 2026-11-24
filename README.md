@@ -12,7 +12,7 @@
 
 Structural LLM Wiki is an agent skill, packaged as a Claude Code plugin. The skill turns a git repository into a wiki that your coding agent researches and keeps current. You ask a question. The agent saves the *sources* that answer it: verbatim copies of code, design docs, specifications, papers or web pages. Then the agent writes a *narrative*: an account, told in order, of what happened or how something works. Every claim in a narrative links to the section of a source that supports it. Each run arrives as one pull request for you to review. The skill builds on Andrej Karpathy's [LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). It adds what a group needs: claims you can check, review before anything lands, and a book at each release.
 
-**See one.** An unattended run researched and wrote every narrative in [the demo wiki](https://github.com/mengjiasun1992/sllmwiki-demo), and each arrived as a pull request to review. Three recent runs, one question each:
+**See one.** An unattended run researched and wrote every narrative in [the demo wiki](https://github.com/mengjiasun1992/sllmwiki-demo), and each arrived as a pull request to review. Three of its runs, one question each:
 
 | Question | Model | Kind | Sources saved | Narrative | Time | Tokens | Pull request |
 |---|---|---|---|---|---|---|---|
@@ -26,7 +26,7 @@ Each run reports its own time and tokens in its pull request. The tokens count t
 
 - **Builders** need to understand a system before they change it. But the why is in a design doc that drifted and a chat thread nobody can find. And an AI's answer can't say which parts it read and which it guessed.
 - **Tech leads** need what the group knows to outlive who knows it. Onboarding runs through the same few seniors. Nobody can say which docs are still true.
-- **Researchers** have more papers than time. LLM summaries cite sections that don't say what they claim.
+- **Researchers** have more papers than time. Summaries by large language models (LLMs) cite sections that don't say what they claim.
 
 What the wiki does about it:
 
@@ -44,7 +44,7 @@ The wiki is plain Markdown and YAML in git. You can browse it on GitHub, open it
 
 ## Setup
 
-You need an agent that runs [Agent Skills](https://agentskills.io), such as [Claude Code](https://docs.claude.com/en/docs/claude-code), plus git and Python 3.9 or later. The first run installs the rest. It puts the plugin's code, the [`sllmwiki` package](https://pypi.org/project/sllmwiki/), into the plugin's own folder, and installs anything missing with your package manager. [`gh`](https://cli.github.com), signed in, is recommended, because it opens the pull requests. Without `gh`, the skill prints a link to open each pull request yourself. The wiki's CI checks and its book need the wiki hosted on GitHub.
+You need an agent that runs [Agent Skills](https://agentskills.io), such as [Claude Code](https://docs.claude.com/en/docs/claude-code), plus git and Python 3.9 or later. The first run installs the rest. It puts the plugin's code, the [`sllmwiki` package](https://pypi.org/project/sllmwiki/), into the plugin's own folder, and installs anything missing with your package manager. We recommend [`gh`](https://cli.github.com), signed in: it opens the pull requests. Without `gh`, the skill prints a link to open each pull request yourself. The wiki's continuous integration (CI) checks and its book need the wiki hosted on GitHub.
 
 1. Create an empty repository (for example `project-foobar-sllmwiki`), clone it and start Claude Code in it.
 2. Install the plugin into it:
@@ -54,7 +54,7 @@ You need an agent that runs [Agent Skills](https://agentskills.io), such as [Cla
    claude plugin install sllmwiki@structural-llm-wiki --scope project
    ```
 
-3. Run `/sllmwiki:init`. It asks a few preferences (language, source policy, the book), lays out the wiki, installs its CI checks and makes the first commit. Rerun it after a plugin update.
+3. Run `/sllmwiki:init`. It asks your preferences (language, source policy, the book), lays out the wiki, installs its CI checks and makes the first commit. Rerun it after a plugin update.
 4. Ask your first questions: `/sllmwiki:build "How does our gateway route requests?" "Why does it retry?"`
 
 **Join a wiki:** open the wiki in Claude Code and accept the plugin it offers. The wiki's README, which `init` writes, says the rest.
@@ -90,7 +90,7 @@ For everything else, ask in your own words: "Lint the gateway narratives", "Who 
 
 ## Licenses and your data
 
-The skill is open source under the [GPL 3.0 or later](LICENSE). The templates it puts in your wiki and book are under [MIT-0](src/sllmwiki/templates/LICENSE), with no conditions. Your wiki is yours. Each source stays its authors': the wiki keeps it with its URL and license, quotes it briefly, and never fetches it past a login or paywall.
+The skill is open source under the [GPL 3.0 or later](LICENSE). The templates it puts in your wiki and book are under [MIT-0](src/sllmwiki/templates/LICENSE), with no conditions. Your wiki is yours. Each source stays its authors': the wiki keeps it with its URL and license, quotes at most 50 words of it by default, and never fetches it past a login or paywall.
 
 An LLM writes the narratives. Every claim is cited, but review each pull request before you merge it. The plugin runs on your machine, and its authors collect nothing ([Privacy](PRIVACY.md)). The details are in [the manual, §12](docs/manual.md#12-licenses-sources-and-your-responsibility).
 
