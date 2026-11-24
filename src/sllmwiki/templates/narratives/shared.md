@@ -14,16 +14,16 @@ A narrative answers one question, for its template's reader. It starts from `sll
 
 ## Other narratives
 
-When the narrative mentions a concept another narrative covers, say it in a sentence consistent with that narrative and link to it there, to its section where one fits, instead of explaining it again. The reading plan names the related narratives.
+When the narrative mentions a concept another narrative covers, say it in a sentence consistent with that narrative and link to it there, to its section where one fits. The link replaces a second explanation. The reading plan names the related narratives.
 
 ## Citations
 
-Every claim a source makes is cited as in a paper, with a numbered link to the section that makes it, inside the sentence before its punctuation, several separated by commas:
+Cite every claim a source makes as in a paper: a numbered link to the section that makes it, inside the sentence before its punctuation, several separated by commas:
 `Retries back off exponentially [\[3\]](../sources/<slug>.md#<section>), [\[6\]](…).` Numbers run 1, 2, 3 in order of first use; the brackets stay escaped so Obsidian doesn't read them as a wikilink. Cite the section, never just the file. In a code source, cite the lines: `#L10-L20`.
 
 ## What the sources don't say
 
-Write it as yours, marked, never as a source's. When markers are on (the default), put the marker where a citation would go, at the end of the statement before its punctuation (a sentence, a list item or a table cell):
+Write it as yours, marked, never as a source's. When markers are on (the default), put the marker where a citation would go: at the end of the statement, before its punctuation (a sentence, a list item or a table cell):
 
 - `[→]`: your own conclusion, comparison, grouping, worked example or reconstruction, which no cited source states: `Both trade latency for consistency [→].`;
 - `[?]`: something the question needs that the sources don't answer. Say what's missing; never fill it with a guess.
@@ -32,7 +32,7 @@ A number you compute from a cited formula, with its inputs shown, isn't your own
 
 ## Readers' annotations
 
-Only with `reader_annotations = true` in Config.toml. An annotation is a reader's own view of a section, never a source or your reasoning. Write one only from what that reader said, once you agree on what it means, any conflict with the sources settled first; reframe it in the narrative's style as a quote block of its own, `> [* <YYYY-MM-DD> <github username>] …`, at the end of the section's own text, newest first, never inline nor in Terminology, SMEs, References or Metadata. It states the understanding you agreed on, corrections folded in, never the reader's first words beside a list of corrections; and it holds no citation or marker.
+Only with `reader_annotations = true` in Config.toml. An annotation is a reader's own view of a section, never a source or your reasoning. Write one only from what that reader said, once you agree on what it means, any conflict with the sources settled first. Reframe it in the narrative's style as a quote block of its own, `> [* <YYYY-MM-DD> <github username>] …`. It goes at the end of the section's own text, newest first, never inline nor in Terminology, SMEs, References or Metadata. It states the understanding you agreed on, corrections folded in, never the reader's first words beside a list of corrections; and it holds no citation or marker.
 
 ## Quoting
 
