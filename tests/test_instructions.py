@@ -18,7 +18,7 @@ BUDGETS = {  # words per file; a run loads SKILL.md, a workflow, its steps, shar
 }
 TEMPLATE_BUDGETS = {  # the same, for the narrative templates in the package
     'narratives/shared.md': 740,  # 600 until readers' annotations (#176); 720 until the reading-time line (#182)
-    'narratives/shared-guide.md': 1800,  # 1730 until concepts in dependency order; 900 until Pictures became a judgment rule (#156); 1060 until Tell it as a story; 1300 until the foundations lessons; 1450 until the reasoning lessons; 1560 until one example, one name; 1670 until the goal first and one meaning per word (#182)
+    'narratives/shared-guide.md': 1850,  # 1800 until maps and links count as uses; 1730 until concepts in dependency order; 900 until Pictures became a judgment rule (#156); 1060 until Tell it as a story; 1300 until the foundations lessons; 1450 until the reasoning lessons; 1560 until one example, one name; 1670 until the goal first and one meaning per word (#182)
 }
 TEMPLATE_AND_GUIDE = 1400
 BUILD_LOAD = 9000  # SKILL.md, build, its steps, shared.md, shared-guide.md and the largest template with its guide
