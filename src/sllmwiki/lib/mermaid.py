@@ -8,6 +8,7 @@ instead. SLLMWIKI_MERMAID=off skips it, for tests and sandboxes with no network.
 """
 
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -24,6 +25,24 @@ def blocks(text):
     lines = text.split('\n')
     return [(first, '\n'.join(lines[first + 1:last])) for first, last, _ in figures.pictures(text)
             if figures._MERMAID.match(lines[first])]
+
+
+def check_charts(text):
+    """[(severity, code, line, message)] for the charts among the ```mermaid blocks (shared-guide.md, Pictures):
+    CHART_PIE for a pie, whose angles readers compare worse than bars' lengths, and CHART_AXIS for an
+    xychart axis with no title to say what it measures and in what unit."""
+    out = []
+    for first, source in blocks(text):
+        body = [line.strip() for line in source.split('\n') if line.strip() and not line.strip().startswith('%%')]
+        kind = body[0].split()[0] if body else ''
+        if kind == 'pie':
+            out.append(('warning', 'CHART_PIE', first + 1, 'a pie chart: draw bars (xychart-beta), whose lengths compare at a glance'))
+        elif kind.startswith('xychart'):
+            for axis in ('x-axis', 'y-axis'):
+                if not any(re.match(axis + r'\s+"', line) for line in body):
+                    out.append(('warning', 'CHART_AXIS', first + 1, f'the {axis} has no title: give it one, '
+                                                                  f'with its unit ({axis} "Latency (ms)" …)'))
+    return out
 
 
 def render(text):

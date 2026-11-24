@@ -341,7 +341,11 @@ Narratives are written in plain sentences (`shared-guide.md`, Plain sentences): 
 - a trailing `, allowing …` clause (`SENTENCE_TRAILING`);
 - an "it" or bare "this" with nothing clear to point at (`SENTENCE_REFERENCE`);
 - a vague word such as `thing` or `very`, or a qualifier a number should replace, such as `significantly` or `recently` (`SENTENCE_VAGUE`);
-- an authority with no name, such as `experts agree` (`SENTENCE_UNSOURCED`).
+- an authority with no name, such as `experts agree` (`SENTENCE_UNSOURCED`);
+- an abbreviation not spelled out at its first use outside the title and Terminology, other than general computing ones such as `CPU` (`ABBREV_UNDEFINED`);
+- more than 15% of a narrative's sentences in the passive, once it has 20 (`PASSIVE_SHARE`). A single passive sentence is sometimes right, so only the share is reported.
+
+On any narrative, `narrative-format` also warns on a mermaid `pie` (`CHART_PIE`) and on an `xychart` axis with no title (`CHART_AXIS`). Lint judges what a script can't: a paragraph whose point isn't its first sentence, a number with no baseline, thin or contrary evidence left unsaid, an SVG chart without units.
 
 These findings are warnings, since a long sentence is sometimes the clearest one. Lint's Reader check judges the rest: passive voice, nested clauses, noun stacks.
 

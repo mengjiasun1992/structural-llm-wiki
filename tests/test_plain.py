@@ -74,6 +74,42 @@ class Plain(unittest.TestCase):
         self.assertEqual(self.codes(f'# Q\n\n{LONG}\n', 'en-US'), ['SENTENCE_LONG'])
         self.assertEqual(self.codes(f'# Q\n\n{LONG}\n', 'zh-Hans'), [])  # English only
 
+    def test_abbreviations(self):
+        cases = (  # (text after the title, the abbreviations reported)
+            ('The RTT grows.', ['RTT']),
+            ('The round-trip time (RTT) grows. The RTT shrinks.', []),  # spelled out at its first use
+            ('The RTT (round-trip time) grows.', []),
+            ('The **RTT** (round-trip time) grows.', []),
+            ('The RTT grows. The round-trip time (RTT) shrinks.', ['RTT']),  # spelled out too late
+            ('The RTTs grow.', ['RTT']),  # a plural
+            ('The CPU, the GPU and the HTTP API.', []),  # general computing
+            ('Part II and part IV.', []),  # roman numerals
+            ('The H100 and NVLink and IPv4.', []),  # names, not abbreviations
+            ('Use `RTT` here.', []),  # code
+            ('| RTT | the time |', []),  # a table
+            ('## Terminology\n\n- **RTT:** the round-trip time.\n\n## 2. Body\n\nThe RTT grows.', ['RTT']),  # Terminology doesn't count
+        )
+        for body, words in cases:
+            with self.subTest(body=body[:40]):
+                found = [m.split('"')[1] for _, code, _, m in plain.check(f'# Q\n\n{body}\n', 'en') if code == 'ABBREV_UNDEFINED']
+                self.assertEqual(found, words)
+        title = '# What is a round-trip time (RTT)?\n\nThe RTT grows.\n'
+        self.assertEqual(self.codes(title), [])  # the title spelled it out
+        self.assertEqual(self.codes('# What is an RTT?\n\nThe RTT grows.\n'), ['ABBREV_UNDEFINED'])
+
+    def test_passive_share(self):
+        active, passive = 'The server sends the reply.', 'The reply is sent by the server.'
+        self.assertEqual(self.codes('# Q\n\n' + '\n\n'.join([active] * 17 + [passive] * 3) + '\n'), [])  # 15%: at the limit
+        found = plain.check('# Q\n\n' + '\n\n'.join([active] * 16 + [passive] * 4) + '\n', 'en')
+        self.assertEqual([f[1] for f in found], ['PASSIVE_SHARE'])
+        self.assertEqual(found[0][2], 35)  # the first passive sentence
+        self.assertIn('4 of 20 sentences (20%)', found[0][3])
+        self.assertEqual(self.codes('# Q\n\n' + '\n\n'.join([passive] * 19) + '\n'), [])  # too few to judge
+        for line in ('The keys were chosen at random.', 'The tables are built once.', 'It was not written down.'):
+            self.assertTrue(plain.PASSIVE.search(line), line)
+        for line in ('The server is ready.', 'The reply is late.', 'They were in the queue.'):
+            self.assertFalse(plain.PASSIVE.search(line), line)
+
 
 if __name__ == '__main__':
     unittest.main()

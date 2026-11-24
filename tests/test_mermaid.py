@@ -55,6 +55,22 @@ class Render(unittest.TestCase):
             self.assertEqual(mermaid.render(doc(GOOD.replace('A --> B', 'A --> BAD'))), [])
 
 
+class Charts(unittest.TestCase):
+    def codes(self, source):
+        return [code for _, code, _, _ in mermaid.check_charts(f'# Q\n\n```mermaid\n{source}\n```\n')]
+
+    def test_charts(self):
+        self.assertEqual(self.codes('pie title Share\n  "a" : 1'), ['CHART_PIE'])
+        self.assertEqual(self.codes('%% a comment\npie\n  "a" : 1'), ['CHART_PIE'])
+        titled = 'xychart-beta\n  x-axis "Load (req/s)" [1, 2]\n  y-axis "Latency (ms)" 0 --> 9\n  bar [3, 5]'
+        self.assertEqual(self.codes(titled), [])
+        self.assertEqual(self.codes('xychart-beta\n  x-axis [1, 2]\n  y-axis "Latency (ms)" 0 --> 9\n  bar [3, 5]'), ['CHART_AXIS'])
+        self.assertEqual(self.codes('xychart-beta\n  bar [3, 5]'), ['CHART_AXIS', 'CHART_AXIS'])
+        self.assertEqual(self.codes('flowchart LR\n  a --> b'), [])
+        self.assertEqual(self.codes(''), [])
+        self.assertEqual(mermaid.check_charts('# Q\n\n```mermaid\npie\n```\n')[0][2], 3)  # the fence's line
+
+
 class Command(helpers.WikiTestCase):
     def test_render_mermaid_flag(self):
         bin_dir = tempfile.mkdtemp(dir=self.root)

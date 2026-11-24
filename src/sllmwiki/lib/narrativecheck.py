@@ -6,7 +6,7 @@ renderer reads alike."""
 import os
 import re
 
-from . import annotations, citations, compat, figures, language, layout, manifest, markers, mdlinks, metadata, numbering, plain, quotes, xrefs
+from . import annotations, citations, compat, figures, language, layout, manifest, markers, mdlinks, mermaid, metadata, numbering, plain, quotes, xrefs
 from .compat import mask_code_spans, mask_spans, scan
 
 PLACEHOLDER = re.compile(r'<(?!https?://|mailto:|/)[^<>\n]*\s[^<>\n]*>')
@@ -172,6 +172,7 @@ def check(root, rel, text, settings, offered):
     out += figures.check_captions(text)
     out += xrefs.check(root, rel, text)
     out += check_question_headings(text)
+    out += mermaid.check_charts(text)
     out += plain.check(text, language.for_narrative(text, settings['language'])[0])
     lines = text.split('\n')
     kinds, _ = scan(lines)
