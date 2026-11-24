@@ -13,18 +13,17 @@ Never make the reader interpret something before they know what it is and why it
 
 Each term is explained before it is used: show what it does, on the example, then give its name. Depth comes after context, never instead of it.
 
-## Tell it as a story
-
-Explain it in the order the reader meets it, not a textbook's:
+## Plan, big picture, then steps
 
 - **A job the reader cares about, with the data in hand:** a task they could face, the evidence they would have, and what goes wrong without the answer.
-- **Each concept arrives as the answer to the question the reader would ask next:** what is it for, why not something simpler, where does this number come from, is it fixed or does it change. A concept no question has asked for yet waits.
-- **One new concept at a time,** in its own step or paragraph, never in a clause.
-- **Concepts in dependency order:** when a narrative brings in a set of new concepts, as a new domain does, list them and what each is built from, then introduce them in that order: the atomic things first, then what combines them, each resting only on ones already explained, and each arriving with why the reader needs it here, the problem it solves, before what it is. A term's definition cites a source, never `[→]`. Never use a concept and explain it later, in a table or a picture either: a map of the whole goes after its parts, as a recap, or shows only names already explained. A link explains nothing unless the reader reads that narrative first; a basic several narratives need is explained in each, in a line, under the same name. If uses before explanations keep happening, reorder or regroup the sections rather than patching each use.
+- **Plan the concepts before writing:** list the new concepts and what each is built from. Sort them so each comes after the ones it rests on: atomic things first, then what combines them. The sections follow this plan, one per concept or per small group that belongs together. A question the reader would ask (why not simpler?) is answered inside the section where it comes up, never as a section of its own.
+- **The big picture next, in everyday words:** before the first concept, walk the running example through the whole path in a few sentences or one picture: where it ends, and each stop by what it does, not its name ("first we time each reply, then we smooth those times"). It brings in no new term. Each stop becomes a section that names it and opens by saying where it sits on the path.
+- **One new concept at a time,** in its own step or paragraph, never in a clause. Each says why it is here, the problem on the path it solves, before what it is. A term's definition cites a source, never `[→]`.
+- **Never use a concept before its section,** in a table or a picture either. A map in the field's names goes after its parts, as a recap. A link explains nothing unless the reader reads that narrative first; a basic several narratives need is explained in each, in a line, under the same name. When uses before explanations keep happening, fix the plan: reorder or regroup the sections.
 - **Each example is set up once, in full,** in its scene, as the system every section using it works on: its parts and their names, each value's unit, its data and its starting values. Every case and number the narrative later uses is there from the start; later sections refer to it by name and show only what they add or change, never describing it again in another form (a new table, sentence or picture of the same thing); a section that narrows it (one knob, one log) says so.
-- **One name per thing, to the end:** once a value, part or idea has a name, use only that name, never a synonym or a description in its place ("the rate" for w2, "direction" for slope); a new name means a new thing. A name also keeps one meaning across the wiki's narratives: when another narrative uses the word for something else, pick another word here.
-- **Say what is what:** what is set by hand to teach, what someone chooses before it runs, what is learned or measured, what is fixed in use, and each assumption, where it is made, so the reader never guesses why. Where the toy behaves unlike the real system, say so there.
-- **The goal first, once:** a section on a process or mechanism opens by saying plainly, once, what it is trying to achieve; then the problem in the way; then the trick that solves it; only then a figure or walkthrough. Say why each intermediate value exists ("the forward run keeps these because the slopes are built from them").
+- **One name per thing, to the end:** once a value, part or idea has a name, use only that name, never a synonym ("the rate" for w2, "direction" for slope); a new name means a new thing. A name also keeps one meaning across the wiki's narratives: when another narrative uses the word for something else, pick another word here.
+- **Say what is what:** what is set by hand to teach, what someone chooses before it runs, what is learned or measured, what is fixed in use, and each assumption, where it is made, so the reader never guesses. Where the toy behaves unlike the real system, say so there.
+- **The goal first, once:** a section on a process or mechanism opens with what it is trying to achieve, then the problem in the way, then the trick that solves it, and only then a figure or walkthrough. Say why each intermediate value exists ("the forward run keeps these because the slopes are built from them").
 - **A derivation goes one link at a time:** the nearest case first, every hop shown, each link checked with a number, then the general rule. Show the arithmetic behind every rule and number, never "by calculus" or "the rule is"; give each quantity its unit and write each division out; say when a number is a rate at a point rather than the effect of a whole step; never explain a method with the one it replaces.
 - **Names come after use:** once the reader has seen a part work, give its official name; a table from the story's words to the field's terms closes the mechanism. Never coin a shorthand of your own ("the floor"): say what the thing does.
 
@@ -38,15 +37,13 @@ Write each English sentence so the reader parses it once:
 - **Each clause its own sentence:** a result gets its own ("This lets clients retry"); a chain of nouns or of "of the … for the" becomes a clause ("when the token fails to refresh").
 - **Start with the point:** "To retry", not "In order to retry".
 
-`narrative-format` flags long sentences, filler and trailing ", allowing …" clauses.
-
 ## Ideas first, sources second
 
 Say each idea in your own words, then cite it. A claim of your own about how a system behaves is checked before it's written, by computing or running it, and the narrative says how. Name a source in the prose only when who said it matters: a definition, a landmark paper, a disagreement, a measurement. Never tally who agrees ("X says …, Y agrees"): give the idea once, cited. Where sources disagree, cite each view.
 
-## Map before details
+## Overviews and long lists
 
-Show the whole before its parts: what the narrative covers and how its parts fit, then each part. An overview of a process names every step the body explains, so none appears later from nowhere. A list longer than five to seven items is grouped under a few named areas, each with a sentence on what holds it together.
+An overview of a process names every step the body explains, so none appears later from nowhere. A list longer than five to seven items is grouped under a few named areas, each with a sentence on what holds it together.
 
 ## One or two key examples
 
