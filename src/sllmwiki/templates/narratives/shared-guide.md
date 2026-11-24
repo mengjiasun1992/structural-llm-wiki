@@ -9,7 +9,7 @@ Never make the reader interpret something before they know what it is and why it
 1. **The Abstract,** for a reader deciding whether to read on: the problem and who has it, then the answer.
 2. **The first section's orientation,** in a few sentences, before any definition or mechanism: what the subject is, where and when one meets it, who deals with it, and why it matters.
 3. **The running example's scene,** where it first appears: a job the reader cares about, with the data in hand: what the system does, its problem, and what goes wrong without the answer.
-4. **The big picture,** before the first concept (below).
+4. **The big picture,** at the top of the section that walks the steps (below).
 5. **Each section, scenario, formula or piece of pseudocode** opens with why the reader needs it here, the problem it solves, before what it is. A section on a process or mechanism then gives its goal, the problem in the way and the trick that solves it, and only then a figure or walkthrough.
 
 Depth comes after context, never instead of it.
@@ -17,7 +17,8 @@ Depth comes after context, never instead of it.
 ## Plan, big picture, then steps
 
 - **Plan the concepts before writing:** list the new concepts and what each is built from. Sort them so each comes after the ones it rests on: atomic things first, then what combines them. The sections follow this plan, one per concept or per small group that belongs together. A question the reader would ask (why not simpler?) is answered inside the section where it comes up, never as a section of its own.
-- **The big picture, in everyday words:** walk the running example through the whole path in a few sentences or one picture: where it ends, and each stop by what it does, not its name ("first we time each reply, then we smooth those times"). It brings in no new term and names every stop the body explains, so none appears later from nowhere. Each stop becomes a section that opens by saying where it sits on the path.
+- **The big picture where the steps start:** the section that breaks a path into steps opens with the whole path, on the running example, in a few sentences or one picture: where it ends, and each step by what it does, not its name ("first we time each reply, then we smooth those times"). It names every step the section explains and brings in no new term. The steps follow right after it; none restates where it sits.
+- **Related content side by side:** a list next to the details it lists, a picture next to the text it explains.
 - **One new concept at a time,** in its own step or paragraph; only a term the narrative passes through is defined in a clause (`shared.md`, Terminology). A term's definition cites a source, never `[→]`.
 - **Never use a concept before its section,** in a table or a picture either. A map in the field's names goes after its parts, as a recap. A link explains nothing unless the reader reads that narrative first; a basic several narratives need is explained in each, in a line, under the same name. When uses before explanations keep happening, fix the plan: reorder or regroup the sections.
 - **Names come after use:** show a part work on the example, then give its official name; a table from the story's words to the field's terms closes the mechanism. Never coin a shorthand of your own ("the floor"): say what the part does.
@@ -61,7 +62,7 @@ The body holds what the reader needs to follow the answer; what they may want bu
 
 A picture earns its place when it saves the reader from building something in their head: how the parts fit, what happens in what order, how a state changes, a quantity's shape. Add one wherever it does, each teaching something new, up to `max_pictures`; none where it would only decorate. Choose the form by what it shows: boxes are no stand-in for a chart or geometry. What follows is a floor and rules of thumb, not a limit: judge each case by what helps this reader learn.
 
-- **Where it helps most:** the big picture, near the start; the running example step by step, the same small diagram at each step rather than one dense one, showing what each step reuses from the steps before as well as what it adds; before and after. A comparison is often clearest as a table.
+- **Where it helps most:** the big picture, at the top of the steps it maps; the running example step by step, the same small diagram at each step rather than one dense one, showing what each step reuses from the steps before as well as what it adds; before and after. A comparison is often clearest as a table.
 - **The form:** whichever of the wiki's `picture_formats` shows this idea best; none comes first.
   - **Mermaid**, text each viewer draws: structure and flow in a standard shape, in the type that fits (`sequenceDiagram` for messages, `stateDiagram-v2` for states, `timeline` for history, `quadrantChart` for trade-offs on two axes, `mindmap` for a field's parts, `flowchart` for a process). Some viewers, GitHub's among them, clip a long node label: keep labels to a few words, or draw an SVG.
   - **An SVG** you draw controls every position: a curve, measured data, geometry, a layout to scale, or a diagram mermaid would crowd.
