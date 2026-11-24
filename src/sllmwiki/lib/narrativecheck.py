@@ -118,7 +118,7 @@ def check_citation_targets(root, rel, text):
 
 def check_question_headings(text):
     """A ### or #### heading in a question's form outside the Appendix, where an FAQ may hold questions: headings say
-    what their section explains (shared-guide.md, Plan, big picture, then steps)."""
+    what their section explains (shared-guide.md, Spine, plan, then steps)."""
     out, appendix = [], False
     for h in numbering.headings(text):
         title = markers.unmark(h.title).strip()

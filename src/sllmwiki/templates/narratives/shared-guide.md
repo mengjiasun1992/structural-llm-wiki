@@ -14,9 +14,10 @@ Never make the reader interpret something before they know what it is and why it
 
 Depth comes after context, never instead of it.
 
-## Plan, big picture, then steps
+## Spine, plan, then steps
 
-- **Plan the concepts before writing:** list the new concepts and what each is built from. Sort them so each comes after the ones it rests on: atomic things first, then what combines them. The sections follow this plan, one per concept or per small group that belongs together.
+- **The spine first:** before anything else, write the answer as one paragraph of 5–8 sentences on the running example, each following from the one before; for a process, the example's timeline. Each section, or each step, expands one of its sentences, in the same order, and ends with the state or question the next one starts from.
+- **Then check the concepts against it:** list the new concepts and what each is built from, atomic things first, then what combines them. Each is introduced by the time the spine needs it: the plan is a check, not the outline.
 - **How it works, first:** a narrative on how something works describes it working, end to end, before any "why" or "why not something else".
 - **The big picture fits the subject,** on the running example, in everyday words, at the top of the section it maps, naming no new term:
   - a structure: a short map of its parts, each by what it does;
@@ -47,7 +48,7 @@ Write each English sentence so the reader parses it once:
 
 ## Ideas first, sources second
 
-Say each idea in your own words, then cite it. A claim of your own about how a system behaves is checked before it's written, by computing or running it, and the narrative says how. Name a source in the prose only when who said it matters: a definition, a landmark paper, a disagreement, a measurement. Never tally who agrees ("X says …, Y agrees"): give the idea once, cited. Where sources disagree, cite each view.
+Write the explanation in your own words first, then cite each claim in it. A cited fact the spine doesn't need goes to the Appendix, or out. A claim of your own about how a system behaves is checked before it's written, by computing or running it, and the narrative says how. Name a source in the prose only when who said it matters: a definition, a landmark paper, a disagreement, a measurement. Never tally who agrees ("X says …, Y agrees"): give the idea once, cited. Where sources disagree, cite each view.
 
 ## Long lists
 
