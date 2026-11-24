@@ -10,7 +10,7 @@ A reader meeting the idea for the first time, who needs to know what it means, w
 
 ## Voice and tone
 
-Plain words, short sentences, present tense.
+Present tense; the defining source's own terms where they are exact.
 
 ## Structure
 
@@ -35,7 +35,7 @@ For the rigorous definition, prefer the source that defines the subject most exa
 
 ## Length
 
-Short enough to finish in a few minutes, long enough to get the concept right: spend the words on the definition and its nuances. Everything beyond definition level goes to Where to go next.
+Short enough to finish in a few minutes, long enough to get the concept right: spend the words on the definition and its nuances.
 
 ## Checklist
 

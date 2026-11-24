@@ -87,6 +87,9 @@ class Checks(helpers.WikiTestCase):
         for fine in ('$s_t = \\alpha x_t$', '`max_quote_words`', 'snake_case_names', 'Greek α alone'):
             self.assertNotIn('MATH_AS_TEXT', [c for c, _ in self.codes(text.replace('Requests fail', fine + '. Requests fail'))], fine)
         self.assertIn('LINK_PATH', [c for c, _ in self.codes(text.replace('Requests fail', 'See [x](nowhere.md). Requests fail'))])
+        trailing = text.replace('Requests fail', 'Clients wait longer, allowing the server to recover. Requests fail')
+        self.assertIn('SENTENCE_TRAILING', [c for c, _ in self.codes(trailing)])
+        self.assertNotIn('SENTENCE_TRAILING', [c for c, _ in self.codes(trailing, language='zh-Hans')])  # English only
 
     def test_words(self):
         self.assertEqual(narrativecheck.words(['A [link](https://x.y/z) and `code`.', '|---|---|', '```text', 'one two']), 6)

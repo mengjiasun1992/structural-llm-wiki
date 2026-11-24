@@ -26,7 +26,7 @@ Read in that order, each source once, and only what the plan says: whole sources
 ## 4. Finish
 
 1. Go over the checklists, and fix what fails: the template guide's Checklist, and the audience profile's when it has one (`sllmwiki narrative-format --audience`).
-2. Read it as the reader, new to the topic: after each paragraph, write down the question they would ask next, and check that the next paragraph answers it; recompute every worked number, show the arithmetic behind every rule and number, and look at every picture as rendered. After any rewrite, read it again: a fix can contradict what was there.
+2. Check the plan: the new concepts listed with what each is built from, the sections in that order, and a big picture before the first one that names no new term. Read it as the reader, new to the topic: check they always know where they are on the path and why each paragraph is there; recompute every worked number, show the arithmetic behind every rule and number, and look at every picture as rendered. After any rewrite, read it again: a fix can contradict what was there.
 3. Run `sllmwiki finish-narrative <slug> --primary <tags> --supporting <tags> --read <the slugs read in full> --grades <file>`, with the grades file from §2.
    - On an update, add `--bump minor --note "<what changed>"`, or `major` for a new answer.
 4. Fix every error it reports, by editing the narrative, then run it again until none are left.

@@ -4,13 +4,13 @@
 
 **Takeaway:** a reader new to the domain knows its main areas, and where to go deeper in each.
 
-**Aim:** concise, thorough, breadth over depth. Thorough: every item the authoritative sources agree on is in, or named as left out, with why. Concise: each item in about a hundred words. Breadth: depth on any one item is its own question.
+**Aim:** concise, thorough, breadth over depth. Thorough: every item the authoritative sources agree on is in, or named as left out, with why. Concise: each item in about a hundred words. Breadth: every main area, none in depth.
 
-A reader facing a domain or an umbrella term for the first time, who needs the lay of the land before going deep anywhere. The survey goes wide over deep: it serves the main dishes, the ones a newcomer can't miss, and points to where each goes deeper. Depth on any one item is another question, named under Where to go next.
+A reader facing a domain or an umbrella term for the first time, who needs the lay of the land before going deep anywhere. The survey goes wide over deep: it serves the main dishes, the ones a newcomer can't miss, and points to where each goes deeper.
 
 ## Voice and tone
 
-Plain words, short sentences, present tense. Even-handed across items and schools of thought.
+Present tense, even-handed across items and schools of thought.
 
 ## Structure
 
