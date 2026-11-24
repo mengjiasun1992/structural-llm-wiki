@@ -12,8 +12,10 @@
       (the subject defaults to the title of the step's summary; --json/--file records
       that summary first, as publish summary does; --pr then runs publish pr)
       Commits everything the run changed with the message
-      [sllmwiki][<action>][<tags>] <subject>, the step's report, and the
-      request that started the run, verbatim, in a Prompt: block.
+      [sllmwiki][<action>][<tags>] <subject>, the step's report, the
+      request that started the run, verbatim, in a Prompt: block, and, once
+      the pull request is open, its link (GitHub's squash merge adds (#N)
+      to the subject for the commits before it).
   sllmwiki publish pr
       Pushes the branch and opens its pull request, or updates it, with a
       description built from the summaries: the review checklist first, then
@@ -183,6 +185,8 @@ def message(state, action, tags, subject, report):
     if report:
         parts.append(report.strip())
     parts.append('Prompt:\n' + quote(state['prompt']))
+    if state.get('pr'):  # opened by now: a rework's commits, and every commit after the first publish pr
+        parts.append(f'Pull request: {state["pr"]}')
     return '\n\n'.join(parts) + '\n'
 
 

@@ -98,7 +98,9 @@ class Publish(helpers.WikiTestCase):
         self.write('sllmwiki/narratives/b.md', '# B?\n')
         self.summary('narrative', title='Why B?', checklist=['B reads well'], body='Wrote B.')
         self.pub('commit', 'narrative', '--tags', 'leaf-a', '--subject', 'Why B?')
-        self.assertIn('\n\nWrote B.\n\nPrompt:', helpers.git(self.root, 'log', '-1', '--format=%B').stdout)  # each commit its own report
+        msg = helpers.git(self.root, 'log', '-1', '--format=%B').stdout
+        self.assertIn('\n\nWrote B.\n\nPrompt:', msg)  # each commit its own report
+        self.assertTrue(msg.endswith('> Keep it short.\n\nPull request: https://github.com/o/r/pull/7\n\n'))  # opened by now
         self.summary('narrative', title='Why A?', checklist=['A reads well, reworked'], body='Rewrote A.')  # replaces A's
         r = self.pub('pr', '--cost', '1.5')
         self.assertEqual(r.out, 'updated https://github.com/o/r/pull/7\n')
