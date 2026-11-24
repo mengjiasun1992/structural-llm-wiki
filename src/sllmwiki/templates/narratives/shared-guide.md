@@ -33,8 +33,9 @@ Write each English sentence so the reader parses it once:
 
 - **Who does what, first:** "The script checks the file"; drop the actor only when it is unknown.
 - **One idea per sentence,** most under 20 words. The rule or outcome first, its condition next; two or more conditions become a list.
-- **Plain verbs:** "implement", not "the implementation of"; use, build, check, send, stop, fix.
-- **Each clause its own sentence:** a result gets its own ("This lets clients retry"); a chain of nouns or of "of the … for the" becomes a clause ("when the token fails to refresh").
+- **Exact words:** one plain verb ("decide", not "make a decision"; use, build, check, send, stop, fix); the exact noun, not "thing" or "stuff"; the number, not "very" or "a lot"; why it works or fails, not "good" or "bad".
+- **Each clause its own sentence:** a result gets its own ("The wait lets the server recover"); a chain of nouns or of "of the … for the" becomes a clause ("when the token fails to refresh").
+- **Name what you mean:** each sentence is whole and makes sense alone. Write "it", "they" or "this" only when the sentence before is about one thing; otherwise repeat its name.
 - **Start with the point:** "To retry", not "In order to retry".
 
 ## Ideas first, sources second

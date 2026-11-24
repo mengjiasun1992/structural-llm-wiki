@@ -13,13 +13,13 @@ CASES = (  # (line, the codes it gets)
     (' '.join(['word'] * 20) + '. ' + ' '.join(['word'] * 20) + '.', []),  # two sentences
     (' '.join(['word'] * 20) + '; ' + ' '.join(['word'] * 20) + '.', []),  # a semicolon ends a clause too
     ('- ' + LONG, ['SENTENCE_LONG']),  # a list item is prose
-    ('It is important to note that retries wait.', ['SENTENCE_FILLER']),
+    ('It is important to note that retries wait.', ['SENTENCE_REFERENCE', 'SENTENCE_FILLER']),
     ('Clients back off in order to spread the load.', ['SENTENCE_FILLER']),
     ('When it comes to retries, clients wait.', ['SENTENCE_FILLER']),
     ('Clients wait longer each time, allowing the server to recover.', ['SENTENCE_TRAILING']),
     ('The wait doubles, thereby spreading the load.', ['SENTENCE_TRAILING']),
     ('The wait doubles, resulting in fewer collisions.', ['SENTENCE_TRAILING']),
-    ('The wait doubles. This lets the server recover.', []),
+    ('The wait doubles. The longer wait lets the server recover.', []),
     ('Clients ordered the retries, allowed by the server.', []),  # no trailing participle
     ('See [a long link text that ' + ' '.join(['w'] * 30) + '](../x.md).', ['SENTENCE_LONG']),  # a link's text counts
     ('Waits grow [\\[1\\]](../sources/alpha-doc.md#details).', []),  # a citation doesn't
@@ -27,6 +27,18 @@ CASES = (  # (line, the codes it gets)
     ('| ' + LONG + ' |', []),  # a table row
     ('> ' + LONG, []),  # a block quote: often a source's words
     ('$$', []),
+    ('It balances keys, not traffic.', ['SENTENCE_REFERENCE']),  # "it" with nothing before it
+    ('- They combine: a wiki adds search.', ['SENTENCE_REFERENCE']),
+    ('- **Modulo hashing is out.** It balances keys.', []),  # the bold lead-in is what "it" names
+    ('Itself a ring, the table balances keys.', []),
+    ('The ring balances keys. This means hot keys still land on one server.', ['SENTENCE_REFERENCE']),
+    ('These are the two knobs.', ['SENTENCE_REFERENCE']),
+    ('This ring balances keys.', []),  # "this" with its noun
+    ('The state is the only thing stored.', ['SENTENCE_VAGUE']),
+    ('Arcs have very different sizes.', ['SENTENCE_VAGUE']),
+    ('Retries add a lot of load.', ['SENTENCE_VAGUE']),
+    ('The owner makes a decision on each source.', ['SENTENCE_VAGUE']),
+    ('The owner decides on each source. Everything else waits.', []),  # "everything" isn't "thing"
 )
 
 
