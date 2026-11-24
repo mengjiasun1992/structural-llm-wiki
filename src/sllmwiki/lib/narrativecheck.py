@@ -1,12 +1,12 @@
 """The checks sllmwiki narrative-format and sllmwiki finish-narrative run on a narrative
 (design doc §4.5, §4.8, §4.10): template sections, diagrams, numbers, lengths,
-citations, markers, readers' annotations, placeholders, doubled punctuation and markdown every
+citations, markers, readers' annotations, placeholders, doubled punctuation, plain sentences and markdown every
 renderer reads alike."""
 
 import os
 import re
 
-from . import annotations, citations, compat, figures, language, layout, manifest, markers, mdlinks, metadata, numbering, quotes, xrefs
+from . import annotations, citations, compat, figures, language, layout, manifest, markers, mdlinks, metadata, numbering, plain, quotes, xrefs
 from .compat import mask_code_spans, mask_spans, scan
 
 PLACEHOLDER = re.compile(r'<(?!https?://|mailto:|/)[^<>\n]*\s[^<>\n]*>')
@@ -157,6 +157,7 @@ def check(root, rel, text, settings, offered):
     out += figures.check_pictures(text, settings['picture_formats'], settings['max_pictures'])
     out += figures.check_captions(text)
     out += xrefs.check(root, rel, text)
+    out += plain.check(text, language.for_narrative(text, settings['language'])[0])
     lines = text.split('\n')
     kinds, _ = scan(lines)
     for i, line in enumerate(lines):

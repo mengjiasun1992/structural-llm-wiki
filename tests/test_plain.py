@@ -1,0 +1,55 @@
+"""Tests for lib/plain.py: the plain-sentence warnings narrative-format gives an English narrative
+(shared-guide.md, Plain sentences): long sentences, filler phrases and trailing participle clauses."""
+
+import unittest
+
+import helpers  # noqa: F401 (puts the package on the path)
+from sllmwiki.lib import plain
+
+LONG = ' '.join(['word'] * 31) + '.'
+CASES = (  # (line, the codes it gets)
+    (LONG, ['SENTENCE_LONG']),
+    (' '.join(['word'] * 30) + '.', []),  # 30 words: at the limit
+    (' '.join(['word'] * 20) + '. ' + ' '.join(['word'] * 20) + '.', []),  # two sentences
+    (' '.join(['word'] * 20) + '; ' + ' '.join(['word'] * 20) + '.', []),  # a semicolon ends a clause too
+    ('- ' + LONG, ['SENTENCE_LONG']),  # a list item is prose
+    ('It is important to note that retries wait.', ['SENTENCE_FILLER']),
+    ('Clients back off in order to spread the load.', ['SENTENCE_FILLER']),
+    ('When it comes to retries, clients wait.', ['SENTENCE_FILLER']),
+    ('Clients wait longer each time, allowing the server to recover.', ['SENTENCE_TRAILING']),
+    ('The wait doubles, thereby spreading the load.', ['SENTENCE_TRAILING']),
+    ('The wait doubles, resulting in fewer collisions.', ['SENTENCE_TRAILING']),
+    ('The wait doubles. This lets the server recover.', []),
+    ('Clients ordered the retries, allowed by the server.', []),  # no trailing participle
+    ('See [a long link text that ' + ' '.join(['w'] * 30) + '](../x.md).', ['SENTENCE_LONG']),  # a link's text counts
+    ('Waits grow [\\[1\\]](../sources/alpha-doc.md#details).', []),  # a citation doesn't
+    ('`' + ' '.join(['code'] * 40) + '`', []),  # a code span is masked
+    ('| ' + LONG + ' |', []),  # a table row
+    ('> ' + LONG, []),  # a block quote: often a source's words
+    ('$$', []),
+)
+
+
+class Plain(unittest.TestCase):
+    def codes(self, text, tag='en'):
+        return [code for _, code, _, _ in plain.check(text, tag)]
+
+    def test_cases(self):
+        for line, codes in CASES:
+            with self.subTest(line=line[:50]):
+                self.assertEqual(self.codes(f'# Q\n\n{line}\n'), codes)
+
+    def test_where_it_looks(self):
+        self.assertEqual(plain.check(f'# Q\n\nShort.\n\n{LONG}\n', 'en')[0][2], 5)  # the line number
+        self.assertEqual(self.codes(f'# Q\n\n## 1. Intro\n\n{LONG}\n'), ['SENTENCE_LONG'])
+        for section in ('References', 'SMEs', 'Metadata'):
+            self.assertEqual(self.codes(f'# Q\n\n## {section}\n\n{LONG}\n'), [], section)
+        self.assertEqual(self.codes(f'# Q\n\n## Metadata\n\n{LONG}\n\n## 2. Back\n\n{LONG}\n'), ['SENTENCE_LONG'])
+        self.assertEqual(self.codes(f'# Q\n\n```text\n{LONG}\n```\n'), [])  # code
+        self.assertEqual(self.codes(f'# {LONG}\n'), [])  # a heading
+        self.assertEqual(self.codes(f'# Q\n\n{LONG}\n', 'en-US'), ['SENTENCE_LONG'])
+        self.assertEqual(self.codes(f'# Q\n\n{LONG}\n', 'zh-Hans'), [])  # English only
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -28,6 +28,18 @@ Explain it in the order the reader meets it, not a textbook's:
 - **A derivation goes one link at a time:** the nearest case first, every hop shown, each link checked with a number, then the general rule. Show the arithmetic behind every rule and number, never "by calculus" or "the rule is"; give each quantity its unit and write each division out; say when a number is a rate at a point rather than the effect of a whole step; never explain a method with the one it replaces.
 - **Names come after use:** once the reader has seen a part work, give its official name; a table from the story's words to the field's terms closes the mechanism. Never coin a shorthand of your own ("the floor"): say what the thing does.
 
+## Plain sentences
+
+Write each English sentence so the reader parses it once:
+
+- **Who does what, first:** "The script checks the file"; drop the actor only when it is unknown.
+- **One idea per sentence,** most under 20 words. The rule or outcome first, its condition next; two or more conditions become a list.
+- **Plain verbs:** "implement", not "the implementation of"; use, build, check, send, stop, fix.
+- **Each clause its own sentence:** a result gets its own ("This lets clients retry"); a chain of nouns or of "of the … for the" becomes a clause ("when the token fails to refresh").
+- **Start with the point:** "To retry", not "In order to retry".
+
+`narrative-format` flags long sentences, filler and trailing ", allowing …" clauses.
+
 ## Ideas first, sources second
 
 Say each idea in your own words, then cite it. A claim of your own about how a system behaves is checked before it's written, by computing or running it, and the narrative says how. Name a source in the prose only when who said it matters: a definition, a landmark paper, a disagreement, a measurement. Never tally who agrees ("X says …, Y agrees"): give the idea once, cited. Where sources disagree, cite each view.
