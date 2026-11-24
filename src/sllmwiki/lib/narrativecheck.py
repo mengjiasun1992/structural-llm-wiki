@@ -173,6 +173,7 @@ def check(root, rel, text, settings, offered):
     out += xrefs.check(root, rel, text)
     out += check_question_headings(text)
     out += mermaid.check_charts(text)
+    out += mermaid.check_clicks(text)
     out += plain.check(text, language.for_narrative(text, settings['language'])[0])
     lines = text.split('\n')
     kinds, _ = scan(lines)

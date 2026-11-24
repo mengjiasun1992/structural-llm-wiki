@@ -27,6 +27,24 @@ def blocks(text):
             if figures._MERMAID.match(lines[first])]
 
 
+CLICK = re.compile(r'\s*click\s+\S+\s+(?:href\s+)?"([^"]*)"')
+
+
+def check_clicks(text):
+    """[(severity, code, line, message)]: MERMAID_RELATIVE_CLICK for a `click` link that isn't an absolute URL.
+    GitHub draws mermaid in an iframe on another host, where a relative link resolves to a page that isn't there
+    (issue #199)."""
+    out = []
+    for first, source in blocks(text):
+        for n, line in enumerate(source.split('\n'), first + 2):
+            m = CLICK.match(line)
+            if m and not re.match(r'(?:https?|mailto):', m.group(1)):
+                out.append(('error', 'MERMAID_RELATIVE_CLICK', n, f'click "{m.group(1)}" is relative, so it breaks on GitHub, '
+                                                                  'which draws mermaid on another host: use an https:// URL, '
+                                                                  'or a markdown link beside the diagram'))
+    return out
+
+
 def check_charts(text):
     """[(severity, code, line, message)] for the charts among the ```mermaid blocks (shared-guide.md, Pictures):
     CHART_PIE for a pie, whose angles readers compare worse than bars' lengths, and CHART_AXIS for an

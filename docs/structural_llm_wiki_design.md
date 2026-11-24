@@ -503,7 +503,7 @@ The wiki's CI also runs markdownlint, with rules that catch markdown that render
 
 With the add-on off, nothing Obsidian-specific is written.
 
-**The index.** `sllmwiki/.SLLMWIKI_INDICES.md` is GitHub's map. It holds a mermaid diagram of the tag tree whose nodes open the tag pages, and the same tree as a nested list. The wiki's README links to it. Obsidian and a book don't need the index. Its dot name keeps it out of Obsidian, where it would link to every tag. A book has its own contents, and in a book a link to the index points to them.
+**The index.** `sllmwiki/.SLLMWIKI_INDICES.md` is GitHub's map. It holds a mermaid diagram of the tag tree, and the same tree as a nested list of links to the tag pages. GitHub draws a mermaid diagram in an iframe on another host, where a relative `click` link resolves to a missing page (issue #199). So when origin is on GitHub, each node opens its tag page by an absolute URL, `https://github.com/<owner>/<repo>/blob/HEAD/…`. `HEAD` names the default branch, so a clone and a CI checkout write the same index. Without a GitHub remote the nodes don't click, and the list opens the pages. `wiki-check` and `narrative-format` report a relative `click` link on any page (`MERMAID_RELATIVE_CLICK`). The wiki's README links to it. Obsidian and a book don't need the index. Its dot name keeps it out of Obsidian, where it would link to every tag. A book has its own contents, and in a book a link to the index points to them.
 
 ### 4.9 Settings and add-ons: `Config.toml`
 
