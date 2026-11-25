@@ -1,12 +1,12 @@
-"""contributors: the people behind some code or docs, ranked with their evidence
-(design doc §5.1, the smes step).
+"""contributors: the people behind some code or docs, each with the facts that tie
+them to it (design doc §5.1, the smes step).
 
-  sllmwiki contributors <path> [<path> ...] [--repo DIR] [--limit N] [--json] [--root <wiki>]
+  sllmwiki contributors <path> [<path> ...] [--repo DIR] [--json] [--root <wiki>]
 
 <path>s are files or folders in the repository at --repo (default: the wiki's
-own). Each person is ranked by:
-  - commits touching the paths, recent ones counting more (a year halves a commit's weight);
-  - the lines of those files they last changed (git blame), as a share;
+own). Everyone with any of these facts is listed, by name, never scored or ranked:
+  - commits touching the paths, and the date of the last;
+  - the lines of those files they last changed (git blame), of the total;
   - CODEOWNERS rules that cover the paths;
   - Reviewed-by and Co-authored-by trailers on those commits;
   - author, authors or owner in a markdown file's front matter.
@@ -17,22 +17,18 @@ Exit code: 0, 1 when a path or the repository isn't found, 2 on a usage error.
 """
 
 import argparse
-import datetime
 import fnmatch
 import os
 import re
 import subprocess
 
-from sllmwiki.lib import runstats
 from sllmwiki.lib.layout import Cli
 from sllmwiki.lib.util import dumps, read_text
 
-cli = Cli('sllmwiki contributors', 'usage: sllmwiki contributors <path> [<path> ...] [--repo DIR] [--limit N] [--json]')
-HALF_LIFE_DAYS = 365
+cli = Cli('sllmwiki contributors', 'usage: sllmwiki contributors <path> [<path> ...] [--repo DIR] [--json]')
 MAX_BLAME_FILES = 200
 BOT = re.compile(r'\[bot\]|(?:^|[-_.])bot(?:$|[-_.@])|dependabot|renovate|github-actions|^noreply@', re.I)  # tools, not people
 TRAILER = re.compile(r'^(Reviewed-by|Co-authored-by):\s*(.+?)\s*<([^>]+)>\s*$', re.I | re.M)
-WEIGHTS = {'commits': 1.0, 'lines': 10.0, 'owner': 3.0, 'reviews': 1.0, 'author': 3.0}
 
 
 def git(repo, *args):
@@ -46,12 +42,8 @@ def git(repo, *args):
 class Person:
     def __init__(self, name, email):
         self.name, self.email = name, email
-        self.commits, self.weight, self.last, self.lines, self.reviews = 0, 0.0, '', 0, 0
+        self.commits, self.last, self.lines, self.reviews = 0, '', 0, 0
         self.owner, self.author = [], []
-
-    def score(self, total_lines):
-        return (WEIGHTS['commits'] * self.weight + WEIGHTS['lines'] * (self.lines / total_lines if total_lines else 0)
-                + WEIGHTS['owner'] * bool(self.owner) + WEIGHTS['reviews'] * self.reviews + WEIGHTS['author'] * bool(self.author))
 
     def evidence(self, total_lines):
         parts = []
@@ -114,9 +106,8 @@ def front_matter_authors(repo, files):
     return out
 
 
-def rank(repo, paths, exclude, now=None):
-    """(people, total current lines), people sorted by score."""
-    now = now or datetime.datetime.now(datetime.timezone.utc)
+def gather(repo, paths, exclude):
+    """(people, total current lines), everyone with any evidence, sorted by name."""
     people = {}
 
     def person(name, email):
@@ -133,9 +124,7 @@ def rank(repo, paths, exclude, now=None):
         if excluded(name, email, exclude):
             continue
         p = person(name, email)
-        age = (now - runstats.parse_time(when.strip())).days
         p.commits += 1
-        p.weight += 0.5 ** (max(age, 0) / HALF_LIFE_DAYS)
         p.last = max(p.last, when.strip()[:10])
     files = [f for f in git(repo, 'ls-files', '--', *paths).split('\n') if f][:MAX_BLAME_FILES]
     total = 0
@@ -159,35 +148,34 @@ def rank(repo, paths, exclude, now=None):
         if not excluded(name, '', exclude):
             match = next((p for p in people.values() if p.name.lower() == name.lower()), None)
             (match or person(name, '')).author += found
-    ranked = sorted(people.values(), key=lambda p: (-p.score(total), p.name))
-    return [p for p in ranked if p.score(total) > 0], total
+    found = [p for p in people.values() if p.evidence(total)]
+    return sorted(found, key=lambda p: (p.name.lstrip('@').lower(), p.email.lower())), total
 
 
 def main(argv):
     p = argparse.ArgumentParser(prog='sllmwiki contributors', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('paths', nargs='+')
     p.add_argument('--repo')
-    p.add_argument('--limit', type=int, default=10)
     p.add_argument('--json', action='store_true')
     p.add_argument('--root')
     args = p.parse_args(argv)
     root = cli.wiki(args.root)
     repo = os.path.abspath(args.repo or root)
     if not git(repo, '--version'):
-        cli.fail('git doesn\'t run here (preflight.sh says why), so there is no history to rank people from')
+        cli.fail('git doesn\'t run here (preflight.sh says why), so there is no history to find people in')
     if not git(repo, 'rev-parse', '--git-dir'):
         cli.fail(f'{repo} isn\'t a git repository')
     missing = [x for x in args.paths if not os.path.exists(os.path.join(repo, x))]
     if missing:
         cli.fail(f'not in {repo}: {", ".join(missing)}')
     exclude = cli.config(root).settings['smes_exclude']
-    people, total = rank(repo, [x.rstrip('/') or '.' for x in args.paths], exclude)
-    rows = [{'name': x.name, 'email': x.email, 'score': round(x.score(total), 2), 'evidence': x.evidence(total)} for x in people[:args.limit]]
+    people, total = gather(repo, [x.rstrip('/') or '.' for x in args.paths], exclude)
+    rows = [{'name': x.name, 'email': x.email, 'evidence': x.evidence(total)} for x in people]
     if args.json:
         print(dumps({'repo': repo, 'paths': args.paths, 'people': rows}))
         return 0
-    for i, r in enumerate(rows, 1):
-        print(f'{i}. {r["name"]}' + (f' <{r["email"]}>' if r['email'] else '') + f' ({r["score"]}): {r["evidence"]}')
+    for r in rows:
+        print(f'- {r["name"]}' + (f' <{r["email"]}>' if r['email'] else '') + f': {r["evidence"]}')
     if not rows:
         print('no one found: no commits, blame, CODEOWNERS or named authors for these paths')
     return 0

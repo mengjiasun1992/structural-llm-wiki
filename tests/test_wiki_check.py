@@ -73,6 +73,11 @@ class Check(helpers.WikiTestCase):
         findings = json.loads(self.wc('--json').out)['findings']
         self.assertEqual([f['message'][:25] for f in findings if f['code'] == 'MERMAID_RELATIVE_CLICK'], ['click "../tags/leaf-a.md"'])
 
+    def test_ranked_smes(self):
+        self.write('sllmwiki/tags/tags.yaml', self.read('sllmwiki/tags/tags.yaml').replace('"@ann: wrote the alpha doc"', '"@ann: 9/10, wrote the alpha doc"'))
+        findings = json.loads(self.wc('--json').out)['findings']
+        self.assertEqual([f['message'][:14] for f in findings if f['code'] == 'SMES_RANKED'], ['leaf-a: "9/10"'])
+
     def test_every_page_renders_alike(self):
         self.write('sllmwiki/notes/meeting.md', '# Notes\n\nSee [[what-is-alpha]] and ==this==, and [gone](missing.md).\n')
         self.write('sllmwiki/sources/raw-note.md', 'A source keeps its [[wikilink]].\n')  # verbatim, never checked here

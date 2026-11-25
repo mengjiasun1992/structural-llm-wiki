@@ -42,7 +42,7 @@ class Contributors(helpers.WikiTestCase):
     def run_it(self, *argv):
         return helpers.run('contributors.py', [*argv, '--repo', self.repo, '--root', self.root])
 
-    def test_ranked_with_evidence(self):
+    def test_listed_by_name_with_evidence(self):
         r = self.run_it('src', 'docs/design.md', '--json')
         self.assertEqual(r.code, 0, r.err)
         people = {p['name']: p for p in json.loads(r.out)['people']}
@@ -56,16 +56,17 @@ class Contributors(helpers.WikiTestCase):
         self.assertIn('named author of docs/design.md', people['Ann Lee']['evidence'])
         self.assertIn('named author of docs/design.md', people['Dee Fox']['evidence'])
         self.assertIn('CODEOWNERS for /src/', people['@team-x']['evidence'])
-        names = list(people)
-        self.assertLess(names.index('Bob Roy'), names.index('Cy Wu'))
+        self.assertEqual(list(people), ['Ann Lee', 'Bob Roy', 'Cy Wu', 'Dee Fox', 'Eve', '@team-x', 'Wiki Owner'])  # by name, never by weight
+        self.assertTrue(all(set(p) == {'name', 'email', 'evidence'} for p in people.values()))  # no score
 
     def test_excluded_and_text(self):
         self.write('sllmwiki/Config.toml', '[structural-llm-wiki-settings]\nsmes_exclude = ["@ann", "Wiki Owner", "bob@example.com", "@team-x"]\n')
-        out = self.run_it('src', '--limit', '5').out
+        out = self.run_it('src').out
         for gone in ('Ann Lee', 'Wiki Owner', 'Bob Roy', 'team-x'):
             self.assertNotIn(gone, out)
         self.assertIn('Cy Wu <cy@example.com>', out)
-        self.assertTrue(out.startswith('1. '))
+        self.assertTrue(out.startswith('- Cy Wu'))
+        self.assertNotIn('1. ', out)
 
     def test_refusals_and_nothing_found(self):
         self.assertIn('not in', self.run_it('nope').err)

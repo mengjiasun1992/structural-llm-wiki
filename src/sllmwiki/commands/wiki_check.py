@@ -34,6 +34,7 @@ Errors:
                             on any page under sllmwiki/ but the sources, markdown a
                             renderer would show wrong: GitHub, Obsidian or a book
                             (lib/compat.py; their warnings are warnings here too)
+  SMES_RANKED               a tag's SME entry scores, ranks or numbers the people it names (lib/smes.py)
   MERMAID_RELATIVE_CLICK    on the same pages, a mermaid click link that isn't an https:// URL:
                             GitHub draws mermaid on another host, so it breaks there
   MD001, MD038, MD051, ...  markdownlint's rules, as the wiki's CI runs them on every .md file but the
@@ -56,7 +57,7 @@ errors, 1 with errors, 2 on a usage error.
 import argparse
 import os
 
-from sllmwiki.lib import audience, book, compat, markdownlint, config, figures, footer, language, layout, manifest, mermaid, policy, schema, tagtree, templates, wikiindex, wikiyaml, xrefs
+from sllmwiki.lib import audience, book, compat, markdownlint, config, figures, footer, language, layout, manifest, mermaid, policy, schema, smes, tagtree, templates, wikiindex, wikiyaml, xrefs
 from sllmwiki.lib.layout import Cli
 from sllmwiki.lib.util import dumps, read_bytes, read_text, source_hash
 
@@ -93,6 +94,9 @@ def check(root, fix=False, seen_by=None):
             add(('error', f['code'], rel, f['message']))
     if any(f[1] == 'YAML_INVALID' for f in out):
         return out  # the rest reads these files
+    for tag, entry in data['tags'].items():
+        for _, msg in smes.check_entries((entry or {}).get('smes') or []):
+            add(('error', smes.CODE, layout.TAGS, f'{tag}: {msg}'))
     tree = tagtree.Tree(data['tags'], data['sources'], data['narratives'])
     for code, _, msg in tree.problems():
         add(('error', code, layout.TAGS, msg))
