@@ -890,9 +890,9 @@ A wiki is written and reviewed on GitHub and explored in Obsidian. Neither gives
 
   A release changes no file and isn't a pull request. GitHub's *Draft a new release* does the same without the agent.
 - **The wiki's `release-book` workflow builds the book** in each format `[structural-llm-wiki-release]` turns on (§4.9), and attaches the files. The build has four stages:
-  1. `sllmwiki book stage` writes the book's Markdown in a scratch folder.
+  1. `sllmwiki book stage` writes the book's Markdown in a scratch folder, without HTML comments: they are authoring markers, never for a reader.
   2. Headless Chrome draws every diagram and formula as SVG with pinned mermaid.js and MathJax, so the book draws what GitHub draws.
-  3. Sphinx with MyST-Parser builds a single-file HTML and an EPUB from the staged Markdown.
+  3. Sphinx with MyST-Parser builds a single-file HTML and an EPUB from the staged Markdown. Every XML file in the EPUB must parse, or the EPUB fails and isn't attached: a strict reader stops at the first error. That's also why no marker the skill writes holds `--`, which XML forbids in a comment.
   4. Chrome prints the PDF from the HTML.
 
   A failing format doesn't stop the others, and warnings go to the notes as *Known issues*. `--preview` builds the same files from a branch as a workflow artifact.

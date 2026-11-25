@@ -326,3 +326,17 @@ def finish_epub(src, dst):
             for n in names:
                 if n != 'mimetype':
                     zout.writestr(n, changed.get(n, zin.read(n)), compress_type=zipfile.ZIP_DEFLATED)
+
+
+def epub_errors(path):
+    """What in the EPUB at path isn't well-formed XML: ['<file>: <error>'] for each XHTML page, package, navigation
+    and other XML file, empty when every one parses. A strict reader stops at the first such error (issue #214)."""
+    out = []
+    with zipfile.ZipFile(path) as z:
+        for n in z.namelist():
+            if n.endswith(('.xhtml', '.html', '.opf', '.ncx', '.xml')):
+                try:
+                    ElementTree.fromstring(z.read(n))
+                except ElementTree.ParseError as e:
+                    out.append(f'{n}: {e}')
+    return out

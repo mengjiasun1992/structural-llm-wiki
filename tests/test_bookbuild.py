@@ -56,7 +56,7 @@ if '-b' in sys.argv and sys.argv[sys.argv.index('-b') + 1] == 'epub':  # a minim
         z.writestr('content.opf', '<package><manifest><item id="a" href="a.xhtml" media-type="application/xhtml+xml" />'
                                   '<item id="b" href="b.xhtml" media-type="application/xhtml+xml" /></manifest></package>')
         z.writestr('a.xhtml', '<html><body><svg role="img"/></body></html>')
-        z.writestr('b.xhtml', '<html><body>text</body></html>')
+        z.writestr('b.xhtml', '<html><body><!-- a --bad comment -->text</body></html>' if os.environ.get('STUB_EPUB_BAD') else '<html><body>text</body></html>')
         z.writestr('nav.xhtml', NAV)
         z.writestr('toc.ncx', NCX)
     print('a.md:3: WARNING: something odd', file=sys.stderr)
@@ -217,7 +217,7 @@ class Commands(unittest.TestCase):
         os.environ['STUB_LOG'] = self.log
 
     def tearDown(self):
-        for k in ('STUB_LOG', 'STUB_EMPTY', 'STUB_SETUP', 'STUB_SPHINX_FAIL', 'STUB_PDF_FAIL', 'STUB_EPUB_FAIL'):
+        for k in ('STUB_LOG', 'STUB_EMPTY', 'STUB_SETUP', 'STUB_SPHINX_FAIL', 'STUB_PDF_FAIL', 'STUB_EPUB_FAIL', 'STUB_EPUB_BAD'):
             os.environ.pop(k, None)
         shutil.rmtree(self.tmp, ignore_errors=True)
 
@@ -378,6 +378,41 @@ class Commands(unittest.TestCase):
         os.environ.pop('STUB_EPUB_FAIL')
         self.book('build', out3, '--vendor', self.vendor, '--chrome', self.chrome, '--sphinx', self.sphinx)
         self.assertEqual(list(json.loads(helpers.read(out3, 'staged/book.json'))['files']), ['epub'])
+
+    def test_an_epub_that_isnt_xml_fails(self):
+        # issue #214: a "--" inside a comment, which XML forbids, made every chapter unreadable to a strict reader
+        os.environ['STUB_EPUB_BAD'] = '1'
+        out = os.path.join(self.tmp, 'out')
+        r = self.book('build', out, '--vendor', self.vendor, '--formats', 'epub', '--chrome', self.chrome, '--sphinx', self.sphinx, '--version', 'v1')
+        self.assertEqual(r.code, 1)
+        data = json.loads(helpers.read(out, 'staged/book.json'))
+        self.assertEqual(data['files'], {})
+        self.assertIn("the EPUB isn't valid XML: b.xhtml: not well-formed", data['failed']['epub'])
+        self.assertFalse(os.path.exists(os.path.join(out, f'{os.path.basename(self.root)}-v1.epub')))  # never attached
+
+    def test_epub_errors_lists_every_broken_file(self):
+        path = os.path.join(self.tmp, 'b.epub')
+        with zipfile.ZipFile(path, 'w') as z:
+            z.writestr('mimetype', 'application/epub+zip')
+            z.writestr('ok.xhtml', '<html><!-- fine - here --></html>')
+            z.writestr('c1.xhtml', '<html><!-- x --y --></html>')
+            z.writestr('content.opf', '<package>')
+            z.writestr('style.css', '<!-- -- not XML, not checked')
+        self.assertEqual([e.split(':')[0] for e in bookbuild.epub_errors(path)], ['c1.xhtml', 'content.opf'])
+
+    def test_many_broken_files_are_summed_up(self):
+        mod = helpers.load_script('book.py')
+        built = os.path.join(self.tmp, '_build', 'epub', 'w-v.epub')
+        os.makedirs(os.path.dirname(built))
+        with zipfile.ZipFile(built, 'w') as z:
+            z.writestr('mimetype', 'application/epub+zip')
+            z.writestr('content.opf', '<package/>')
+            for i in range(12):
+                z.writestr(f'c{i}.xhtml', '<html><!-- -- --></html>')
+        with mock.patch.object(mod, '_sphinx', return_value=([], None)):
+            path, why = mod.epub_book(self.root, self.tmp, self.tmp, {'name': 'w', 'version': 'v'}, 'sphinx-build')
+        self.assertIsNone(path)
+        self.assertTrue(why.endswith('; and 2 more'), why)
 
     def test_an_epub_sphinx_writes_nothing_for(self):
         with mock.patch.object(subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, '', '')):

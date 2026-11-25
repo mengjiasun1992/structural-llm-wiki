@@ -31,7 +31,8 @@
       stylesheet, image and diagram in it; for pdf, Chrome prints that file
       to OUT/<name>-<version>.pdf (A4, page numbers, the title as the running
       head); for epub, Sphinx's EPUB 3 to OUT/<name>-<version>.epub, from the
-      same rendered pages. --formats (pdf, epub, html) defaults to the ones
+      same rendered pages, failing when a file in it isn't well-formed XML.
+      The staged pages drop HTML comments. --formats (pdf, epub, html) defaults to the ones
       Config.toml's [structural-llm-wiki-release] turns on; with none, the
       book is staged and no file is written. Problems and warnings are listed
       (Sphinx's are BOOK_SPHINX) and don't stop the book; exit code 1 when a
@@ -180,7 +181,7 @@ def html_book(root, out, staged, data, sphinx):
 
 def epub_book(root, out, staged, data, sphinx):
     """Sphinx's EPUB 3 of the rendered staged book, finished (bookbuild.finish_epub): (path, Sphinx's warnings),
-    or (None, why it failed)."""
+    or (None, why it failed), a file that isn't well-formed XML included (bookbuild.epub_errors)."""
     warnings, why = _sphinx(root, out, staged, data, sphinx, 'epub')
     name = f'{data["name"]}-{data["version"]}'
     built = os.path.join(out, '_build', 'epub', f'{name}.epub')
@@ -188,6 +189,10 @@ def epub_book(root, out, staged, data, sphinx):
         return None, why or 'Sphinx wrote no EPUB'
     path = os.path.join(out, f'{name}.epub')
     bookbuild.finish_epub(built, path)
+    broken = bookbuild.epub_errors(path)
+    if broken:  # a reader would stop at it, so it never reaches a release
+        os.remove(path)
+        return None, 'the EPUB isn\'t valid XML: ' + '; '.join(broken[:10]) + (f'; and {len(broken) - 10} more' if len(broken) > 10 else '')
     return path, warnings
 
 

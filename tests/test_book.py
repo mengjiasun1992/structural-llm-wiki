@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 import shutil
 import tempfile
 import unittest
@@ -251,6 +252,37 @@ class Pages(unittest.TestCase):
         self.assertEqual(book.terms('# Q\n'), [])
 
 
+class WithoutComments(unittest.TestCase):
+    """issue #214: the book drops HTML comments, authoring markers; one holding "--" broke the EPUB's XHTML."""
+
+    def test_comments(self):
+        cases = [
+            ('a\n<!-- sllmwiki:reading-order: wiki-check --fix -->\n### Before you read\n', 'a\n### Before you read\n'),
+            ('Text <!-- note --> more.', 'Text  more.'),  # inline: the text around it stays
+            ('a\n<!-- one\ntwo\n-->\nb', 'a\nb'),  # over several lines
+            ('a <!-- x --> b <!-- y --> c', 'a  b  c'),
+            ('```\n<!-- kept in code -->\n```', '```\n<!-- kept in code -->\n```'),
+            ('Use `<!-- x -->` here.', 'Use `<!-- x -->` here.'),  # a code span
+            ('    <!-- indented code -->', '    <!-- indented code -->'),
+            ('a\n<!-- never closed\nb', 'a'),  # a reader sees nothing after it either
+            ('no comment', 'no comment'),
+        ]
+        for text, want in cases:
+            with self.subTest(text=text):
+                self.assertEqual(book.without_comments(text), want)
+
+    def test_no_marker_the_skill_writes_holds_a_double_hyphen(self):
+        package = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'sllmwiki')
+        found = []
+        for folder, _, files in os.walk(package):
+            for name in files:
+                if name.endswith(('.py', '.md', '.yml', '.yaml', '.toml', '.txt')):
+                    with open(os.path.join(folder, name), encoding='utf-8') as f:
+                        for n, line in enumerate(f, 1):
+                            found += [f'{name}:{n}' for m in re.finditer(r'<!--(.*?)-->', line) if '--' in m.group(1)]
+        self.assertEqual(found, [])
+
+
 class Stage(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp(prefix='sllmwiki-test-')
@@ -258,6 +290,12 @@ class Stage(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_comments_never_reach_the_book(self):
+        text = helpers.read(self.root, 'sllmwiki/narratives/what-is-alpha.md')
+        helpers.write(self.root, 'sllmwiki/narratives/what-is-alpha.md', text.replace('\n## ', '\n<!-- a marker, wiki-check --fix -->\n\n## ', 1))
+        st = book.stage(self.root, 'w', 'v', 'd', 'c')
+        self.assertEqual([p for p, text in st.files.items() if '<!--' in text], [])
 
     def test_the_staged_book(self):
         helpers.write(self.root, 'sllmwiki/narratives/manifest.yaml', helpers.read(self.root, 'sllmwiki/narratives/manifest.yaml').replace(

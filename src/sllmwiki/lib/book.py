@@ -302,6 +302,32 @@ def rewrite(root, book, slug):
     return Rewritten('\n'.join(lines), problems, list(dict.fromkeys(sources)), list(dict.fromkeys(figures)), targets)
 
 
+def without_comments(text):
+    """text without its HTML comments (<!-- … -->), outside code: authoring markers, never for a reader, and a
+    comment holding "--" isn't XML, which breaks an EPUB's XHTML (issue #214). A line left empty by it goes."""
+    lines = text.split('\n')
+    kinds, _ = scan(lines)
+    out, inside = [], False
+    for i, line in enumerate(lines):
+        if not inside and (kinds[i] != 'text' or '<!--' not in line):
+            out.append(line)
+            continue
+        masked, kept, at = mask_code_spans(line), [], 0
+        while at <= len(line):
+            j = masked.find('-->' if inside else '<!--', at)
+            if j < 0:
+                if not inside:
+                    kept.append(line[at:])
+                break
+            if not inside:
+                kept.append(line[at:j])
+            at, inside = j + (3 if inside else 4), not inside
+        left = ''.join(kept)
+        if left.strip():
+            out.append(left.rstrip())
+    return '\n'.join(out)
+
+
 def _without_metadata(text):
     """text without its Metadata section, which the book replaces by a version line."""
     span = numbering.section(text, 'Metadata')
@@ -587,6 +613,7 @@ def stage(root, name, version, date, commit, source=None, title=None, author=Non
     models = model_names([m for slug in b.order() for m in (recorded[slug].get('models') or {}).values()])
     files['index.md'] = cover(title, version, date, commit, pack, [f'parts/{p.tag}' for p in b.parts] + [f for _, _, f in made],
                               contents(b, pack, [(label, t) for label, t, _ in made]), source, models)
+    files = {path: without_comments(text) for path, text in files.items()}
     renders = {}
     for path, text in sorted(files.items()):
         for r in compat.renderables(text):
