@@ -14,7 +14,7 @@ A narrative answers one question, for its template's reader. It starts from `sll
 
 ## Other narratives
 
-When the narrative mentions a concept another narrative covers, say it in a sentence consistent with that narrative and link to it there, to its section where one fits. The link replaces a second explanation. The reading plan names the related narratives.
+When the narrative mentions a concept another narrative covers, say it in a sentence consistent with that narrative, under its name, and link to it there, to its section where one fits: the link replaces a second explanation, not that sentence, since a reader may not have read it. A concept the narrative uses without explaining makes that narrative a prerequisite. The reading plan names the related narratives.
 
 ## Citations
 

@@ -31,7 +31,7 @@ Present tense; the defining source's own terms where they are exact.
 
 ## Evidence
 
-For the rigorous definition, prefer the source that defines the subject most exactly: the original paper, the standard or the creator. Grade a source that defines the subject high relevance even when the rest of it is about something else. Textbooks and encyclopedic references serve the short version and the key ideas.
+For the rigorous definition, prefer the source that defines the subject most exactly: the original paper, the standard or the creator. Textbooks and encyclopedic references serve the short version and the key ideas.
 
 ## Length
 
