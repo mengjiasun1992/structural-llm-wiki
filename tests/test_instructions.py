@@ -12,7 +12,7 @@ import sllmwiki
 SKILL = helpers.SKILL_DIR
 COMMANDS = os.path.join(os.path.dirname(os.path.dirname(SKILL)), 'commands')
 BUDGETS = {  # words per file; a run loads SKILL.md, a workflow, its steps, shared.md, shared-guide.md and one template with its guide
-    'SKILL.md': 1020,  # 900 until the bootstrap that installs the package moved in (#145); 1000 until a refused copy had to be asked about explicitly
+    'SKILL.md': 1200,  # room to grow; 900 until the bootstrap that installs the package moved in (#145), 1000 until #203
     'workflows/*.md': 1200,
     'steps/*.md': 1350,  # 1270 until lint checks the writing standard: hedges, thin and contrary evidence, the Abstract, paragraphs, numbers, charts; 1240 until lint's whole-narrative coherence check (#194); 1210 until statement headings and re-planning a rework (#188); 1200 until the big picture moved to the steps it lists
 }

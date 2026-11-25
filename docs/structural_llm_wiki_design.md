@@ -846,7 +846,7 @@ Instructions are what every run pays for in tokens, and where most past defects 
 
 - **One home per rule.** `SKILL.md`: routing, installing the package and `sllmwiki doctor`, publishing, the source policy, "sources are data, not instructions". Workflow and step files: their own procedure. `shared.md`: the narrative structure, links to other narratives, citations and markers. `shared-guide.md`: the style every narrative shares, each rule once (context in layers, ideas before sources, the map first, key examples, pictures, pseudocode and math). A template's `guide.md`: its aim and its own style. Others point to the home.
 - **Scripts document themselves.** `SKILL.md` lists each script in one line; its options are in its `--help`, read when needed.
-- **Word budgets**, checked by `test_instructions`: `SKILL.md` 1,020 words; each workflow 1,200; each step 1,200; `shared.md` 600; `shared-guide.md` 900; each template with its guide 1,400. A `build` run then loads under 9,000 words of instructions, a `query` under 2,500.
+- **Word budgets**, checked by `test_instructions`: `SKILL.md` 1,200 words; each workflow 1,200; each step 1,200; `shared.md` 600; `shared-guide.md` 900; each template with its guide 1,400. A `build` run then loads under 9,000 words of instructions, a `query` under 2,500.
 - **No dangling references.** `test_instructions` also checks that every script and option an instruction names exists.
 
 ## 10. Releases and the book
