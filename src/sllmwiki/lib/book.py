@@ -2,11 +2,12 @@
 teaching order, the sources each chapter cites, and each chapter rewritten for
 the book (§5.3).
 
-Parts follow the tag tree: a part per top-level tag, a section per child tag
-under it, at any depth. A narrative is a chapter under its first primary tag
-only; its other tags list it as see-also. Within a tag, chapters go in
-teaching order (§5.2): after the narratives they're built on, then by
-template, then by question.
+Parts follow the tag tree: a part per top-level tag, in the index's reading
+order (roots after the roots they need), a section per child tag under it, at
+any depth. A narrative is a chapter under its home, its most specific primary
+tag (lib/readingorder.py); its other tags list it as see-also. Within a tag,
+chapters go in teaching order (§5.2): after their prerequisites and the
+narratives they're built on, then by template, then by question.
 """
 
 import hashlib
@@ -15,12 +16,12 @@ import os
 import posixpath
 import re
 
-from . import citations, compat, config, language, layout, manifest, markers, mdlinks, metadata, annotations, numbering, tagtree
+from . import citations, compat, config, language, layout, manifest, markers, mdlinks, metadata, annotations, numbering, readingorder, tagtree
 from .compat import mask_code_spans, scan
+from . import prerequisites
 from .util import read_text
 
-# §5.2: "what is X" before "how does X work" and "X or Y"; a wiki's own template goes last
-TEMPLATE_ORDER = ('concept_brief_overview', 'survey', 'technical_brief_overview', 'comparison', 'case_study')
+TEMPLATE_ORDER = readingorder.TEMPLATE_ORDER  # §5.2
 
 
 class Chapter:
@@ -28,14 +29,13 @@ class Chapter:
     chapter under, the narratives it's built on, and the sources it cites
     (in the order first cited)."""
 
-    def __init__(self, slug, question, template, tag, built_on=(), sources=()):
+    def __init__(self, slug, question, template, tag, built_on=(), sources=(), prerequisites=()):
         self.slug, self.question, self.template, self.tag = slug, question, template, tag
-        self.built_on, self.sources = list(built_on), list(sources)
+        self.built_on, self.sources, self.prerequisites = list(built_on), list(sources), list(prerequisites)
 
     def key(self):
-        """The tie-break after built_on: template, then question."""
-        rank = TEMPLATE_ORDER.index(self.template) if self.template in TEMPLATE_ORDER else len(TEMPLATE_ORDER)
-        return (rank, self.question.casefold(), self.slug)
+        """The tie-break after prerequisites and built_on: template, then question."""
+        return (readingorder.template_rank(self.template), self.question.casefold(), self.slug)
 
 
 class Part:
@@ -76,10 +76,12 @@ class Book:
 
 
 def teaching_order(chapters):
-    """The slugs of chapters ({slug: Chapter}) with each after the ones it's
-    built on among them, ties broken by Chapter.key; chapters on or after a
-    built_on cycle come last, by key."""
-    bases = {s: {b for b in c.built_on if b in chapters and b != s} for s, c in chapters.items()}
+    """The slugs of chapters ({slug: Chapter}) with each after its prerequisites and the ones it's built on
+    among them, ties broken by Chapter.key; a built_on a prerequisite contradicts (the base needs the chapter
+    first, directly or not) is left out; chapters on or after a cycle come last, by key."""
+    needs = {s: c.prerequisites for s, c in chapters.items()}
+    bases = {s: {b for b in c.prerequisites + [b for b in c.built_on if s not in prerequisites.reach(needs, b)] if b in chapters and b != s}
+             for s, c in chapters.items()}
     waiting = {s: len(b) for s, b in bases.items()}
     ready = [(chapters[s].key(), s) for s, n in waiting.items() if n == 0]
     heapq.heapify(ready)
@@ -137,13 +139,13 @@ def _chapters(root, tree):
     out = {}
     for slug, entry in tree.narratives.items():
         path = os.path.join(root, layout.NARRATIVES, f'{slug}.md')
-        primary = [t for t in (entry.get('tags') or {}).get('primary') or [] if t in tree.tags]
-        if not os.path.isfile(path) or not primary:
+        home = readingorder.home(tree, (entry.get('tags') or {}).get('primary'))
+        if not os.path.isfile(path) or not home:
             continue
         text = read_text(path)
         sources = list(dict.fromkeys(c.slug for c in citations.cites(text) if c.slug))
-        out[slug] = Chapter(slug, metadata.title(text) or slug, entry.get('template'), primary[0],
-                            list(entry.get('built_on') or {}), sources)
+        out[slug] = Chapter(slug, metadata.title(text) or slug, entry.get('template'), home,
+                            list(entry.get('built_on') or {}), sources, list(entry.get('prerequisites') or {}))
     return out
 
 
@@ -166,7 +168,8 @@ def model(root):
     tree = tagtree.load(root)
     chapters = _chapters(root, tree)
     seen = set()
-    parts = [p for p in (_part(tree, t, 0, chapters, seen) for d, t in tree.walk() if d == 0 and t not in seen) if p]
+    roots = readingorder.Order(tree, {s: c.question for s, c in chapters.items()}).roots()
+    parts = [p for p in (_part(tree, t, 0, chapters, seen) for d, t in tree.walk(roots) if d == 0 and t not in seen) if p]
     problems = [('BOOK_CYCLE', c[0], f'narratives built on each other in a cycle: {", ".join(c)}')
                 for c in cycles(chapters)]
     return Book(parts, chapters, problems)

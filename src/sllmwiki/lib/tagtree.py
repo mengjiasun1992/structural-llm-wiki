@@ -79,8 +79,8 @@ class Tree:
                     out[role].append(n)
         return out
 
-    def walk(self):
-        """(depth, tag) for every tag, each root's tree in turn, children in file order."""
+    def walk(self, roots=None):
+        """(depth, tag) for every tag, each root's tree in turn (roots, when given, sets their order), children in order."""
         out, seen = [], set()
 
         def visit(tag, depth):
@@ -90,7 +90,7 @@ class Tree:
             out.append((depth, tag))
             for child in self.children(tag):
                 visit(child, depth + 1)
-        for root in self.roots():
+        for root in roots or self.roots():
             visit(root, 0)
         for tag in self.tags:  # tags on a cycle have no root
             visit(tag, 0)

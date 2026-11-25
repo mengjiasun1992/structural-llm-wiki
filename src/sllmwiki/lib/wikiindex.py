@@ -1,6 +1,7 @@
 """sllmwiki/.SLLMWIKI_INDICES.md, GitHub's map of the wiki (design doc §4.8): a mermaid
 diagram of the tag tree, and the same tree as a nested list of links to the tag pages;
-and pages(), every generated page with its text.
+and pages(), every generated page with its text. Under the tree, the reading paths: each
+root's narratives in the order to read them (lib/readingorder.py), roots in dependency order.
 
 GitHub draws a mermaid diagram in an iframe on another host, so a relative `click` link
 resolves there and breaks (issue #199). When origin is on GitHub, each node opens its tag
@@ -10,7 +11,7 @@ list below the diagram, whose relative links work in every renderer, opens the p
 
 import os
 
-from . import layout, metadata, policy, tagpages, tagtree
+from . import layout, metadata, policy, readingorder, tagpages, tagtree
 from .compat import escape
 from .util import read_text
 
@@ -22,11 +23,14 @@ def _rel(path):
     return os.path.relpath(path, os.path.dirname(layout.INDEX)).replace(os.sep, '/')
 
 
-def render(tree, questions, repo=None):
-    """The index's text; repo, (owner, name) on GitHub, makes the diagram's nodes open their tag pages."""
+def render(tree, questions, repo=None, minutes=None):
+    """The index's text; repo, (owner, name) on GitHub, makes the diagram's nodes open their tag pages;
+    minutes, {slug: reading time}, goes beside each narrative in the reading paths."""
     lines = ['# Index of this wiki', '', GENERATED, '',
              'The topics this wiki covers. Each opens a page with its narratives, sources and who to ask.', '']
-    walk = tree.walk()
+    order = readingorder.Order(tree, questions)
+    roots = order.roots()
+    walk = tree.walk(roots)
     if not walk:
         return '\n'.join(lines + ['No topics yet.', ''])
     ids = {tag: f't{i}' for i, (_, tag) in enumerate(walk)}
@@ -44,7 +48,32 @@ def render(tree, questions, repo=None):
         count = sum(len(v) for v in tree.narratives_of(tag).values())
         lines.append(f'{"  " * depth}- [{tag}]({_rel(tagpages.path(tag))}): {tree.tags[tag].get("description") or ""}'
                      + (f' ({count} narrative{"s" if count != 1 else ""})' if count else ''))
-    return escape('\n'.join(lines) + '\n')[0]
+    return escape('\n'.join(lines + _paths(order, roots, questions, minutes or {})) + '\n')[0]
+
+
+def _paths(order, roots, questions, minutes):
+    """The Reading paths section: a numbered list per root with narratives, each with the numbers of the
+    narratives it needs in its own path, and a link to the place of one it needs in another."""
+    paths = [(r, order.path(r)) for r in roots]
+    paths = [(r, p) for r, p in paths if p]
+    if not paths:
+        return []
+    out = ['', '## Reading paths', '', 'Each topic\'s narratives in the order to read them: "needs" names the ones to read first.']
+    for root, path in paths:
+        out += ['', f'### {root}', '']
+        for i, slug in enumerate(path, 1):
+            here, there = [], []
+            for p in order.needs.get(slug, ()):
+                at = order.place(p)
+                if at and at[0] == root:
+                    here.append(at[1])
+                elif at:
+                    there.append(f'[{at[0]} {at[1]}](#{at[0]})')
+            needs = [str(n) for n in sorted(here)] + there
+            out.append(f'{i}. [{questions.get(slug, slug)}]({_rel(f"{layout.NARRATIVES}/{slug}.md")})'
+                       + (f' ({minutes[slug]} min)' if minutes.get(slug) else '')
+                       + (f', needs {", ".join(needs[:-1]) + " and " + needs[-1] if len(needs) > 1 else needs[0]}' if needs else ''))
+    return out
 
 
 def questions(root, tree):
@@ -71,9 +100,10 @@ def pages(root):
     tree = tagtree.load(root)
     qs = questions(root, tree)
     mins = minutes(root, tree)
-    out = {layout.INDEX: render(tree, qs, policy.origin_repo(root))}
+    out = {layout.INDEX: render(tree, qs, policy.origin_repo(root), mins)}
+    order = readingorder.Order(tree, qs)
     for tag in tree.tags:
-        out[tagpages.path(tag)] = tagpages.render(tree, tag, qs, mins)
+        out[tagpages.path(tag)] = tagpages.render(tree, tag, qs, mins, order)
     return out
 
 

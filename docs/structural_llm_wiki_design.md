@@ -520,7 +520,18 @@ The wiki's CI also runs markdownlint, with rules that catch markdown that render
 
 With the add-on off, nothing Obsidian-specific is written.
 
-**The index.** `sllmwiki/.SLLMWIKI_INDICES.md` is GitHub's map. It holds a mermaid diagram of the tag tree, and the same tree as a nested list of links to the tag pages. GitHub draws a mermaid diagram in an iframe on another host, where a relative `click` link resolves to a missing page (issue #199). So when origin is on GitHub, each node opens its tag page by an absolute URL, `https://github.com/<owner>/<repo>/blob/HEAD/…`. `HEAD` names the default branch, so a clone and a CI checkout write the same index. Without a GitHub remote the nodes don't click, and the list opens the pages. `wiki-check` and `narrative-format` report a relative `click` link on any page (`MERMAID_RELATIVE_CLICK`). The wiki's README links to it. Obsidian and a book don't need the index. Its dot name keeps it out of Obsidian, where it would link to every tag. A book has its own contents, and in a book a link to the index points to them.
+**The index.** `sllmwiki/.SLLMWIKI_INDICES.md` is GitHub's map. It holds a mermaid diagram of the tag tree, and the same tree as a nested list of links to the tag pages. GitHub draws a mermaid diagram in an iframe on another host, where a relative `click` link resolves to a missing page (issue #199). So when origin is on GitHub, each node opens its tag page by an absolute URL, `https://github.com/<owner>/<repo>/blob/HEAD/…`. `HEAD` names the default branch, so a clone and a CI checkout write the same index. Without a GitHub remote the nodes don't click, and the list opens the pages. `wiki-check` and `narrative-format` report a relative `click` link on any page (`MERMAID_RELATIVE_CLICK`). The wiki's README links to it.
+
+**Reading paths** (issue #206). A tag tree is a map, not a path: it says what a narrative is about, not what to read first. So the index adds, under the tree, a numbered **reading path** per root, computed from the prerequisites (§4.5.2) and always current (`lib/readingorder.py`):
+
+- A narrative sits in one path, under its **home**: its most specific primary tag. A primary tag that is an ancestor of another of its primary tags drops out, and the first left wins. Depths in different trees don't compare, so unrelated tags keep the narrative's order. The book files a chapter under the same tag.
+- Within a path, each narrative comes after its prerequisites and says which ("needs 1, 3"), with a link to one in another root's path ("needs machine-learning 2"). Ties go by where its home sits in the tree, then template ("what is" before "how does"), then question.
+- Roots come in dependency order: a root whose narratives need another root's comes after it, and the owner's order (`order-tags`) breaks ties. The tree above, the paths and the book's parts follow it.
+- Each tag page lists its narratives numbered in the same way, primary before supporting on a tie, naming a prerequisite filed under another tag.
+
+A diagram per root was left out: the numbered lists carry the order, and the diagrams mattered mostly for Obsidian.
+
+Obsidian and a book don't need the index. Its dot name keeps it out of Obsidian, where it would link to every tag. A book has its own contents, and in a book a link to the index points to them.
 
 ### 4.9 Settings and add-ons: `Config.toml`
 
