@@ -4,11 +4,18 @@
                                description (--brief: names and counts only)
   sllmwiki tag-tree show <tag>       a tag: description, parent, ancestors, children,
                                adjacent tags, SMEs, sources and narratives
-  sllmwiki tag-tree review           the tree, then each tag a reader may not expect
+  sllmwiki tag-tree review [--new a,b]
+                               the tree, then each tag a reader may not expect
                                where it is (exit 1 when there's one):
-      TAG_NO_PRIMARY   a leaf no narrative has as a primary tag
-      TAG_OTHER_ROOT   a tag most of whose narratives have their other primary tags
-                       under one other root
+      TAG_NO_PRIMARY      a leaf no narrative has as a primary tag
+      TAG_OTHER_ROOT      a tag most of whose narratives have their other primary tags
+                          under one other root
+      TAG_BUILDS_ON_ROOT  a tag most of whose subtree's narratives link to, build on
+                          or need narratives under one other root: it may be a kind
+                          of that root (reported on the highest such tag)
+      TAG_RETAG           with --new, the tags a run added: each narrative not filed
+                          under one that links to, builds on or needs its narratives,
+                          or names it: it may need the tag, at least as supporting
 
 Options: --json for machine-readable output; --root <wiki>.
 Exit code: 0, or 1 for an unknown tag or a review finding, 2 for a usage error.
@@ -18,7 +25,7 @@ import argparse
 
 from sllmwiki.lib import tagtree
 from sllmwiki.lib.layout import Cli
-from sllmwiki.lib.util import dumps
+from sllmwiki.lib.util import comma_list, dumps
 
 cli = Cli('sllmwiki tag-tree', 'usage: sllmwiki tag-tree tree [--brief] | show <tag> | review')
 
@@ -39,7 +46,8 @@ def main(argv):
     t.add_argument('--brief', action='store_true')
     s = sub.add_parser('show')
     s.add_argument('tag')
-    sub.add_parser('review')
+    r = sub.add_parser('review')
+    r.add_argument('--new', type=comma_list, default=[])
     args = p.parse_args(argv)
     tree = tagtree.load(cli.wiki(args.root))
 
@@ -60,7 +68,11 @@ def main(argv):
         return 0
 
     if args.command == 'review':
-        findings = [{'code': c, 'tag': t, 'message': m} for c, t, m in tree.review()]
+        unknown = [t for t in args.new if t not in tree.tags]
+        if unknown:
+            cli.usage(f'--new names no tag {", ".join(unknown)}')
+        ties = tagtree.narrative_ties(cli.wiki(args.root), tree.narratives)
+        findings = [{'code': c, 'tag': t, 'message': m} for c, t, m in tree.review(ties, args.new)]
         if args.json:
             print(dumps({'tree': [{'tag': t, 'depth': d, 'parent': tree.parent(t)} for d, t in tree.walk()], 'findings': findings}))
             return 1 if findings else 0

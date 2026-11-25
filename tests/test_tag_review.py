@@ -94,5 +94,63 @@ class Review(helpers.WikiTestCase):
         self.assertIn(('TAG_OTHER_ROOT', 'infra'), found)  # infra's one narrative is mostly root-topic's
 
 
+class Ties(helpers.WikiTestCase):
+    """The owner's dry run (#209): roots added before the one they build on, and narratives that predate a tag."""
+
+    def setUp(self):
+        super().setUp()
+        for tag, parent in (('large-language-models', None), ('llm-architectures', 'large-language-models'), ('machine-learning', None),
+                            ('neural-networks', 'machine-learning'), ('ml-workload-math', 'machine-learning'),
+                            ('ai-infrastructure', None), ('gpu-clusters', 'ai-infrastructure')):
+            manifest.add_tag(self.root, tag, f'The {tag} area', parent)
+        add = helpers.add_narrative
+        add(self.root, 'how-does-a-neural-network-compute', 'How does a neural network compute?', primary=('neural-networks',))
+        add(self.root, 'what-is-a-gpu-cluster', 'What is a GPU cluster?', primary=('gpu-clusters',))
+        add(self.root, 'how-does-attention-work', 'How does attention work?', primary=('llm-architectures',),
+            built_on=('how-does-a-neural-network-compute',))
+        add(self.root, 'how-does-an-llm-generate-text', 'How does an LLM generate text?', primary=('llm-architectures',))
+        self.write('sllmwiki/narratives/how-does-an-llm-generate-text.md', self.read('sllmwiki/narratives/how-does-an-llm-generate-text.md').replace(
+            'Requests fail, and', 'Each layer is a [Neural Network](how-does-a-neural-network-compute.md#3-background), and'))
+        add(self.root, 'what-does-a-training-step-cost', 'What does a training step cost?', primary=('ml-workload-math',),
+            built_on=('what-is-a-gpu-cluster',))
+        self.write('sllmwiki/narratives/what-is-alpha.md', self.read('sllmwiki/narratives/what-is-alpha.md').replace(
+            'Requests fail, and', 'Unlike neural networks, alpha systems are simple. Requests fail, and'))
+
+    def review(self, *argv):
+        r = helpers.run('tag-tree.py', ['--root', self.root, '--json', 'review', *argv])
+        return r, [(f['code'], f['tag'], f['message']) for f in json.loads(r.out)['findings']] if r.out else []
+
+    def test_a_root_built_on_another(self):
+        r, found = self.review()
+        self.assertEqual(r.code, 1)
+        built = {t: m for c, t, m in found if c == 'TAG_BUILDS_ON_ROOT'}
+        self.assertEqual(sorted(built), ['large-language-models', 'ml-workload-math'])  # not llm-architectures: its root says it
+        self.assertEqual(built['large-language-models'], 'large-language-models is a root, but 2 of the 2 narrative(s) '
+                         'filed under it link to, build on or need narratives under machine-learning: check whether it is a kind of '
+                         'machine-learning or built on it, and move it there if so (sllmwiki manifest move-tag)')
+        self.assertIn('ml-workload-math is under machine-learning, but 1 of the 1 narrative(s)', built['ml-workload-math'])
+        self.assertNotIn('machine-learning', built)  # 1 of its 2 narratives
+        self.assertNotIn('TAG_BUILDS_ON_ROOT', [c for c, _, _ in tagtree.load(self.root).review()])  # it needs the ties
+        manifest.move_tag(self.root, 'large-language-models', 'machine-learning')
+        manifest.move_tag(self.root, 'ml-workload-math', 'ai-infrastructure')
+        self.assertEqual([c for c, _, _ in self.review()[1] if c == 'TAG_BUILDS_ON_ROOT'], [])
+
+    def test_retag(self):
+        found = [(t, m) for c, t, m in self.review('--new', 'neural-networks')[1] if c == 'TAG_RETAG']
+        self.assertEqual([m.split(' may use')[0] for _, m in found], ['how-does-an-llm-generate-text', 'how-does-attention-work', 'what-is-alpha'])
+        self.assertEqual(found[0][1], 'how-does-an-llm-generate-text may use neural-networks (links to, builds on or needs '
+                         'how-does-a-neural-network-compute; names it 1 time(s)): add it, at least as a supporting tag '
+                         '(sllmwiki finish-narrative how-does-an-llm-generate-text --supporting <its supporting tags>,neural-networks)')
+        self.assertIn('(names it 1 time(s))', found[2][1])
+        r, _ = self.review('--new', 'nope')
+        self.assertEqual(r.code, 2)
+        self.assertIn('--new names no tag nope', r.err)
+
+    def test_named(self):
+        name = tagtree._named('neural-networks')
+        self.assertEqual(len(name.findall('A neural network, Neural Networks and a neural-network; not neural-networking.')), 3)
+        self.assertTrue(tagtree._named('rag').search('Use RAG here.'))
+
+
 if __name__ == '__main__':
     unittest.main()
