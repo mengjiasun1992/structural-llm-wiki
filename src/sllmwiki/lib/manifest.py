@@ -6,8 +6,9 @@ read from the files when needed.
 
 import copy
 import os
+import re
 
-from . import layout, numbering, schema, wikiyaml
+from . import layout, metadata, numbering, schema, wikiyaml
 from . import smes as smesrules
 from .util import read_bytes, read_text, source_hash, write_text
 
@@ -113,12 +114,28 @@ def pins(root, slugs):
     return out
 
 
-def narrative_hash(text):
-    """A narrative's content hash, its Metadata section left out, so new dates or a version alone aren't a change."""
+def _without_metadata(text):
     span = numbering.section(text, 'Metadata')
     lines = text.split('\n')
-    body = '\n'.join(lines[:span[0]] + lines[span[1]:]) if span else text
-    return source_hash(body.encode('utf-8'))
+    return '\n'.join(lines[:span[0]] + lines[span[1]:]) if span else text
+
+
+def narrative_hash(text):
+    """A narrative's content hash: without its Metadata, what lib/prerequisites.py generates, and its heading numbers,
+    so new dates, a version, another narrative's new prerequisite or a renumbering alone aren't a change."""
+    lines = metadata.without_generated(_without_metadata(text)).split('\n')
+    for h in numbering.headings('\n'.join(lines)):
+        lines[h.line] = f'{"#" * h.level} {h.title}'
+    return source_hash(re.sub(r'\n{3,}', '\n\n', '\n'.join(lines)).encode('utf-8'))  # nor where blank lines were
+
+
+def legacy_hash(text):
+    """The hash pins had before prerequisites (issue #205): it kept heading numbers. Still accepted until re-pinned."""
+    return source_hash(_without_metadata(text).encode('utf-8'))
+
+
+def pin_matches(text, pin):
+    return pin in (narrative_hash(text), legacy_hash(text))
 
 
 def narrative_pins(root, slugs):
@@ -131,10 +148,32 @@ def narrative_pins(root, slugs):
     return out
 
 
-def put_narrative(root, slug, template, primary, supporting, read, grades=None, model=None, built_on=None):
+def repin(root, before):
+    """After narratives were rewritten without a change in content (a regenerated region, a moved section): every pin
+    on one of them that matched its text before, now on its text after. before is {slug: text before}; the entries changed."""
+    entries = load(root, 'narratives')
+    changed = []
+    for slug, e in entries.items():
+        new = dict(e)
+        for field in ('built_on', 'prerequisites'):
+            pins = dict(e.get(field) or {})
+            for base, pin in pins.items():
+                path = os.path.join(root, layout.NARRATIVES, f'{base}.md')
+                if base in before and pin_matches(before[base], pin) and os.path.isfile(path):
+                    pins[base] = narrative_hash(read_text(path))
+            if pins != (e.get(field) or {}):
+                new[field] = pins
+        if new != e:
+            save(root, 'narratives', slug, new)
+            changed.append(slug)
+    return changed
+
+
+def put_narrative(root, slug, template, primary, supporting, read, grades=None, model=None, built_on=None, prerequisites=None):
     """Write a narrative's entry: its template, tags and the current pins of the sources it read;
     grades, the reading plan's, replace the recorded ones; model, (version, name), is added to models;
-    built_on, the narratives it builds on, are pinned (None keeps the recorded ones, re-pinned)."""
+    built_on, the narratives it builds on, and prerequisites, those a reader reads first, are pinned
+    (None keeps the recorded ones, re-pinned; a prerequisite must be a narrative)."""
     tags = load(root, 'tags')
     unknown = [t for t in list(primary) + list(supporting) if t not in tags]
     if unknown:
@@ -151,6 +190,13 @@ def put_narrative(root, slug, template, primary, supporting, read, grades=None, 
     bases = narrative_pins(root, list(recorded.get('built_on') or {}) if built_on is None else built_on)
     if bases:
         entry['built_on'] = bases
+    wanted = list(recorded.get('prerequisites') or {}) if prerequisites is None else list(prerequisites)
+    missing = [p for p in wanted if not os.path.isfile(os.path.join(root, layout.NARRATIVES, f'{p}.md'))]
+    if missing or slug in wanted:
+        raise ManifestError(f'a prerequisite is another narrative; no narrative {", ".join(missing)}' if missing else 'a narrative isn\'t its own prerequisite')
+    firsts = narrative_pins(root, wanted)
+    if firsts:
+        entry['prerequisites'] = firsts
     return save(root, 'narratives', slug, entry)
 
 

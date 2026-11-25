@@ -63,6 +63,7 @@ SCHEMAS = {
         })),
         'models': Field('map', item=Field('str'), versions=True),  # the model that wrote each version
         'built_on': Field('map', item=Field('md5')),  # the narratives it builds on, pinned (design doc §4.5)
+        'prerequisites': Field('map', item=Field('md5')),  # the narratives a reader reads first, pinned (design doc §4.5.2)
     },
 }
 

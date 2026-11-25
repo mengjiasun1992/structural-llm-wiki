@@ -4,7 +4,7 @@
 
 **Takeaway:** a reader who didn't know the solution or design has learned it by the end.
 
-**Aim:** concise, authoritative, depth over breadth. Depth: the core idea and how it works carry at least half the body: why it works, how exactly it behaves on the running example, and its edge cases. Breadth is held back: the variants, decisions and limitations the running example needs, a few each; the rest is named under Where to go next. Authoritative: how it works rests on the code, the specification or the original paper.
+**Aim:** concise, authoritative, depth over breadth. Depth: the core idea and how it works carry at least half the body: why it works, how exactly it behaves on the running example, and its edge cases. Breadth is held back: the variants, decisions and limitations the running example needs, a few each; the rest is named under the Appendix's Where to go next. Authoritative: how it works rests on the code, the specification or the original paper.
 
 An engineer, a researcher or an agent, new to this solution or design, who needs to understand how it works well enough to use it, change it or debug it. Every passage serves that; the history of the field, related systems and how the narrative was written are left out. A neighboring topic worth its own explanation becomes its own question, linked from here.
 
@@ -44,7 +44,7 @@ How it works is cited to the code, the specification, the original paper or the 
 
 ## Length
 
-Spend the budget on the core idea worked in full on the running example; a neighboring question goes under Where to go next.
+Spend the budget on the core idea worked in full on the running example; a neighboring question goes under the Appendix's Where to go next.
 
 ## Checklist
 

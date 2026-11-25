@@ -32,7 +32,7 @@ Prefer sources that survey the domain themselves: official principles, survey pa
 
 ## Length
 
-The budget is for breadth. An item that needs more than a few short paragraphs is its own question: name it under Where to go next.
+The budget is for breadth. An item that needs more than a few short paragraphs is its own question: name it under the Appendix's Where to go next.
 
 ## Checklist
 

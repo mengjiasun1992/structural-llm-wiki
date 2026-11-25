@@ -23,6 +23,11 @@ Errors:
   VISIBILITY_MISMATCH       Config.toml declares visibility = "private", but the repository is public
   INDEX_OUTDATED, TAG_PAGE_OUTDATED, TAG_PAGE_ORPHAN
                             a generated page is out of date (--fix rewrites it)
+  READING_ORDER_OUTDATED    a narrative's Before you read, Where to go next or Read first line
+                            isn't what its prerequisites give (--fix rewrites it)
+  PREREQUISITE_UNKNOWN, PREREQUISITE_CYCLE
+                            a recorded prerequisite that is no narrative; narratives that are,
+                            through their prerequisites, each other's
   NARRATIVE_ANCHOR          a link to a section of another narrative that isn't there
                             (--fix repairs one whose section was only renumbered)
   BOOK_LINK, BOOK_CYCLE, BOOK_FIGURE
@@ -44,6 +49,8 @@ Warnings:
                             SLLMWIKI_MARKDOWNLINT=off skips it on purpose
   NARRATIVE_SOURCE_CHANGED  a narrative was built on an older version of a source: recheck it
   NARRATIVE_BASE_CHANGED    a narrative it builds on changed since, or is gone: recheck the wording it reuses
+  PREREQUISITE_CHANGED      a narrative it needs read first changed since: check it still explains what it uses
+  PREREQUISITE_INDIRECT     a prerequisite listed as direct that another of its prerequisites already needs
   SOURCE_UPSTREAM_CHANGED   check-upstream found the original changed: re-ingest it
   ABSTRACT_DRAFT            a source still has its starter abstract
   PAGE_HANDWRITTEN          a page where a generated one would go, left alone
@@ -57,7 +64,7 @@ errors, 1 with errors, 2 on a usage error.
 import argparse
 import os
 
-from sllmwiki.lib import audience, book, compat, markdownlint, config, figures, footer, language, layout, manifest, mermaid, policy, schema, smes, tagtree, templates, wikiindex, wikiyaml, xrefs
+from sllmwiki.lib import audience, book, compat, markdownlint, config, figures, footer, language, layout, manifest, mermaid, policy, prerequisites, schema, smes, tagtree, templates, wikiindex, wikiyaml, xrefs
 from sllmwiki.lib.layout import Cli
 from sllmwiki.lib.util import dumps, read_bytes, read_text, source_hash
 
@@ -150,11 +157,13 @@ def check(root, fix=False, seen_by=None):
                      f'{slug} was built on an older version of {src}: lint it against the new one'))
         for base, pin in (e.get('built_on') or {}).items():
             path = os.path.join(root, layout.NARRATIVES, f'{base}.md')
-            if not os.path.isfile(path) or manifest.narrative_hash(read_text(path)) != pin:
+            if not os.path.isfile(path) or not manifest.pin_matches(read_text(path), pin):
                 add(('warning', 'NARRATIVE_BASE_CHANGED', f'{layout.NARRATIVES}/{slug}.md',
                      f'{slug} builds on {base}, which ' + ('changed since' if os.path.isfile(path) else 'is gone')
                      + ': recheck the wording it reuses, and lint it'))
 
+    out += prerequisites.check(root, narratives)
+    out += prerequisites.sync(root, fix)[0]  # before the links: a new Appendix renumbers the sections after it
     out += figures.unused(root)
     out += xrefs.check_all(root, fix)
     out += book.check(root)

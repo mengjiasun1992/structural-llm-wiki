@@ -23,6 +23,7 @@ narrative written in it, and how to write it.
 | The ideas at work | 背後的原理 |
 | Outcome | 結果 |
 | Lessons | 經驗教訓 |
+| Before you read | 閱讀之前 |
 | Where to go next | 延伸閱讀 |
 | The choices | 候選方案 |
 | When to choose which | 如何選擇 |
@@ -83,6 +84,8 @@ narrative written in it, and how to write it.
 | Known issues | 已知問題 |
 | {n} min read | 閱讀約 {n} 分鐘 |
 | About {n} min read. | 閱讀約 {n} 分鐘。 |
+| Read first: {links} ({section}). | 請先讀：{links}（{section}）。 |
+| about {n} min | 約 {n} 分鐘 |
 | {n} min | {n} 分鐘 |
 | Original | 原文 |
 | The narratives in this book are the wiki owner's work. Every source belongs to its authors: the book links to it and quotes it briefly, but never copies it. | 本書中的敘述是 wiki 擁有者的作品。每個來源都屬於其作者：本書連結到來源並簡短引用，但從不複製。 |

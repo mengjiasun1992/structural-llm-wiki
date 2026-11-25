@@ -34,7 +34,3 @@ abstract_words: [80, 150]
 ## 9. Misconceptions (optional)
 
 <What newcomers commonly get wrong, each with what's true instead.>
-
-## 10. Where to go next (optional)
-
-<The questions this opens, each a narrative of its own: linked when it exists, named when it doesn't.>

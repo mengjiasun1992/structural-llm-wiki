@@ -26,7 +26,3 @@ abstract_words: [80, 150]
 ## 6. Boundaries (optional)
 
 <The definition tested on the cases near its edge: which are in, which are out, and why; the neighbors it gets confused with; and what newcomers commonly get wrong.>
-
-## 7. Where to go next (optional)
-
-<The questions this opens, each a narrative of its own: linked when it exists, named when it doesn't.>
