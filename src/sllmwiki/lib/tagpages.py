@@ -24,9 +24,11 @@ def _first_sentence(text, limit=30):
     return m.group(1) if m else short + ('…' if len(words) > limit else '')
 
 
-def render(tree, tag, questions, minutes=None):
-    """The page for tag; questions maps a narrative slug to its question, and minutes to its reading time."""
-    minutes = minutes or {}
+def render(tree, tag, questions, minutes=None, order=None):
+    """The page for tag; questions maps a narrative slug to its question, and minutes to its reading time;
+    its narratives are numbered in reading order (lib/readingorder.py), each naming a prerequisite filed elsewhere."""
+    from .readingorder import Order
+    minutes, order = minutes or {}, order or Order(tree, questions)
     e = tree.tags[tag]
     lines = [f'# {tag}', '', GENERATED, '', e.get('description') or '', '']
     chain = list(reversed(tree.ancestors(tag)))
@@ -35,12 +37,14 @@ def render(tree, tag, questions, minutes=None):
     children = tree.children(tag)
     if children:
         lines += ['## Subtopics', ''] + [f'- [{c}]({c}.md): {tree.tags[c].get("description") or ""}' for c in children] + ['']
-    narratives = tree.narratives_of(tag)
-    if narratives['primary'] or narratives['supporting']:
-        lines += ['## Narratives', '']
-        for role in ('primary', 'supporting'):
-            lines += [f'- [{questions.get(n, n)}](../narratives/{n}.md){f" · {minutes[n]} min" if minutes.get(n) else ""}'
-                      f'{" (supporting)" if role == "supporting" else ""}' for n in narratives[role]]
+    rows = order.tag(tag)
+    if rows:
+        lines += ['## Narratives', '', 'In the order to read them.', '']
+        listed = {n for n, _ in rows}
+        for i, (n, role) in enumerate(rows, 1):
+            needs = [f'[{questions.get(p, p)}](../narratives/{p}.md)' for p in order.needs.get(n, ()) if p not in listed]
+            lines.append(f'{i}. [{questions.get(n, n)}](../narratives/{n}.md){f" · {minutes[n]} min" if minutes.get(n) else ""}'
+                         f'{" (supporting)" if role == "supporting" else ""}' + (f', needs {", ".join(needs)}' if needs else ''))
         lines.append('')
     sources = tree.sources_of(tag)
     if sources:

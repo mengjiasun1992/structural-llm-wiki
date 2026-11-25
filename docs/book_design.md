@@ -189,8 +189,10 @@ narrative's version and date.
 
 Within a part, chapters go in teaching order:
 
-1. **Dependencies first:** a narrative that `built_on` another comes after it
-   (a topological order of `built_on`; a cycle is a PR-time error, §7).
+1. **Dependencies first:** a narrative comes after its prerequisites and the
+   narratives it's `built_on` (a topological order; a cycle of `built_on` is a
+   PR-time error, §7). A `built_on` that a prerequisite contradicts is left
+   out: the prerequisite says what a reader needs first (issue #206).
 2. **Then by template:** concept, survey, technical, comparison, case study,
    so "what is X" comes before "how does X work" and "X or Y".
 3. **Then by question,** alphabetically, so the order is stable.
