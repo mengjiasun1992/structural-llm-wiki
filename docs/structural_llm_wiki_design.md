@@ -446,7 +446,7 @@ After any edit, the agent runs one command, `finish-narrative` (§7.5). It:
 - writes Before you read, Where to go next and the Read first pointer, in this narrative and in those its prerequisites changed (§4.5.2);
 - regenerates the index and tag pages.
 
-The reading-time line is `*About 5 min read.*`, in the narrative's language. The script keeps its minutes because a hand-kept line drifted on every edit. `narrative-format` reports a stale line (`READING_TIME_OUTDATED`). The word count leaves the line out, and the book drops it for its own version line.
+The reading-time line is `*About 5 min read.*`, in the narrative's language. The script keeps its minutes because a hand-kept line drifted on every edit. `narrative-format` reports a stale line (`READING_TIME_OUTDATED`). The word count leaves the line out, and the book drops it for its own line: the date the narrative last changed and its reading time.
 
 The agent writes the content; the script does the rest.
 
@@ -904,7 +904,7 @@ A wiki is written and reviewed on GitHub and explored in Obsidian. Neither gives
   - the narratives as chapters in teaching order: what they build on first, then concept, survey, technical, comparison, case study;
   - appendices of the sources (abstract, license, link), a glossary and the open questions.
 
-  The book never holds the saved copies of sources, and never SMEs, because the file travels.
+  The book never holds the saved copies of sources, and never SMEs, because the file travels. A chapter holds only what serves its reader: the book leaves out its SMEs, its Sources read (Appendix A lists them) and its Metadata, renumbers the sections left, and keeps a link to a section left out as plain text.
 - **Problems surface on the pull request, not at release.** `wiki-check` runs staging's model on every pull request and reports a link the book couldn't follow. `sllmwiki book parse --base` parses the diagrams and formulas a pull request brings (`DIAGRAM_SYNTAX`, `MATH_SYNTAX`).
 - **Nothing to install.** GitHub's runners build the book, and the files need no network, JavaScript or fonts. This repository's `check-book` workflow builds the fixture wiki's book on every change to the book's code, and checks it (`tools/check-book.py`, `epubcheck`).
 
