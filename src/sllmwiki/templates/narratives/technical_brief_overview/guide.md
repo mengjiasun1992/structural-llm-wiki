@@ -10,20 +10,19 @@ An engineer, a researcher or an agent, new to this solution or design, who needs
 
 ## Voice and tone
 
-Present tense, second person where it helps ("you configure …"). No hype, no hedging beyond what the sources hedge.
+Present tense, second person where it helps ("you configure …"). No hype.
 
 ## Structure
 
-- **Background:** the orientation, then the problem through the running example, then the prerequisites. A long one is split into subsections, its assumptions before the numbers that use them.
-- **The core idea before any detail:** in plain words first, as you'd say it to a colleague, then the one rule or formula, then the diagram that shows it.
+- **Background:** the orientation, then the problem through the running example, then what the reader must know before the mechanism. A long one is split into subsections, its assumptions before the numbers that use them.
 - **How it works, worked:** a numbered walkthrough, one step per arrow or transition of the diagram, each on the running example.
 - **The subject is the main actor:** when the question is about a tool, service or system, introduce it right after the example's problem: what it is, its parts at a glance by what each does, and what it automates. Each step then leads with its part ("NVSentinel's monitor, on each tray, reads …"), then the supporting systems' response; where it helps, what an operator would do without it.
 - **Each step is a handoff:** who acts and where it runs, what it reads, what it does, and what it produces for whom. Its first sentence starts from the step before's output.
 - **Several new concepts: build up from a toy.** When the mechanism brings more than two concepts new to the reader, first build it on a toy small enough to compute by hand, in an ideal setting. Add one concept per step, in the concept plan's order; then take the same steps to the real running example, with a table from toy to real.
 - **Who does what, at each level:** a system with several levels (node, CPU, GPU, switch) gets a short table of each level's actions, in the body.
 - **The data on each path:** what crosses each path, how much per unit of work, and what isn't on it. Every rate says whether it is each way or both directions added.
-- **The basic form first;** then, in Variants, at most two, each one the running example needs or a reader is likely to meet, named as a variant of it.
-- **Decisions and limitations:** those that change how the running example behaves, about three each. Parameters come with rules of thumb: a typical value, how to choose it, and what goes wrong when it's too high or too low.
+- **The basic form first;** each variant is named as a variant of it.
+- **Parameters come with rules of thumb:** a typical value, how to choose it, and what goes wrong when it's too high or too low.
 
 ## Examples
 
