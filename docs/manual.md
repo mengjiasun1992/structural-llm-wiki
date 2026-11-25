@@ -204,4 +204,4 @@ The scripts enforce what they can. These rules are a cautious default, not legal
 
 **Can I make my wiki public?** Yes, once its saved sources are all openly licensed: a public wiki's CI fails on a copy it may not hold. Review `sllmwiki/sources/` first, or set `source_copies = "links-only"`.
 
-**Who are the SMEs, and how do I keep someone off the list?** The people behind a topic's code and docs, ranked by evidence from git history, code owners and authorship, each with a question to ask them. Add anyone, such as yourself or a bot, to `smes_exclude` in `Config.toml`.
+**Who are the SMEs, and how do I keep someone off the list?** The people behind a topic's code and docs, listed by name with the evidence from git history, code owners and authorship, each with a question to ask them. No one is scored or ranked. Add anyone, such as yourself or a bot, to `smes_exclude` in `Config.toml`.

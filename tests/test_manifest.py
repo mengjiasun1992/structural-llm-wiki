@@ -122,6 +122,10 @@ class Command(helpers.WikiTestCase):
         self.assertEqual(run(self.root, 'add-tag', 'leaf-c', '--description', 'Third', '--parent', 'root-topic').out, 'added tag leaf-c\n')
         self.assertEqual(run(self.root, 'put-tag', 'leaf-c', '--smes', '@a: x', '@b: y').code, 0)
         self.assertEqual(run(self.root, 'put-tag', 'leaf-c', '--no-smes').code, 0)
+        r = run(self.root, 'put-tag', 'leaf-c', '--smes', '@a: wrote it', '@b: the top expert')
+        self.assertNotEqual(r.code, 0)
+        self.assertIn('"top"', r.err)
+        self.assertNotIn('smes', manifest.load(self.root, 'tags')['leaf-c'])  # nothing written
         r = run(self.root, 'put-source', 'delta', '--kind', 'link', '--url', 'https://e.com/d', '--license', 'unknown', '--tags', 'leaf-c, leaf-b',
                 '--abstract', 'Delta.')
         self.assertEqual(r.out, 'recorded source delta\n')

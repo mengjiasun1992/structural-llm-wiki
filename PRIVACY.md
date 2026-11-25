@@ -6,7 +6,7 @@ The Structural LLM Wiki plugin (`sllmwiki`) runs in your coding agent, on your m
 
 - **Your wiki repository**, and any repository or files you point it at.
 - **Sources you ask about:** web pages, documents, papers and code. It requests them from where they're published and saves a copy in your wiki, or only a link when a copy isn't allowed.
-- **Git history, for SMEs.** The SMEs step reads commit authors' names and email addresses, `git blame`, CODEOWNERS and review trailers in the repositories you name, to rank who knows an area.
+- **Git history, for SMEs.** The SMEs step reads commit authors' names and email addresses, `git blame`, CODEOWNERS and review trailers in the repositories you name, to list who has worked on an area. It never scores or ranks anyone.
 
 ## What it stores, and where
 

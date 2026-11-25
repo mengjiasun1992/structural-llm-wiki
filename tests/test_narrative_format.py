@@ -19,6 +19,12 @@ class Checks(helpers.WikiTestCase):
     def test_the_fixture_passes(self):
         self.assertEqual(self.codes(helpers.narrative_text()), [])
 
+    def test_ranked_smes(self):
+        text = helpers.narrative_text()
+        head = next(line for line in text.split('\n') if line.startswith('## ') and line.endswith('References'))
+        ranked = text.replace(head, '## SMEs\n\n- @ann: the best person for alpha\n\n' + head)
+        self.assertEqual([c for c, _ in self.codes(ranked) if c == 'SMES_RANKED'], ['SMES_RANKED'])
+
     def test_title_and_template(self):
         text = helpers.narrative_text()
         self.assertIn(('NO_TITLE', 1), self.codes(text.replace('# What is alpha?', 'What is alpha?', 1)))

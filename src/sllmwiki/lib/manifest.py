@@ -8,6 +8,7 @@ import copy
 import os
 
 from . import layout, numbering, schema, wikiyaml
+from . import smes as smesrules
 from .util import read_bytes, read_text, source_hash, write_text
 
 FILES = {'tags': layout.TAGS, 'sources': layout.SOURCES_MANIFEST, 'narratives': layout.NARRATIVES_MANIFEST}
@@ -170,6 +171,9 @@ def put_tag(root, name, description=None, smes=None):
     if description is not None:
         entry['description'] = description
     if smes is not None:
+        ranked = smesrules.check_entries(smes)
+        if ranked:
+            raise ManifestError(ranked[0][1])
         entry['smes'] = smes
         if not smes:
             entry.pop('smes')

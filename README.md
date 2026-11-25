@@ -36,7 +36,7 @@ What the wiki does about it:
 - **Knowledge compounds.** One narrative per question, kept in git. A new answer builds on what the wiki already explains, and the next person who asks gets the reviewed answer.
 - **Answers stay true.** Each narrative records the source versions it read. When code or a doc changes, exactly the narratives that rest on it are flagged.
 - **It teaches.** Each answer's shape fits its question, and each answer is written for a reader new to the topic. You can describe your own kind of answer, such as a postmortem or a ten-minute primer on a paper.
-- **It knows who to ask.** Each topic lists the people behind its code and docs, ranked by evidence from git history and code owners.
+- **It knows who to ask.** Each topic lists the people behind its code and docs, with the evidence from git history and code owners, never scored or ranked.
 - **A book with every release.** Each release attaches the whole wiki as a PDF, an EPUB or one HTML file. Its chapters come in teaching order, with diagrams and math drawn as on GitHub. The book is an onboarding pack, current as of that day.
 
 ![Every kind of question gets the shape that teaches it. What is X? In short, then rigorously, and its edge cases. How does X work? One real example, walked through with its numbers. Principles of X? The field mapped first, then each idea in brief. X or Y? Every option compared, and the rule for when each wins. What happened? The timeline, the chain of causes, and the lessons. Your own kind? A postmortem, a primer: a template you describe.](docs/images/answer-shapes.svg)

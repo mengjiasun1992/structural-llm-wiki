@@ -26,7 +26,7 @@ Follow `steps/ingest.md` for the questions and their tags; its commit takes `--p
 
 ## 5. SMEs
 
-Follow `steps/smes.md` for the questions' tags; it says when there's nothing to rank.
+Follow `steps/smes.md` for the questions' tags; it says when there's no one to find.
 
 ## 6. Narratives
 

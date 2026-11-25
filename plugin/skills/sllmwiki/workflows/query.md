@@ -13,7 +13,7 @@ Answer a question from what the wiki already knows, reading as little as possibl
    - a reader's annotation it uses, quoted with its marker as that reader's view, not a source ("your annotation of 2026-11-16 says …");
    - a warning when a narrative it rests on was built on a source that has changed since;
    - what the wiki doesn't cover;
-   - who to ask: the tags' SMEs;
+   - who to ask: the tags' SMEs, by name with their evidence, never ranked or one named best;
    - what you read: which tiers, roughly how much.
 4. **Offer, don't do.**
    - When the answer stitched together several narratives, or used sources no narrative covers, offer to file it as a narrative (`steps/narrative.md`).
