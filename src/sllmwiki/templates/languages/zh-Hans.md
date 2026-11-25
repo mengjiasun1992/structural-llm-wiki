@@ -72,6 +72,9 @@ it, and how to write it.
 | Contents | 目录 |
 | About this book | 关于本书 |
 | See also | 另见 |
+| Volume {n}: {title} | 第 {n} 卷：{title} |
+| Chapter {n}: {title} | 第 {n} 章：{title} |
+| {n} {title} | {n} {title} |
 | Appendix A: Sources | 附录 A：来源 |
 | Appendix B: Glossary | 附录 B：词汇表 |
 | Appendix C: Open questions | 附录 C：待解问题 |

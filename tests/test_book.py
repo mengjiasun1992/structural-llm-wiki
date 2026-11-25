@@ -72,6 +72,37 @@ class Model(helpers.WikiTestCase):
         self.assertEqual(b.cited_by()['alpha-doc'], ['the-whole-topic', 'beta-or-alpha', 'what-is-alpha', 'what-is-beta', 'how-is-beta-built'])
         self.assertEqual(b.cited_by()['beta-doc'], ['how-is-beta-built'])
 
+    def test_volumes_chapters_and_sub_chapters(self):
+        # three levels numbered by place; a tag deeper than that folds into its sub-chapter, narratives and all
+        tags = helpers.read(self.root, 'sllmwiki/tags/tags.yaml')
+        for tag, parent in (('sub-a', 'leaf-a'), ('deep-a', 'sub-a'), ('deeper-a', 'deep-a'), ('other-root', None)):
+            tags += f'\n{tag}:\n  description: About {tag}\n  parent: {parent or "null"}\n'
+        helpers.write(self.root, 'sllmwiki/tags/tags.yaml', tags)
+        helpers.add_narrative(self.root, 'what-is-sub', 'What is sub?', primary=('sub-a',))
+        helpers.add_narrative(self.root, 'what-is-deep', 'What is deep?', primary=('deep-a',))
+        helpers.add_narrative(self.root, 'what-is-deeper', 'What is deeper?', primary=('deeper-a',), supporting=('leaf-b',))
+        helpers.add_narrative(self.root, 'what-is-other', 'What is other?', primary=('other-root',))
+        b = book.model(self.root)
+        self.assertEqual([(s.tag, s.depth, s.number) for p in b.parts for s in p.walk()],
+                         [('root-topic', 0, '1'), ('leaf-a', 1, '1.1'), ('sub-a', 2, '1.1.1'), ('leaf-b', 1, '1.2'), ('other-root', 0, '2')])
+        sub = b.parts[0].sections[0].sections[0]
+        self.assertEqual((sub.chapters, sub.sections, sub.folded), (['what-is-deep', 'what-is-deeper', 'what-is-sub'], [], {'deep-a', 'deeper-a'}))
+        self.assertEqual(b.parts[0].sections[1].see_also, ['what-is-deeper'])
+        self.assertEqual((b.part_of('deeper-a'), b.part_of('leaf-a'), b.part_of('nowhere')), ('sub-a', 'leaf-a', None))
+        pack = language.ENGLISH
+        self.assertEqual([book.part_title(b, s, pack) for p in b.parts for s in p.walk()],
+                         ['Volume 1: Root topic', 'Chapter 1.1: Leaf a', '1.1.1 Sub a', 'Chapter 1.2: Leaf b', 'Volume 2: Other root'])
+        self.assertEqual(book.part_title(b, sub, language.pack('zh-Hans')), '1.1.1 Sub a')
+        self.assertEqual(book.part_title(b, b.parts[1], language.pack('zh-Hans')), '第 2 卷：Other root')
+        st = book.stage(self.root, 'w', 'v', 'd', 'c')
+        self.assertNotIn('parts/deep-a.md', st.files)
+        self.assertIn('[Sub a](#part--sub-a)</span>', st.files['chapters/what-is-deeper.md'])  # its trail ends at its sub-chapter
+        self.assertIn({'tag': 'sub-a', 'depth': 2, 'number': '1.1.1', 'chapters': ['what-is-deep', 'what-is-deeper', 'what-is-sub']},
+                      st.manifest['parts'])
+        text = helpers.read(self.root, 'sllmwiki/narratives/what-is-other.md').replace('## 6. Design', 'See [deeper](../tags/deeper-a.md).\n\n## 6. Design')
+        helpers.write(self.root, 'sllmwiki/narratives/what-is-other.md', text)
+        self.assertIn('See [deeper](#part--sub-a).', book.rewrite(self.root, book.model(self.root), 'what-is-other').text)
+
     def test_cycles_are_problems(self):
         helpers.add_narrative(self.root, 'x', 'X?', built_on=('y',))
         helpers.add_narrative(self.root, 'y', 'Y?', built_on=('x',))
@@ -331,8 +362,8 @@ class Stage(unittest.TestCase):
                                          '**Version:** v2026.10.24 · **Date:** 2026-10-24 · **Commit:** `abc1234`\n'), index[:400])
         self.assertIn("## About this book\n\nThe narratives in this book are the wiki owner's work.", index)
         self.assertIn('- **[?]**: A gap', index)
-        self.assertIn('## Contents\n\n- [Root topic](#part--root-topic)\n  - [Leaf a](#part--leaf-a)\n    - [什么是重试？](#ch--zh-what-is-retry)\n'
-                      '    - [What is alpha?](#ch--what-is-alpha)\n  - [Leaf b](#part--leaf-b)\n    - [How does beta work?](#ch--how-does-beta-work)\n'
+        self.assertIn('## Contents\n\n- [Volume 1: Root topic](#part--root-topic)\n  - [Chapter 1.1: Leaf a](#part--leaf-a)\n    - [什么是重试？](#ch--zh-what-is-retry)\n'
+                      '    - [What is alpha?](#ch--what-is-alpha)\n  - [Chapter 1.2: Leaf b](#part--leaf-b)\n    - [How does beta work?](#ch--how-does-beta-work)\n'
                       '- [Appendix A: Sources](#book--sources)\n- [Appendix B: Glossary](#book--glossary)\n- [Appendix C: Open questions](#book--questions)\n\n'
                       '```{toctree}\n:hidden:\n\nparts/root-topic\nappendix-sources\nappendix-glossary\nappendix-questions\n```\n', index)
         def head(*crumbs):
@@ -344,14 +375,14 @@ class Stage(unittest.TestCase):
             return f' <span class="summary">— {text}</span>'
         zh = summ('重试就是再次发送失败的请求 [\\[1\\]](#src--alpha-doc)，见[第三节](#zh-what-is-retry--3-u5b83u662fu5982u4f55u5de5u4f5cu7684)。')
         self.assertEqual(st.files['parts/root-topic.md'],
-                         f'{head()}(part--root-topic)=\n# Root topic\n\nThe root topic\n\n'
-                         f'- [Leaf a](#part--leaf-a){summ("First leaf, about alpha systems")}\n'
+                         f'{head()}(part--root-topic)=\n# Volume 1: Root topic\n\nThe root topic\n\n'
+                         f'- [Chapter 1.1: Leaf a](#part--leaf-a){summ("First leaf, about alpha systems")}\n'
                          f'  - [什么是重试？](#ch--zh-what-is-retry) · 1 min{zh}\n'
                          f'  - [What is alpha?](#ch--what-is-alpha) · 1 min{summ(summary)}\n'
-                         f'- [Leaf b](#part--leaf-b){summ("Second leaf, about beta caching")}\n'
+                         f'- [Chapter 1.2: Leaf b](#part--leaf-b){summ("Second leaf, about beta caching")}\n'
                          f'  - [How does beta work?](#ch--how-does-beta-work) · 1 min{summ(summary)}\n\n'
                          '```{toctree}\n:hidden:\n\nleaf-a\nleaf-b\n```\n')
-        self.assertTrue(st.files['parts/leaf-a.md'].startswith(head(('root-topic', 'Root topic')) + '(part--leaf-a)=\n# Leaf a\n'))
+        self.assertTrue(st.files['parts/leaf-a.md'].startswith(head(('root-topic', 'Root topic')) + '(part--leaf-a)=\n# Chapter 1.1: Leaf a\n'))  # the trail, plain
         alpha = st.files['chapters/what-is-alpha.md']
         self.assertTrue(alpha.startswith(head(('root-topic', 'Root topic'), ('leaf-a', 'Leaf a'))
                                          + '(ch--what-is-alpha)=\n# What is alpha?\n\n*2026-10-02 · 1 min read*\n\n'), alpha[:500])
@@ -375,8 +406,8 @@ class Stage(unittest.TestCase):
         m = st.manifest
         self.assertEqual((m['name'], m['version'], m['date'], m['commit'], m['problems']), ('my-wiki', 'v2026.10.24', '2026-10-24', 'abc1234', []))
         self.assertEqual(m['order'], ['zh-what-is-retry', 'what-is-alpha', 'how-does-beta-work'])  # a concept first
-        self.assertEqual(m['parts'], [{'tag': 'root-topic', 'depth': 0, 'chapters': []}, {'tag': 'leaf-a', 'depth': 1, 'chapters': ['zh-what-is-retry', 'what-is-alpha']},
-                                      {'tag': 'leaf-b', 'depth': 1, 'chapters': ['how-does-beta-work']}])
+        self.assertEqual(m['parts'], [{'tag': 'root-topic', 'depth': 0, 'number': '1', 'chapters': []}, {'tag': 'leaf-a', 'depth': 1, 'number': '1.1', 'chapters': ['zh-what-is-retry', 'what-is-alpha']},
+                                      {'tag': 'leaf-b', 'depth': 1, 'number': '1.2', 'chapters': ['how-does-beta-work']}])
         self.assertIn('book--contents', m['anchors'])
         self.assertIn('zh-what-is-retry--3-u5b83u662fu5982u4f55u5de5u4f5cu7684', m['anchors'])
         renders = {(r['kind'], r['source']): r['files'] for r in m['renders']}

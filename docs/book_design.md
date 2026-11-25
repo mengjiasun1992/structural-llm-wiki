@@ -174,7 +174,7 @@ author = ""          # its author; empty: the title
 | Cover | the book's title (`title`, by default the repository's name) and 📖; "Made by sllmwiki and \<models\>, from \<wiki\>", the models from the narratives manifest, the wiki linked to its repository (`--source`, by default its `origin` remote); the version, the date, the commit |
 | Front page | §9's text, the markers' meaning, how citations work |
 | Contents | generated: a list of links to the parts, sections and chapters (a visible toctree would pull the whole book into a single-file HTML) |
-| One part per top-level tag, sections per child tag | `tags.yaml`: each part opens with links up, the tag's description, and a map of its chapters (each with its Abstract's first paragraph) and sections (each with its description) |
+| A volume per top-level tag, a chapter per child tag, a sub-chapter per grandchild, numbered (Volume 1, Chapter 1.2, 1.2.3); deeper tags fold into their sub-chapter | `tags.yaml`: each part opens with links up, the tag's description, and a map of its chapters (each with its Abstract's first paragraph) and sections (each with its description) |
 | Chapters | the narratives, each under its **primary** tag only; its supporting tags' parts link to it |
 | Appendix A: Sources | every source a chapter cites: title, URL, license, published date, abstract, and the chapters that cite it |
 | Appendix B: Glossary | every Terminology row, A to Z, grouped by term: one definition, or each narrative's, side by side when they differ |

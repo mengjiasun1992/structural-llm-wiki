@@ -900,7 +900,7 @@ A wiki is written and reviewed on GitHub and explored in Obsidian. Neither gives
   - a cover;
   - a front page saying whose work is whose;
   - contents;
-  - a part per top-level tag, with a map of its chapters and their reading times;
+  - a volume per top-level tag, a chapter per tag under it and a sub-chapter per tag under that, numbered by their place (Volume 1, Chapter 1.2, 1.2.3), each with a map of its narratives and their reading times. A deeper tag folds into its sub-chapter. Only the book shows the numbers: they move whenever a tag is added or moved, so the index and tag pages, rewritten on every change, don't carry them;
   - the narratives as chapters in teaching order: what they build on first, then concept, survey, technical, comparison, case study;
   - appendices of the sources (abstract, license, link), a glossary and the open questions.
 
