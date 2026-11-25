@@ -72,6 +72,9 @@ narrative written in it, and how to write it.
 | Contents | 目錄 |
 | About this book | 關於本書 |
 | See also | 另見 |
+| Volume {n}: {title} | 第 {n} 卷：{title} |
+| Chapter {n}: {title} | 第 {n} 章：{title} |
+| {n} {title} | {n} {title} |
 | Appendix A: Sources | 附錄 A：來源 |
 | Appendix B: Glossary | 附錄 B：詞彙表 |
 | Appendix C: Open questions | 附錄 C：待解問題 |

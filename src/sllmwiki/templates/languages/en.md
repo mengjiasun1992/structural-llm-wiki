@@ -85,6 +85,9 @@ and `{source}` as they are: the book puts the links and names there.
 | Contents | |
 | About this book | |
 | See also | |
+| Volume {n}: {title} | |
+| Chapter {n}: {title} | |
+| {n} {title} | |
 | Appendix A: Sources | |
 | Appendix B: Glossary | |
 | Appendix C: Open questions | |

@@ -2,9 +2,12 @@
 teaching order, the sources each chapter cites, and each chapter rewritten for
 the book (§5.3).
 
-Parts follow the tag tree: a part per top-level tag, in the index's reading
-order (roots after the roots they need), a section per child tag under it, at
-any depth. A narrative is a chapter under its home, its most specific primary
+Parts follow the tag tree, three levels deep: a volume per top-level tag, in
+the index's reading order (roots after the roots they need), a chapter per
+child tag, a sub-chapter per grandchild, numbered by their place (Volume 1,
+Chapter 1.2, 1.2.3); a tag deeper than that folds into its sub-chapter, its
+narratives with it. The numbers are the book's alone: they move whenever a tag
+does, so the wiki's pages never show them. A narrative is a chapter under its home, its most specific primary
 tag (lib/readingorder.py); its other tags list it as see-also. Within a tag,
 chapters go in teaching order (§5.2): after their prerequisites and the
 narratives they're built on, then by template, then by question.
@@ -41,11 +44,13 @@ class Chapter:
 class Part:
     """A tag's place in the book: its chapters in teaching order, the chapters
     filed under it as supporting (see_also), and its child tags' parts
-    (sections). depth is 0 for a part, 1 for its sections, and so on."""
+    (sections). depth is 0 for a volume, 1 for a chapter, 2 for a sub-chapter; number
+    is its place ('1', '1.2', '1.2.3'); folded, the deeper tags it holds."""
 
-    def __init__(self, tag, description, depth, chapters, see_also, sections):
+    def __init__(self, tag, description, depth, chapters, see_also, sections, folded=()):
         self.tag, self.description, self.depth = tag, description, depth
         self.chapters, self.see_also, self.sections = chapters, see_also, sections
+        self.folded, self.number = set(folded), ''
 
     def walk(self):
         """This part and every section under it, depth first."""
@@ -62,9 +67,9 @@ class Book:
         """The chapters' slugs in reading order."""
         return [c for p in self.parts for s in p.walk() for c in s.chapters]
 
-    def part_tags(self):
-        """The tags with a part or section in the book."""
-        return {s.tag for p in self.parts for s in p.walk()}
+    def part_of(self, tag):
+        """The tag of the part that holds tag: its own, or the sub-chapter it folds into; None outside the book."""
+        return next((s.tag for p in self.parts for s in p.walk() if tag == s.tag or tag in s.folded), None)
 
     def cited_by(self):
         """{source slug: [chapter slugs, in reading order]} for every cited source."""
@@ -149,18 +154,39 @@ def _chapters(root, tree):
     return out
 
 
+DEPTH = 3  # volumes, chapters, sub-chapters: a deeper tag folds into its sub-chapter
+
+
+def _below(tree, tag, seen):
+    """Every tag under tag, at any depth, each once."""
+    out = []
+    for t in tree.children(tag):
+        if t not in seen:
+            seen.add(t)
+            out += [t] + _below(tree, t, seen)
+    return out
+
+
 def _part(tree, tag, depth, chapters, seen):
     """The Part for tag, or None when neither it nor a tag under it has a chapter
     or a see-also. seen keeps a tag on a cycle (TAG_CYCLE) from being visited twice."""
     seen.add(tag)
-    sections = [p for p in (_part(tree, t, depth + 1, chapters, seen) for t in tree.children(tag) if t not in seen) if p]
-    mine = {s: c for s, c in chapters.items() if c.tag == tag}
-    filed = tree.narratives_of(tag)
-    see_also = sorted((s for s in filed['primary'] + filed['supporting'] if s in chapters and s not in mine),
-                      key=lambda s: chapters[s].key())
+    folded = _below(tree, tag, seen) if depth == DEPTH - 1 else []
+    sections = [] if folded or depth == DEPTH - 1 else [
+        p for p in (_part(tree, t, depth + 1, chapters, seen) for t in tree.children(tag) if t not in seen) if p]
+    held = {tag, *folded}
+    mine = {s: c for s, c in chapters.items() if c.tag in held}
+    filed = [s for t in [tag] + folded for kind in ('primary', 'supporting') for s in tree.narratives_of(t)[kind]]
+    see_also = sorted({s for s in filed if s in chapters and s not in mine}, key=lambda s: chapters[s].key())
     if not (mine or see_also or sections):
         return None
-    return Part(tag, tree.tags[tag].get('description') or '', depth, teaching_order(mine), see_also, sections)
+    return Part(tag, tree.tags[tag].get('description') or '', depth, teaching_order(mine), see_also, sections, folded)
+
+
+def _number(parts, prefix=''):
+    for i, p in enumerate(parts, 1):
+        p.number = f'{prefix}{i}'
+        _number(p.sections, p.number + '.')
 
 
 def model(root):
@@ -170,6 +196,7 @@ def model(root):
     seen = set()
     roots = readingorder.Order(tree, {s: c.question for s, c in chapters.items()}).roots()
     parts = [p for p in (_part(tree, t, 0, chapters, seen) for d, t in tree.walk(roots) if d == 0 and t not in seen) if p]
+    _number(parts)
     problems = [('BOOK_CYCLE', c[0], f'narratives built on each other in a cycle: {", ".join(c)}')
                 for c in cycles(chapters)]
     return Book(parts, chapters, problems)
@@ -272,7 +299,8 @@ def rewrite(root, book, slug):
                 return None
             return '#' + section_label(base, theirs[frag]) if theirs[frag] else None
         if folder == layout.TAGS_DIR and base:
-            return '#' + part_label(base) if base in book.part_tags() else None
+            held = book.part_of(base)
+            return '#' + part_label(held) if held else None
         if to == layout.INDEX:
             return '#' + CONTENTS
         return None
@@ -405,9 +433,14 @@ def _toctree(entries):
     return '```{toctree}\n:hidden:\n\n' + ''.join(f'{e}\n' for e in entries) + '```\n'
 
 
-def part_title(book, part):
+LEVELS = ('Volume {n}: {title}', 'Chapter {n}: {title}', '{n} {title}')  # a part's title with its number, by depth
+
+
+def part_title(book, part, pack=None):
+    """A part's title; with pack, numbered as its level has it ("Chapter 1.2: Leaf a")."""
     words = ' '.join([part.description] + [book.chapters[c].question for c in part.chapters + part.see_also])
-    return _escape(title(part.tag, words))
+    plain = _escape(title(part.tag, words))
+    return pack.t(LEVELS[part.depth]).replace('{n}', part.number).replace('{title}', plain) if pack else plain
 
 
 def summary(text):
@@ -416,7 +449,7 @@ def summary(text):
     return paras[0] if paras else ''
 
 
-def _map(book, part, depth=0, summaries=None, minutes=None):
+def _map(book, part, depth=0, summaries=None, minutes=None, pack=None):
     """A part's chapters and sections as a list of links, each section with its own; with
     summaries ({slug: text}), each chapter's after its link and each section's description,
     so a part page can be skimmed."""
@@ -427,7 +460,8 @@ def _map(book, part, depth=0, summaries=None, minutes=None):
     out = ''.join(f'{pad}- {_link(book, c)}{" · " + minutes[c] if minutes and c in minutes else ""}{after((summaries or {}).get(c))}\n'
                   for c in part.chapters)
     for s in part.sections:
-        out += f'{pad}- [{part_title(book, s)}](#{part_label(s.tag)}){after(_escape(s.description))}\n' + _map(book, s, depth + 1, summaries, minutes)
+        out += (f'{pad}- [{part_title(book, s, pack)}](#{part_label(s.tag)}){after(_escape(s.description))}\n'
+                + _map(book, s, depth + 1, summaries, minutes, pack))
     return out
 
 
@@ -473,7 +507,7 @@ def contents(book, pack, appendices):
     """The contents: each part with its sections and chapters, then the appendices (labels and titles)."""
     out = ''
     for p in book.parts:
-        out += f'- [{part_title(book, p)}](#{part_label(p.tag)})\n' + _map(book, p, 1)
+        out += f'- [{part_title(book, p, pack)}](#{part_label(p.tag)})\n' + _map(book, p, 1, pack=pack)
     return out + ''.join(f'- [{pack.t(t)}](#{label})\n' for label, t in appendices)
 
 
@@ -492,10 +526,10 @@ def cover(name, version, date, commit, pack, entries, listing, source=None, mode
 def part_page(book, part, pack, summaries=None, minutes=None):
     """parts/<tag>.md: the tag's title and description, a map of its chapters (with their
     summaries) and sections, and its see-also."""
-    text = f'({part_label(part.tag)})=\n# {part_title(book, part)}\n\n{_escape(part.description)}\n\n'
+    text = f'({part_label(part.tag)})=\n# {part_title(book, part, pack)}\n\n{_escape(part.description)}\n\n'
     entries = [f'../chapters/{c}' for c in part.chapters] + [s.tag for s in part.sections]
     if entries:
-        text += _map(book, part, 0, summaries or {}, minutes) + '\n' + _toctree(entries) + '\n'
+        text += _map(book, part, 0, summaries or {}, minutes, pack) + '\n' + _toctree(entries) + '\n'
     if part.see_also:
         text += f'**{pack.t("See also")}:** ' + ', '.join(_link(book, c) for c in part.see_also) + '\n'
     return text.rstrip('\n') + '\n'
@@ -613,7 +647,7 @@ def stage(root, name, version, date, commit, source=None, title=None, author=Non
     for slug in b.order():
         r = rewrite(root, b, slug)
         texts[slug] = r.text
-        files[f'chapters/{slug}.md'] = head(b, title, trail(b.chapters[slug].tag), pack) + r.text.rstrip('\n') + '\n' + ENDMARK
+        files[f'chapters/{slug}.md'] = head(b, title, trail(b.part_of(b.chapters[slug].tag)), pack) + r.text.rstrip('\n') + '\n' + ENDMARK
         problems += r.problems
         figures += r.figures
         for s in r.sources:
@@ -642,7 +676,7 @@ def stage(root, name, version, date, commit, source=None, title=None, author=Non
                 entry['files'].append(path)
     anchors = sorted({line[1:-2] for t in files.values() for line in t.split('\n') if re.match(r'\([^()\s]+\)=\Z', line)})
     book_json = {'name': name, 'title': title, 'author': author, 'version': version, 'date': date, 'commit': commit, 'source': source, 'models': models,
-                 'parts': [{'tag': s.tag, 'depth': s.depth, 'chapters': s.chapters} for p in b.parts for s in p.walk()],
+                 'parts': [{'tag': s.tag, 'depth': s.depth, 'number': s.number, 'chapters': s.chapters} for p in b.parts for s in p.walk()],
                  'order': b.order(), 'anchors': anchors,
                  'renders': [dict(id=k, **v) for k, v in renders.items()],
                  'problems': [{'code': c, 'where': w, 'message': m} for c, w, m in problems]}

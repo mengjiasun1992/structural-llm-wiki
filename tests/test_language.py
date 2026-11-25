@@ -31,7 +31,8 @@ def chinese(text):
 
 BOOK = ['Contents', 'About this book', 'See also', 'Appendix A: Sources', 'Appendix B: Glossary', 'Appendix C: Open questions',
         'Version', 'Date', 'Commit', 'License', 'Published', 'Cited by', 'Known issues', '{n} min read', '{n} min', 'Original',
-        'Made by {tool} and {models}, from {source}.', 'Made by {tool}, from {source}.']
+        'Made by {tool} and {models}, from {source}.', 'Made by {tool}, from {source}.',
+        'Volume {n}: {title}', 'Chapter {n}: {title}', '{n} {title}']
 
 RELEASE = ['Released while these checks failed:', 'Since', 'First release', 'narratives', 'sources', 'New narratives', 'Updated narratives',
            'Removed narratives', 'New sources', 'Nothing in the wiki changed since the last release.', 'Open questions', 'Book',
