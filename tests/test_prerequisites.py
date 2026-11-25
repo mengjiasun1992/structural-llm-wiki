@@ -59,6 +59,16 @@ class Finish(Base):
         self.assertEqual(self.read(path(BETA)), beta)
         self.assertEqual(list(self.entry(BETA)['prerequisites']), [ALPHA])
 
+    def test_the_marker_from_before_214_is_rewritten(self):
+        # issue #214: the marker held "--fix", which XML forbids in a comment; a narrative with it is outdated, and fixed
+        self.assertEqual(self.finish(BETA, '--prerequisite', ALPHA).code, 0)
+        old = metadata.REGION_START + ': written by sllmwiki finish-narrative and wiki-check --fix; your own next reads go after its end -->'
+        self.write(path(BETA), self.read(path(BETA)).replace(prerequisites.START, old))
+        self.assertIn('READING_ORDER_OUTDATED', self.codes())
+        self.assertEqual(helpers.run('wiki-check.py', ['--fix', '--root', self.root]).code, 0)
+        beta = self.read(path(BETA))
+        self.assertEqual((beta.count(prerequisites.START), old in beta), (1, False))
+
     def test_a_reading_time_line_gets_the_pointer_beside_it(self):
         self.write(path(BETA), self.read(path(BETA)).replace('# How does beta work?\n', '# How does beta work?\n\n*About 9 min read.*\n'))
         self.assertEqual(self.finish(BETA, '--prerequisite', ALPHA).code, 0)

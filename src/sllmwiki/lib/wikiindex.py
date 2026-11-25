@@ -15,7 +15,7 @@ from . import layout, metadata, policy, readingorder, tagpages, tagtree
 from .compat import escape
 from .util import read_text
 
-GENERATED = '<!-- sllmwiki:generated: rewritten by sllmwiki wiki-check --fix -->'
+GENERATED = '<!-- sllmwiki:generated: rewritten by sllmwiki wiki-check -->'  # no double hyphen: XML forbids it in a comment
 
 
 def _rel(path):

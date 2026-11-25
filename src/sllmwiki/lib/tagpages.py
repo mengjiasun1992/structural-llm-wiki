@@ -9,7 +9,7 @@ import re
 from . import layout
 from .compat import escape
 
-GENERATED = '<!-- sllmwiki:generated: rewritten by sllmwiki wiki-check --fix; edit tags.yaml and the manifests instead -->'
+GENERATED = '<!-- sllmwiki:generated: rewritten by sllmwiki wiki-check; edit tags.yaml and the manifests instead -->'  # no double hyphen: XML forbids it in a comment
 MARKER = '<!-- sllmwiki:generated:'  # what every generated page's marker starts with, in any wording the skill has used
 
 

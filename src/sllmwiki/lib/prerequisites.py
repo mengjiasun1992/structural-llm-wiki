@@ -39,7 +39,7 @@ from .util import read_text, write_text
 
 BEFORE, NEXT, APPENDIX = 'Before you read', 'Where to go next', 'Appendix'
 ABOUT = 'about {n} min'
-START = metadata.REGION_START + ': written by sllmwiki finish-narrative and wiki-check --fix; your own next reads go after its end -->'
+START = metadata.REGION_START + ': written by sllmwiki finish-narrative and wiki-check; your own next reads go after its end -->'  # no double hyphen: XML forbids it in a comment
 END = metadata.REGION_END
 BOTTOM = ('SMEs', 'References', 'Metadata')  # the shared sections after the Appendix
 _CITES = re.compile(r'[ \t]*\[\\\[[0-9]+\\\]\]\([^)]*\)(?:[ \t]*,[ \t]*\[\\\[[0-9]+\\\]\]\([^)]*\))*')
