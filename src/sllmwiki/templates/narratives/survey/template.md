@@ -30,7 +30,3 @@ abstract_words: [80, 150]
 ## 9. Applying them (optional)
 
 <How a newcomer puts the set to use: an order to learn them in, or the questions to ask of a design.>
-
-## 10. Where to go next
-
-<The deeper question behind each item, each a narrative of its own: linked when it exists, named when it doesn't.>

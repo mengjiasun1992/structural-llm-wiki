@@ -35,26 +35,33 @@ class Bundled(helpers.WikiTestCase):
         self.assertEqual(got, [('Abstract', False, False), ('Terminology', False, False), ('Background', False, False),
                                ('The core idea', False, True), ('How does it work?', False, False), ('Variants', True, False),
                                ('Design decisions and trade-offs', False, False), ('Limitations and failure modes', False, False),
-                               ('Misconceptions', True, False), ('Where to go next', True, False), ('Appendix', True, False),
+                               ('Misconceptions', True, False), ('Appendix', True, False),
                                ('SMEs', True, False), ('References', False, False), ('Metadata', False, False)])
 
     def test_the_concept_template(self):
         titles = [s.title for s in templates.get(self.root, 'concept_brief_overview').sections()]
-        self.assertEqual(titles[2:7], ['Overview', 'Definition', 'Key ideas', 'Boundaries', 'Where to go next'])
+        self.assertEqual(titles[2:7], ['Overview', 'Definition', 'Key ideas', 'Boundaries', 'Appendix'])
+
+    def test_where_to_go_next_is_in_the_appendix(self):
+        # every template's next reads are the Appendix's, beside the generated Before you read (issue #205)
+        for name in ('case_study', 'comparison', 'concept_brief_overview', 'survey', 'technical_brief_overview'):
+            t = templates.get(self.root, name)
+            self.assertNotIn('Where to go next', [s.title for s in t.sections()])
+            self.assertRegex(t.skeleton(), r'## [0-9]+\. Appendix \(optional\)\n\n### [0-9.]+ Where to go next\n')
 
     def test_the_comparison_and_survey_templates(self):
         got = [(s.title, s.optional, s.diagram) for s in templates.get(self.root, 'comparison').sections()][2:9]
         self.assertEqual(got, [('The choices', False, False), ('When to choose which', False, True), ('At a glance', False, False),
-                               ('Dimensions to think through', False, False), ('Pitfalls', True, False), ('Where to go next', True, False),
-                               ('Appendix', True, False)])
+                               ('Dimensions to think through', False, False), ('Pitfalls', True, False),
+                               ('Appendix', True, False), ('SMEs', True, False)])
         got = [(s.title, s.optional, s.diagram) for s in templates.get(self.root, 'survey').sections()][2:10]
         self.assertEqual(got, [('Overview', False, False), ('The map', False, True), ('The main items', False, False),
                                ('Tensions and trade-offs', True, False), ('Classic case studies', True, False), ('Applying them', True, False),
-                               ('Where to go next', False, False), ('Appendix', True, False)])
+                               ('Appendix', True, False), ('SMEs', True, False)])
         got = [(s.title, s.optional, s.diagram) for s in templates.get(self.root, 'case_study').sections()][2:11]
         self.assertEqual(got, [('Context', False, False), ('The problem', False, False), ('What happened', False, True), ('Why', False, False),
                                ('The ideas at work', False, False), ('Outcome', True, False), ('Lessons', False, False),
-                               ('Where to go next', True, False), ('Appendix', True, False)])
+                               ('Appendix', True, False), ('SMEs', True, False)])
         for name in ('case_study', 'comparison', 'survey', 'technical_brief_overview'):
             skel = templates.get(self.root, name).skeleton()
             self.assertNotIn('```mermaid', skel)  # the picture's format is the writer's choice, among picture_formats

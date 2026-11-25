@@ -28,9 +28,10 @@ Read in that order, each source once, and only what the plan says: whole sources
 
 1. Go over the checklists, and fix what fails: the template guide's Checklist, and the audience profile's when it has one (`sllmwiki narrative-format --audience`).
 2. Check it against the spine: each section expands one of its sentences, in order, and leads into the next; each new concept introduced by the time the spine needs it; how it works before any why; a big picture at the top of what it maps, and statement headings. Read it as the reader, new to the topic: check they always know where they are on the path and why each paragraph is there; recompute every worked number, show the arithmetic behind every rule and number, and look at every picture as rendered (`sllmwiki narrative-format --render-mermaid <file>` renders the mermaid ones; when it can't, look at them on GitHub before asking for review). After any rewrite, read it again: a fix can contradict what was there.
-3. Run `sllmwiki finish-narrative <slug> --primary <tags> --supporting <tags> --read <the slugs read in full> --grades <file>`, with the grades file from §2.
+3. Choose its prerequisites: list each term or idea it uses without explaining it, and the narrative that explains it (`sllmwiki prerequisites propose <slug>` lists candidates and their evidence). Keep the direct ones: not one another prerequisite already needs, nor one that is only related, which goes under the Appendix's Where to go next.
+4. Run `sllmwiki finish-narrative <slug> --primary <tags> --supporting <tags> --read <the slugs read in full> --grades <file> --prerequisite <slug> …`, with the grades file from §2 and one `--prerequisite` per prerequisite.
    - On an update, add `--bump minor --note "<what changed>"`, or `major` for a new answer.
-4. Fix every error it reports, by editing the narrative, then run it again until none are left.
+5. Fix every error it reports, by editing the narrative, then run it again until none are left.
 
 ## 5. Summary
 

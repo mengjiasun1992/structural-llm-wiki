@@ -21,7 +21,9 @@ The model and the reading plan are views of the narrative's manifest entry
 written by finish-narrative. So is a reading-time line under the title
 (*About 5 min read.*, in the narrative's language), when the narrative has one:
 the writer adds it where the wiki's audience wants it, and finish-narrative keeps
-its minutes those of Words (with_reading_line).
+its minutes those of Words (with_reading_line). That line also ends with a generated
+pointer to the narrative's prerequisites, *Read first: …*, when it has some
+(lib/prerequisites.py), on a line of its own without a reading time.
 """
 
 import re
@@ -44,21 +46,45 @@ def title(text):
 
 
 READING_LINE = 'About {n} min read.'  # the reading-time line's words, translated by the language packs
+READ_FIRST = 'Read first: {links} ({section}).'  # its generated pointer to the prerequisites (lib/prerequisites.py)
+REGION_START = '<!-- sllmwiki:reading-order'  # how the generated Before you read / Where to go next region starts
+REGION_END = '<!-- /sllmwiki:reading-order -->'
+
+
+def _pattern(wording, holes):
+    out = re.escape(wording)
+    for hole, pattern in holes.items():
+        out = out.replace(re.escape(hole), pattern)
+    return out
+
+
+def _is_read_first(rest):
+    from .language import names
+    return any(re.fullmatch(_pattern(w, {'{links}': '.+', '{section}': '.+'}), rest) for w in names(READ_FIRST))
 
 
 def _reading_line(lines):
-    """(index, wording) of the reading-time line: the first line after the # title, past blank lines, when it is
-    *<READING_LINE or a pack's translation of it>*; None without one. wording keeps {n} for the minutes."""
+    """(index, wording, minutes, read_first) of the line under the # title, past blank lines: *<READING_LINE or a
+    pack's translation of it>*, then the generated *Read first* sentence when the narrative has prerequisites,
+    each optional; None without one. wording keeps {n} for the minutes; minutes is that part as written."""
     from .language import names
     start = next((i + 1 for i, line in enumerate(lines) if line.startswith('# ')), None)
     i = next((j for j in range(start, len(lines)) if lines[j].strip()), None) if start is not None else None
-    if i is None:
+    m = re.fullmatch(r'\*(?P<body>[^*].*?)\*[ \t]*', lines[i]) if i is not None else None
+    if not m:
         return None
+    body = m.group('body')
     for wording in names(READING_LINE):
-        pattern = re.escape(wording).replace(re.escape('{n}'), '[0-9]+')
-        if re.fullmatch(rf'\*{pattern}\*[ \t]*', lines[i]):
-            return i, wording
-    return None
+        t = re.match(_pattern(wording, {'{n}': '[0-9]+'}), body)
+        if t:
+            rest = body[t.end():].strip()
+            if not rest or _is_read_first(rest):
+                return i, wording, t.group(0), rest
+    return (i, None, '', body.strip()) if _is_read_first(body.strip()) else None
+
+
+def _line(minutes, first):
+    return '*' + ' '.join(p for p in (minutes, first) if p) + '*'
 
 
 def without_reading_line(text):
@@ -75,16 +101,72 @@ def with_reading_line(text):
     """text with its reading-time line, when it has one, giving reading()'s minutes; unchanged without one."""
     lines = text.split('\n')
     found = _reading_line(lines)
-    if not found:
+    if not found or not found[1]:
         return text
-    i, wording = found
-    lines[i] = '*' + wording.replace('{n}', str(reading(text)[1])) + '*'
+    i, wording, _, first = found
+    lines[i] = _line(wording.replace('{n}', str(reading(text)[1])), first)
     return '\n'.join(lines)
+
+
+def read_first(text):
+    """The generated Read first sentence of the line under the title, or ''."""
+    found = _reading_line(text.split('\n'))
+    return found[3] if found else ''
+
+
+def with_read_first(text, sentence):
+    """text whose line under the title ends with sentence (the generated Read first pointer), or without one when
+    sentence is empty: added after the minutes, or as a line of its own under the title, which goes when it's empty."""
+    lines = text.split('\n')
+    found = _reading_line(lines)
+    if found:
+        i, wording, minutes, _ = found
+        if minutes or sentence:
+            lines[i] = _line(minutes, sentence)
+        else:
+            del lines[i:i + (2 if i + 1 < len(lines) and not lines[i + 1].strip() else 1)]
+        return '\n'.join(lines)
+    title = next((i for i, line in enumerate(lines) if line.startswith('# ')), None)
+    if not sentence or title is None:
+        return text
+    lines[title + 1:title + 1] = ['', _line('', sentence)]
+    if title + 3 < len(lines) and lines[title + 3].strip():
+        lines.insert(title + 3, '')
+    return '\n'.join(lines)
+
+
+def without_generated(text):
+    """text without what lib/prerequisites.py writes: the reading-order region in the Appendix and the Read first
+    sentence under the title. It's derived from other narratives, so it counts neither as words nor as a change."""
+    lines = text.split('\n')
+    found = _reading_line(lines)
+    if found and found[3]:
+        if found[2]:
+            lines[found[0]] = _line(found[2], '')
+        else:
+            del lines[found[0]]
+    out, inside, took = [], False, False
+    for line in lines:
+        if line.startswith(REGION_START):
+            inside = took = True
+        if not inside:
+            out.append(line)
+        if line.strip() == REGION_END:
+            inside = False
+    if took:  # an Appendix that held only the region was made for it
+        from .language import names
+        heads = [h for h in numbering.headings('\n'.join(out)) if h.level <= 2]
+        for j, h in enumerate(heads):
+            end = heads[j + 1].line if j + 1 < len(heads) else len(out)
+            if h.level == 2 and h.title.lower() in {n.lower() for n in names('Appendix')} and not any(x.strip() for x in out[h.line + 1:end]):
+                del out[h.line:end]
+                break
+    return '\n'.join(out)
 
 
 def reading(text):
     """(words, minutes) of what a reader reads in the narrative: everything but its front matter, code and
-    diagram blocks, its reading-time line, and the References, SMEs and Metadata sections; at WORDS_PER_MINUTE,
+    diagram blocks, its reading-time line, what lib/prerequisites.py generates, and the References, SMEs and Metadata sections; at WORDS_PER_MINUTE,
     at least a minute."""
     from .compat import scan
     from .narrativecheck import words  # the count budgets use: markdown, link targets and code fences left out
@@ -92,6 +174,7 @@ def reading(text):
     found = _reading_line(lines)
     if found:
         del lines[found[0]]
+    lines = without_generated('\n'.join(lines)).split('\n')
     for name in UNREAD:
         span = numbering.section('\n'.join(lines), name)
         if span:

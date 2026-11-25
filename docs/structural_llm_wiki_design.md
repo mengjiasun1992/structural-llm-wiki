@@ -253,13 +253,15 @@ what-is-gateway:
     '1.0': claude-opus-5-5
   built_on:                                # the narratives it builds on, by a hash without their Metadata
     what-is-routing: 3c2b1a0f9e8d…
+  prerequisites:                           # the narratives a reader reads first, pinned the same way (§4.5.2)
+    what-is-a-gateway: 5e4d3c2b1a0f…
 ```
 
 The question (the title), the Abstract, the version and the dates live in the narrative and are read from it. The grades and models are the record behind the narrative's Model and Reading plan. `finish-narrative` writes both into the narrative's Metadata. A reader then sees what was read, in what order and why, and which model wrote the narrative.
 
 `finish-narrative` also writes the narrative's length and reading time: `- **Words:** 1,240 (about 5 min)`. The count covers everything but code, diagrams, References, SMEs and Metadata. It assumes 230 words a minute, and CJK text counts 1.6 characters a word. `narrative-format` warns (`WORDS_OUTDATED`) when an edit left the count stale. The tag pages and the book show the minutes beside each narrative.
 
-When a source is re-ingested and its hash no longer matches a pin, `wiki-check` reports `NARRATIVE_SOURCE_CHANGED` for exactly the narratives that read it. A narrative also pins the narratives it builds on, those its reading plan graded high. The pin works the same way (`built_on`), by a hash of each one's content without its Metadata. When one of them is rewritten, `wiki-check` reports `NARRATIVE_BASE_CHANGED` for the narratives that rely on it.
+When a source is re-ingested and its hash no longer matches a pin, `wiki-check` reports `NARRATIVE_SOURCE_CHANGED` for exactly the narratives that read it. A narrative also pins the narratives it builds on, those its reading plan graded high. The pin works the same way (`built_on`), by a hash of each one's content without its Metadata. When one of them is rewritten, `wiki-check` reports `NARRATIVE_BASE_CHANGED` for the narratives that rely on it. The hash also leaves out heading numbers, blank lines and what `finish-narrative` generates from other narratives (§4.5.2), so a renumbering or another narrative's new prerequisite isn't a change. Pins written before that, which kept the numbers, still match until the narrative is finished again.
 
 ### 4.5 Narratives
 
@@ -278,7 +280,7 @@ Every narrative has the same top and appendices, defined once in `templates/narr
 1. an **Abstract**: one sentence on the problem, the answer in two or three, then 3–5 key takeaways; 80–150 words;
 2. a small **Terminology** table of the terms the whole narrative leans on, and every abbreviation;
 3. the body;
-4. an optional **Appendix**: the Glossary, and details and examples a reader may want but doesn't need to follow the answer;
+4. an optional **Appendix**: Before you read and Where to go next (§4.5.2), the Glossary, and details and examples a reader may want but doesn't need to follow the answer;
 5. **SMEs**;
 6. **References**: sources read, code references, related narratives, citations;
 7. **Metadata**: version, template, model, history, reading plan.
@@ -308,6 +310,10 @@ A template's guide adds only what its kind of narrative needs.
 Sometimes a narrative mentions a concept that another narrative covers. It then links to that narrative, to its section where one fits. It says the concept in a sentence at most instead of explaining it again. So the wiki says each fact once, and its narratives connect.
 
 Section anchors carry the section's number. `narrative-format` and `wiki-check` report a link to a section that isn't there (`NARRATIVE_ANCHOR`). `finish-narrative` and `wiki-check --fix` repair a link whose section was only renumbered.
+
+**Prerequisites.** A link says where a concept is explained; it doesn't tell a reader what to read first. A narrative records its prerequisites: the narratives whose concepts it uses without explaining them, its direct ones only (`finish-narrative --prerequisite`, issue #205). They aren't `built_on`, the writer's record of what it read: a writer may read a narrative a reader doesn't need first, and a reader may need one the writer never graded. The writer chooses them after writing: each term or idea used without a definition, and the narrative that defines it. `sllmwiki prerequisites propose` lists the evidence (`built_on`, links, terms another narrative defines), and lint checks it both ways: a term another narrative explains with no prerequisite on it, and a prerequisite the narrative never uses.
+
+From them, `finish-narrative` and `wiki-check --fix` write, between generated markers, the Appendix's first two subsections: **Before you read**, the prerequisites, and **Where to go next**, the narratives that list this one as a prerequisite, each with its question, its first key takeaway and its reading time. After the markers come the writer's own next reads, the questions this one opens, kept on every rewrite. The line under the title points to the prerequisites too (`*About 9 min read. Read first: [A](a.md) ([Before you read](#81-before-you-read)).*`), since a reader needs them before the body, not after. The generated parts count neither as words nor as a change (§4.4), so a narrative that gains a dependent doesn't flag the narratives built on it. `wiki-check` reports a prerequisite that isn't a narrative (`PREREQUISITE_UNKNOWN`), a cycle (`PREREQUISITE_CYCLE`), one another prerequisite already needs (`PREREQUISITE_INDIRECT`), one rewritten since (`PREREQUISITE_CHANGED`) and stale generated parts (`READING_ORDER_OUTDATED`). A wiki from before moves each body section "Where to go next" into its Appendix and records its prerequisites once, through `sllmwiki prerequisites migrate`, in the `init` rerun's pull request.
 
 #### 4.5.3 Figures
 
@@ -426,7 +432,8 @@ After any edit, the agent runs one command, `finish-narrative` (§7.5). It:
 - writes a typed `[->]` as `[→]`, and adds a Terminology row for each marker the narrative uses (when markers are on);
 - keeps the reading-time line under the title, when the narrative has one, equal to Metadata's Words (see below);
 - bumps the version and history when asked;
-- writes the manifest entry with the current pins of the sources the narrative read and the narratives it builds on;
+- writes the manifest entry with the current pins of the sources the narrative read, the narratives it builds on and its prerequisites;
+- writes Before you read, Where to go next and the Read first pointer, in this narrative and in those its prerequisites changed (§4.5.2);
 - regenerates the index and tag pages.
 
 The reading-time line is `*About 5 min read.*`, in the narrative's language. The script keeps its minutes because a hand-kept line drifted on every edit. `narrative-format` reports a stale line (`READING_TIME_OUTDATED`). The word count leaves the line out, and the book drops it for its own version line.
@@ -817,8 +824,9 @@ The step decides without pausing and says why on the pull request. The owner can
 4. renderer escapes;
 5. marker conversion and the markers' Terminology rows;
 6. the version and history;
-7. the manifest entry with its source and `built_on` pins;
-8. the index and tag pages.
+7. the manifest entry with its source, `built_on` and prerequisite pins;
+8. Before you read and Where to go next, here and in the narratives its prerequisites changed (§4.5.2);
+9. the index and tag pages.
 
 `finish-narrative` prints what it changed and any finding it couldn't fix. It runs again after the agent fixes those findings, so `--bump` doesn't bump again when the newest history entry already has the same `--note` (issue #190). `narrative-format --fix-citations` renumbers the citations on their own. `narrative-format --render-mermaid` renders each mermaid diagram with mermaid-cli, when Node is installed: GitHub shows a diagram with a syntax error as an error box, and nothing else catches one. It runs only when asked, since mermaid-cli fetches a headless browser on first use. The instructions name only this command, so no step lists finishing chores.
 

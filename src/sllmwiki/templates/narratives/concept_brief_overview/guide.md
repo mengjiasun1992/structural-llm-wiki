@@ -6,7 +6,7 @@
 
 **Aim:** concise, precise, rigorous. Concise: the short version first, and nothing below definition level. Precise: the exact scope, in terms the reader can test. Rigorous: the definition from the source that defines it most exactly, with its nuances.
 
-A reader meeting the idea for the first time. They need what it means, why it matters and how it differs from its neighbors, to follow anything built on it. It stays at definition level: how a particular system implements the idea, or a subtopic worth its own explanation, is another question, named under Where to go next.
+A reader meeting the idea for the first time. They need what it means, why it matters and how it differs from its neighbors, to follow anything built on it. It stays at definition level: how a particular system implements the idea, or a subtopic worth its own explanation, is another question, named under the Appendix's Where to go next.
 
 ## Voice and tone
 

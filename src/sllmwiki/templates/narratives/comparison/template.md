@@ -32,7 +32,3 @@ abstract_words: [80, 150]
 ## 7. Pitfalls (optional)
 
 <Common wrong choices: what they cost, and how to spot them early.>
-
-## 8. Where to go next (optional)
-
-<The questions this opens, each a narrative of its own: linked when it exists, named when it doesn't.>

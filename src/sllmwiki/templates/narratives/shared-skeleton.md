@@ -18,7 +18,11 @@
 
 ## 8. Appendix (optional)
 
-### 8.1 Glossary
+### 8.1 Where to go next
+
+<The questions this one opens, each a narrative of its own: linked when it exists, named when it doesn't. finish-narrative adds the narratives that need this one first.>
+
+### 8.2 Glossary
 
 | Term | Definition |
 |---|---|

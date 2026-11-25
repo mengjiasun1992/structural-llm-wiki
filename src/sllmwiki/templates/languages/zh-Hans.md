@@ -23,6 +23,7 @@ it, and how to write it.
 | The ideas at work | 背后的原理 |
 | Outcome | 结果 |
 | Lessons | 经验教训 |
+| Before you read | 阅读之前 |
 | Where to go next | 延伸阅读 |
 | The choices | 候选方案 |
 | When to choose which | 如何选择 |
@@ -83,6 +84,8 @@ it, and how to write it.
 | Known issues | 已知问题 |
 | {n} min read | 阅读约 {n} 分钟 |
 | About {n} min read. | 阅读约 {n} 分钟。 |
+| Read first: {links} ({section}). | 请先读：{links}（{section}）。 |
+| about {n} min | 约 {n} 分钟 |
 | {n} min | {n} 分钟 |
 | Original | 原文 |
 | The narratives in this book are the wiki owner's work. Every source belongs to its authors: the book links to it and quotes it briefly, but never copies it. | 本书中的叙述是 wiki 所有者的作品。每个来源都归其作者所有：本书链接到来源并简短引用，但从不复制。 |

@@ -3,9 +3,12 @@ in one command (design doc §7.5).
 
   sllmwiki finish-narrative <slug> [--primary a,b] [--supporting c] [--read s1,s2]
                       [--grades GRADES.json] [--model NAME]
+                      [--prerequisite SLUG ... | --no-prerequisites]
                       [--bump minor|major --note TEXT] [--json] [--root <wiki>]
 
-In order: numbers the headings and figure captions; numbers the citations by first use
+In order: writes the Appendix's Before you read and Where to go next from the
+prerequisites, and the Read first pointer under the title (lib/prerequisites.py);
+numbers the headings and figure captions; numbers the citations by first use
 and rebuilds the Citations list to match; repairs links to a renumbered
 section of another narrative; moves references and markers inside their
 sentence, before its closing punctuation; writes the renderer escapes; converts old markers
@@ -17,10 +20,13 @@ the newest entry already has that note, so a rerun after fixing errors bumps onc
 records the narrative with its template, tags, the current pins of the sources
 it read, the reading plan's grades (--grades, the file given to sllmwiki reading-plan
 order, which must have run on it since it last changed)
-and the model that wrote a new version (this session's, or --model); writes the
+and the model that wrote a new version (this session's, or --model), and its
+prerequisites, pinned: the narratives whose concepts it uses without explaining
+them, its direct ones only (--prerequisite, repeated; refused when one is no
+narrative or makes a cycle; --no-prerequisites clears them); writes the
 model, the reading plan and the words into the Metadata, and the minutes into the
 reading-time line under the title when the narrative has one (*About 5 min read.*); regenerates the index and tag
-pages; then checks it with narrative-format and prints what's left.
+pages, and the Before you read and Where to go next of the narratives its prerequisites changed; then checks it with narrative-format and prints what's left.
 
 A new narrative needs --primary (its core tags) and --read (the saved sources it
 read in full); later runs reuse what was recorded unless given again.
@@ -32,13 +38,13 @@ Exit code: 0 finished with no errors, 1 when errors remain or it was refused,
 import argparse
 import os
 
-from sllmwiki.lib import citations, compat, figures, language, layout, manifest, markers, metadata, annotations, numbering, readingplan, runstats, templates, wikiindex, xrefs
+from sllmwiki.lib import citations, compat, figures, language, layout, manifest, markers, metadata, annotations, numbering, prerequisites, readingplan, runstats, templates, wikiindex, xrefs
 from sllmwiki.lib.narrativecheck import check as check_narrative
 from sllmwiki.lib.layout import Cli
 from sllmwiki.lib.util import comma_list, dumps, read_text, today, write_text
 
 cli = Cli('sllmwiki finish-narrative', 'usage: sllmwiki finish-narrative <slug> [--primary a,b] [--supporting c] [--read s1,s2] [--grades FILE] [--model NAME] '
-          '[--bump minor|major --note TEXT]')
+          '[--prerequisite SLUG ... | --no-prerequisites] [--bump minor|major --note TEXT]')
 
 
 def _latest_note(meta):
@@ -55,6 +61,8 @@ def main(argv):
     p.add_argument('--read', type=comma_list)
     p.add_argument('--grades')
     p.add_argument('--model')
+    p.add_argument('--prerequisite', action='append', metavar='SLUG')
+    p.add_argument('--no-prerequisites', action='store_true')
     p.add_argument('--bump', choices=['minor', 'major'])
     p.add_argument('--note')
     p.add_argument('--json', action='store_true')
@@ -62,6 +70,8 @@ def main(argv):
     args = p.parse_args(argv)
     if args.bump and not args.note:
         cli.usage('--bump needs --note, the history entry')
+    if args.prerequisite and args.no_prerequisites:
+        cli.usage('--prerequisite and --no-prerequisites exclude each other')
     root = cli.wiki(args.root)
     settings = cli.config(root).settings
     rel = f'{layout.NARRATIVES}/{args.slug}.md'
@@ -74,6 +84,16 @@ def main(argv):
     read = args.read if args.read is not None else list((recorded or {}).get('read', {}))
     if not primary:
         cli.fail(f'{args.slug} is new: pass --primary (its core tags) and --read (the saved sources it read)')
+    firsts = [] if args.no_prerequisites else list(dict.fromkeys(args.prerequisite)) if args.prerequisite else None
+    g = prerequisites.graph(manifest.load(root, 'narratives'))
+    g[args.slug] = list((recorded or {}).get('prerequisites') or {}) if firsts is None else firsts
+    missing = [s for s in g[args.slug] if not os.path.isfile(os.path.join(root, layout.NARRATIVES, f'{s}.md'))]
+    if missing:
+        cli.fail(f'a prerequisite is another narrative; there\'s no {", ".join(f"{layout.NARRATIVES}/{s}.md" for s in missing)}')
+    if args.slug in prerequisites.reach(g, args.slug):
+        loop = next(c for c in prerequisites.cycles(g) if args.slug in c)
+        cli.fail(f'{args.slug} would be its own prerequisite, through {", ".join(c for c in loop if c != args.slug) or "itself"}: '
+                 'a prerequisite explains what this narrative uses; leave out one that only relates to it')
 
     plan, grades, built_on = None, None, None
     if args.grades:
@@ -99,6 +119,7 @@ def main(argv):
 
     text = read_text(path)
     done = []
+    text = prerequisites.regenerate(root, args.slug, text, g, prerequisites.Infos(root), settings['language'])
     text, n = numbering.renumber(text)
     done += [f'numbered {n} heading(s)'] if n else []
     text, n = figures.renumber(text)
@@ -145,14 +166,21 @@ def main(argv):
     text = metadata.write(text, fields, history, plan)  # the template was read from the Metadata section, so there is one
     write_text(path, text)
     try:
-        manifest.put_narrative(root, args.slug, name, primary, supporting, read, grades, (version, model) if model else None, built_on)
+        manifest.put_narrative(root, args.slug, name, primary, supporting, read, grades, (version, model) if model else None, built_on, firsts)
     except manifest.ManifestError as e:
         cli.fail(f'recording {args.slug}: {e}')
     done.append(f'recorded {args.slug} (version {metadata.read(text)["version"]}, pins: {", ".join(read) or "none"})')
+    changed = prerequisites.sync(root, write=True)[1]
+    if changed:
+        done.append(f'rewrote Before you read and Where to go next in {len(changed)} narrative(s): {", ".join(changed)}')
+        xrefs.check_all(root, fix=True)  # a new Appendix renumbers the sections after it
+        text = read_text(path)
     changed = wikiindex.sync(root, write=True)[1]
     done += [f'regenerated {len(changed)} page(s): {", ".join(changed)}'] if changed else []
 
     check = check_narrative(root, rel, text, settings, offered)
+    check += [('warning', 'PREREQUISITE_INDIRECT', 1, f'{p} is already a prerequisite of {q}: leave it out of --prerequisite')
+              for s, p, q in prerequisites.indirect(g) if s == args.slug]
     errors = [f for f in check if f[0] == 'error']
     if args.json:
         print(dumps({'slug': args.slug, 'done': done, 'findings': [dict(zip(('severity', 'code', 'line', 'message'), f)) for f in check]}))

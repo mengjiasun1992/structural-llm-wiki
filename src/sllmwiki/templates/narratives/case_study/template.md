@@ -34,7 +34,3 @@ abstract_words: [80, 150]
 ## 9. Lessons
 
 <What carries over to other systems: each lesson tied to an idea at work, with the conditions it holds under and where it stops holding; and what would have changed the outcome, marked as ours.>
-
-## 10. Where to go next (optional)
-
-<The questions this opens, each a narrative of its own: linked when it exists, named when it doesn't.>
