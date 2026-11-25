@@ -43,12 +43,12 @@ Write each English paragraph and sentence so the reader parses it once:
 - **Who does what, first:** "The script checks the file"; drop the actor only when it is unknown.
 - **One idea per sentence,** most under 20 words. The rule or outcome first, its condition next; two or more conditions become a list.
 - **Exact words:** one plain verb ("decide", not "make a decision"; use, build, check, send, stop, fix); the exact noun, not "thing" or "stuff"; why it works or fails, not "good" or "bad".
-- **Numbers, not adjectives:** "from 120 ms to 80 ms", not "faster" or "significantly"; a change with its baseline; a date, not "recently". Then say what the number means for the running example ("so the queue never fills").
+- **Numbers, not adjectives:** "from 120 ms to 80 ms", not "faster" or "significantly"; "3 times in 10", not "often"; a change with its baseline; a date, not "recently". Then say what the number means for the running example ("so the queue never fills"). Three or more numbers to compare go in a table, not a sentence.
 - **Each clause its own sentence:** a result gets its own ("The wait lets the server recover"); a chain of nouns or of "of the … for the" becomes a clause ("when the token fails to refresh").
-- **Name what you mean:** each sentence is whole and makes sense alone. Write "it", "they" or "this" only when the sentence before is about one thing; otherwise repeat its name. Spell out an abbreviation at its first use in the body.
+- **Name what you mean:** each sentence is whole and makes sense alone. Write "it", "they" or "this" only when the sentence before is about one thing; otherwise repeat its name. Spell out an abbreviation at its first use in the body, then write only the abbreviation.
 - **Say what is:** "the data is inconclusive", not "the data does not conclusively show"; keep "not" for a contrast ("keys, not traffic").
 - **State it plainly:** a claim stands without "I think" or "arguably", hedged only as far as its source hedges; a view belongs to someone named and cited, never "experts agree".
-- **Every word earns its place:** start with the point; one word for a phrase ("to" for "in order to", "because" for "due to the fact that"); one of a redundant pair ("each and every"); no empty qualifier ("actually", "basically"); each point once, made, never announced ("This section explains …").
+- **Every word earns its place:** start with the point; one word for a phrase ("to" for "in order to", "because" for "due to the fact that"); one of a redundant pair ("each and every"); no modifier the word already implies ("end result", "completely eliminate"); no empty qualifier ("actually", "basically"); each point once, made, never announced ("This section explains …", "I want to point out that …").
 
 ## Ideas first, sources second
 
@@ -60,7 +60,7 @@ A list longer than five to seven items is grouped under a few named areas, each 
 
 ## One or two key examples
 
-One running example carries the narrative: each section that explains something comes back to it, so the reader never switches context to follow a point. A second only shows what the first can't. Others go in the Appendix, or are named in a sentence with a link. Pick the examples that fit this question; when a related narrative's key example fits just as well, reuse it, but set it all up here, in one place (a table often does); a link to that narrative only adds detail. Work anything computed on the running example, with its numbers, step by step, in a small table where it helps: a reader follows three numbers faster than one formula. Name each value for what it is (`past`, `pred`), not by a bare letter.
+One running example carries the narrative: each section that explains something comes back to it, so the reader never switches context to follow a point. A second only shows what the first can't. Others go in the Appendix, or are named in a sentence with a link. Pick the examples that fit this question; when a related narrative's key example fits just as well, reuse it, but set it all up here, in one place (a table does); a link to that narrative only adds detail. Work anything computed on the running example, with its numbers, step by step, in a small table where it helps: three numbers are easier to follow than one formula. Name each value for what it is (`past`, `pred`), not by a bare letter.
 
 ## The shape fits the content
 
@@ -74,7 +74,7 @@ The body holds what the reader needs to follow the answer; what they may want bu
 
 A picture earns its place when it saves the reader from building something in their head: how the parts fit, what happens in what order, how a state changes, a quantity's shape. Add one wherever it does, each teaching something new, up to `max_pictures`; none where it would only decorate. Choose the form by what it shows: boxes are no stand-in for a chart or geometry. What follows is a floor and rules of thumb, not a limit: judge each case by what helps this reader learn.
 
-- **Where it helps most:** the big picture, at the top of the steps it maps; the running example step by step, the same small diagram at each step rather than one dense one; before and after. Each step's diagram shows what it reuses from the steps before as well as what it adds. A comparison is often clearest as a table.
+- **Where it helps most:** the big picture, at the top of the steps it maps; the running example step by step, the same small diagram at each step rather than one dense one; before and after. Each step's diagram shows what it reuses from the steps before as well as what it adds. A comparison of three or more values is clearest as a table.
 - **The form:** whichever of the wiki's `picture_formats` shows this idea best; none comes first.
   - **Mermaid**, text each viewer draws: structure and flow in a standard shape, in the type that fits (`sequenceDiagram` for messages, `stateDiagram-v2` for states, `timeline` for history, `quadrantChart` for trade-offs on two axes, `mindmap` for a field's parts, `flowchart` for a process). Some viewers, GitHub's among them, clip a long node label: keep labels to a few words, or draw an SVG.
   - **An SVG** you draw controls every position: a curve, measured data, geometry, a layout to scale, or a diagram mermaid would crowd.

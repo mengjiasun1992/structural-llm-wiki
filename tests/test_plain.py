@@ -51,6 +51,23 @@ CASES = (  # (line, the codes it gets)
     ('The wait cuts load from 120 ms to 80 ms.', []),
     ('The two methods are compared fairly, with respect to x.', []),  # "fairly" and "with respect to" are exact here
     ('Each kind of narrative has a guide.', []),  # "kind of" naming a kind
+    # a comparison or frequency with no number
+    ('Retries often fail.', ['SENTENCE_VAGUE']),
+    ('The cache is generally warm.', ['SENTENCE_VAGUE']),
+    ('The fix ships soon.', ['SENTENCE_VAGUE']),
+    ('The new ring is faster.', ['SENTENCE_VAGUE']),
+    ('Backoff gives better results.', ['SENTENCE_VAGUE']),
+    ('Retries fail 3 times in 10, more often than reads.', []),  # the number is there
+    ('The new ring is faster: 80 ms instead of 120 ms.', []),
+    ('Retries add load when many clients fail at once.', []),  # "many" describes the scene
+    ('Each step says how often it runs.', []),  # a question, not a claim
+    # a modifier the word implies, a point announced
+    ('The end result is a full queue.', ['SENTENCE_FILLER']),
+    ('Backoff completely eliminates the spike.', ['SENTENCE_FILLER']),
+    ('I want to point out that the queue fills.', ['SENTENCE_FILLER']),
+    ('We would like to stress that retries wait.', ['SENTENCE_FILLER']),
+    ('Needless to say, the queue fills.', ['SENTENCE_FILLER']),
+    ('The result is a full queue.', []),
 )
 
 
@@ -96,6 +113,27 @@ class Plain(unittest.TestCase):
         title = '# What is a round-trip time (RTT)?\n\nThe RTT grows.\n'
         self.assertEqual(self.codes(title), [])  # the title spelled it out
         self.assertEqual(self.codes('# What is an RTT?\n\nThe RTT grows.\n'), ['ABBREV_UNDEFINED'])
+
+    def test_long_form_after_its_abbreviation(self):
+        cases = (  # (text after the title, the long forms reported)
+            ('The round-trip time (RTT) grows. The round-trip time shrinks.', []),  # the same line: written once more there
+            ('The round-trip time (RTT) grows.\n\nThe round-trip time shrinks.', ['round-trip time']),
+            ('The RTT (round-trip time) grows.\n\nThe Round-Trip Time shrinks.', ['Round-Trip Time']),
+            ('The round-trip time (RTT) grows.\n\nThe RTT shrinks.', []),
+            ('The round-trip time (RTT) grows.\n\nA round-trip time (RTT) again.', []),  # spelled out with it again
+            ('Customer agents (CSA) answer.\n\nThe customer agents wait.', []),  # the initials don't make CSA
+            ('Customer service associates (CSA) answer.\n\nThe customer service associates wait.', ['customer service associates']),
+            ('The time (RTT) grows.\n\nThe time shrinks.', []),  # one word isn't a long form
+            ('The round-trip time (RTT) grows.\n\n`round-trip time` in code.', []),
+            ('The round-trip time (RTT) grows.\n\n| round-trip time | 3 |', []),  # a table
+        )
+        for body, forms in cases:
+            with self.subTest(body=body[:50]):
+                found = [m.split('"')[1] for _, code, _, m in plain.check(f'# Q\n\n{body}\n', 'en') if code == 'ABBREV_LONG_FORM']
+                self.assertEqual(found, forms)
+        found = plain.check('# Q\n\nThe round-trip time (RTT) grows.\n\nThe round-trip time shrinks.\n', 'en')
+        self.assertEqual([(f[1], f[2]) for f in found], [('ABBREV_LONG_FORM', 5)])
+        self.assertIn('write RTT', found[0][3])
 
     def test_passive_share(self):
         active, passive = 'The server sends the reply.', 'The reply is sent by the server.'

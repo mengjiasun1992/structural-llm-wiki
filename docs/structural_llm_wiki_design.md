@@ -337,15 +337,15 @@ Every diagram and figure has a caption line under it, `*Figure 5-1: what it show
 Narratives are written in plain sentences (`shared-guide.md`, Plain sentences): one point per paragraph, in its first sentence; who does what first; one idea per sentence; exact words, and numbers rather than adjectives; and a name rather than an "it" the reader must resolve. The guide states each rule as what to do, not what to avoid. On an English narrative, `narrative-format` checks the parts a script can find without judging (`lib/plain.py`):
 
 - a sentence over 30 words (`SENTENCE_LONG`);
-- a filler phrase such as `in order to` or `this section explains`, a redundant pair such as `each and every`, or `I think` before a claim (`SENTENCE_FILLER`);
+- a filler phrase such as `in order to` or `this section explains`, a redundant pair such as `each and every`, a modifier the word implies such as `end result`, `I think` before a claim, or a point announced, such as `I want to point out that` (`SENTENCE_FILLER`);
 - a trailing `, allowing …` clause (`SENTENCE_TRAILING`);
 - an "it" or bare "this" with nothing clear to point at (`SENTENCE_REFERENCE`);
-- a vague word such as `thing` or `very`, or a qualifier a number should replace, such as `significantly` or `recently` (`SENTENCE_VAGUE`);
+- a vague word such as `thing` or `very`, or a qualifier a number should replace, such as `significantly` or `recently`; `often`, `soon`, `better` or `faster` only in a paragraph with no number, since one there usually gives the measure (`SENTENCE_VAGUE`);
 - an authority with no name, such as `experts agree` (`SENTENCE_UNSOURCED`);
-- an abbreviation not spelled out at its first use outside the title and Terminology, other than general computing ones such as `CPU` (`ABBREV_UNDEFINED`);
+- an abbreviation not spelled out at its first use outside the title and Terminology, other than general computing ones such as `CPU` (`ABBREV_UNDEFINED`), and its spelled-out words written again after it (`ABBREV_LONG_FORM`);
 - more than 15% of a narrative's sentences in the passive, once it has 20 (`PASSIVE_SHARE`). A single passive sentence is sometimes right, so only the share is reported.
 
-On any narrative, `narrative-format` also warns on a mermaid `pie` (`CHART_PIE`) and on an `xychart` axis with no title (`CHART_AXIS`). Lint judges what a script can't: a paragraph whose point isn't its first sentence, a number with no baseline, thin or contrary evidence left unsaid, an SVG chart without units.
+On any narrative, `narrative-format` also warns on a mermaid `pie` (`CHART_PIE`) and on an `xychart` axis with no title (`CHART_AXIS`). Lint judges what a script can't: a paragraph whose point isn't its first sentence, a number with no baseline, three or more numbers compared outside a table, thin or contrary evidence left unsaid, an SVG chart without units.
 
 These findings are warnings, since a long sentence is sometimes the clearest one. Lint's Reader check judges the rest: passive voice, nested clauses, noun stacks.
 
