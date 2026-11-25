@@ -222,9 +222,9 @@ class Check(helpers.WikiTestCase):
         found = json.loads(self.wc('--json').out)['findings']
         book = [(f['code'], f['message']) for f in found if f['code'].startswith('BOOK_')]
         self.assertEqual(book, [('BOOK_CYCLE', 'narratives built on each other in a cycle: x, y'),
-                                ('BOOK_LINK', '#nope: this narrative has no section #nope, in the book'),
-                                ('BOOK_LINK', 'what-is-alpha.md#9-metadata: what-is-alpha has no section #9-metadata, in the book')])
-        self.assertEqual([f['file'] for f in found if f['code'] == 'BOOK_LINK'], ['sllmwiki/narratives/y.md:34'] * 2)
+                                ('BOOK_LINK', '#nope: this narrative has no section #nope, in the book')])
+        self.assertEqual([f['file'] for f in found if f['code'] == 'BOOK_LINK'], ['sllmwiki/narratives/y.md:34'])
+        # the metadata is a section the book leaves out on purpose: the link keeps its text, and isn't a problem
         # the ghost, the missing source and the missing figure are the wiki's own checks' to report
         self.assertEqual(sum(f['code'] == 'LINK_PATH' for f in found), 3)
 

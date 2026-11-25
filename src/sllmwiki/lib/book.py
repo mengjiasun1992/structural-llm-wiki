@@ -210,8 +210,10 @@ class Rewritten:
 
 
 def _version_line(text, pack):
+    """The line under a chapter's title: when it last changed and its reading time; the narrative's version
+    number is bookkeeping, not for a reader."""
     m = metadata.read(text)
-    parts = ([f'{pack.t("Version")} {m["version"]}'] if m['version'] else []) + ([m['last_modified']] if m['last_modified'] else [])
+    parts = [m['last_modified']] if m['last_modified'] else []
     parts.append(pack.t('{n} min read').replace('{n}', str(metadata.reading(text)[1])))
     return f'*{" · ".join(parts)}*'
 
@@ -219,15 +221,17 @@ def _version_line(text, pack):
 def rewrite(root, book, slug):
     """Chapter slug of book rewritten for the book (design §5.3): a label
     before every heading; citations and links to sources to their Appendix A
-    entries; links to narratives, sections and tag pages to their labels; the
-    Metadata section replaced by a version line under the title. A link the
+    entries; links to narratives, sections and tag pages to their labels; what
+    isn't for a reader left out (_for_reader), Metadata replaced by a line under
+    the title with the date and reading time. A link the
     book can't resolve is BOOK_LINK, a figure that isn't there BOOK_FIGURE; a
     link to any other file in the repository keeps only its text."""
     rel = f'{layout.NARRATIVES}/{slug}.md'
     text = read_text(os.path.join(root, rel))
     _, pack = language.for_narrative(text, config.get(root).settings['language'])
     version = _version_line(text, pack)
-    text = metadata.without_reading_line(_without_metadata(text))  # the version line has the reading time
+    text, renamed = _for_reader(text)
+    text = metadata.without_reading_line(text)  # the line under the title has the reading time
     problems, targets, sources, figures = [], [], [], []
     own = numbering.anchors(text)
 
@@ -241,8 +245,10 @@ def rewrite(root, book, slug):
         path, frag = mdlinks.split(dest)
         where = f'{rel}:{n}'
         if not path:
-            if frag in own:
-                return '#' + section_label(slug, frag)
+            if renamed.get(frag):
+                return '#' + section_label(slug, renamed[frag])
+            if frag in renamed:  # a section the book leaves out
+                return None
             fail(dest, 'BOOK_LINK', where, f'{dest}: this narrative has no section #{frag}')
             return None
         to = mdlinks.resolve(rel, path)
@@ -260,10 +266,11 @@ def rewrite(root, book, slug):
                 return None
             if not frag:
                 return '#' + chapter_label(base)
-            if frag not in _anchors(root, base):
+            theirs = _anchors(root, base)
+            if frag not in theirs:
                 fail(dest, 'BOOK_LINK', where, f'{dest}: {base} has no section #{frag}')
                 return None
-            return '#' + section_label(base, frag)
+            return '#' + section_label(base, theirs[frag]) if theirs[frag] else None
         if folder == layout.TAGS_DIR and base:
             return '#' + part_label(base) if base in book.part_tags() else None
         if to == layout.INDEX:
@@ -328,17 +335,30 @@ def without_comments(text):
     return '\n'.join(out)
 
 
-def _without_metadata(text):
-    """text without its Metadata section, which the book replaces by a version line."""
-    span = numbering.section(text, 'Metadata')
-    lines = text.split('\n')
-    if span:
-        del lines[span[0]:span[1]]
-    return '\n'.join(lines).rstrip('\n') + '\n'
+LEFT_OUT = ('SMEs', 'Metadata', 'Sources read')  # sections the book leaves out: who to ask (people's names, in a file that
+# travels), the narrative's bookkeeping, and the sources it read, which Appendix A lists with their abstracts
+
+
+def _for_reader(text):
+    """(text without the sections in LEFT_OUT and its headings renumbered to close the gaps, {anchor in the
+    narrative: its anchor in the book, or None for a section left out})."""
+    before = numbering.anchors(text)
+    for name in LEFT_OUT:
+        span = numbering.section(text, name)
+        if span:
+            lines = text.split('\n')
+            del lines[span[0]:span[1]]
+            text = '\n'.join(lines)
+    text = text.rstrip('\n') + '\n'
+    kept = numbering.anchors(text)  # the headings kept, by their old numbers; renumbering keeps their lines
+    text, _ = numbering.renumber(text)
+    by_line = {h.line: a for a, h in numbering.anchors(text).items()}
+    return text, {a: (by_line[kept[a].line] if a in kept else None) for a in before}
 
 
 def _anchors(root, slug):
-    return numbering.anchors(_without_metadata(read_text(os.path.join(root, layout.NARRATIVES, f'{slug}.md'))))
+    """{anchor in narrative slug: its anchor in the book, or None for a section left out}."""
+    return _for_reader(read_text(os.path.join(root, layout.NARRATIVES, f'{slug}.md')))[1]
 
 
 # The generated pages (design §5.1), their labels and files in the staged folder

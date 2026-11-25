@@ -149,7 +149,7 @@ class Rewrite(helpers.WikiTestCase):
         b = book.model(self.root)
         r = book.rewrite(self.root, b, 'what-is-alpha')
         lines = r.text.split('\n')
-        self.assertEqual(lines[:4], ['(ch--what-is-alpha)=', '# What is alpha?', '', '*Version 1.0 · 2026-10-02 · 1 min read*'])
+        self.assertEqual(lines[:4], ['(ch--what-is-alpha)=', '# What is alpha?', '', '*2026-10-02 · 1 min read*'])
         self.assertIn('(what-is-alpha--5-how-does-it-work)=\n## 5. How does it work?', r.text)
         self.assertIn('twice as long [\\[1\\]](#src--alpha-doc).', r.text)  # a citation goes to Appendix A
         self.assertIn('1. [alpha-doc: details](#src--alpha-doc)', r.text)
@@ -173,10 +173,30 @@ class Rewrite(helpers.WikiTestCase):
         where = [p[1].split(':')[0] for p in r.problems]
         self.assertEqual(set(where), {'sllmwiki/narratives/how-is-beta-built.md'})
         self.assertEqual([(p[0], p[2].split(':')[0]) for p in r.problems], [
-            ('BOOK_LINK', '#nope'), ('BOOK_LINK', 'what-is-alpha.md#9-metadata'), ('BOOK_LINK', 'ghost.md'),
+            ('BOOK_LINK', '#nope'), ('BOOK_LINK', 'ghost.md'),  # a link to Metadata, left out, keeps its text
             ('BOOK_LINK', '../sources/nope.md#x'), ('BOOK_FIGURE', 'figures/how-is-beta-built/gone.png')])
         self.assertEqual(r.sources, ['alpha-doc', 'beta-doc'])
         self.assertEqual(r.figures, ['figures/how-is-beta-built/flow.svg'])
+
+    def test_what_isnt_for_a_reader_is_left_out(self):
+        # SMEs name people in a file that travels; Sources read repeats Appendix A; Metadata is bookkeeping
+        helpers.add_narrative(self.root, 'how-is-gamma-built', 'How is gamma built?', primary=('leaf-a',))
+        text = helpers.read(self.root, 'sllmwiki/narratives/how-is-gamma-built.md')
+        head, _, meta = text.partition('\n## ')
+        meta = '## ' + meta[meta.index('Metadata'):]
+        helpers.write(self.root, 'sllmwiki/narratives/how-is-gamma-built.md', head.rstrip('\n') + '\n\n'
+                      'See [who to ask](#3-smes), [the citations](#4-references) and [what was read](#41-sources-read); '
+                      'also [alpha\'s record](what-is-alpha.md#9-metadata).\n\n'
+                      '## 2. Body\n\nText.\n\n## 3. SMEs\n\n| Person | Why them | Ask them |\n|---|---|---|\n| @ann | wrote it | how? |\n\n'
+                      '## 4. References\n\n### 4.1 Sources read\n\n- alpha-doc: all of it\n\n### 4.2 Citations\n\n1. Cited.\n\n'
+                      '## 5. ' + meta[3:])
+        r = book.rewrite(self.root, book.model(self.root), 'how-is-gamma-built')
+        for gone in ('## 3. SMEs', '@ann', 'Sources read', 'all of it', 'Metadata'):
+            self.assertNotIn(gone, r.text)
+        self.assertIn('(how-is-gamma-built--1-body)=\n## 1. Body\n\nText.\n\n(how-is-gamma-built--2-references)=\n## 2. References\n\n'
+                      '(how-is-gamma-built--21-citations)=\n### 2.1 Citations', r.text)
+        self.assertIn('See who to ask, [the citations](#how-is-gamma-built--2-references) and what was read; also alpha\'s record.', r.text)
+        self.assertEqual(r.problems, [])
 
     def test_a_chinese_chapter(self):
         helpers.add_narrative(self.root, 'zh-ring', 'x')
@@ -186,8 +206,7 @@ class Rewrite(helpers.WikiTestCase):
         label = 'zh-ring--3-u73afu5982u4f55u5de5u4f5c'  # docutils drops non-ASCII from ids
         self.assertIn(f'({label})=\n## 3. 环如何工作', r.text)
         self.assertIn(f'[第三节](#{label})和[同一节](#{label})', r.text)
-        pack = language.pack('zh-Hans')
-        self.assertIn(f'*{pack.t("Version")} 2.0 · 2026-10-20 · 阅读约 1 分钟*', r.text)
+        self.assertIn('*2026-10-20 · 阅读约 1 分钟*', r.text)  # no version number: bookkeeping
         self.assertEqual(r.problems, [])
 
     def test_front_matter_is_left_out(self):
@@ -335,7 +354,7 @@ class Stage(unittest.TestCase):
         self.assertTrue(st.files['parts/leaf-a.md'].startswith(head(('root-topic', 'Root topic')) + '(part--leaf-a)=\n# Leaf a\n'))
         alpha = st.files['chapters/what-is-alpha.md']
         self.assertTrue(alpha.startswith(head(('root-topic', 'Root topic'), ('leaf-a', 'Leaf a'))
-                                         + '(ch--what-is-alpha)=\n# What is alpha?\n\n*Version 1.0 · 2026-10-02 · 1 min read*\n\n'), alpha[:500])
+                                         + '(ch--what-is-alpha)=\n# What is alpha?\n\n*2026-10-02 · 1 min read*\n\n'), alpha[:500])
         self.assertTrue(alpha.endswith('\n\n<div class="endmark">\n\n[sllmwiki](https://github.com/mengjiasun1992/structural-llm-wiki)\n\n</div>\n'))
         self.assertTrue(st.files['appendix-glossary.md'].startswith(head() + '(book--glossary)=\n# Appendix B: Glossary\n'))
         self.assertEqual((st.manifest['source'], st.manifest['models']), ('https://github.com/o/my-wiki', ['Claude Opus 5.5', 'some-model']))
