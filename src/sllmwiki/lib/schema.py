@@ -21,7 +21,7 @@ KINDS = ('text', 'html', 'pdf', 'epub', 'tex', 'code', 'link')
 
 
 class Field:
-    """kind: str, bool, date, slug, template, md5, url, enum, list, map,
+    """kind: str, bool, int (a positive whole number), date, slug, template, md5, url, enum, list, map,
     struct. A list has an item Field; a map a value Field (its keys are slugs,
     or versions with versions=True); a struct its own fields."""
 
@@ -34,6 +34,7 @@ SCHEMAS = {
     'tags': {
         'description': Field('str', required=True),
         'parent': Field('slug', required=True, nullable=True),
+        'order': Field('int'),  # its place among its siblings, roots included, set by sllmwiki manifest order-tags
         'smes': Field('list', item=Field('str')),
     },
     'sources': {
@@ -100,6 +101,10 @@ def _check(field, value, where, emit):
     if k == 'bool':
         if not isinstance(value, bool):
             emit('BAD_TYPE', where, f'{where} must be true or false')
+        return
+    if k == 'int':
+        if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+            emit('BAD_TYPE', where, f'{where} must be a whole number, 1 or more')
         return
     if not isinstance(value, str):
         emit('BAD_TYPE', where, f'{where} must be a string')

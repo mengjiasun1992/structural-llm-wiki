@@ -27,7 +27,7 @@ For consistency, read the Abstract and Terminology of each narrative sharing its
 
 **Audit the reasoning, slowly.** For each section with logical or mathematical reasoning (a derivation, a worked example, a chain of "so" and "therefore", a table of computed values), think it through at full effort: rebuild it yourself from only what the narrative has said up to that point, writing out every step, and recompute every number in code. Each step you had to supply is a finding (M, or H when a number or conclusion is wrong); fix it by writing the step into the narrative, never by cutting the reasoning. Then reread the section as fixed: a fix can contradict what was there.
 
-Formatting, links and numbering, figure captions included, are `sllmwiki narrative-format`'s and `sllmwiki wiki-check`'s: run them, don't check by hand. A figure's caption and alt text say what it shows; open its file only to check its numbers against the source.
+Formatting, links and numbering, figure captions included, are `sllmwiki narrative-format`'s and `sllmwiki wiki-check`'s: run them, don't check by hand. A `sllmwiki tag-tree review` finding on the narratives' tags is reviewed as `steps/tags.md` §4 says. A figure's caption and alt text say what it shows; open its file only to check its numbers against the source.
 
 ## 4. Grade the aim
 

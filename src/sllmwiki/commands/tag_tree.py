@@ -4,9 +4,14 @@
                                description (--brief: names and counts only)
   sllmwiki tag-tree show <tag>       a tag: description, parent, ancestors, children,
                                adjacent tags, SMEs, sources and narratives
+  sllmwiki tag-tree review           the tree, then each tag a reader may not expect
+                               where it is (exit 1 when there's one):
+      TAG_NO_PRIMARY   a leaf no narrative has as a primary tag
+      TAG_OTHER_ROOT   a tag most of whose narratives have their other primary tags
+                       under one other root
 
 Options: --json for machine-readable output; --root <wiki>.
-Exit code: 0, or 1 for an unknown tag, 2 for a usage error.
+Exit code: 0, or 1 for an unknown tag or a review finding, 2 for a usage error.
 """
 
 import argparse
@@ -15,7 +20,7 @@ from sllmwiki.lib import tagtree
 from sllmwiki.lib.layout import Cli
 from sllmwiki.lib.util import dumps
 
-cli = Cli('sllmwiki tag-tree', 'usage: sllmwiki tag-tree tree [--brief] | show <tag>')
+cli = Cli('sllmwiki tag-tree', 'usage: sllmwiki tag-tree tree [--brief] | show <tag> | review')
 
 
 def describe(tree, tag):
@@ -34,6 +39,7 @@ def main(argv):
     t.add_argument('--brief', action='store_true')
     s = sub.add_parser('show')
     s.add_argument('tag')
+    sub.add_parser('review')
     args = p.parse_args(argv)
     tree = tagtree.load(cli.wiki(args.root))
 
@@ -52,6 +58,20 @@ def main(argv):
         for sme in d['smes']:
             print(f'  sme: {sme}')
         return 0
+
+    if args.command == 'review':
+        findings = [{'code': c, 'tag': t, 'message': m} for c, t, m in tree.review()]
+        if args.json:
+            print(dumps({'tree': [{'tag': t, 'depth': d, 'parent': tree.parent(t)} for d, t in tree.walk()], 'findings': findings}))
+            return 1 if findings else 0
+        for depth, tag in tree.walk():
+            on = tree.narratives_of(tag)
+            print(f'{"  " * depth}{tag} ({len(on["primary"])} primary, {len(on["supporting"])} supporting): {tree.tags[tag].get("description")}')
+        print()
+        for f in findings:
+            print(f'{f["code"]:<16} {f["message"]}')
+        print(f'tag-tree review: {len(findings)} finding(s)')
+        return 1 if findings else 0
 
     rows = [{'tag': tag, 'depth': depth, 'description': tree.tags[tag].get('description'), 'sources': len(tree.sources_of(tag)),
              'narratives': sum(len(v) for v in tree.narratives_of(tag).values())} for depth, tag in tree.walk()]

@@ -1,7 +1,14 @@
 """The tag tree and what is derived from it (design doc §4.1-§4.2): children,
-ancestors, adjacent tags, and the sources and narratives filed under a tag."""
+ancestors, adjacent tags, and the sources and narratives filed under a tag.
+Siblings, roots included, come in the order the owner set (a tag's order, from
+sllmwiki manifest order-tags), then in file order; review() finds tags a reader
+may not expect where they are."""
+
+from collections import Counter
 
 from . import manifest
+
+REVIEW = ('TAG_NO_PRIMARY', 'TAG_OTHER_ROOT')
 
 
 class Tree:
@@ -11,11 +18,20 @@ class Tree:
     def parent(self, tag):
         return self.tags[tag].get('parent')
 
+    def _ordered(self, tags):
+        place = {t: i for i, t in enumerate(self.tags)}
+        order = {t: self.tags[t].get('order') for t in tags}
+        return sorted(tags, key=lambda t: (not isinstance(order[t], int), order[t] if isinstance(order[t], int) else 0, place[t]))
+
     def children(self, tag):
-        return [t for t, e in self.tags.items() if e.get('parent') == tag]
+        return self._ordered([t for t, e in self.tags.items() if e.get('parent') == tag])
 
     def roots(self):
-        return [t for t, e in self.tags.items() if not e.get('parent') or e['parent'] not in self.tags]
+        return self._ordered([t for t, e in self.tags.items() if not e.get('parent') or e['parent'] not in self.tags])
+
+    def root_of(self, tag):
+        chain = self.ancestors(tag)
+        return chain[-1] if chain else tag
 
     def ancestors(self, tag):
         """Parent first, up to the root; stops at a cycle."""
@@ -77,6 +93,31 @@ class Tree:
                 for t in (e.get('tags') or {}).get(role) or []:
                     if t not in self.tags:
                         out.append(('UNKNOWN_TAG', slug, f'narrative {slug}: no tag {t}'))
+        return out
+
+
+    def review(self):
+        """(code, tag, message) for a tag a reader may not expect where it is: a leaf no narrative has as a primary
+        tag (TAG_NO_PRIMARY), and a tag most of whose narratives have their other primary tags under one other
+        root (TAG_OTHER_ROOT). A parent with no narratives of its own is fine: it groups its children."""
+        out = []
+        for tag in self.tags:
+            on = self.narratives_of(tag)
+            if not on['primary'] and not self.children(tag):
+                out.append(('TAG_NO_PRIMARY', tag, f'{tag}: no narrative has it as a primary tag; check it is where a reader would look, '
+                                                   'or remove it (sllmwiki manifest remove tags)'))
+            filed = on['primary'] + on['supporting']
+            home, elsewhere = self.root_of(tag), Counter()
+            for n in filed:
+                roots = {self.root_of(t) for t in ((self.narratives[n].get('tags') or {}).get('primary') or []) if t != tag and t in self.tags}
+                if roots and home not in roots:
+                    elsewhere.update(roots)
+            if elsewhere:
+                other, count = elsewhere.most_common(1)[0]
+                if 2 * count > len(filed):
+                    out.append(('TAG_OTHER_ROOT', tag, f'{tag} is under {home}, but {count} of its {len(filed)} narrative(s) have their other '
+                                                       f'primary tags under {other}: move it there if a reader would look for it there '
+                                                       '(sllmwiki manifest move-tag)'))
         return out
 
 

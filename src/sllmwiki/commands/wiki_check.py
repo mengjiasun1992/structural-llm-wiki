@@ -55,6 +55,8 @@ Warnings:
   ABSTRACT_DRAFT            a source still has its starter abstract
   PAGE_HANDWRITTEN          a page where a generated one would go, left alone
   FIGURE_UNUSED             a figure in narratives/figures/ that no narrative shows
+  TAG_OTHER_ROOT            a tag most of whose narratives sit under another root: a reader may not
+                            look for it where it is (sllmwiki tag-tree review lists it, and more)
 
 --visibility skips asking GitHub who can see the wiki, and stands for its answer;
 Config.toml's visibility decides only when GitHub can't say. Exit code: 0 with no
@@ -107,6 +109,10 @@ def check(root, fix=False, seen_by=None):
     tree = tagtree.Tree(data['tags'], data['sources'], data['narratives'])
     for code, _, msg in tree.problems():
         add(('error', code, layout.TAGS, msg))
+    if not tree.problems():
+        for code, _, msg in tree.review():
+            if code == 'TAG_OTHER_ROOT':  # a tag with no narrative yet is normal mid-way: tag-tree review lists those
+                add(('warning', code, layout.TAGS, msg))
 
     sources, narratives = data['sources'], data['narratives']
     saved = {f for f in os.listdir(os.path.join(root, layout.SOURCES))} if os.path.isdir(os.path.join(root, layout.SOURCES)) else set()

@@ -38,4 +38,4 @@ Follow `steps/lint.md` for the narratives this run wrote or updated, inside this
 
 ## 8. Hand off
 
-Run `sllmwiki wiki-check --fix` and fix what it still reports; if anything changed, `sllmwiki publish commit lint --subject "wiki-check fixes"`. Then `sllmwiki publish pr`. Reply with the pull request's link, the questions answered and reused, and the decisions left for the owner.
+If the run added a tag, review the tree (`steps/tags.md` §4). Run `sllmwiki wiki-check --fix` and fix what it still reports; if anything changed, `sllmwiki publish commit lint --subject "wiki-check fixes"`. Then `sllmwiki publish pr`. Reply with the pull request's link, the questions answered and reused, and the decisions left for the owner.
