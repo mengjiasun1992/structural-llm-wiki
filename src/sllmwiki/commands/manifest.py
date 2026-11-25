@@ -3,6 +3,11 @@ so they're never edited by hand (design doc §4.2-§4.4).
 
   sllmwiki manifest add-tag <tag> --description TEXT [--parent TAG]
   sllmwiki manifest put-tag <tag> [--description TEXT] [--smes "@a: why" "@b: why" | --no-smes]
+  sllmwiki manifest move-tag <tag> (--parent TAG | --no-parent)
+      Moves a tag, with its children, under another parent or to the roots.
+  sllmwiki manifest order-tags <tag> <tag> ...
+      Orders siblings (the roots, or one parent's children) as listed, in the
+      index, the tag pages and tag-tree; the ones not listed follow.
   sllmwiki manifest put-source <slug> [--kind link [--drop-copy]] [--url URL] [--published DATE] [--license ID]
                          [--license-url URL] [--tags a,b] [--abstract TEXT]
       Records a link, or changes the fields of an existing source; saved copies
@@ -41,6 +46,13 @@ def parser():
     g = t.add_mutually_exclusive_group()
     g.add_argument('--smes', nargs='+')
     g.add_argument('--no-smes', action='store_true')
+    m = sub.add_parser('move-tag')
+    m.add_argument('tag')
+    where = m.add_mutually_exclusive_group(required=True)
+    where.add_argument('--parent')
+    where.add_argument('--no-parent', action='store_true')
+    o = sub.add_parser('order-tags')
+    o.add_argument('tags', nargs='+')
     s = sub.add_parser('put-source')
     s.add_argument('slug')
     s.add_argument('--kind', choices=['link'])
@@ -74,6 +86,12 @@ def main(argv):
         elif args.command == 'put-tag':
             manifest.put_tag(root, args.tag, args.description, [] if args.no_smes else args.smes)
             print(f'updated tag {args.tag}')
+        elif args.command == 'move-tag':
+            manifest.move_tag(root, args.tag, None if args.no_parent else args.parent)
+            print(f'moved tag {args.tag} ' + ('to the roots' if args.no_parent else f'under {args.parent}'))
+        elif args.command == 'order-tags':
+            manifest.order_tags(root, args.tags)
+            print(f'ordered tags {", ".join(args.tags)}')
         elif args.command == 'put-source':
             new = args.slug not in manifest.load(root, 'sources')
             manifest.put_source(root, args.slug, drop_copy=args.drop_copy, kind=args.kind, url=args.url, published=args.published, license=args.license,

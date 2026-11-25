@@ -289,6 +289,11 @@ def check(root, narratives):
 
 # Proposals: the evidence that one narrative uses another's concepts
 
+def linked(text):
+    """The narratives a narrative links to in what a reader reads (read_part): slugs."""
+    return {m.group('slug') for m in _TO.finditer(read_part(text))}
+
+
 def _terms(text):
     """The terms a narrative defines: the bold first cells of its Terminology and Glossary tables, lowercase."""
     out = set()
@@ -300,7 +305,7 @@ def _terms(text):
     return out
 
 
-def _read_part(text):
+def read_part(text):
     """What a reader of the narrative reads, for finding what it uses: no generated part, next reads, Terminology,
     Glossary, References, SMEs or Metadata, and link targets left as their text."""
     lines = text.split('\n')
@@ -331,7 +336,7 @@ def propose(root, slugs=None):
     for slug in sorted(slugs or texts):
         if slug not in texts:
             raise ValueError(f'no narrative {slug}')
-        body = _read_part(texts[slug])
+        body = read_part(texts[slug])
         prose = re.sub(r'\]\([^)]*\)', ']', body).lower()
         found = {}
         for other in sorted(texts):

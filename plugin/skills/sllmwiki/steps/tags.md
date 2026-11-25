@@ -8,8 +8,10 @@
 3. **Add what's missing** with `sllmwiki manifest add-tag <tag> --description "<one line>" --parent <tag>`:
    - kebab-case, as specific as the question needs;
    - under the closest existing parent;
-   - a new root only for a new field.
-4. **Summary:** `sllmwiki publish commit tags --json '{...}'`, which commits any new tags, with:
+   - a new root only for a new field;
+   - then look down as well as up: an existing tag, a root above all, that is a kind of the new tag or built on it moves under it (`sllmwiki manifest move-tag`).
+4. **Review the tree,** at the end of a run that added a tag, once its narratives are written (`build` §8), or right after adding when run on its own: `sllmwiki tag-tree review --new <the tags it added>` shows the whole tree, the tags a reader may not expect where they are, and the narratives that may use a new tag without it. Add the tag to each that does, at least as supporting, with `finish-narrative --supporting`. For each new tag and each other finding, check its parent against its siblings and its narratives' subjects: would a reader new to the area look for it there? Move one another parent fits better with `sllmwiki manifest move-tag <tag> --parent <tag>` (or `--no-parent`). When the roots don't run from foundations to what builds on them, order them with `sllmwiki manifest order-tags <root> <root> …`. Commit with `sllmwiki publish commit tags --json '{"title": "Tag tree review", ...}'`, listing each move and why, and each finding kept and why.
+5. **Summary:** `sllmwiki publish commit tags --json '{...}'`, which commits any new tags, with:
    - `title`: "Tags";
    - `checklist`: one item per question, naming its tags, for the owner to confirm;
    - `body`: a table of question, primary and supporting tags, with the new tags marked new.

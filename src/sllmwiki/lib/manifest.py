@@ -209,6 +209,45 @@ def add_tag(root, name, description, parent=None):
     return save(root, 'tags', name, {'description': description, 'parent': parent})
 
 
+def move_tag(root, name, parent=None):
+    """Put a tag under parent, or make it a root (parent None); its children move with it, and it takes the
+    last place among its new siblings."""
+    tags = load(root, 'tags')
+    if name not in tags:
+        raise ManifestError(f'no tag {name}')
+    if parent is not None and parent not in tags:
+        raise ManifestError(f'no parent tag {parent}')
+    chain, cur = [], parent
+    while cur and cur in tags and cur not in chain:
+        chain.append(cur)
+        cur = tags[cur].get('parent')
+    if name in chain:
+        raise ManifestError(f'{parent} is {name} or under it: a tag can\'t move under itself')
+    entry = {k: v for k, v in tags[name].items() if k != 'order'}
+    return save(root, 'tags', name, {**entry, 'parent': parent})
+
+
+def order_tags(root, names):
+    """Set the order of sibling tags (roots, or one parent's children): names first, in that order, then the
+    siblings not named, in file order."""
+    tags = load(root, 'tags')
+    unknown = [n for n in names if n not in tags]
+    if unknown:
+        raise ManifestError(f'no tag {", ".join(unknown)}')
+    parents = {tags[n].get('parent') for n in names}
+    if len(parents) != 1 or len(set(names)) != len(names):
+        raise ManifestError('order-tags orders siblings: name each once, all roots or all children of one parent')
+    parent = parents.pop()
+    for tag, e in tags.items():
+        if e.get('parent') != parent:
+            continue
+        entry = {k: v for k, v in e.items() if k != 'order'}
+        if tag in names:
+            entry['order'] = names.index(tag) + 1
+        if entry != e:
+            save(root, 'tags', tag, {**entry, 'parent': entry.get('parent')})
+
+
 def put_tag(root, name, description=None, smes=None):
     tags = load(root, 'tags')
     if name not in tags:

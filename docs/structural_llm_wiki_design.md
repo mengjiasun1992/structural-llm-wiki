@@ -183,6 +183,7 @@ For a question, each tag it touches is either **primary** (its core topic, read 
 request-handling:
   description: "Components that receive, route and serve requests"
   parent: null
+  order: 1                                 # its place among its siblings, here the roots
 
 gateway:
   description: "The gateway service: routes incoming API requests to the right backend"
@@ -192,7 +193,16 @@ gateway:
     - "@bob: 30 commits in the last 3 months"
 ```
 
-A tag stores only its description, its parent and its SMEs. Its children, sources and narratives are derived. Children come from `parent`, and sources and narratives from the manifests' `tags` fields. `tag-tree` answers questions about the tree, and `sllmwiki manifest add-tag` / `put-tag` write it. So the YAML is never edited by hand.
+A tag stores only its description, its parent, its place among its siblings and its SMEs. Its children, sources and narratives are derived. Children come from `parent`, and sources and narratives from the manifests' `tags` fields. `tag-tree` answers questions about the tree, and `sllmwiki manifest add-tag`, `put-tag`, `move-tag` and `order-tags` write it. So the YAML is never edited by hand.
+
+**Reviewing the tree** (issue #204). Each run adds a tag under whichever parent fits that run, so nothing used to look at the whole tree: tags landed where a reader wouldn't look, and roots came in the order they were made. A run that adds a tag now ends with a review (`steps/tags.md`): `sllmwiki tag-tree review` shows the whole tree and lists:
+
+- a leaf no narrative has as a primary tag (`TAG_NO_PRIMARY`);
+- a tag most of whose narratives have their other primary tags under another root (`TAG_OTHER_ROOT`, also a `wiki-check` warning, since a tag with no narrative yet is normal mid-way through a run);
+- a tag most of whose subtree's narratives link to, build on or need narratives under another root (`TAG_BUILDS_ON_ROOT`);
+- with `--new`, the narratives not filed under a new tag that link to its narratives or name it (`TAG_RETAG`).
+
+The owner's dry run showed why the last two are needed. A root added before the field it belongs to (`large-language-models` before `machine-learning`) was never flagged: the tags step only looked up for a parent, and narratives written before a tag existed never got it, so their primary tags couldn't show it. Links, `built_on` and prerequisites between narratives do show it. So the tags step also looks down when it adds a tag, a root above all, and adds a new tag to the narratives that use its subject. The agent checks each new tag's parent against its siblings and its narratives' subjects, and moves a tag with `move-tag`, never by hand. Siblings, the roots included, come in the order `order-tags` sets, then in file order, in the index, the tag pages and `tag-tree`; the owner orders the roots from foundations to what builds on them. A tree can't show what to read first across areas: that is the prerequisites' job (§4.5.2).
 
 **Schema.** `tags.yaml` and both manifests have a schema (`lib/schema.py`). The schema gives each field's kind, whether it is required, and rules across fields. `wiki-check` reports four kinds of field as errors: missing, unknown (with a did-you-mean hint), mistyped and invalid. The wiki's CI then fails the pull request.
 
