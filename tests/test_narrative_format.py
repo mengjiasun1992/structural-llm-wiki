@@ -101,6 +101,8 @@ class Checks(helpers.WikiTestCase):
         self.assertEqual([c for c, _ in self.codes(faq) if c == 'QUESTION_HEADING'], [], 'an FAQ in the Appendix may ask')
         after = faq.replace('### 8.2 Citations', '### 8.2 Citations?')  # a section after the Appendix is checked again
         self.assertIn('QUESTION_HEADING', [c for c, _ in self.codes(after)])
+        stated = text.replace('Requests fail', 'Read it second, after alpha. Requests fail')
+        self.assertIn('READING_ORDER_IN_BODY', [c for c, _ in self.codes(stated)])
         trailing = text.replace('Requests fail', 'Clients wait longer, allowing the server to recover. Requests fail')
         self.assertIn('SENTENCE_TRAILING', [c for c, _ in self.codes(trailing)])
         self.assertNotIn('SENTENCE_TRAILING', [c for c, _ in self.codes(trailing, language='zh-Hans')])  # English only

@@ -16,7 +16,9 @@ finish-narrative <slug> --prerequisite <slug> ...
 migrate brings a wiki's narratives to prerequisites, once: it moves each
 narrative's hand-written "Where to go next" section into its Appendix, where the
 generated Before you read and Where to go next go (keeping the pins on it, since
-nothing a reader reads changed), then prints propose's list for every narrative
+nothing a reader reads changed), lists each passage of a body that states a
+reading order (narrative-format's READING_ORDER_IN_BODY: record it as
+prerequisites, then remove it), then prints propose's list for every narrative
 that records no prerequisites yet.
 
 Exit code: 0, or 2 on a usage error or a narrative that isn't there.
@@ -25,7 +27,7 @@ Exit code: 0, or 2 on a usage error or a narrative that isn't there.
 import argparse
 import os
 
-from sllmwiki.lib import config, layout, manifest, prerequisites
+from sllmwiki.lib import config, language, layout, manifest, prerequisites
 from sllmwiki.lib.layout import Cli
 from sllmwiki.lib.util import dumps, read_text, write_text
 
@@ -49,9 +51,10 @@ def _print(found):
 
 
 def migrate(root):
-    """[narratives whose Where to go next moved]: moved, written, and the pins on them kept."""
+    """([narratives whose Where to go next moved], {slug: [(line, passage)]} stating a reading order): moved,
+    written, and the pins on them kept."""
     default = config.get(root).settings['language']
-    before, moved = {}, []
+    before, moved, stated = {}, [], {}
     for slug in sorted(manifest.load(root, 'narratives')):
         path = os.path.join(root, layout.NARRATIVES, f'{slug}.md')
         if not os.path.isfile(path):
@@ -62,10 +65,13 @@ def migrate(root):
             before[slug] = text
             write_text(path, new)
             moved.append(slug)
+        found = prerequisites.stated_order(new, language.for_narrative(new, default)[0])
+        if found:
+            stated[slug] = found
     prerequisites.sync(root, write=True)
     if before:
         manifest.repin(root, before)
-    return moved
+    return moved, stated
 
 
 def main(argv):
@@ -78,7 +84,7 @@ def main(argv):
     root = cli.wiki(args.root)
     if args.action == 'migrate' and args.slugs:
         cli.usage('migrate takes every narrative; name none')
-    moved = migrate(root) if args.action == 'migrate' else None
+    moved, stated = migrate(root) if args.action == 'migrate' else (None, None)
     try:
         found = prerequisites.propose(root, args.slugs or None)
     except ValueError as e:
@@ -86,10 +92,16 @@ def main(argv):
     if moved is not None:
         found = {s: f for s, f in found.items() if not f['prerequisites']}
     if args.json:
-        print(dumps({'moved': moved, 'narratives': found} if moved is not None else {'narratives': found}))
+        print(dumps({'moved': moved, 'reading_order': {s: [{'line': i, 'text': t} for i, t in f] for s, f in stated.items()},
+                     'narratives': found} if moved is not None else {'narratives': found}))
         return 0
     if moved is not None:
         print(f'moved Where to go next into the Appendix in {len(moved)} narrative(s)' + (f': {", ".join(moved)}' if moved else ''))
+        if stated:
+            print('reading orders stated in a body (record them as prerequisites, then remove them):')
+            for slug, f in stated.items():
+                for i, t in f:
+                    print(f'  {slug}:{i}: "{t}"')
         print('proposed prerequisites, for the narratives that record none:' if found else 'every narrative records its prerequisites')
     _print(found)
     return 0

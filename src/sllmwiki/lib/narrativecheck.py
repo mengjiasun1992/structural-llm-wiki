@@ -1,12 +1,12 @@
 """The checks sllmwiki narrative-format and sllmwiki finish-narrative run on a narrative
 (design doc §4.5, §4.8, §4.10): template sections, diagrams, numbers, lengths,
-citations, markers, readers' annotations, placeholders, doubled punctuation, plain sentences and markdown every
+citations, markers, readers' annotations, placeholders, doubled punctuation, plain sentences, a reading order stated in the body and markdown every
 renderer reads alike."""
 
 import os
 import re
 
-from . import annotations, citations, compat, figures, language, layout, manifest, markers, mdlinks, mermaid, metadata, numbering, plain, quotes, smes, xrefs
+from . import annotations, citations, compat, figures, language, layout, manifest, markers, mdlinks, mermaid, metadata, numbering, plain, prerequisites, quotes, smes, xrefs
 from .compat import mask_code_spans, mask_spans, scan
 
 PLACEHOLDER = re.compile(r'<(?!https?://|mailto:|/|!--)[^<>\n]*\s[^<>\n]*>')
@@ -130,6 +130,13 @@ def check_question_headings(text):
     return out
 
 
+def check_stated_order(text, tag):
+    """A reading order stated in the body (issue #213): the narrative's prerequisites generate it."""
+    return [('warning', 'READING_ORDER_IN_BODY', i, f'"{said}" states where this narrative sits in a reading order, which drifts as '
+             'narratives are added: record the order as prerequisites (finish-narrative --prerequisite), then remove the '
+             'statement and keep what is around it') for i, said in prerequisites.stated_order(text, tag)]
+
+
 def check(root, rel, text, settings, offered):
     """Every finding for one narrative, in line order."""
     out = []
@@ -175,7 +182,9 @@ def check(root, rel, text, settings, offered):
     out += mermaid.check_charts(text)
     out += mermaid.check_clicks(text)
     out += smes.check(text)
-    out += plain.check(text, language.for_narrative(text, settings['language'])[0])
+    tag = language.for_narrative(text, settings['language'])[0]
+    out += plain.check(text, tag)
+    out += check_stated_order(text, tag)
     lines = text.split('\n')
     kinds, _ = scan(lines)
     for i, line in enumerate(lines):

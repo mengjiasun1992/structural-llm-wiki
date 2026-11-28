@@ -258,7 +258,57 @@ class Command(Base):
         self.assertNotIn('READING_ORDER_OUTDATED', codes)
         r = self.run_cmd('migrate', '--json')
         self.assertEqual(json.loads(r.out)['moved'], [])
+        self.assertEqual(json.loads(r.out)['reading_order'], {})
         self.assertEqual(self.read(path(ALPHA)), moved)
+
+    def test_migrate_lists_a_reading_order_in_the_body(self):
+        self.write(path(BETA), self.read(path(BETA)).replace('Requests fail', 'Read it second, after alpha. Requests fail', 1))
+        r = self.run_cmd('migrate')
+        self.assertEqual(r.code, 0, r.err)
+        line = self.read(path(BETA)).split('\n').index(next(x for x in self.read(path(BETA)).split('\n') if 'Read it second' in x)) + 1
+        self.assertIn(f'reading orders stated in a body (record them as prerequisites, then remove them):\n  {BETA}:{line}: "Read it second"', r.out)
+        r = self.run_cmd('migrate', '--json')
+        self.assertEqual(json.loads(r.out)['reading_order'], {BETA: [{'line': line, 'text': 'Read it second'}]})
+        self.assertIn('Read it second', self.read(path(BETA)), 'listed, never removed: the writer keeps what is around it')
+
+
+class StatedOrder(unittest.TestCase):
+    """A reading order stated in a narrative's own sections (issue #213)."""
+
+    def found(self, body, tag='en', after=''):
+        text = f'# Q\n\n*About 3 min read.*\n\n## 1. Abstract\n\n{body}\n\n## 2. Background\n\nWords.\n{after}\n## 3. References\n'
+        return [said for _, said in prerequisites.stated_order(text, tag)]
+
+    def test_phrases(self):
+        for said in ('It is the first of three foundations narratives, read in order:', 'Read them in order.',
+                     '**Reading order.** First comes layers.', 'Read it second.', 'Read this one first.',
+                     'The foundations narratives, read before this one, explain it.', 'After this one, read the next.',
+                     'The other narratives in this series cover it.', 'In this series, in order, it comes last.',
+                     'This comes right after this narrative.'):
+            self.assertEqual(len(self.found(said)), 1, said)
+
+    def test_fine(self):
+        for said in ('The first of three steps sends the request.', 'Bytes arrive in reading order of the disk.',
+                     'Read the result first, then write.', 'The series converges.', 'Read [alpha](what-is-alpha.md) for more.',
+                     '`read in order`', 'In order to read it, open the file.'):
+            self.assertEqual(self.found(said), [], said)
+
+    def test_a_numbered_list_of_narratives(self):
+        links = '1. [Alpha](what-is-alpha.md)\n2. [Beta](how-does-beta-work.md#3-how-it-works)\n3. Gamma, once written'
+        self.assertEqual(self.found(links), ['1. [Alpha](what-is-alpha.md)'])
+        self.assertEqual(self.found(links, 'zh-Hans'), ['1. [Alpha](what-is-alpha.md)'], 'a list in any language')
+        self.assertEqual(self.found('1. Send it, as [alpha](what-is-alpha.md) says\n2. Wait\n3. Retry'), [], 'steps, mostly not links')
+        self.assertEqual(self.found('1. [Alpha](what-is-alpha.md)'), [], 'one item is a link, not an order')
+        self.assertEqual(self.found('1. [Alpha](what-is-alpha.md)\n\n   More on alpha.\n\n2. [Beta](how-does-beta-work.md)'),
+                         ['1. [Alpha](what-is-alpha.md)'], 'an item\'s indented paragraph keeps the list going')
+        self.assertEqual(self.found('```text\n1. [Alpha](what-is-alpha.md)\n2. [Beta](how-does-beta-work.md)\n```'), [], 'code')
+
+    def test_where_it_looks(self):
+        self.assertEqual(self.found('Read it second.', 'zh-Hans'), [], 'the phrases are English')
+        appendix = '\n## 3. Appendix\n\n### 3.1 Where to go next\n\n1. [Alpha](what-is-alpha.md)\n2. [Beta](how-does-beta-work.md)\n\nRead them in order.\n'
+        self.assertEqual(self.found('Words.', after=appendix), [], 'the Appendix holds the generated order and the writer\'s next reads')
+        text = '# Q\n\n*About 3 min read. Read first: [Alpha](what-is-alpha.md). Read it first.*\n\n## 1. Abstract\n\nWords.\n'
+        self.assertEqual(prerequisites.stated_order(text), [], 'the line under the title is generated')
 
 
 if __name__ == '__main__':
