@@ -10,7 +10,7 @@ In order: writes the Appendix's Before you read and Where to go next from the
 prerequisites, and the Read first pointer under the title (lib/prerequisites.py);
 numbers the headings and figure captions; numbers the citations by first use
 and rebuilds the Citations list to match; repairs links to a renumbered
-section of another narrative; moves references and markers inside their
+section, in another narrative or in this one; moves references and markers inside their
 sentence, before its closing punctuation; writes the renderer escapes; converts old markers
 and adds a Terminology row for each marker the narrative uses (when markers are on); defines
 readers' annotations in Terminology when a narrative has some (when reader_annotations is on); sets the

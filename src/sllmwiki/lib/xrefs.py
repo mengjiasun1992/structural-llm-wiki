@@ -4,7 +4,8 @@ of explaining it again. Section anchors carry the section's number, so a link
 breaks when its target renumbers; these find and repair that.
 
   check(root, rel, text)    findings (severity, NARRATIVE_ANCHOR, line, message)
-  repair(root, rel, text)   (text, links fixed): a link whose section only moved gets its new number
+  repair(root, rel, text)   (text, links fixed): a link whose section only moved gets its new number, a link
+                            to another narrative's section or to one of its own (#anchor) alike
   check_all(root, fix)      [(severity, code, file, message)] across the narratives; with fix, repaired first
 """
 
@@ -17,6 +18,7 @@ from .util import read_text, write_text
 
 _LINK = re.compile(r'\]\((?P<file>[^)\s#]+\.md)#(?P<anchor>[^)\s]+)\)')
 _NUMBER = re.compile(r'\A[0-9]+-?')
+_OWN = re.compile(r'\]\(#(?P<anchor>[^)\s]+)\)')
 
 
 def links(root, rel, text):
@@ -53,10 +55,20 @@ def check(root, rel, text):
             for i, m, target in _broken(root, rel, text)]
 
 
+def _own(text):
+    """[(line, match, text)] for each link to a section of the narrative itself that isn't there."""
+    lines = text.split('\n')
+    kinds, _ = scan(lines)
+    have = numbering.anchors(text)
+    return [(i, m, text) for i, line in enumerate(lines) if kinds[i] == 'text'
+            for m in _OWN.finditer(line) if m.group('anchor') not in have]
+
+
 def repair(root, rel, text):
     lines = text.split('\n')
     fixed = 0
-    for i, m, target in reversed(_broken(root, rel, text)):
+    found = sorted(_broken(root, rel, text) + _own(text), key=lambda f: (f[0], f[1].start()))
+    for i, m, target in reversed(found):
         new = moved(m.group('anchor'), target)
         if new:
             lines[i] = lines[i][:m.start('anchor')] + new + lines[i][m.end('anchor'):]

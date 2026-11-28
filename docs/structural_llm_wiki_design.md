@@ -319,7 +319,7 @@ A template's guide adds only what its kind of narrative needs.
 
 Sometimes a narrative mentions a concept that another narrative covers. It then links to that narrative, to its section where one fits. It says the concept in a sentence at most instead of explaining it again. So the wiki says each fact once, and its narratives connect.
 
-Section anchors carry the section's number. `narrative-format` and `wiki-check` report a link to a section that isn't there (`NARRATIVE_ANCHOR`). `finish-narrative` and `wiki-check --fix` repair a link whose section was only renumbered.
+Section anchors carry the section's number. `narrative-format` and `wiki-check` report a link to a section that isn't there (`NARRATIVE_ANCHOR`). `finish-narrative`, `wiki-check --fix` and `prerequisites migrate` repair a link whose section was only renumbered, matched by its title, a link to one of the narrative's own sections included. `migrate` once left 19 such links broken in a 27-narrative wiki, since moving a body section renumbers every section after it (issue #212).
 
 **Prerequisites.** A link says where a concept is explained; it doesn't tell a reader what to read first. A narrative records its prerequisites: the narratives whose concepts it uses without explaining them, its direct ones only (`finish-narrative --prerequisite`, issue #205). They aren't `built_on`, the writer's record of what it read: a writer may read a narrative a reader doesn't need first, and a reader may need one the writer never graded. The writer chooses them after writing: each term or idea used without a definition, and the narrative that defines it. `sllmwiki prerequisites propose` lists the evidence (`built_on`, links, terms another narrative defines), and lint checks it both ways: a term another narrative explains with no prerequisite on it, and a prerequisite the narrative never uses.
 
@@ -439,7 +439,7 @@ The [demo wiki](https://github.com/mengjiasun1992/sllmwiki-demo) has one: [`skim
 After any edit, the agent runs one command, `finish-narrative` (§7.5). It:
 
 - numbers the headings and figure captions;
-- repairs links to a renumbered section of another narrative;
+- repairs links to a renumbered section, in another narrative or in this one;
 - escapes what the renderers would misread (§4.8);
 - writes a typed `[->]` as `[→]`, and adds a Terminology row for each marker the narrative uses (when markers are on);
 - keeps the reading-time line under the title, when the narrative has one, equal to Metadata's Words (see below);
