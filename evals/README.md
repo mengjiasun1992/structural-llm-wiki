@@ -12,6 +12,7 @@ Unit tests (`tests/`) check the scripts; these evals check the skill's behavior:
 | route-query | a "what does the wiki say" question fires the skill, reads `query.md` and starts with `search.py context` | smoke, routing |
 | route-lint | a lint request reads `steps/lint.md` and gets each cited section from `cited-sections.py` | smoke, routing |
 | route-smes | a "who knows" request reads `steps/smes.md`, lists people with `sllmwiki contributors`, and never ranks them | smoke, routing |
+| lint-reasoning | a lint reports a worked example's times that add up to more than their total, and a "must" resting only on habit; it changes nothing | lint |
 | route-ingest | a request to save a source reads `steps/ingest.md` and saves through `fetch-source.py` | routing |
 | route-ambiguous | a request naming only a topic asks whether to answer or research, and changes nothing | smoke, routing |
 | query-answer | the answer comes from the wiki, cites its narrative or source, and changes nothing | smoke, query |

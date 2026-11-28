@@ -815,7 +815,7 @@ Lint is the judgment check: it reads what each claim cites and grades the narrat
 | Accuracy | claims their cited section doesn't support; quotations not found in the source; a number computed from a cited formula marked as ours |
 | Code | made-up symbols, wrong locations, design intent presented as current behavior |
 | Consistency | within a narrative: one value, part or idea called by two names; a section reworking an example instead of using the one set up; an example stated again in text, a table or a picture. Lint merges each example into the place it is first set up, in the narrative's names, and replaces the repeats with references. Across narratives that share tags: contradictions, differing terms, and one word with two meanings. A concept another narrative covers explained again, contradicted, or left without a link |
-| Reasoning | in each section that reasons or computes, rebuilt step by step from the narrative's own text at full effort, with every number recomputed in code: a skipped step, a rule or number asserted without its arithmetic, a quantity without its unit, a method explained with the one it replaces, a later sentence contradicting an earlier one; fixed by writing the step in, never by cutting the reasoning |
+| Reasoning | in each section that reasons or computes, audited from first principles at full effort, before reading its conclusion: premises sorted into facts and named assumptions, the result rebuilt from them toward what they give, every number recomputed in code against the limits they set, then compared. Findings: a "must" resting only on habit, a skipped step, a number past its limit, a step that only lands on the stated answer, a list called complete that misses a case, a later sentence contradicting an earlier one; fixed by writing the step in, never by cutting the reasoning. A derivation that breaks the writing guide (a unit, a rate, the method replaced) is a Reader finding |
 | Reader | the writing guide: context missing or said twice, terms used before they're defined, notation that changes, extra key examples, prose that tallies sources, filler, content that doesn't serve the question |
 | Aim | each axis of the template's aim graded met, partly or missed, with the evidence, helped by `narrative-format --stats` |
 
@@ -826,6 +826,8 @@ Everything mechanical is `narrative-format`'s and `wiki-check`'s, not lint's. Li
 3. it puts anything bigger at the top of the pull request as a decision for the owner: a missing or wrong section, a changed thesis, a source to re-ingest.
 
 Findings are numbered by severity (H1, M1, L1, …) so reviewers can refer to them.
+
+The reasoning audit follows the first-principles method the owner's wiki describes, with Descartes's rule of complete lists. Recomputing numbers catches arithmetic slips, but not a sound calculation on a premise that is only habit, or a derivation written backward from its answer; sorting the premises, rebuilding toward what they give and checking each number's limit catch those. The writing guide asks the same of the writer.
 
 ### 7.4 Reuse before writing
 
