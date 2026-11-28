@@ -16,8 +16,9 @@ finish-narrative <slug> --prerequisite <slug> ...
 migrate brings a wiki's narratives to prerequisites, once: it moves each
 narrative's hand-written "Where to go next" section into its Appendix, where the
 generated Before you read and Where to go next go (keeping the pins on it, since
-nothing a reader reads changed), lists each passage of a body that states a
-reading order (narrative-format's READING_ORDER_IN_BODY: record it as
+nothing a reader reads changed), repairs the links the renumbered sections broke,
+in the narrative and in those linking to it, lists each passage of a body that
+states a reading order (narrative-format's READING_ORDER_IN_BODY: record it as
 prerequisites, then remove it), then prints propose's list for every narrative
 that records no prerequisites yet.
 
@@ -27,7 +28,7 @@ Exit code: 0, or 2 on a usage error or a narrative that isn't there.
 import argparse
 import os
 
-from sllmwiki.lib import config, language, layout, manifest, prerequisites
+from sllmwiki.lib import config, language, layout, manifest, prerequisites, xrefs
 from sllmwiki.lib.layout import Cli
 from sllmwiki.lib.util import dumps, read_text, write_text
 
@@ -52,25 +53,28 @@ def _print(found):
 
 def migrate(root):
     """([narratives whose Where to go next moved], {slug: [(line, passage)]} stating a reading order): moved,
-    written, and the pins on them kept."""
+    written, the links the renumbering broke repaired, here and in the narratives linking here, and the pins on every
+    narrative this changed kept, since nothing a reader reads did."""
     default = config.get(root).settings['language']
     before, moved, stated = {}, [], {}
     for slug in sorted(manifest.load(root, 'narratives')):
         path = os.path.join(root, layout.NARRATIVES, f'{slug}.md')
         if not os.path.isfile(path):
             continue
-        text = read_text(path)
+        before[slug] = text = read_text(path)
         new, did = prerequisites.move_next(text, default)
         if did:
-            before[slug] = text
             write_text(path, new)
             moved.append(slug)
         found = prerequisites.stated_order(new, language.for_narrative(new, default)[0])
         if found:
             stated[slug] = found
     prerequisites.sync(root, write=True)
-    if before:
-        manifest.repin(root, before)
+    if moved:  # the Appendix and the sections after it renumbered
+        xrefs.check_all(root, fix=True)
+    changed = {s: t for s, t in before.items() if read_text(os.path.join(root, layout.NARRATIVES, f'{s}.md')) != t}
+    if changed:
+        manifest.repin(root, changed)
     return moved, stated
 
 

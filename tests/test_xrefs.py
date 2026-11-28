@@ -19,6 +19,16 @@ class Xrefs(helpers.WikiTestCase):
         self.write(BETA, beta('Retries, as [alpha explains](what-is-alpha.md#5-how-does-it-work), wait.'))
         manifest.put_narrative(self.root, 'how-does-beta-work', 'technical_brief_overview', ['leaf-a'], [], ['alpha-doc'])
 
+    def test_repair_own_links(self):
+        # issue #212: a link to one of the narrative's own sections, after a renumbering, is repaired the same way
+        text = beta('See [why](#9-how-does-it-work), [here](#5-how-does-it-work), [gone](#9-nope) and the alpha '
+                    '[way](what-is-alpha.md#9-how-does-it-work).\n\n```text\n[x](#9-how-does-it-work)\n```')
+        new, n = xrefs.repair(self.root, BETA, text)
+        self.assertEqual(n, 2)
+        self.assertIn('See [why](#5-how-does-it-work), [here](#5-how-does-it-work), [gone](#9-nope) and the alpha '
+                      '[way](what-is-alpha.md#5-how-does-it-work).', new)
+        self.assertIn('[x](#9-how-does-it-work)', new, 'code is left as it is')
+
     def test_check(self):
         self.assertEqual(xrefs.check(self.root, BETA, helpers.read(self.root, BETA)), [])
         text = beta('See [alpha](what-is-alpha.md#9-how-does-it-work), [nothing](what-is-alpha.md#9-nope), [gone](gone.md#x), '

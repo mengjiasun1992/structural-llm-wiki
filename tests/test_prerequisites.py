@@ -261,6 +261,28 @@ class Command(Base):
         self.assertEqual(json.loads(r.out)['reading_order'], {})
         self.assertEqual(self.read(path(ALPHA)), moved)
 
+    def test_migrate_repairs_the_links_it_renumbers(self):
+        # issue #212: moving a body section renumbers the sections after it, which links in this and other narratives use
+        alpha = self.read(path(ALPHA)).replace('## 7. Limitations', '## 7. Where to go next\n\n- How does delta work?\n\n## 8. Limitations')
+        alpha = alpha.replace('Requests fail', 'See [its limits](#8-limitations-and-failure-modes) and [next](#7-where-to-go-next). Requests fail', 1)
+        alpha = alpha.replace('## 8. References', '## 9. References').replace('### 8.1 Sources', '### 9.1 Sources').replace('### 8.2 Cit', '### 9.2 Cit')
+        alpha = alpha.replace('## 9. Metadata', '## 10. Metadata')
+        self.write(path(ALPHA), alpha)
+        beta = self.read(path(BETA)).replace('Requests fail', 'Alpha [has limits](what-is-alpha.md#8-limitations-and-failure-modes). Requests fail', 1)
+        self.write(path(BETA), beta)
+        text = self.read('sllmwiki/narratives/manifest.yaml')
+        self.write('sllmwiki/narratives/manifest.yaml', text.rstrip('\n') + f'\n  built_on:\n    {ALPHA}: {manifest.narrative_hash(alpha)}\n'
+                                                                       f'    {BETA}: {manifest.narrative_hash(beta)}\n')
+        r = self.run_cmd('migrate')
+        self.assertEqual(r.code, 0, r.err)
+        alpha, beta = self.read(path(ALPHA)), self.read(path(BETA))
+        self.assertIn('See [its limits](#7-limitations-and-failure-modes) and [next](#81-where-to-go-next).', alpha)
+        self.assertIn('Alpha [has limits](what-is-alpha.md#7-limitations-and-failure-modes).', beta)
+        codes = self.codes()
+        for code in ('NARRATIVE_ANCHOR', 'MD051', 'NARRATIVE_BASE_CHANGED'):
+            self.assertNotIn(code, codes)
+        self.assertEqual(self.entry(GAMMA)['built_on'], {ALPHA: manifest.narrative_hash(alpha), BETA: manifest.narrative_hash(beta)})
+
     def test_migrate_lists_a_reading_order_in_the_body(self):
         self.write(path(BETA), self.read(path(BETA)).replace('Requests fail', 'Read it second, after alpha. Requests fail', 1))
         r = self.run_cmd('migrate')
