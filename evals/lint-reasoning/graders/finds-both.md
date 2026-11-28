@@ -1,6 +1,5 @@
 ---
 type: llm
-target: last_message
 ---
 
 The narrative's worked example says a client that gives up after 10 seconds waits 7 seconds and spends 6 seconds on its tries, so waiting is 70% of its time. That is impossible: 7 + 6 = 13 seconds is more than the 10 seconds it has. The example also says a client "must" double its wait "because that is what retry libraries do", which rests on habit, not on a fact (the cited source only says each retry waits twice as long).
