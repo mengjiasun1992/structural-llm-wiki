@@ -372,3 +372,52 @@ def move_next(text, default=language.DEFAULT):
     if metadata.read(text)['words']:
         text = metadata.write(text, {'words': metadata.reading_label(text)})
     return text, True
+
+
+# A reading order written into the body (issue #213): prerequisites generate the order, so a hand-written one drifts
+
+_ORDINAL = r'(?:first|second|third|fourth|fifth|sixth|last|next)'
+_COUNT = r'(?:two|three|four|five|six|seven|eight|nine|ten|[0-9]+)'
+STATED = re.compile('|'.join((
+    r'\bread (?:them |these |it |this |the [a-z]+ )?in (?:this |that |the following )?order\b',
+    r'\bread (?:it|this(?: one| narrative)?) ' + _ORDINAL + r'\b',
+    r'\b' + _ORDINAL + r' of ' + _COUNT + r'(?: [a-z-]+){0,2} (?:narratives|articles|pieces|essays|installments)\b',
+    r'\b(?:read|comes?|came) (?:just |right )?(?:before|after) this (?:one|narrative)\b',
+    r'\b(?:before|after) this (?:one|narrative),? (?:comes?|read)\b',
+    r'\b(?:narratives?|articles?|pieces?) (?:in|of) (?:this|the) series\b',
+    r'\bin this series,? in order\b',
+    r'(?:^|[*_(]|\. )reading order\b[.:]',
+)), re.I)
+_ITEM = re.compile(r'\s*[0-9]+[.)]\s+\S')
+
+
+def stated_order(text, tag=language.DEFAULT):
+    """[(line, excerpt)]: each passage of the narrative's own sections (from its first ## up to the Appendix or the
+    shared sections after it) that states where it sits in a reading order: a phrase like "read in order" or "the first
+    of three narratives" (English only), or a numbered list whose items are mostly links to other narratives."""
+    lines = text.split('\n')
+    heads = [h for h in numbering.headings(text) if h.level == 2]
+    stop = set().union(*(_names(n) for n in (APPENDIX,) + BOTTOM))
+    start = heads[0].line if heads else len(lines)
+    end = next((h.line for h in heads if re.sub(r'\A[0-9.]+\s+|\s*\(optional\)\Z', '', h.title).lower() in stop), len(lines))
+    kinds, _ = compat.scan(lines)
+    english = tag.lower().split('-')[0] == 'en'
+    out, run = [], []
+
+    def close():
+        if len(run) >= 2 and sum(1 for _, has in run if has) * 2 > len(run):
+            out.append((run[0][0] + 1, compat.mask_spans(lines[run[0][0]]).strip()[:60]))
+        run.clear()
+
+    for i in range(start, end):
+        line = compat.mask_spans(lines[i]) if kinds[i] == 'text' else ''
+        if _ITEM.match(line):
+            run.append((i, bool(_TO.search(line))))
+            continue
+        if line.strip() and not line.startswith((' ', '\t')):
+            close()
+        m = STATED.search(line) if english else None
+        if m:
+            out.append((i + 1, m.group(0).strip(' *_(.')))
+    close()
+    return sorted(out)
